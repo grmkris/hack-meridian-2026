@@ -4,6 +4,7 @@ import { Layer } from 'effect'
 import { getOAuthApi, type OAuthHelpers } from '@cloudflare/workers-oauth-provider'
 
 import { makeApiHandler } from './server/app.ts'
+import { canonicalRedirect } from './server/canonical.ts'
 import { durableKv } from './server/kv-shim.ts'
 import { authorize, OAuthProvider, prepareGrant, providerOptions, serveMcpRequest } from './server/oauth.ts'
 import { ownerRoute } from './server/routes.ts'
@@ -77,6 +78,9 @@ const api = makeApiHandler(Layer.effectContext(runtime.contextEffect))
 
 export default {
   fetch(request, requestEnv, ctx) {
+    // A stage with ORIGIN has one identity: any other host (workers.dev, www) is redirected there first.
+    const moved = canonicalRedirect(request, requestEnv.ORIGIN)
+    if (moved !== undefined) return moved
     // A deployed stage names its public origin (ORIGIN): the OAuth issuer and the protected-resource metadata are
     // that URL whatever host the request came through; locally the request's own origin.
     const origin =

@@ -6,14 +6,39 @@ import { fileURLToPath } from 'node:url'
 
 /**
  * The one stack: the Foldkit app and its Worker (src/worker.ts, which answers /api) as one Cloudflare Worker with
- * static assets. Stages: `local` under `alchemy dev` (bun run dev) and `testnet` on workers.dev. Every stage keeps its
- * Alchemy state in this checkout (.alchemy/, gitignored), so nothing here touches the account's shared state store,
- * whose version moves with myapps and goblin. Run it only through scripts/stage.ts.
+ * static assets. Stages: `local` under `alchemy dev` (bun run dev), `testnet` and `mainnet` on workers.dev and their
+ * trynod.si hostnames (DOMAINS). Every stage keeps its Alchemy state in this checkout (.alchemy/, gitignored), so nothing
+ * here touches the account's shared state store, whose version moves with myapps and goblin. Run it only through
+ * scripts/stage.ts.
  */
 const STAGES = ['local', 'testnet', 'mainnet'] as const
 /** Stellar mainnet: real money. Defined here, deployed only on Kristjan's explicit call. */
 const isMainnet = (stage: string) => stage === 'mainnet'
 const path = (relative: string) => fileURLToPath(new URL(relative, import.meta.url))
+
+/**
+ * Each stage's public hostnames in the trynod.si zone, canonical first (docs/DOMAIN.md). The canonical one is the
+ * default ORIGIN; RP_ID defaults to the zone, so one passkey works on both stages. A stage whose ORIGIN is its canonical
+ * hostname gets the hostnames as Cloudflare custom domains (Alchemy creates the DNS records and certificates); an
+ * ORIGIN pinned elsewhere in `.env.<stage>` (the workers.dev URL) keeps the domain unattached, so a stage has one
+ * identity. workers.dev stays enabled; the Worker sends every other host to ORIGIN (src/server/canonical.ts).
+ */
+const ZONE = 'trynod.si'
+const DOMAINS: Record<(typeof STAGES)[number], ReadonlyArray<string>> = {
+  local: [],
+  testnet: [`testnet.${ZONE}`],
+  mainnet: [ZONE, `www.${ZONE}`],
+}
+const hostsOf = (stage: string): ReadonlyArray<string> => {
+  const known = STAGES.find(name => name === stage)
+  return known === undefined ? [] : DOMAINS[known]
+}
+/** The Worker `domain` prop, by name only (a zone pin makes `alchemy drift` report the Worker on every run). */
+const customDomain = (stage: string, origin: string | undefined) => {
+  const [name, ...aliases] = hostsOf(stage)
+  if (name === undefined || origin === undefined || new URL(origin).origin !== `https://${name}`) return undefined
+  return aliases.length === 0 ? { name } : { name, aliases }
+}
 
 /** The public record of the contracts on testnet (ids and hashes), written by `bun run contracts:deploy`. */
 const Deployment = Schema.Struct({
@@ -47,8 +72,8 @@ const SECRETS = [
 const switchesFor = (stage: string): Record<string, string> => ({
   CHAIN: isMainnet(stage) ? 'stellar' : 'fixture',
   X402_FACILITATOR_URL: '',
-  RP_ID: '',
-  ORIGIN: '',
+  RP_ID: hostsOf(stage).length === 0 ? '' : ZONE,
+  ORIGIN: hostsOf(stage).map(host => `https://${host}`)[0] ?? '',
   MAX_GRANT_USDC: '20',
   MAX_OWNER_PAYMENT_USDC: isMainnet(stage) ? '50' : '100',
   MAX_X402_PRICE_USDC: '1',
@@ -98,7 +123,16 @@ const walletEnv = (stage: string) =>
       return yield* Effect.die(
         new Error(`CHAIN=${switches['CHAIN']} needs RELAYER_SECRET and VAULT_KEY (apps/web/.env.${stage})`),
       )
-    return { ...secrets, ...switches }
+    // Passkeys made on ORIGIN must be able to name RP_ID: it is ORIGIN's host or a parent of it (a half-done cutover,
+    // one of the two pinned in .env.<stage> and the other from DOMAINS, fails here instead of at the first passkey).
+    const origin = switches['ORIGIN']
+    const rpId = switches['RP_ID']
+    if (origin !== undefined && rpId !== undefined) {
+      const host = new URL(origin).hostname
+      if (host !== rpId && !host.endsWith(`.${rpId}`))
+        return yield* Effect.die(new Error(`RP_ID ${rpId} does not cover ORIGIN ${origin} (apps/web/.env.${stage})`))
+    }
+    return { bindings: { ...secrets, ...switches }, origin }
   })
 
 /**
@@ -144,6 +178,8 @@ export default Alchemy.Stack(
       return yield* Effect.die(new Error(`Only the ${STAGES.join(' and ')} stages are defined, not ${stage}.`))
     // The commit scripts/stage.ts deploys, which /api/health reports.
     const release = yield* Config.String('HM_RELEASE').pipe(Config.withDefault('local'))
+    const wallet = yield* walletEnv(stage)
+    const domain = customDomain(stage, wallet.origin)
     // The eight entities of docs/SPEC.md; the wallet's Durable Object is their only writer for money state.
     const db = yield* Cloudflare.D1.Database('WalletDb', {
       name: `hack-meridian-${stage}-wallet`,
@@ -155,6 +191,7 @@ export default Alchemy.Stack(
       rootDir: path('./'),
       main: 'src/worker.ts',
       workersDev: true,
+      ...(domain === undefined ? {} : { domain }),
       // global_fetch_strictly_public: workers-oauth-provider fetches CIMD client documents (docs/spikes/s4.md).
       compatibility: { date: '2026-10-09', flags: ['global_fetch_strictly_public'] },
       observability: { enabled: true },
@@ -192,7 +229,7 @@ export default Alchemy.Stack(
         OAUTH_STORE: Cloudflare.DurableObject('OAuthStore', { className: 'OAuthStore' }),
         // /sample's lock, rate limits and run logs; a run executes in its alarm (apps/web/src/server/sample).
         SAMPLE_RUNNER: Cloudflare.DurableObject('SampleRunner', { className: 'SampleRunner' }),
-        ...(yield* walletEnv(stage)),
+        ...wallet.bindings,
       },
     })
     return { url: web.url, walletDatabase: db.databaseId }
