@@ -85,6 +85,4 @@ restarted by that session (migration 0004 needs a fresh start).
 CORS `*`, 5-minute cache, ACCOUNTS = the stage's relayers and treasury). `home_domain = testnet.trynod.si` is set on
 `GBCALSA3…` (`5e7d299a…`), `GAWYWVMH…` (`653755e9…`) and `GB4F3NUA…` (`c1b51014…`) via `scripts/mainnet/home-domain.ts
 --network testnet`. Mainnet: `HM26_MAINNET_GO=yes bun scripts/mainnet/home-domain.ts --network pubnet` after the
-mainnet stage serves its own file. This box has a temporary `/etc/hosts` line for `testnet.trynod.si`, `trynod.si` and
-`www.trynod.si` (its resolver negative-cached the name while the zone was pending); remove it once `resolvectl query
-testnet.trynod.si` answers.
+mainnet stage serves its own file. The box's resolver (netcup) had negative-cached the name from before the zone was live; it resolves now (no hosts entry). Note: the apex `trynod.si` and `www.trynod.si` have no DNS records until the mainnet stage deploys with its custom domain; until then the apex does not resolve.
