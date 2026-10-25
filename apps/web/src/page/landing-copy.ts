@@ -77,7 +77,7 @@ export const TRUST = {
     {
       id: 'revoke',
       title: 'Revoke any time',
-      body: 'Nod stops at once, and the allowance is removed from your Stellar account.',
+      body: 'Nod stops signing at once. One passkey tap removes the allowance from your Stellar account.',
     },
     {
       id: 'gas',
@@ -111,7 +111,7 @@ export const PROOF = {
     },
     {
       hash: '55beab6dd2866dd95f6bfcc7209d4c3c7e8a423d4955de5607a6009da1003279',
-      claim: 'Revoke removes the allowance rule from the account',
+      claim: 'One passkey tap removes the allowance rule from the account',
     },
     {
       hash: '00129674edaed2fcce96c73745587f2c599704850c182c38f7d7c12ab5ee55a6',

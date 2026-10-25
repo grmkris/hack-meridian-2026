@@ -23,12 +23,12 @@ exceptions.
 
 ## How it works
 
-| You want…                        | Who signs                               | What enforces it                                                  |
-| -------------------------------- | --------------------------------------- | ----------------------------------------------------------------- |
-| Claude to buy a 0.10 USDC report | Claude's own key, inside its allowance  | the account's context rule and spending-limit policy, with expiry |
-| Claude to send Alice 2 USDC      | Claude's own key, inside its allowance  | the same rule; the same allowance counts both                     |
-| Claude to send Bob 20 USDC       | **you**, with your passkey, from a link | the account checks the passkey signature over that exact payment  |
-| to stop Claude                   | you, on the site                        | the service stops at once; the rule is removed from the account   |
+| You want…                        | Who signs                               | What enforces it                                                    |
+| -------------------------------- | --------------------------------------- | ------------------------------------------------------------------- |
+| Claude to buy a 0.10 USDC report | Claude's own key, inside its allowance  | the account's context rule and spending-limit policy, with expiry   |
+| Claude to send Alice 2 USDC      | Claude's own key, inside its allowance  | the same rule; the same allowance counts both                       |
+| Claude to send Bob 20 USDC       | **you**, with your passkey, from a link | the account checks the passkey signature over that exact payment    |
+| to stop Claude                   | you, on the site                        | the service stops at once; one passkey tap removes the rule onchain |
 
 - **One allowance per AI app.** Connecting an app over OAuth and approving its allowance with your passkey is one step;
   the allowance is a rule on your account, separate for each app, expiring, revocable.
@@ -56,7 +56,7 @@ and a device that can create a passkey. New wallets receive 10 testnet USDC.
    (2.90 left) · "Pay Bob 5 USDC for dinner" (more than what is left, so Claude returns a link; open it and approve with
    your passkey) · "Send Carol 1 USDC" (Carol has no USDC trustline: a claim link she signs; trustline and payment land
    in one transaction).
-4. **Revoke** Claude on the site under Connections; its next payment is refused.
+4. **Revoke** Claude on the site under Connections, then remove its rule with your passkey; its next payment is refused.
 
 Expected results for every step, with reference transactions: [evidence/JUDGE-TEST-PATH.md](evidence/JUDGE-TEST-PATH.md).
 

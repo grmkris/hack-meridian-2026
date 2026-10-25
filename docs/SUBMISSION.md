@@ -77,7 +77,8 @@ AI app is what you allowed.
 - **Ask twice, pay once.** A repeated request returns the same receipt.
 - **Pays people who have never held USDC.** Carol has no trustline: she signs a claim link once, and her trustline and
   the 5 USDC land in one transaction.
-- **Revoke.** Nod stops at once, the rule is removed from your account and the leftover balance is swept back.
+- **Revoke.** Nod stops signing at once and sweeps the leftover balance back; one passkey tap removes the rule from your
+  account.
 
 #### How it uses Stellar (what it composes)
 
