@@ -191,3 +191,11 @@ A confirming full run follows. Hashes: Alice 2 USDC `42c8aa3b…` (28.8 XLM fee,
 `2577fefc…`, Carol claim `9e2f5c16…`, rule removal `95c909b0…`, sweep `1975a39d…`. `scripts/demo/topup.ts` tops up a
 wallet from the treasury (for the recording wallet). Service follow-ups: include the pull hash on failed purchases;
 expose deploy and install hashes.
+
+## Reference run: all nine acceptance tests pass on the public URL (15:12 UTC, `evidence/demo/2026-10-25T15-12-52-316Z/`)
+
+Release 19e1c13 with the seller preferring OpenZeppelin Channels, 204 s end to end. Pull into the pocket `97847912…`
+(91 XLM at rent factor 219, relayer), settlement `e3e62e07…` (fee paid by OpenZeppelin Channels), Alice `fb77bd0f…`,
+Bob via passkey `fbfd200c…`, Carol claim `565b7f07…`, rule removed `55beab6d…`, sweep `00129674…`. Judge test path
+section 3 carries this run. Next: redeploy HEAD (36f8466: failed-purchase accounting, lifecycle hashes, 600 XLM cap,
+vault test fix), then the optional `/sample` page.
