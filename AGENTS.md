@@ -51,6 +51,9 @@ Bun 1.4.2 · Node 24 · TypeScript 7.0.2 · Effect 4.0.5 · Foldkit 0.169.0 (`@f
    build). It must be green for the paths you own.
 3. Running app: `bun run dev` (long-running, not through `heavy`), then `bun run smoke:local` and `bun run shots`
    (read the PNGs in `.local/shots/`). With the app open, the `foldkit-devtools` MCP shows Model and Message history.
+   `bun scripts/site-e2e.ts local` walks the owner's path with a real WebAuthn ceremony (Chrome's virtual
+   authenticator): create a wallet, every page, sign out, sign back in; screenshots in `.local/e2e/`. Site work
+   without the service: `VITE_BACKEND=fixture bun run --cwd apps/web dev` (or `fixture-signed-out`).
 4. Contract change: `bun run contracts:test`, `bun run contracts:deploy` (testnet), `stellar contract invoke … --id
    hm-counter`, then `bun run contracts:bindings` and commit the regenerated package with the deployment record.
 5. Deployed: `bun run deploy:testnet`, `bun run smoke:testnet`, `bun run shots testnet`.
