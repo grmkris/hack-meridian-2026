@@ -151,7 +151,12 @@ describe('the legacy lane (protocol revisions up to 2025-11-25)', () => {
   test('initialize names Nod, offers tools and carries the instructions', async () => {
     const result = resultOf(await rpc('initialize', INITIALIZE))
     expect(result['protocolVersion']).toBe('2025-11-25')
-    expect(result['serverInfo']).toEqual({ name: 'Nod', version: '0.1.0' })
+    expect(result['serverInfo']).toMatchObject({
+      name: 'Nod',
+      version: '0.1.0',
+      title: 'Nod',
+      icons: [{ src: `${ORIGIN}/favicon.svg`, mimeType: 'image/svg+xml' }],
+    })
     expect(result['capabilities']).toMatchObject({ tools: {} })
     expect(String(result['instructions'])).toContain('approval_url')
   })

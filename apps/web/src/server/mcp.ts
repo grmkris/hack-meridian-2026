@@ -25,6 +25,15 @@ export interface McpAuth {
 const INSTRUCTIONS =
   "Nod: the user's Stellar USDC wallet with an allowance for you. Small stuff, it just pays; big stuff needs the user's nod. Payments inside the allowance go through on their own; anything bigger returns an approval_url that you must show the user verbatim, then poll payment_status. Always pass a fresh idempotency_key per intended payment and reuse it on retries. Always mention the network (testnet) when you talk about money."
 
+/** Who answers: the name hosts show, and the icon they fall back to for Nod's entrypoints (sidebar, pinned apps). */
+export const serverInfo = (origin: string) => ({
+  name: 'Nod',
+  version: '0.1.0',
+  title: 'Nod',
+  websiteUrl: origin,
+  icons: [{ src: `${origin}/favicon.svg`, mimeType: 'image/svg+xml', sizes: ['any'] }],
+})
+
 /** The largest JSON-RPC body /mcp reads; tool arguments are small. */
 export const MAX_BODY_BYTES = 1_048_576
 
@@ -47,10 +56,10 @@ const readBody = async (request: Request): Promise<{ readonly body: unknown } | 
 
 /** The protocol revisions up to 2025-11-25, through the SDK's low-level Server. */
 const serveLegacy = async (runtime: AppRuntime, request: Request, body: unknown, ctx: ToolContext, auth: McpAuth) => {
-  const server = new Server(
-    { name: 'Nod', version: '0.1.0' },
-    { capabilities: { tools: {}, ...appsCapabilities, ...eventsCapabilities }, instructions: INSTRUCTIONS },
-  )
+  const server = new Server(serverInfo(ctx.origin), {
+    capabilities: { tools: {}, ...appsCapabilities, ...eventsCapabilities },
+    instructions: INSTRUCTIONS,
+  })
   server.setRequestHandler(ListToolsRequestSchema, async () => ({ tools: listTools() }))
   server.setRequestHandler(CallToolRequestSchema, async call =>
     callTool(runtime, ctx, call.params.name, call.params.arguments),
