@@ -1,0 +1,13 @@
+{
+  "name": "s3-client",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "keys": "bun src/keys.ts",
+    "fund": "bun src/fund.ts",
+    "onboard": "bun src/onboard.ts"
+  },
+  "dependencies": {
+    "@stellar/stellar-sdk": "17.3.0"
+  }
+}
