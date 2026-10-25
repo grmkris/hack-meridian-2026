@@ -56,40 +56,40 @@ const TRUST: ReadonlyArray<Point> = [
 
 const PROOFS: ReadonlyArray<Proof> = [
   {
+    hash: '42c8aa3bde85f1785d668c1f376c599dfb7e750f324ea96edf85beede10e727a',
+    claim: '2 USDC to Alice, signed by the AI app’s key inside its allowance',
+  },
+  {
+    hash: '2577fefcb260f579d28535683e5c1ca3ea645a8bd716c3783561fe5aa804893d',
+    claim: '20 USDC to Bob, over the allowance, approved with the passkey',
+  },
+  {
+    hash: '9e2f5c1613cf65a9cb034416a30bd785d50d46117c94a7c59418458493c95765',
+    claim: 'Carol’s USDC trustline and 5 USDC in one transaction',
+  },
+  {
+    hash: '95c909b086835140139ca25ba04f639cdc02706026bfb83d6fc8b1902462993e',
+    claim: 'Revoke removes the allowance rule from the account',
+  },
+  {
+    hash: '1975a39d3df82555625df12070e5626eb0c18bea218957e8d1ddb321d6ea243e',
+    claim: 'Revoke sweeps the pocket back to the wallet',
+  },
+  {
+    hash: '646d95c918bc43e1ea22f8ffc6efd48b197344d3add94599b2e40c1248a62945',
+    claim: 'An x402 purchase: the AI app’s key fills its pocket under the policy…',
+  },
+  {
+    hash: '1c6806128d7020f4fe4aa4906c8d0158cc403dd3e1c38ba9988f649442138a19',
+    claim: '…and a public facilitator settles 0.10 USDC to the seller',
+  },
+  {
     hash: 'c0f6f923936b7dc4d716454ba3e3d3f43f21ddcf353e49e3e083d054bf5f9c57',
-    claim: 'An AI app under a 5 USDC allowance spends exactly 5.0; one stroop more fails',
+    claim: 'A 5 USDC allowance spends exactly 5.0; one stroop more fails',
   },
   {
     hash: '3daf4b000cb58ad1bbef3629c13a02d44403c4b690dd51815020cbc89723b42a',
     claim: 'An over-allowance transfer forced onchain is rejected by the account',
-  },
-  {
-    hash: '4b135c1cba6872a7cdf1ff6e314674e92635243c7f5e4cdc496ed41144888ee1',
-    claim: 'A passkey-only account pays with a passkey signature',
-  },
-  {
-    hash: 'f3160c7e183e52c4a633804d60d50a956c627e88bc461be2f8f5fad7b14bb110',
-    claim: 'A passkey sets an AI app’s allowance',
-  },
-  {
-    hash: '594e5b6a722a995ee65c42d30807195f808a73b171c7c61234f7720251925a9d',
-    claim: 'The AI app’s key fills its pocket under the policy…',
-  },
-  {
-    hash: 'f2d4b987428d4b2a8390e4fd3d54d19c9da4f1bbed54e1d1312ad93894e7c784',
-    claim: '…and pays an x402 seller through x402.org',
-  },
-  {
-    hash: '4ddef672157938a4af086bffbf67b66a1e37c8bf7ec8352300019c0398b65671',
-    claim: 'A paid MCP tool, settled through OpenZeppelin Channels',
-  },
-  {
-    hash: 'b233c0ccb8ee244602b8fa891c6415062de9be4f2816a23ec87fb5302b4820dd',
-    claim: 'Revoke sweeps the pocket back to the wallet',
-  },
-  {
-    hash: 'd931ec2674e48d0f4edb21072937edbc7a21bf7d86cd735005d3c8b599fa4f8e',
-    claim: 'A trustline and a payment to a new USDC holder in one transaction',
   },
 ]
 
