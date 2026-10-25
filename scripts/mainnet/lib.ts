@@ -340,16 +340,17 @@ export async function sorobanOp(input: {
   readonly op: Stellar.xdr.Operation
   readonly ceilingStroops: bigint
   readonly signer: Stellar.Keypair | undefined
+  /** A footprint set before simulation (ExtendFootprintTTL and RestoreFootprint name their keys this way). */
+  readonly data?: Stellar.xdr.SorobanTransactionData
 }): Promise<Simulated> {
   const { exists, account } = await sourceAccount(input.source)
   if (input.signer !== undefined && !exists) throw new Error(`${input.label}: ${input.source} is not funded`)
-  const raw = new Stellar.TransactionBuilder(account, {
+  const builder = new Stellar.TransactionBuilder(account, {
     fee: String(INCLUSION_FEE),
     networkPassphrase: PUBNET.passphrase,
   })
-    .addOperation(input.op)
-    .setTimeout(120)
-    .build()
+  if (input.data !== undefined) builder.setSorobanData(input.data)
+  const raw = builder.addOperation(input.op).setTimeout(120).build()
   const sim = await rpcRead(`simulate ${input.label}`, s => s.simulateTransaction(raw))
   if (!Stellar.rpc.Api.isSimulationSuccess(sim))
     throw new Error(`${input.label}: simulation failed: ${'error' in sim ? sim.error : 'unknown'}`)
