@@ -10,6 +10,7 @@ import {
   Copy,
   CopyConnectorUrl,
   CreateWallet,
+  ExampleNod,
   InviteField,
   Message,
   OutMessage,
@@ -98,6 +99,28 @@ describe('Welcome', () => {
       Command.expectExact(SignIn),
       Command.resolve(SignIn, Message.SucceededSignIn({ wallet: fixture.wallet })),
       expectOutMessage(OutMessage.StartedSession({ wallet: fixture.wallet })),
+    )
+  })
+
+  test('the example wallet waits for the visitor’s nod, moves no money, and plays again', () => {
+    story(
+      update,
+      given(init(Option.none(), CONNECTOR).model),
+      model(nextModel => {
+        expect(nextModel.exampleNod).toEqual(ExampleNod.Asking())
+      }),
+      message(Message.ClickedExampleApprove()),
+      Command.expectNone(),
+      model(nextModel => {
+        expect(nextModel.exampleNod).toEqual(ExampleNod.Approved())
+        expect(nextModel.ceremony).toEqual(Ceremony.Idle())
+      }),
+      message(Message.ClickedExampleReplay()),
+      Command.expectNone(),
+      model(nextModel => {
+        expect(nextModel.exampleNod).toEqual(ExampleNod.Asking())
+        expect(nextModel.exampleRun).toBe(1)
+      }),
     )
   })
 })

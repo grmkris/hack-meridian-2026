@@ -33,6 +33,14 @@ export const InviteField = defineTaggedUnion({
 })
 export type InviteField = typeof InviteField.Type
 
+// The hero's example wallet stops at "Needs your nod" until the visitor taps Approve; nothing leaves the page. Each replay
+// counts up, and the landing keys the card on the count so its sequence plays again from the start.
+export const ExampleNod = defineTaggedUnion({
+  Asking: {},
+  Approved: {},
+})
+export type ExampleNod = typeof ExampleNod.Type
+
 export const Model = Schema.Struct({
   walletName: Schema.String,
   inviteCode: Schema.String,
@@ -40,6 +48,8 @@ export const Model = Schema.Struct({
   ceremony: Ceremony,
   connectorUrl: Schema.String,
   copy: Copy,
+  exampleNod: ExampleNod,
+  exampleRun: Schema.Int,
 })
 export type Model = typeof Model.Type
 
@@ -58,6 +68,8 @@ export const Message = defineMessageUnion({
   FailedCopyConnectorUrl: {},
   UpdatedInviteCode: { value: Schema.String },
   RequiredInviteCode: {},
+  ClickedExampleApprove: {},
+  ClickedExampleReplay: {},
 })
 export type Message = typeof Message.Type
 
@@ -78,6 +90,8 @@ export const init = (
     copy: Copy.Idle(),
     inviteCode: '',
     inviteField: InviteField.Hidden(),
+    exampleNod: ExampleNod.Asking(),
+    exampleRun: 0,
     ceremony: Option.match(maybeError, {
       onNone: () => Ceremony.Idle(),
       onSome: error => Ceremony.Failed({ error }),
@@ -202,6 +216,10 @@ export const update = (model: Model, message: Message) =>
     ClickedAddToClaude: () => ({ model, commands: [CopyConnectorUrl({ url: model.connectorUrl })] }),
     CompletedCopyConnectorUrl: () => ({ model: modifyFields(model, { copy: () => Copy.Copied() }) }),
     FailedCopyConnectorUrl: () => ({ model: modifyFields(model, { copy: () => Copy.Failed() }) }),
+    ClickedExampleApprove: () => ({ model: modifyFields(model, { exampleNod: () => ExampleNod.Approved() }) }),
+    ClickedExampleReplay: () => ({
+      model: modifyFields(model, { exampleNod: () => ExampleNod.Asking(), exampleRun: run => run + 1 }),
+    }),
   })
 
 // VIEW
@@ -342,6 +360,12 @@ export const view = Submodel.defineView<Model, Message>((model, h): Html =>
       walletForm: walletFormView(model, h),
       addToClaude: addToClaudeView(model, h),
       connectorUrl: model.connectorUrl,
+      example: {
+        approved: ExampleNod.match(model.exampleNod, { Asking: () => false, Approved: () => true }),
+        run: model.exampleRun,
+        approve: Message.ClickedExampleApprove(),
+        replay: Message.ClickedExampleReplay(),
+      },
     },
     h,
   ),

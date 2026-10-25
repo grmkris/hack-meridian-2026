@@ -3,6 +3,7 @@ import type { Html, HtmlBuilder } from 'foldkit/html'
 
 import {
   CLAIM,
+  DAWN,
   EXAMPLE_WALLET,
   EXPLORER_TX_URL,
   FOOTER,
@@ -16,10 +17,13 @@ import {
   TRY_IT,
 } from './landing-copy'
 
-// The signed-out home: one night over Lisbon (an etched scene behind the hero, landing.css), the example wallet
-// playing the nod once, then the chapters on paper, each under its own engraving. Words come from landing-copy.ts.
+// The signed-out home as one story: a night over Lisbon behind the hero (landing.css), where the example wallet waits
+// for the visitor's nod; then the chapters on paper, each beside its own plate of the same swallow; then the same
+// rooftops at dawn. Words come from landing-copy.ts.
 
-type Vignette = 'purse' | 'seal' | 'door' | 'ledger'
+type Plate = 'hand' | 'seal' | 'door' | 'ledger' | 'flight'
+
+type Side = 'start' | 'end'
 
 // ICONS (Lucide, ISC)
 
@@ -122,7 +126,10 @@ const meterView = <Message>(h: HtmlBuilder<Message>): Html =>
 
 type Payment = (typeof EXAMPLE_WALLET.payments)[number]
 
-const paymentView = <Message>(payment: Payment, h: HtmlBuilder<Message>): Html => {
+/** The hero's example wallet: what welcome.ts tells it (asking or approved, which run) and the two Messages it sends. */
+export type Example<Message> = Readonly<{ approved: boolean; run: number; approve: Message; replay: Message }>
+
+const paymentView = <Message>(payment: Payment, approved: boolean, h: HtmlBuilder<Message>): Html => {
   const asked = payment.id === 'bob'
   return h.keyed('li')(
     payment.id,
@@ -132,44 +139,81 @@ const paymentView = <Message>(payment: Payment, h: HtmlBuilder<Message>): Html =
       h.span([h.Class('nod-amount')], [payment.amount]),
       h.span(
         [h.Class('nod-state')],
-        asked
-          ? [
-              h.span([h.Class('nod-asked'), h.AriaHidden(true)], [EXAMPLE_WALLET.askBadge]),
-              h.span([h.Class('nod-paid')], [payment.paid]),
-            ]
-          : [h.span([h.Class('nod-paid')], [payment.paid])],
+        [
+          asked && !approved
+            ? h.span([h.Class('nod-asked')], [EXAMPLE_WALLET.askBadge])
+            : h.span([h.Class('nod-paid')], [payment.paid]),
+        ],
       ),
     ],
   )
 }
 
-const approvalView = <Message>(h: HtmlBuilder<Message>): Html =>
-  h.div(
-    [h.Class('nod-approval')],
-    [
-      h.p([h.Class('nod-approve'), h.AriaHidden(true)], [icon(fingerprintPaths, h), EXAMPLE_WALLET.approve]),
-      h.p([h.Class('nod-approved')], [icon(fingerprintPaths, h), EXAMPLE_WALLET.approved]),
-    ],
-  )
+/** Asking: the visitor's own Approve button, with the note that it is an example. Approved: the outcome and a replay. */
+const approvalView = <Message>(example: Example<Message>, h: HtmlBuilder<Message>): Html =>
+  example.approved
+    ? h.div(
+        [h.Class('nod-approval'), h.DataAttribute('nod', 'approved')],
+        [
+          h.p([h.Class('nod-approved'), h.Role('status')], [icon(fingerprintPaths, h), EXAMPLE_WALLET.approved]),
+          h.button(
+            [
+              h.Type('button'),
+              h.Class('nod-replay'),
+              h.DataAttribute('testid', 'example-replay'),
+              h.OnClick(example.replay),
+            ],
+            [EXAMPLE_WALLET.replay],
+          ),
+        ],
+      )
+    : h.div(
+        [h.Class('nod-approval'), h.DataAttribute('nod', 'asking')],
+        [
+          h.button(
+            [
+              h.Type('button'),
+              h.Class('nod-approve'),
+              h.DataAttribute('testid', 'example-approve'),
+              h.AriaDescribedBy('nod-try-note'),
+              h.OnClick(example.approve),
+            ],
+            [icon(fingerprintPaths, h), EXAMPLE_WALLET.approve],
+          ),
+          h.p([h.Id('nod-try-note'), h.Class('nod-try-note')], [EXAMPLE_WALLET.tryNote]),
+        ],
+      )
 
-const exampleWalletView = <Message>(h: HtmlBuilder<Message>): Html =>
-  h.figure(
-    [h.Class('nod-card'), h.AriaLabel(EXAMPLE_WALLET.label)],
+const exampleWalletView = <Message>(example: Example<Message>, h: HtmlBuilder<Message>): Html =>
+  h.keyed('figure')(
+    `example-${example.run}`,
+    [
+      h.Class('nod-card'),
+      h.DataAttribute('nod', example.approved ? 'approved' : 'asking'),
+      h.AriaLabel(EXAMPLE_WALLET.label),
+    ],
     [
       allowanceView(h),
       meterView(h),
       h.ol(
         [h.Class('nod-feed')],
-        Array.map(EXAMPLE_WALLET.payments, payment => paymentView(payment, h)),
+        Array.map(EXAMPLE_WALLET.payments, payment => paymentView(payment, example.approved, h)),
       ),
-      approvalView(h),
+      approvalView(example, h),
       h.figcaption([h.Class('nod-caption')], [EXAMPLE_WALLET.caption]),
     ],
   )
 
-const heroView = <Message>(slots: Readonly<{ walletForm: Html; addToClaude: Html }>, h: HtmlBuilder<Message>): Html =>
+type Slots<Message> = Readonly<{ walletForm: Html; addToClaude: Html; connectorUrl: string; example: Example<Message> }>
+
+const heroView = <Message>(slots: Slots<Message>, h: HtmlBuilder<Message>): Html =>
   h.section(
-    [h.Class('landing-hero'), h.DataAttribute('scene', 'night'), h.AriaLabelledBy('landing-title')],
+    [
+      h.Class('landing-hero'),
+      h.DataAttribute('scene', 'night'),
+      h.DataAttribute('nod', slots.example.approved ? 'approved' : 'asking'),
+      h.AriaLabelledBy('landing-title'),
+    ],
     [
       barView(h),
       sceneView(h),
@@ -184,7 +228,7 @@ const heroView = <Message>(slots: Readonly<{ walletForm: Html; addToClaude: Html
               h.div([h.Class('landing-actions')], [slots.walletForm, slots.addToClaude]),
             ],
           ),
-          exampleWalletView(h),
+          exampleWalletView(slots.example, h),
         ],
       ),
     ],
@@ -192,24 +236,23 @@ const heroView = <Message>(slots: Readonly<{ walletForm: Html; addToClaude: Html
 
 // CHAPTERS
 
-const vignetteView = <Message>(vignette: Vignette, h: HtmlBuilder<Message>): Html =>
-  h.div([h.Class('landing-vignette landing-etching'), h.DataAttribute('vignette', vignette), h.AriaHidden(true)])
+const plateView = <Message>(plate: Plate, h: HtmlBuilder<Message>): Html =>
+  h.div([h.Class('landing-plate landing-etching'), h.DataAttribute('plate', plate), h.AriaHidden(true)])
 
 const headingView = <Message>(id: string, title: string, lead: string, h: HtmlBuilder<Message>): Html =>
   h.div([h.Class('landing-heading')], [h.h2([h.Id(id)], [title]), h.p([], [lead])])
 
+/** A chapter: its plate on one side, its words on the other; the sides alternate down the page. */
 const chapterView = <Message>(
   id: string,
-  vignette: Vignette | undefined,
+  plate: Plate,
+  side: Side,
   body: ReadonlyArray<Html>,
   h: HtmlBuilder<Message>,
 ): Html =>
   h.section(
-    [h.Class('landing-chapter landing-width'), h.AriaLabelledBy(id)],
-    [
-      vignette === undefined ? h.div([h.AriaHidden(true)]) : vignetteView(vignette, h),
-      h.div([h.Class('landing-chapter-body')], body),
-    ],
+    [h.Class('landing-chapter landing-width'), h.DataAttribute('side', side), h.AriaLabelledBy(id)],
+    [plateView(plate, h), h.div([h.Class('landing-chapter-body')], body)],
   )
 
 const stepView = <Message>(step: Point, position: number, h: HtmlBuilder<Message>): Html =>
@@ -226,7 +269,8 @@ const stepView = <Message>(step: Point, position: number, h: HtmlBuilder<Message
 const howItWorksView = <Message>(h: HtmlBuilder<Message>): Html =>
   chapterView(
     'how-it-works',
-    'purse',
+    'hand',
+    'start',
     [
       headingView('how-it-works', HOW_IT_WORKS.title, HOW_IT_WORKS.lead, h),
       h.ol(
@@ -248,6 +292,7 @@ const trustView = <Message>(h: HtmlBuilder<Message>): Html =>
   chapterView(
     'trust',
     'seal',
+    'end',
     [
       headingView('trust', TRUST.title, TRUST.lead, h),
       h.ul(
@@ -262,6 +307,7 @@ const claimView = <Message>(h: HtmlBuilder<Message>): Html =>
   chapterView(
     'claim',
     'door',
+    'start',
     [
       h.div(
         [h.Class('landing-heading')],
@@ -294,6 +340,7 @@ const proofView = <Message>(h: HtmlBuilder<Message>): Html =>
   chapterView(
     'proof',
     'ledger',
+    'end',
     [
       headingView('proof', PROOF.title, PROOF.lead, h),
       h.ul(
@@ -307,7 +354,8 @@ const proofView = <Message>(h: HtmlBuilder<Message>): Html =>
 const tryItView = <Message>(connectorUrl: string, h: HtmlBuilder<Message>): Html =>
   chapterView(
     'try-it',
-    undefined,
+    'flight',
+    'start',
     [
       headingView('try-it', TRY_IT.title, TRY_IT.lead, h),
       h.ol(
@@ -328,6 +376,19 @@ const tryItView = <Message>(connectorUrl: string, h: HtmlBuilder<Message>): Html
     h,
   )
 
+/** The same rooftops at dawn, the swallow out again: the night's ask, answered. */
+const dawnView = <Message>(h: HtmlBuilder<Message>): Html =>
+  h.div(
+    [h.Class('landing-dawn')],
+    [
+      h.p([h.Class('landing-dawn-line landing-width')], [DAWN.line]),
+      h.div(
+        [h.Class('landing-dawn-scene'), h.AriaHidden(true)],
+        [h.div([h.Class('landing-etching')]), h.div([h.Class('landing-dawn-sun')])],
+      ),
+    ],
+  )
+
 const footerView = <Message>(h: HtmlBuilder<Message>): Html =>
   h.footer(
     [h.Class('landing-footer landing-width')],
@@ -340,17 +401,22 @@ const footerView = <Message>(h: HtmlBuilder<Message>): Html =>
     ],
   )
 
-export const view = <Message>(
-  slots: Readonly<{ walletForm: Html; addToClaude: Html; connectorUrl: string }>,
-  h: HtmlBuilder<Message>,
-): Html =>
+export const view = <Message>(slots: Slots<Message>, h: HtmlBuilder<Message>): Html =>
   h.div(
     [h.Class('landing')],
     [
       heroView(slots, h),
       h.div(
         [h.Class('landing-page')],
-        [howItWorksView(h), trustView(h), claimView(h), proofView(h), tryItView(slots.connectorUrl, h), footerView(h)],
+        [
+          howItWorksView(h),
+          trustView(h),
+          claimView(h),
+          proofView(h),
+          tryItView(slots.connectorUrl, h),
+          dawnView(h),
+          footerView(h),
+        ],
       ),
     ],
   )

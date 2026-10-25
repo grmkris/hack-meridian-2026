@@ -150,6 +150,9 @@
     mix-blend-mode: screen;
     opacity: 0.8;
   }
+  .landing-hero[data-nod='asking'] .landing-glow {
+    opacity: 1;
+  }
 
   .landing-bar {
     display: flex;
@@ -542,19 +545,23 @@
     background: var(--lamp-soft);
     color: var(--lamp-ink);
     box-shadow: inset 0 0 0 1px oklch(from var(--lamp-ink) l c h / 0.3);
-    opacity: 0;
   }
   .nod-row-asked .nod-paid {
     color: var(--lamp-ink);
   }
 
-  /* The nod itself: a passkey prompt that resolves. */
+  /* The nod itself: the visitor's own Approve (an example, said beside it), then the outcome and a replay. */
+  .nod-card :focus-visible {
+    outline-color: var(--link);
+  }
   .nod-approval {
-    display: grid;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
     margin-block-start: 0.875rem;
   }
-  .nod-approval > p {
-    grid-area: 1 / 1;
+  .nod-approve,
+  .nod-approved {
     display: flex;
     align-items: center;
     gap: 0.625rem;
@@ -564,6 +571,7 @@
     border-radius: 0.875rem;
     font-size: 0.875rem;
     font-weight: 600;
+    text-align: start;
   }
   .nod-approval svg {
     flex: none;
@@ -571,13 +579,54 @@
     height: 1.25rem;
   }
   .nod-approve {
+    width: 100%;
+    border: 0;
     background: var(--ink);
     color: var(--sheet);
-    opacity: 0;
+    font: inherit;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition:
+      background-color 160ms ease,
+      transform 120ms var(--ease-out);
+  }
+  .nod-approve:active {
+    transform: scale(0.96);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .nod-approve:hover {
+      background: oklch(from var(--ink) calc(l + 0.08) c h);
+    }
+  }
+  .nod-try-note {
+    margin: 0;
+    font-size: 0.8125rem;
+    color: var(--muted);
   }
   .nod-approved {
     background: var(--lamp-soft);
     color: var(--lamp-ink);
+  }
+  .nod-replay {
+    align-self: flex-start;
+    min-height: 2.75rem;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--link);
+    font: inherit;
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-decoration: underline;
+    text-decoration-color: oklch(from var(--link) l c h / 0.35);
+    text-underline-offset: 0.25em;
+    cursor: pointer;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .nod-replay:hover {
+      text-decoration-color: currentColor;
+    }
   }
   .nod-caption {
     margin: 0.875rem 0 0;
@@ -596,14 +645,25 @@
     padding-block: clamp(3.5rem, 8vw, 6rem) 3rem;
   }
 
-  /* A chapter: its drawing in the margin like an engraved initial, its words beside it. */
+  /*
+   * A chapter is a page of a picture book: its plate (the same swallow, at the work the chapter is about) on one side,
+   * its words on the other, the sides alternating down the page. On a phone the plate leads.
+   */
   .landing-chapter {
     display: grid;
-    gap: 1.5rem 2.5rem;
+    align-items: center;
+    gap: 2rem;
   }
   @media (min-width: 48rem) {
     .landing-chapter {
-      grid-template-columns: 11rem minmax(0, 1fr);
+      grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+      column-gap: clamp(2.5rem, 6vw, 5rem);
+    }
+    .landing-chapter[data-side='end'] {
+      grid-template-columns: minmax(0, 6fr) minmax(0, 5fr);
+    }
+    .landing-chapter[data-side='end'] > .landing-plate {
+      order: 2;
     }
   }
   .landing-chapter-body {
@@ -612,40 +672,95 @@
     flex-direction: column;
     gap: 1.75rem;
   }
-  .landing-vignette {
-    height: 7.5rem;
-    aspect-ratio: var(--vignette-ratio);
+  /* A plate keeps its drawing's proportions and is never taller than --plate-height. */
+  .landing-plate {
+    --plate-height: 17rem;
+    justify-self: center;
+    width: min(100%, calc(var(--plate-height) * var(--plate-ratio)));
+    aspect-ratio: var(--plate-ratio);
     background: var(--etch-page);
   }
   @media (min-width: 48rem) {
-    .landing-vignette {
-      justify-self: end;
-      height: auto;
-      width: 100%;
-      max-height: 12rem;
+    .landing-plate {
+      --plate-height: 26rem;
     }
   }
-  .landing-vignette[data-vignette='purse'] {
-    --vignette-ratio: 672 / 608;
-    mask-image: url('./assets/landing/etching-purse.jpg');
+  .landing-plate[data-plate='hand'] {
+    --plate-ratio: 992 / 918;
+    mask-image: url('./assets/landing/etching-plate-hand.jpg');
   }
-  .landing-vignette[data-vignette='door'] {
-    --vignette-ratio: 672 / 1037;
-    mask-image: url('./assets/landing/etching-door.jpg');
+  .landing-plate[data-plate='seal'] {
+    --plate-ratio: 992 / 1008;
+    mask-image: url('./assets/landing/etching-plate-seal.jpg');
   }
-  .landing-vignette[data-vignette='seal'] {
-    --vignette-ratio: 672 / 683;
-    mask-image: url('./assets/landing/etching-seal.jpg');
+  .landing-plate[data-plate='door'] {
+    --plate-ratio: 857 / 1328;
+    mask-image: url('./assets/landing/etching-plate-door.jpg');
   }
-  .landing-vignette[data-vignette='ledger'] {
-    --vignette-ratio: 672 / 559;
-    mask-image: url('./assets/landing/etching-ledger.jpg');
+  .landing-plate[data-plate='ledger'] {
+    --plate-ratio: 992 / 822;
+    mask-image: url('./assets/landing/etching-plate-ledger.jpg');
+  }
+  .landing-plate[data-plate='flight'] {
+    --plate-ratio: 992 / 942;
+    mask-image: url('./assets/landing/etching-plate-flight.jpg');
+  }
+
+  /* ─── Dawn: the same rooftops in the morning, closing the page ──────────── */
+
+  .landing-dawn {
+    display: flex;
+    flex-direction: column;
+    container-type: inline-size;
+  }
+  .landing-dawn-line {
+    position: relative;
+    z-index: 1;
+    margin-block: 0 calc(-1 * clamp(1rem, 6cqw, 5rem));
+    font-family: var(--font-display);
+    font-size: clamp(1.75rem, 1.2rem + 2.4vw, 3.25rem);
+    font-weight: 700;
+    line-height: 1.08;
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+    color: var(--ink);
+    text-shadow:
+      0 0 2px var(--page),
+      0 0 18px var(--page),
+      0 0 36px var(--page);
+  }
+  .landing-dawn-scene {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1.7715;
+  }
+  .landing-dawn-scene > .landing-etching {
+    position: absolute;
+    inset: 0;
+    background: var(--etch-page);
+    mask-image: url('./assets/landing/etching-dawn-1200.jpg');
   }
   @media (min-width: 48rem) {
-    .landing-vignette[data-vignette='door'] {
-      width: auto;
-      height: 12rem;
+    .landing-dawn-scene > .landing-etching {
+      mask-image: url('./assets/landing/etching-dawn-2000.jpg');
     }
+  }
+  /* The sun on the river's horizon, the page's warm light at morning strength. */
+  .landing-dawn-sun {
+    position: absolute;
+    top: 68.5%;
+    left: 79.2%;
+    width: 34%;
+    aspect-ratio: 1;
+    translate: -50% -50%;
+    border-radius: 50%;
+    background: radial-gradient(
+      closest-side,
+      color-mix(in oklch, var(--lamp) 42%, transparent),
+      color-mix(in oklch, var(--lamp) 12%, transparent) 50%,
+      transparent
+    );
+    mix-blend-mode: multiply;
   }
 
   .landing-heading {
@@ -957,26 +1072,63 @@
     .nod-meter-fill {
       animation: nod-meter 1650ms var(--ease-out) 1150ms both;
     }
-    .nod-asked {
-      animation: nod-hold 2200ms var(--ease-out) 2900ms both;
+    /* Asking: Bob's row arrives with its badge, then the visitor's Approve and its note, then the caption. */
+    .nod-card[data-nod='asking'] .nod-asked {
+      animation: nod-enter 420ms var(--ease-out) 2900ms both;
     }
-    .nod-row-asked .nod-paid {
-      animation: nod-figure-in 280ms var(--ease-out) 5100ms both;
+    .nod-approval[data-nod='asking'] > * {
+      animation: nod-arrive 420ms var(--ease-out) 3400ms both;
     }
-    .nod-approve {
-      animation: nod-press 1500ms var(--ease-out) 3550ms both;
+    .nod-card[data-nod='asking'] .nod-caption {
+      animation: nod-enter 420ms var(--ease-out) 3800ms both;
     }
-    .nod-approved {
-      animation: nod-figure-in 320ms var(--ease-out) 5000ms both;
+    /* Approved: the outcome replaces the button, Bob's status turns, the replay follows. */
+    .nod-approval[data-nod='approved'] .nod-approved {
+      animation: nod-figure-in 280ms var(--ease-out) both;
     }
-    .nod-caption {
-      animation: nod-enter 420ms var(--ease-out) 5400ms both;
+    .nod-card[data-nod='approved'] .nod-row-asked .nod-paid {
+      animation: nod-figure-in 280ms var(--ease-out) 80ms both;
     }
-    .landing-glow {
-      animation: nod-lamp 6200ms var(--ease-out) both;
+    .nod-approval[data-nod='approved'] .nod-replay {
+      animation: nod-enter 420ms var(--ease-out) 700ms both;
+    }
+    /* The window lights when Claude asks and breathes while it waits for you; your nod makes it flare once. */
+    .landing-hero[data-nod='asking'] .landing-glow {
+      animation:
+        nod-lamp-rise 900ms var(--ease-out) 3200ms both,
+        nod-lamp-wait 3200ms ease-in-out 4100ms infinite alternate;
+    }
+    .landing-hero[data-nod='approved'] .landing-glow {
+      animation: nod-lamp-flare 1400ms var(--ease-out) both;
     }
   }
 
+  /*
+   * The page's one scroll pattern: each plate and the dawn print in as they come into view, the way a sheet comes off
+   * an engraving press. Scrubbed (linear) by the scroll, never on words; the base CSS is the finished page, so reduced
+   * motion, narrow screens and browsers without view timelines see every plate whole.
+   */
+  @supports (animation-timeline: view()) {
+    @media (prefers-reduced-motion: no-preference) and (min-width: 40rem) {
+      .landing-plate,
+      .landing-dawn-scene {
+        animation: plate-print linear both;
+        animation-timeline: view();
+        animation-range: entry 10% cover 40%;
+      }
+    }
+  }
+
+  @keyframes plate-print {
+    from {
+      clip-path: inset(0 0 100% 0);
+      opacity: 0.4;
+    }
+    to {
+      clip-path: inset(0);
+      opacity: 1;
+    }
+  }
   @keyframes nod-enter {
     from {
       opacity: 0;
@@ -1001,42 +1153,36 @@
       transform: translateY(-0.3em);
     }
   }
-  /* "Needs your nod": in, held while the passkey asks, then gone. */
-  @keyframes nod-hold {
-    0% {
-      opacity: 0;
-      transform: translateY(4px);
-    }
-    12%,
-    88% {
-      opacity: 1;
-      transform: none;
-    }
-    100% {
-      opacity: 0;
-    }
-  }
-  /* The passkey prompt: in, pressed, then it gives way to the approval. */
-  @keyframes nod-press {
-    0% {
+  /* An entrance that also keeps the element out of reach (and out of focus order) until it arrives. */
+  @keyframes nod-arrive {
+    from {
       opacity: 0;
       transform: translateY(6px);
+      visibility: hidden;
     }
-    20% {
-      opacity: 1;
-      transform: none;
+  }
+  @keyframes nod-lamp-rise {
+    from {
+      opacity: 0.35;
+      transform: scale(0.92);
     }
-    80% {
-      opacity: 1;
-      transform: scale(1);
+  }
+  @keyframes nod-lamp-wait {
+    to {
+      opacity: 0.72;
     }
-    86% {
+  }
+  @keyframes nod-lamp-flare {
+    0% {
+      opacity: 0.9;
+    }
+    22% {
       opacity: 1;
-      transform: scale(0.97);
+      transform: scale(1.16);
     }
     100% {
-      opacity: 0;
-      transform: scale(0.99);
+      opacity: 0.8;
+      transform: none;
     }
   }
   @keyframes nod-meter {
@@ -1049,23 +1195,6 @@
     }
     100% {
       transform: scaleX(var(--left));
-    }
-  }
-  /* The window brightens when Claude asks, and settles once the nod is given. */
-  @keyframes nod-lamp {
-    0%,
-    52% {
-      opacity: 0.35;
-      transform: scale(0.92);
-    }
-    66%,
-    84% {
-      opacity: 1;
-      transform: scale(1.06);
-    }
-    100% {
-      opacity: 0.8;
-      transform: none;
     }
   }
 }

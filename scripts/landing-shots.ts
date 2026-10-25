@@ -6,7 +6,8 @@ import { chromium } from 'playwright-core'
  * Looks at the signed-out landing the way its art has to hold up: phone, tablet, laptop, desktop and wide, light and
  * dark, and with reduced motion. Each look saves its first screen and the whole page to .local/landing-shots/ and
  * fails on page errors, console errors, sideways overflow, or an etching that does not draw as a luminance mask
- * (scripts/landing-art.ts). `scripts/shots.ts` stays the quick phone + desktop check for every page.
+ * (scripts/landing-art.ts). Each look then taps the example wallet's Approve and saves the nod. `scripts/shots.ts`
+ * stays the quick phone + desktop check for every page.
  *
  *   bun scripts/landing-shots.ts [local|testnet|<origin>] [path] [label prefix]
  */
@@ -152,7 +153,21 @@ try {
     const first = join(directory, `${stage}-${label}-first.png`)
     const whole = join(directory, `${stage}-${label}-page.png`)
     await page.screenshot({ path: first })
+    // The plates print in as they scroll into view: read the page to its end first, as a visitor would.
+    await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight))
+    await page.waitForTimeout(500)
     await page.screenshot({ path: whole, fullPage: true })
+    await page.evaluate(() => window.scrollTo(0, 0))
+
+    // The hero's example waits for the visitor's nod: tap it, and the card must show the approved outcome.
+    const approve = page.getByTestId('example-approve')
+    if ((await approve.count()) > 0) {
+      await approve.click()
+      await page.waitForTimeout(reducedMotion === 'reduce' ? 200 : 1600)
+      if ((await page.getByTestId('example-replay').count()) === 0)
+        problems.push('approving the example shows no replay')
+      await page.screenshot({ path: join(directory, `${stage}-${label}-nod.png`) })
+    }
     const size = `${viewport.width}x${viewport.height}`
     console.log(`${problems.length === 0 ? 'PASS' : 'FAIL'} ${label} ${size} etchings=${etchings.length} → ${first}`)
     for (const problem of problems) console.log(`  ${problem}`)

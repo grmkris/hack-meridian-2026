@@ -33,7 +33,9 @@ export const EXAMPLE_WALLET = {
     { id: 'bob', who: 'Bob', why: 'Dinner, Claude asked', amount: '20.00', paid: 'Paid with your nod' },
   ],
   askBadge: 'Needs your nod',
-  approve: 'Approve 20.00 USDC to Bob with your passkey',
+  approve: 'Approve 20.00 USDC to Bob',
+  tryNote: 'An example. Tapping it moves no money.',
+  replay: 'Play it again',
   approved: 'Approved with your passkey. The allowance stays 2.90.',
   caption: 'Example wallet. What you hold and what your AI may spend stay two separate numbers.',
 } as const
@@ -150,6 +152,11 @@ export const TRY_IT = {
   sampleHref: '/sample',
   sampleNote:
     'The same steps, through the same tools Claude calls, on Nod’s own demo wallet. A live log shows every amount, nod, fee and transaction.',
+} as const
+
+// The page ends at dawn, under the last plate: a callback to the tagline (Nod pays in seconds, so no "by morning").
+export const DAWN = {
+  line: 'The small stuff got paid. The big one waited for your nod.',
 } as const
 
 export const FOOTER = {
