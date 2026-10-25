@@ -47,7 +47,7 @@ const short = (address: string) => (address.length > 16 ? `${address.slice(0, 6)
 const intro = (view: ClaimLinkPageView) => `<div class="card"><dl><dt>For</dt><dd>${escape(view.recipientName)}</dd>
 <dt>Amount</dt><dd><span class="amount">${escape(fromStroops(view.amount))}</span> USDC</dd>
 <dt>From</dt><dd>A Nod wallet, sent by ${escape(view.requester)}</dd></dl>
-${view.reason === null ? '' : `<figure class="ask"><blockquote>${escape(view.reason)}</blockquote><figcaption><strong>${escape(view.requester)}</strong> says</figcaption></figure>`}</div>`
+${view.reason === null ? '' : `<figure class="ask"><figcaption>Asked by <strong>${escape(view.requester)}</strong></figcaption><blockquote>“${escape(view.reason)}”</blockquote><figcaption>The AI app’s own words; Nod has not checked them.</figcaption></figure>`}</div>`
 
 const choices = (view: ClaimLinkPageView) => `<section class="card" data-testid="claim-choice-new">
 <h2>New to Stellar? Get a Nod wallet</h2>

@@ -258,7 +258,7 @@ await browse(
   { url: at(prepared.structured, 'approval_url') },
 )
 const link = (await sender.page.locator('[data-testid="link-url"]').textContent()) ?? ''
-const installTx = ((await sender.page.locator('#status').textContent()) ?? '').replace('Done: ', '').trim()
+const installTx = ((await sender.page.locator('#install-link').getAttribute('href')) ?? '').split('/tx/')[1] ?? ''
 // Screenshot with the key blurred out of the picture: the evidence never shows a usable link.
 await sender.page.evaluate(() => {
   const el = document.querySelector('[data-testid="link-url"]')
@@ -349,7 +349,7 @@ if (!fromConnections) await sender.page.goto(`${BASE}/approve/revoke-link/${anot
 await sender.page.waitForLoadState('load')
 await senderShot('revoke-page')
 await sender.page.locator('[data-testid="link-revoke-confirm"]').click({ timeout: 30_000 })
-await sender.page.locator('[data-testid="link-revoked-now"]').waitFor({ timeout: 120_000 })
+await sender.page.locator('[data-testid="link-revoked"]').waitFor({ timeout: 120_000 })
 const removal = ((await sender.page.locator('#remove-tx-hash').textContent()) ?? '').trim()
 await senderShot('revoked')
 const afterRevoke: unknown = await jan.page.evaluate(

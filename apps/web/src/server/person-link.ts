@@ -178,7 +178,8 @@ export const approveLinkPage = (
 <section class="card" id="done" hidden data-testid="link-done"><h2 class="ok">Send ${name} this link</h2>
 <p><code id="link" data-testid="link-url" class="addr"></code></p>
 <p class="actions"><button class="primary" id="copy" data-testid="link-copy">Copy the link</button><button id="share" data-testid="link-share" hidden>Share…</button></p>
-<p class="muted">Anyone with this link can claim ${amount} USDC once, until it expires. Send it to ${name} only. It is not shown again.</p></section>
+<p class="muted">Anyone with this link can claim ${amount} USDC once, until it expires. Send it to ${name} only. It is not shown again.</p>
+<p class="muted" id="install" hidden><a id="install-link" rel="noreferrer" data-testid="link-install-tx">Rule installed ↗</a></p></section>
 <p id="status" class="muted" role="status"></p>`,
     `const ctx=JSON.parse(document.getElementById('ctx').textContent);
 const on=(id,f)=>{const el=document.getElementById(id);if(el)el.onclick=f};
@@ -192,7 +193,7 @@ const pair=await crypto.subtle.generateKey({name:'Ed25519'},true,['sign','verify
 const p=await post(ctx.base+'/prepare',{public_key:jwk.x});e.target.textContent='Waiting for your passkey…';
 const a=await assertion(p.challenge,ctx.rpId,[]);e.target.textContent='Setting it aside on Stellar (about 15 s)…';
 const r=await post(ctx.base,{assertion:a});const url=location.origin+r.claim_path+'#k='+jwk.d+'.'+jwk.x;
-try{sessionStorage.setItem('nod-link-'+ctx.id,url)}catch{}reveal(url);show('status','Done: '+r.install_tx,'ok')}catch(x){done();show('status',x.message)}});`,
+try{sessionStorage.setItem('nod-link-'+ctx.id,url)}catch{}reveal(url);document.getElementById('install-link').href=r.explorer_url;document.getElementById('install').hidden=false}catch(x){done();show('status',x.message)}});`,
     { id: link.id, base: `/approve/link/${link.id}`, rpId: view.rpId, status: link.status },
   )
 }
@@ -412,8 +413,12 @@ ${
     : signedIn
       ? '<div class="thumb"><button class="primary wide" id="revoke" data-testid="link-revoke-confirm">Take it back with your passkey</button></div>'
       : '<div class="thumb"><button class="primary wide" id="signin" data-testid="link-signin">Sign in with your passkey</button></div>'
-}<section class="card" id="revoked-now" hidden data-testid="link-revoked-now"><p class="ok">Taken back.</p><p class="muted">Transaction <a id="remove-tx" rel="noreferrer"><code id="remove-tx-hash"></code></a></p></section>
-<p id="back" hidden><a href="/">Back to Nod</a></p>
+}${
+      link.status === 'revoked' || (link.remove_tx ?? null) !== null
+        ? ''
+        : `<section class="card" id="revoked-now" hidden data-testid="link-revoked"><p class="ok">Taken back.</p><p class="muted">Transaction <a id="remove-tx" rel="noreferrer"><code id="remove-tx-hash"></code></a></p></section>
+<p id="back" hidden><a href="/">Back to Nod</a></p>`
+    }
 <p id="status" class="muted" role="status"></p>`,
     `const ctx=JSON.parse(document.getElementById('ctx').textContent);
 const on=(id,f)=>{const el=document.getElementById(id);if(el)el.onclick=f};

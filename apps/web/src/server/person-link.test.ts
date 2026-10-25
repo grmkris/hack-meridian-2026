@@ -118,6 +118,8 @@ describe('person links', () => {
     const page = await w.route('GET', `/claim/${id}`)
     expect(page.text).toContain('claim-new-wallet')
     expect(page.text).toContain('#k=')
+    expect(page.text).toContain('“lunch”')
+    expect(page.text).toContain('The AI app’s own words; Nod has not checked them.')
     const prepared = await w.route('POST', `/claim/${id}/prepare`, { kind: 'wallet', new: true }, janCookie)
     expect(prepared.status).toBe(200)
     const { digest, to } = Schema.decodeUnknownSync(Digest)(prepared.text)
@@ -216,6 +218,10 @@ describe('person links', () => {
       cookie,
     )
     expect(removed.status).toBe(200)
+    // The done page: one link-revoked card, with the removal transaction's explorer link.
+    const done = await w.route('GET', `/approve/revoke-link/${second.id}`, undefined, cookie)
+    expect(done.text.split('data-testid="link-revoked"').length - 1).toBe(1)
+    expect(done.text).toContain('/tx/')
     const revokedRule = (await w.runtime.runPromise(claimLinkById(second.id)))?.rule_id
     expect(w.fixture.rules().find(rule => rule.ruleId === revokedRule)?.removed).toBe(true)
     expect(
