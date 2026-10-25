@@ -55,7 +55,7 @@ import {
 } from './scval.ts'
 import { makeSoroban, nativeOf, type TxOutcome } from './soroban.ts'
 import { deriveVaultKey, makeVaultCore } from './vault.ts'
-import { payX402, payX402Mcp, probeFacilitator, x402TargetOf } from './x402.ts'
+import { facilitatorBearer, payX402, payX402Mcp, probeFacilitator, x402TargetOf } from './x402.ts'
 
 /** Ledgers a delegated (connection-key) auth entry stays valid: it is signed and submitted in one go. */
 const DELEGATED_AUTH_LEDGERS = 60
@@ -701,12 +701,22 @@ export const makeStellar = Effect.gen(function* () {
     })
     const rent = yield* readRentFactor.pipe(Effect.orElseSucceed(() => null))
     const ozKey = Option.getOrUndefined(Option.map(config.ozApiKey, Redacted.value))
+    const keyFor = (url: string) => facilitatorBearer(url, ozKey)
     const facilitators = yield* Effect.all(
       [
-        ...(net.facilitatorUrl === '' ? [] : [probeFacilitator(config.fetch, net.facilitatorUrl, net.x402Network)]),
+        ...(net.facilitatorUrl === ''
+          ? []
+          : [probeFacilitator(config.fetch, net.facilitatorUrl, net.x402Network, keyFor(net.facilitatorUrl))]),
         ...(net.fallbackFacilitatorUrl === ''
           ? []
-          : [probeFacilitator(config.fetch, net.fallbackFacilitatorUrl, net.x402Network, ozKey)]),
+          : [
+              probeFacilitator(
+                config.fetch,
+                net.fallbackFacilitatorUrl,
+                net.x402Network,
+                keyFor(net.fallbackFacilitatorUrl),
+              ),
+            ]),
       ],
       { concurrency: 2 },
     )

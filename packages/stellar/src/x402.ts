@@ -277,6 +277,10 @@ export const payX402Mcp = (
     return { result: content, settlement, quote: attempt.quote ?? null, pull: attempt.pull ?? null }
   }).pipe(Effect.scoped)
 
+/** The OpenZeppelin Channels key goes to OpenZeppelin Channels only: the primary on pubnet, the fallback on testnet. */
+export const facilitatorBearer = (url: string, ozKey: string | undefined): string | undefined =>
+  url.startsWith('https://channels.openzeppelin.com/') ? ozKey : undefined
+
 /** Probe a facilitator's `/supported` for our CAIP-2 network (startup and health). */
 export const probeFacilitator = (
   fetchImpl: typeof globalThis.fetch,

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
-import { normalizePaymentId, stroopsToUsd, TESTNET, USDC_SAC } from '../src/index.ts'
-import { acceptable, quoteOf, x402TargetOf } from '../src/x402.ts'
+import { normalizePaymentId, PUBNET, stroopsToUsd, TESTNET, USDC_SAC } from '../src/index.ts'
+import { acceptable, facilitatorBearer, quoteOf, x402TargetOf } from '../src/x402.ts'
 
 const target = x402TargetOf(TESTNET)
 
@@ -49,5 +49,14 @@ describe('x402 helpers', () => {
       resource: 'https://seller/paid',
       maxTimeoutSeconds: 60,
     })
+  })
+})
+
+describe('facilitator health probe', () => {
+  it('sends the OpenZeppelin Channels key to OpenZeppelin Channels only, primary on pubnet or fallback on testnet', () => {
+    expect(facilitatorBearer(PUBNET.facilitatorUrl, 'k')).toBe('k')
+    expect(facilitatorBearer(TESTNET.fallbackFacilitatorUrl, 'k')).toBe('k')
+    expect(facilitatorBearer(TESTNET.facilitatorUrl, 'k')).toBeUndefined()
+    expect(facilitatorBearer(PUBNET.facilitatorUrl, undefined)).toBeUndefined()
   })
 })
