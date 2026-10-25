@@ -36,7 +36,11 @@ interface Step {
   readonly detail: string
 }
 const steps: Array<Step> = []
-const newWallet: { wallet?: string; explorer?: string; balance?: string } = {}
+const newWallet: Record<'wallet' | 'explorer' | 'balance', string | undefined> = {
+  wallet: undefined,
+  explorer: undefined,
+  balance: undefined,
+}
 const failureShots: { page?: Page } = {}
 
 const step = async (name: string, run: () => Promise<void>): Promise<boolean> => {
