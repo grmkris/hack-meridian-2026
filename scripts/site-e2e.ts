@@ -36,6 +36,7 @@ interface Step {
   readonly detail: string
 }
 const steps: Array<Step> = []
+const newWallet: { wallet?: string; explorer?: string; balance?: string } = {}
 const failureShots: { page?: Page } = {}
 
 const step = async (name: string, run: () => Promise<void>): Promise<boolean> => {
@@ -91,6 +92,14 @@ try {
     await page.getByRole('heading', { name: 'Home', level: 1 }).or(page.getByRole('alert')).first().waitFor()
     await noAlert(page)
     await page.getByText('Wallet balance').waitFor()
+    const walletLink = page.getByRole('banner').getByRole('link', { name: /·/u })
+    newWallet.wallet = (await walletLink.getAttribute('title')) ?? undefined
+    newWallet.explorer = (await walletLink.getAttribute('href')) ?? undefined
+    newWallet.balance =
+      (await page
+        .getByText(/^[\d.]+ USDC$/u)
+        .first()
+        .textContent()) ?? undefined
     await noAlert(page)
     await page.screenshot({ path: join(directory, 'home.png'), fullPage: true })
   })
@@ -128,7 +137,9 @@ try {
   await browser.close()
 }
 
-const receipt = { stage, origin, at: new Date().toISOString(), steps }
+const receipt = { stage, origin, at: new Date().toISOString(), wallet: newWallet, steps }
 writeFileSync(join(directory, 'receipt.json'), `${JSON.stringify(receipt, null, 2)}\n`)
+if (newWallet.wallet !== undefined)
+  console.log(`wallet ${newWallet.wallet} (${newWallet.balance}): ${newWallet.explorer}`)
 console.log(`receipt and screenshots: ${directory}`)
 process.exit(steps.every(entry => entry.ok) ? 0 : 1)
