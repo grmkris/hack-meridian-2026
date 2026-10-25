@@ -175,7 +175,7 @@ const walletColumn = (overview: Overview, h: HtmlBuilder<Message>): Html => {
       h.p(
         [
           h.DataAttribute('testid', 'wallet-balance'),
-          h.Class(`${FIGURE} text-[2.75rem] leading-none text-ink sm:text-6xl`),
+          h.Class(`${FIGURE} text-[clamp(2.25rem,11vw,2.75rem)] leading-none text-ink sm:text-6xl`),
         ],
         [usdc(overview.balances.usdc)],
       ),
@@ -210,7 +210,10 @@ const allowanceRow = (grant: GrantView, h: HtmlBuilder<Message>): Html =>
       h.p(
         [h.Class('flex flex-wrap items-baseline gap-x-2')],
         [
-          h.span([h.Class(`${FIGURE} text-[2.75rem] leading-none text-accent sm:text-6xl`)], [usdc(grant.remaining)]),
+          h.span(
+            [h.Class(`${FIGURE} text-[clamp(2.25rem,11vw,2.75rem)] leading-none text-accent sm:text-6xl`)],
+            [usdc(grant.remaining)],
+          ),
           h.span([h.Class('text-sm tabular-nums text-muted')], [`of ${usdc(grant.total)}`]),
         ],
       ),

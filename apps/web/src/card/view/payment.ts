@@ -84,7 +84,7 @@ const nodReason = (model: Model, payment: PaymentView): string => {
     Match.when('owner_only', () => 'A payment like this one always needs your passkey.'),
     Match.orElse(
       () =>
-        `It is more than ${app} may still spend on its own (${decimalUsdc(payment.grant_remaining)}), so it needs your passkey.`,
+        `It is more than what ${app} may still spend on its own (${decimalUsdc(payment.grant_remaining)}), so it needs your passkey.`,
     ),
   )
 }
