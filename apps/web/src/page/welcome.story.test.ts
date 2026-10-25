@@ -5,13 +5,15 @@ import { describe, expect, test } from 'vitest'
 
 import { Problem } from '../problem'
 import { fixture } from './fixtures'
-import { Ceremony, CreateWallet, Message, OutMessage, SignIn, init, update } from './welcome'
+import { Ceremony, Copy, CopyConnectorUrl, CreateWallet, Message, OutMessage, SignIn, init, update } from './welcome'
+
+const CONNECTOR = 'https://wallet.test/mcp'
 
 describe('Welcome', () => {
   test('creating a wallet runs one passkey ceremony and starts the session', () => {
     story(
       update,
-      given(init(Option.none()).model),
+      given(init(Option.none(), CONNECTOR).model),
       message(Message.UpdatedWalletName({ value: '  Travel ' })),
       message(Message.SubmittedCreateWallet()),
       Command.expectExact(CreateWallet({ name: 'Travel' })),
@@ -23,7 +25,7 @@ describe('Welcome', () => {
   test('while a passkey prompt is open, neither button starts another', () => {
     story(
       update,
-      given(modifyFields(init(Option.none()).model, { ceremony: () => Ceremony.CreatingWallet() })),
+      given(modifyFields(init(Option.none(), CONNECTOR).model, { ceremony: () => Ceremony.CreatingWallet() })),
       message(Message.SubmittedCreateWallet()),
       message(Message.ClickedSignIn()),
       Command.expectNone(),
@@ -33,7 +35,7 @@ describe('Welcome', () => {
   test('an empty name falls back to Personal', () => {
     story(
       update,
-      given(init(Option.none()).model),
+      given(init(Option.none(), CONNECTOR).model),
       message(Message.UpdatedWalletName({ value: '   ' })),
       message(Message.SubmittedCreateWallet()),
       Command.expectExact(CreateWallet({ name: 'Personal' })),
@@ -44,10 +46,23 @@ describe('Welcome', () => {
     )
   })
 
+  test('Add to Claude copies the connector URL', () => {
+    story(
+      update,
+      given(init(Option.none(), CONNECTOR).model),
+      message(Message.ClickedAddToClaude()),
+      Command.expectExact(CopyConnectorUrl({ url: CONNECTOR })),
+      Command.resolve(CopyConnectorUrl, Message.CompletedCopyConnectorUrl()),
+      model(nextModel => {
+        expect(nextModel.copy).toEqual(Copy.Copied())
+      }),
+    )
+  })
+
   test('signing in with a passkey starts the session', () => {
     story(
       update,
-      given(init(Option.none()).model),
+      given(init(Option.none(), CONNECTOR).model),
       message(Message.ClickedSignIn()),
       Command.expectExact(SignIn),
       Command.resolve(SignIn, Message.SucceededSignIn({ wallet: fixture.wallet })),

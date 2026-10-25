@@ -7,7 +7,7 @@ import type { Contact, GrantView, Overview, PendingApproval, WalletSummary } fro
 
 /**
  * An in-memory Worker for building and screenshotting the site without the service: the demo of docs/SPEC.md just
- * after step 6 (Claude has spent 2.10 of its 5 USDC; a 100 USDC dinner for Bob waits for the passkey). Revoking and
+ * after step 6 (a 30 USDC wallet; Claude has spent 2.10 of its 5 USDC; a 20 USDC dinner for Bob waits for the nod). Revoking and
  * adding contacts change this state for the life of the page. Addresses are checksum-valid but hold nothing onchain.
  */
 
@@ -78,7 +78,7 @@ const pending: ReadonlyArray<PendingApproval> = [
     reason: 'Dinner at Taberna, split with Bob',
     recipient_name: 'Bob',
     recipient_address: ADDRESS.bob,
-    amount: USDC(100),
+    amount: USDC(20),
     asset: 'USDC',
     expires_at: '2026-10-25T14:52:00.000Z',
     approve_url: '/approve/int_dinner',
@@ -214,7 +214,7 @@ export const fixtureBackend = (options: { readonly signedIn: boolean }) =>
       )
       const overview = whenSignedIn((current): Overview => ({
         wallet,
-        balances: { usdc: USDC(47, 90), xlm: '0' },
+        balances: { usdc: USDC(27, 90), xlm: '0' },
         grants: Array.filter(current.grants, grant => grant.connection_status === 'active'),
         pending,
         receipts,

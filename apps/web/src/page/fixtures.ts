@@ -7,7 +7,7 @@ export const claude: GrantView = Array.getUnsafe(fixture.grants, 0)
 
 export const overview: Overview = {
   wallet: fixture.wallet,
-  balances: { usdc: '479000000', xlm: '0' },
+  balances: { usdc: '279000000', xlm: '0' },
   grants: [claude],
   pending: fixture.pending,
   receipts: fixture.receipts,

@@ -69,7 +69,9 @@ describe('session', () => {
       message(Message.SucceededCheckSession({ wallet: fixture.wallet })),
       Command.resolve(Home.LoadOverview, Home.Message.FailedLoadOverview({ problem: Problem.SignedOut() })),
       model(nextModel => {
-        expect(nextModel.session).toEqual(Session.SignedOut({ welcome: Welcome.init(Option.none()).model }))
+        expect(nextModel.session).toEqual(
+          Session.SignedOut({ welcome: Welcome.init(Option.none(), 'https://wallet.test/mcp').model }),
+        )
       }),
     )
   })

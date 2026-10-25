@@ -9,6 +9,7 @@ import { fixture, overview } from './page/fixtures'
 import { AppRoute } from './route'
 
 const signedIn: Model = {
+  origin: 'https://wallet.test',
   route: AppRoute.Home(),
   session: Session.SignedIn({ wallet: fixture.wallet }),
   home: modifyFields(Home.init().model, { overview: () => Home.OverviewData.Success({ data: overview }) }),
@@ -22,7 +23,7 @@ describe('signed in', () => {
     scene(
       { update, view },
       given(signedIn),
-      expect(text('47.90 USDC')).toExist(),
+      expect(text('27.90 USDC')).toExist(),
       expect(text('2.90 USDC left')).toExist(),
       expect(role('link', { name: 'Home' })).toHaveAttr('aria-current', 'page'),
       expect(role('link', { name: 'Review' })).toHaveAttr('href', '/approve/int_dinner'),
@@ -35,7 +36,9 @@ describe('signed out', () => {
     scene(
       { update, view },
       given(
-        modifyFields(signedIn, { session: () => Session.SignedOut({ welcome: Welcome.init(Option.none()).model }) }),
+        modifyFields(signedIn, {
+          session: () => Session.SignedOut({ welcome: Welcome.init(Option.none(), 'https://wallet.test/mcp').model }),
+        }),
       ),
       expect(role('button', { name: 'Create your wallet' })).toExist(),
       expect(role('button', { name: 'Sign in with your passkey' })).toExist(),

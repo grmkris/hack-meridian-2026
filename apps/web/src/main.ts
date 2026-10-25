@@ -32,6 +32,7 @@ export const Session = defineTaggedUnion({
 export type Session = typeof Session.Type
 
 export const Model = Schema.Struct({
+  origin: Schema.String,
   route: AppRoute,
   session: Session,
   home: Home.Model,
@@ -101,8 +102,13 @@ const freshPages = (): Pick<Model, 'home' | 'connections' | 'contacts' | 'receip
   receipts: Receipts.init().model,
 })
 
+const originOf = (url: Url): string =>
+  `${url.protocol}//${url.host}${Option.match(url.port, { onNone: () => '', onSome: port => `:${port}` })}`
+
+export const connectorUrlOf = (origin: string): string => `${origin}/mcp`
+
 export const init: Runtime.RoutingApplicationInit<Model, Message, void, Resources> = url => ({
-  model: { route: urlToAppRoute(url), session: Session.Checking(), ...freshPages() },
+  model: { origin: originOf(url), route: urlToAppRoute(url), session: Session.Checking(), ...freshPages() },
   commands: [CheckSession()],
 })
 
@@ -123,7 +129,8 @@ const signOutLocally =
     const pages = freshPages()
     return {
       model: modifyFields(model, {
-        session: (): Session => Session.SignedOut({ welcome: Welcome.init(maybeError).model }),
+        session: (): Session =>
+          Session.SignedOut({ welcome: Welcome.init(maybeError, connectorUrlOf(model.origin)).model }),
         home: () => pages.home,
         connections: () => pages.connections,
         contacts: () => pages.contacts,
