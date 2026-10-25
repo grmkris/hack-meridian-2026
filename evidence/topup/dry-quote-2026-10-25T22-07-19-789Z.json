@@ -1,0 +1,306 @@
+{
+  "api": "https://1click.chaindefuser.com",
+  "client": "apps/web/src/server/topup.ts makeLiveOneClick",
+  "recipient": "GBJOFDKUKPHIPG34NEMVINELO36TS3QVVLNTXRO3SRUPEK5CPMYBVSPI",
+  "tokens": 205,
+  "offered": [
+    {
+      "chain": "abs",
+      "assets": [
+        "ETH"
+      ]
+    },
+    {
+      "chain": "adi",
+      "assets": [
+        "ADI"
+      ]
+    },
+    {
+      "chain": "aleo",
+      "assets": [
+        "ALEO"
+      ]
+    },
+    {
+      "chain": "aptos",
+      "assets": [
+        "APT",
+        "USDT",
+        "USDC"
+      ]
+    },
+    {
+      "chain": "arb",
+      "assets": [
+        "ETH",
+        "USDC"
+      ]
+    },
+    {
+      "chain": "avax",
+      "assets": [
+        "AVAX",
+        "USDT",
+        "USDC"
+      ]
+    },
+    {
+      "chain": "base",
+      "assets": [
+        "ETH",
+        "USDC"
+      ]
+    },
+    {
+      "chain": "bch",
+      "assets": [
+        "BCH"
+      ]
+    },
+    {
+      "chain": "bera",
+      "assets": [
+        "BERA"
+      ]
+    },
+    {
+      "chain": "bsc",
+      "assets": [
+        "BNB",
+        "USDC",
+        "USDT"
+      ]
+    },
+    {
+      "chain": "btc",
+      "assets": [
+        "BTC",
+        "BTC(OMNI)"
+      ]
+    },
+    {
+      "chain": "cardano",
+      "assets": [
+        "ADA"
+      ]
+    },
+    {
+      "chain": "dash",
+      "assets": [
+        "DASH"
+      ]
+    },
+    {
+      "chain": "doge",
+      "assets": [
+        "DOGE"
+      ]
+    },
+    {
+      "chain": "eth",
+      "assets": [
+        "USDT",
+        "USDC",
+        "ETH"
+      ]
+    },
+    {
+      "chain": "fogo",
+      "assets": [
+        "FOGO"
+      ]
+    },
+    {
+      "chain": "gnosis",
+      "assets": [
+        "xDAI",
+        "USDC",
+        "USDT"
+      ]
+    },
+    {
+      "chain": "hood",
+      "assets": [
+        "ETH"
+      ]
+    },
+    {
+      "chain": "hypercore",
+      "assets": [
+        "USDC",
+        "USDC"
+      ]
+    },
+    {
+      "chain": "ltc",
+      "assets": [
+        "LTC"
+      ]
+    },
+    {
+      "chain": "monad",
+      "assets": [
+        "MON",
+        "USDC"
+      ]
+    },
+    {
+      "chain": "movement",
+      "assets": [
+        "MOVE"
+      ]
+    },
+    {
+      "chain": "near",
+      "assets": [
+        "USDC",
+        "USDT"
+      ]
+    },
+    {
+      "chain": "op",
+      "assets": [
+        "ETH",
+        "USDT",
+        "USDC"
+      ]
+    },
+    {
+      "chain": "plasma",
+      "assets": [
+        "XPL_(DEPRECATED)",
+        "XPL"
+      ]
+    },
+    {
+      "chain": "pol",
+      "assets": [
+        "POL",
+        "USDC",
+        "USDT"
+      ]
+    },
+    {
+      "chain": "qtc",
+      "assets": [
+        "QTC"
+      ]
+    },
+    {
+      "chain": "scroll",
+      "assets": [
+        "ETH",
+        "USDT"
+      ]
+    },
+    {
+      "chain": "sol",
+      "assets": [
+        "SOL",
+        "USDT",
+        "USDC"
+      ]
+    },
+    {
+      "chain": "starknet",
+      "assets": [
+        "STRK"
+      ]
+    },
+    {
+      "chain": "sui",
+      "assets": [
+        "SUI",
+        "USDC"
+      ]
+    },
+    {
+      "chain": "ton",
+      "assets": [
+        "GRAM",
+        "USDT"
+      ]
+    },
+    {
+      "chain": "tron",
+      "assets": [
+        "TRX",
+        "USDT"
+      ]
+    },
+    {
+      "chain": "xlayer",
+      "assets": [
+        "OKB",
+        "USDC"
+      ]
+    },
+    {
+      "chain": "xrp",
+      "assets": [
+        "XRP"
+      ]
+    },
+    {
+      "chain": "zec",
+      "assets": [
+        "ZEC"
+      ]
+    }
+  ],
+  "tool_chains": [
+    "base",
+    "solana",
+    "ethereum",
+    "arbitrum",
+    "polygon"
+  ],
+  "quotes": [
+    {
+      "offer": {
+        "chain": "base",
+        "asset": "USDC",
+        "amount": "5",
+        "refund": "0x4838b106fce9647bdf1e7877bf73ce8b0bad5f97"
+      },
+      "origin_asset": "nep141:base-0x833589fcd6edb6e08f4c7c32d4f71b54bda02913.omft.near",
+      "ok": true,
+      "amount_in": "5.0",
+      "amount_out_usdc": "4.9819509",
+      "time_estimate_s": 50,
+      "ms": 4452
+    },
+    {
+      "offer": {
+        "chain": "solana",
+        "asset": "USDC",
+        "amount": "5",
+        "refund": "9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin"
+      },
+      "origin_asset": "nep141:sol-5ce3bf3a31af18be40ba30f721101b4341690186.omft.near",
+      "ok": true,
+      "amount_in": "5.0",
+      "amount_out_usdc": "4.9819509",
+      "time_estimate_s": 35,
+      "ms": 4418
+    },
+    {
+      "offer": {
+        "chain": "base",
+        "asset": "ETH",
+        "amount": "0.002",
+        "refund": "0x4838b106fce9647bdf1e7877bf73ce8b0bad5f97"
+      },
+      "origin_asset": "nep141:base.omft.near",
+      "ok": true,
+      "amount_in": "0.002",
+      "amount_out_usdc": "4.656006",
+      "time_estimate_s": 50,
+      "ms": 4219
+    }
+  ],
+  "status_of_an_unknown_address": {
+    "error": "NEAR Intents: Deposit address 0x0000000000000000000000000000000000000001 not found"
+  }
+}

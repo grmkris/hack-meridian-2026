@@ -16,7 +16,9 @@ import { TARGETS } from './demo/targets.ts'
  *
  * events/list (six events, webhook + poll), events/poll heads, then a payment over the allowance (→ approval.needed)
  * and one inside it, executed (→ payment.settled), both seen through events/poll with Nod's notice fields. On testnet
- * the second payment moves 0.10 USDC (relayer pays the fee); `--no-settle` skips it. Exit 1 on any failed check.
+ * the second payment moves 0.10 USDC (relayer pays the fee); `--no-settle` skips it. `--topup` also asks
+ * wallet_topup_quote for a top-up from Base and waits for its topup.pending event (the local stage's 1Click simulator;
+ * on mainnet a real quote, which moves nothing until someone pays it). Exit 1 on any failed check.
  */
 
 const args = process.argv.slice(2)
@@ -25,6 +27,7 @@ const flag = (name: string) => {
   return index === -1 ? undefined : args.splice(index, 2)[1]
 }
 const settle = !args.includes('--no-settle')
+const topup = args.includes('--topup')
 const target = TARGETS[flag('--target') ?? 'local']
 const name = flag('--name') ?? 'events'
 if (target === undefined) throw new Error(`--target must be one of ${Object.keys(TARGETS).join(', ')}`)
@@ -114,7 +117,11 @@ check(
 
 const head = async (event: string) =>
   str(at(await rpc('events/poll', { name: event, arguments: {}, cursor: null }), 'cursor'))
-const cursors = { approval: await head('approval.needed'), settled: await head('payment.settled') }
+const cursors = {
+  approval: await head('approval.needed'),
+  settled: await head('payment.settled'),
+  topup: topup ? await head('topup.pending') : undefined,
+}
 check(
   cursors.approval !== undefined && /^\d{16}$/u.test(cursors.approval),
   `events/poll head ${cursors.approval ?? '?'}`,
@@ -191,6 +198,28 @@ if (settle) {
     `payment.settled for ${smallId ?? '?'} (${str(at(settled, 'data.status')) ?? 'not seen'})`,
   )
   if (settled !== undefined) notice(settled, 'payment.settled')
+}
+
+if (topup) {
+  const quoted = await call('wallet_topup_quote', {
+    origin_chain: 'base',
+    asset: 'USDC',
+    amount: '5',
+    refund_address: '0x4838b106fce9647bdf1e7877bf73ce8b0bad5f97',
+    idempotency_key: `events-check-topup-${run}`,
+  })
+  const topupId = str(at(quoted, 'id'))
+  check(
+    topupId !== undefined && str(at(quoted, 'status')) === 'pending',
+    `wallet_topup_quote 5 USDC on Base → ${str(at(quoted, 'pay_to')) ?? '?'}, about ${str(at(quoted, 'amount_out')) ?? '?'} USDC`,
+  )
+  const pending = await waitFor(
+    'topup.pending',
+    cursors.topup,
+    occurrence => str(at(occurrence, 'data.topup_id')) === topupId,
+  )
+  check(pending !== undefined, `topup.pending for ${topupId ?? '?'}`)
+  if (pending !== undefined) notice(pending, 'topup.pending')
 }
 
 await client.close()

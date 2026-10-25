@@ -1,0 +1,25 @@
+tools/list from listTools() at 341f986 (before) and 45a6d07 (after): 21 → 23 tools
+1. wallet_overview: identical
+2. contacts_search: identical
+3. payment_prepare: identical
+4. payment_execute: identical
+5. payment_approve_url: identical
+6. payment_status: identical
+7. paid_resource_fetch: identical
+8. paid_mcp_call: identical
+9. connection_grant_create: identical
+10. connection_grant_revoke: identical
+11. nod_home: identical
+12. request_create: identical
+13. requests_list: identical
+14. request_pay: identical
+15. request_decline: identical
+16. contact_add: identical
+17. contact_update: identical
+18. contact_remove: identical
+19. wallet_deposit_address: identical
+20. payments_list: identical
+21. connection_grant_update: identical
+appended:
+22. wallet_topup_quote
+23. wallet_topup_status

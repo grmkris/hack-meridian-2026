@@ -1,0 +1,10 @@
+ok   events/list: payment.received, payment.settled, approval.needed, request.received, request.answered, allowance.changed, topup.pending, topup.detected, topup.arrived, topup.expired
+ok   every event offers webhook and poll
+ok   events/poll head 0000000000000028
+ok   payment_prepare 20 USDC → awaiting_approval
+ok   approval.needed for pi_80f619d789aead910f639a6c22e45992
+ok   approval.needed: "Needs your nod: 20.00 USDC to Alice" http://localhost:18960/approve/pi_80f619d789aead910f639a6c22e45992
+ok   wallet_topup_quote 5 USDC on Base → local-1click-simulator-1792966187052, about 4.9799524 USDC
+ok   topup.pending for tp_01aec663842a36d4bf98710e2dda63ad
+ok   topup.pending: "Top-up waiting: send 5 USDC on base" http://localhost:18960/
+{"target":"local","base":"http://localhost:18960","checks":9,"failed":0}
