@@ -5,8 +5,8 @@ Plans and queues live in the release plan (.local/brainstorm/FINAL-REVIEW.md §K
 **Deploys: session A ("ops and hardening") only, since 19:10 UTC 2026-10-25**, testnet and mainnet, from the worktree
 below; mainnet only on the orchestrator's explicit go, never during a recording.
 
-Live: **testnet at `9a965a3`** (19:41 UTC: deposit-first signup and migration 0008, C's Home / Connections / header, D's
-landing per host) on https://testnet.trynod.si (MCP at `/mcp`; the workers.dev host redirects there); **mainnet at `9a965a3`** (19:50 UTC) on https://trynod.si. Dated sections
+Live: **testnet at `3d4364f`** (19:56 UTC: claim link v2 and migration 0009 over `9a965a3`) on https://testnet.trynod.si
+(MCP at `/mcp`; the workers.dev host redirects there); **mainnet at `9a965a3`** (19:50 UTC) on https://trynod.si. Dated sections
 below are the history.
 
 ## The deploy worktree is the only place a testnet deploy runs
@@ -253,3 +253,24 @@ treasury 0 USDC. `/llms.txt` byte-identical. `bun scripts/landing-shots.ts https
 landing reads "Stellar mainnet", the hero connector `https://trynod.si/mcp`, Try it the testnet connector
 `https://testnet.trynod.si/mcp`, and the seven proof rows link to `stellar.expert/explorer/public` (each `successful` on
 Horizon pubnet). No wallet created; "not available on this network yet" for the deposit address stays unit-covered.
+
+## 19:56 UTC: testnet at `3d4364f` (HEAD `7f4c60f` was red)
+
+HEAD failed the gate at `cards:check`: `7522620` (C's card "Send this link" state) committed a `card.html` that no
+committed source builds (bisected in a clean worktree: `3d4364f` "up to date", `7522620` "stale"). Deployed the last
+green commit that carries B's claim link v2 (`16426ce`, migration `0009_claim_links.sql`) and D's deck: gate green, plan
+`[WalletDb] update` + `[Web] update` + RELEASE, deploy `"deletedClasses":[]`, 0009 applied 19:56:25 UTC (`claim_links`
+exists), health release `3d4364f0…`.
+
+- smoke 9/9 (`evidence/probe/smoke-testnet-2026-10-25T19-56-52Z.json`).
+- tools/list (saved agent): the fifteen tools in order; `payment_prepare` gains only the optional `recipient_name`
+  (protocol diff 4 lines) → `evidence/tools/tools-list-testnet-3d4364f.json`.
+- `payment_prepare` with recipient "new", recipient_name "Jan", 0.10: a claim link
+  `https://testnet.trynod.si/claim/cl_cba5…` (page 200, "Jan, 0.10 USDC for you"), nothing paid; an unknown
+  `/claim/cl_0123…` answers a 404 page.
+- events-check 8/8 (`d5cb7e1c…`); claude-code-check 7/7.
+- rehearsal s1–s11 green, acceptance 1, 2, 4–9 PASS, 3 REF (`evidence/demo/2026-10-25T19-58-47-467Z/`); s10 (the
+  `/claim/pi_…` path) https://stellar.expert/explorer/testnet/tx/a230a0fec834d4e6fde05f8983085ca1316dcc6f1a32d1def159ac34e50b3854.
+- probe all green, 1 warn (`evidence/probe/2026-10-25T20-02-31-251Z.json`). Treasury 85.5 USDC.
+
+Rollback: re-pin `9a965a3` (0009 additive).

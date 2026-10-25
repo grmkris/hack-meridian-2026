@@ -1,0 +1,98 @@
+{
+  "at": "2026-10-25T20:02:31.251Z",
+  "network": "stellar:testnet",
+  "base": "https://testnet.trynod.si",
+  "seller": "https://hm26-seller.kristjan-grm11775.workers.dev",
+  "rows": [
+    {
+      "check": "facilitator x402org /supported",
+      "level": "ok",
+      "detail": "200, exact on stellar:testnet: yes",
+      "ms": 356
+    },
+    {
+      "check": "facilitator oz /supported",
+      "level": "ok",
+      "detail": "200, exact on stellar:testnet: yes",
+      "ms": 613
+    },
+    {
+      "check": "seller GET /api/market-brief → 402",
+      "level": "ok",
+      "detail": "402, 1000000 of CBIELT… on stellar:testnet → GAINGR…",
+      "ms": 235
+    },
+    {
+      "check": "seller /mcp tools/list",
+      "level": "ok",
+      "detail": "200, tools: market_brief",
+      "ms": 243
+    },
+    {
+      "check": "third-party seller (stellar.org x402 demo) → 402",
+      "level": "ok",
+      "detail": "402, 100000 of CBIELT… on stellar:testnet",
+      "ms": 148
+    },
+    {
+      "check": "service testnet /mcp without a token → 401",
+      "level": "ok",
+      "detail": "401 Bearer realm=\"OAuth\", resource_metadata=\"https://testnet.trynod.si/.well-known/oauth-prote",
+      "ms": 394
+    },
+    {
+      "check": "service /.well-known/oauth-authorization-server",
+      "level": "ok",
+      "detail": "200, DCR yes, CIMD yes",
+      "ms": 25
+    },
+    {
+      "check": "service /.well-known/oauth-protected-resource/mcp",
+      "level": "ok",
+      "detail": "200, resource https://testnet.trynod.si/mcp",
+      "ms": 32
+    },
+    {
+      "check": "service tools/list (saved connection)",
+      "level": "warn",
+      "detail": "no saved connection; run rehearse --target testnet --only s3",
+      "ms": 1
+    },
+    {
+      "check": "service /api/health",
+      "level": "ok",
+      "detail": "200 {\"ok\":true,\"stage\":\"testnet\",\"release\":\"3d4364f07f2b8ea38f5b5004011abb4bfb462ddf\",\"network\":\"testnet",
+      "ms": 1249
+    },
+    {
+      "check": "relayer GBCALS… XLM (≥ 500)",
+      "level": "ok",
+      "detail": "9031.7 XLM, 51 sponsored entries (25.5 XLM locked); ≈ 170 connection-days at 50 XLM/day above the 500 floor",
+      "ms": 710
+    },
+    {
+      "check": "relayer GAWYWV… XLM (≥ 500)",
+      "level": "ok",
+      "detail": "8959.9 XLM, 21 sponsored entries (10.5 XLM locked); ≈ 169 connection-days at 50 XLM/day above the 500 floor",
+      "ms": 296
+    },
+    {
+      "check": "treasury USDC (≥ 50)",
+      "level": "ok",
+      "detail": "85.50 USDC (8 new wallets at 10), 9376.2 XLM",
+      "ms": 156
+    },
+    {
+      "check": "RPC latest ledger",
+      "level": "ok",
+      "detail": "ledger 5386992, protocol 29",
+      "ms": 383
+    },
+    {
+      "check": "shared contracts TTL (≥ 7 days)",
+      "level": "ok",
+      "detail": "shortest: spending-limit policy instance 17.7 days (ledger 5692567 ≈ 2026-11-12 12:27Z)",
+      "ms": 1953
+    }
+  ]
+}
