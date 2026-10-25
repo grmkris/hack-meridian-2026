@@ -159,3 +159,12 @@ testnet either way.
 | 7 receipt only after settlement                  | FAIL (fee ceiling) | 2 USDC to Alice refused: enforce simulation needed 15.3 XLM vs the 6 XLM later-payment ceiling at rent factor 96; ceiling → 25 XLM |
 | 8 trustline + payment in one transaction         | PASS               | Carol `8457e9cb…`                                                                                                                  |
 | 9 relayer pays every fee, wallet holds no XLM    | PASS               |                                                                                                                                    |
+
+## Testnet deployed (13:43 UTC)
+
+Site https://hack-meridian-testnet.kristjan-grm11775.workers.dev, MCP https://hack-meridian-testnet.kristjan-grm11775.workers.dev/mcp,
+release `c80a786` from the deploy worktree `/srv/cache/hm26/deploy-testnet`. Health: chain mode testnet, relayers `GBCALSA3…`
+and `GAWYWVMH…` (10,000 XLM each), treasury 210 USDC, rent factor 109.6. `smoke:testnet` 9/9; passkey e2e 8/8 with wallet
+`CCDOHIGFC4Y2EYZWA66HULNXUI3PX3OD3WX27OKGPEHLRR3LDR3OBZG4` holding 10.00 USDC verified on chain. Testnet deploys stay with
+the worktree: `git -C /srv/cache/hm26/deploy-testnet checkout --detach <sha>`, gate, plan, apply. Pending: fee ceilings
+raised to 100 XLM first pull / 40 XLM later and redeployed; the Contacts page was still loading in the e2e screenshot.

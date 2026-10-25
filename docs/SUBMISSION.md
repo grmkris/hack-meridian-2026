@@ -67,6 +67,7 @@ connector flow fails on the day, record in Claude Code (proven in S4).
 
 ## Judge test path
 
-To be filled after the build: deployed URL, how to connect the MCP server, a test owner or a pre-made connection, the
-nine steps with expected results, explorer links for the delegated and the owner-approved transactions, and the
-contract ids.
+Live since 13:43 UTC: site https://hack-meridian-testnet.kristjan-grm11775.workers.dev, MCP connector
+https://hack-meridian-testnet.kristjan-grm11775.workers.dev/mcp. Steps for a judge: `evidence/JUDGE-TEST-PATH.md` (Claude
+connector first). A fresh wallet is auto-funded with 10 testnet USDC. Reference run with explorer links:
+`evidence/demo/2026-10-25T13-38-30-890Z/`.
