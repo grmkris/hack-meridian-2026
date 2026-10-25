@@ -147,6 +147,20 @@ const TEN_TOOLS = [
   'connection_grant_revoke',
 ]
 
+const APPENDED_TOOLS = ['nod_home', 'request_create', 'requests_list', 'request_pay', 'request_decline']
+
+const CARD_TOOLS = [
+  'wallet_overview',
+  'payment_prepare',
+  'paid_resource_fetch',
+  'paid_mcp_call',
+  'connection_grant_create',
+  'connection_grant_revoke',
+  'request_create',
+  'requests_list',
+  'request_pay',
+]
+
 describe('the legacy lane (protocol revisions up to 2025-11-25)', () => {
   test('initialize names Nod, offers tools and carries the instructions', async () => {
     const result = resultOf(await rpc('initialize', INITIALIZE))
@@ -161,11 +175,45 @@ describe('the legacy lane (protocol revisions up to 2025-11-25)', () => {
     expect(String(result['instructions'])).toContain('approval_url')
   })
 
-  test('tools/list starts with the ten tools in their order, each with an object input schema', async () => {
+  test('tools/list keeps the ten tools in their order, then nod_home and the request tools, each with an object input schema', async () => {
     const result = resultOf(await rpc('tools/list'))
     const tools = Array.isArray(result['tools']) ? result['tools'].filter(Predicate.isObject) : []
     expect(tools.slice(0, 10).map(tool => tool['name'])).toEqual(TEN_TOOLS)
+    expect(tools.slice(10).map(tool => tool['name'])).toEqual(APPENDED_TOOLS)
     for (const tool of tools) expect(tool['inputSchema']).toMatchObject({ type: 'object' })
+  })
+
+  test('tools that render a card carry its ui:// resource under every key hosts read; polled tools carry none', async () => {
+    const result = resultOf(await rpc('tools/list'))
+    const tools = Array.isArray(result['tools']) ? result['tools'].filter(Predicate.isObject) : []
+    const metaOf = (name: string) => tools.find(tool => tool['name'] === name)?.['_meta']
+    for (const name of CARD_TOOLS)
+      expect(metaOf(name)).toEqual({
+        ui: { resourceUri: 'ui://nod/card/v1' },
+        'ui/resourceUri': 'ui://nod/card/v1',
+        'openai/outputTemplate': 'ui://nod/card/v1',
+      })
+    for (const name of [
+      'contacts_search',
+      'payment_execute',
+      'payment_approve_url',
+      'payment_status',
+      'request_decline',
+    ])
+      expect(metaOf(name)).toBeUndefined()
+    expect(metaOf('nod_home')).toEqual({
+      ui: { resourceUri: 'ui://nod/home/v1', visibility: ['app'] },
+      'ui/resourceUri': 'ui://nod/home/v1',
+      'openai/outputTemplate': 'ui://nod/home/v1',
+      'openai/ui': { entrypoints: [{ type: 'global' }] },
+    })
+  })
+
+  test('nod_home takes an empty object and answers with the wallet overview', async () => {
+    const home = resultOf(await rpc('tools/call', { name: 'nod_home', arguments: {} }))
+    const overview = resultOf(await rpc('tools/call', { name: 'wallet_overview', arguments: {} }))
+    expect(home['isError']).toBeUndefined()
+    expect(home['structuredContent']).toEqual(overview['structuredContent'])
   })
 
   test('tools/call answers with the sentence, the JSON and structuredContent', async () => {
@@ -177,11 +225,58 @@ describe('the legacy lane (protocol revisions up to 2025-11-25)', () => {
     const structured = result['structuredContent']
     expect(Predicate.isObject(structured) && structured['grant_remaining']).toBe('5.00')
     expect(JSON.parse(String(content[1]?.['text']))).toEqual(structured)
+    expect(content[0]?.['annotations']).toBeUndefined()
+    expect(content[1]?.['annotations']).toEqual({ audience: ['assistant'] })
   })
 
   test('an unknown tool is a tool error, not a protocol error', async () => {
     const result = resultOf(await rpc('tools/call', { name: 'nope', arguments: {} }))
     expect(result['isError']).toBe(true)
+  })
+})
+
+const EMPTY_CSP = { connectDomains: [], resourceDomains: [], frameDomains: [] }
+
+describe('MCP Apps resources (the cards)', () => {
+  test('initialize offers resources', async () => {
+    const result = resultOf(await rpc('initialize', INITIALIZE))
+    expect(result['capabilities']).toMatchObject({ tools: {}, resources: {} })
+  })
+
+  test('resources/list names the card and the home view, both with an empty CSP', async () => {
+    const result = resultOf(await rpc('resources/list'))
+    const resources = Array.isArray(result['resources']) ? result['resources'].filter(Predicate.isObject) : []
+    expect(resources.map(resource => resource['uri'])).toEqual(['ui://nod/card/v1', 'ui://nod/home/v1'])
+    for (const resource of resources) {
+      expect(resource['mimeType']).toBe('text/html;profile=mcp-app')
+      expect(resource['_meta']).toMatchObject({ ui: { csp: EMPTY_CSP, prefersBorder: true } })
+    }
+    expect(resources[1]?.['_meta']).toMatchObject({
+      'openai/ui': { availableDisplayModes: ['inline', 'fullscreen'], preferredDisplayMode: 'fullscreen' },
+    })
+  })
+
+  test('resources/read serves the sealed card with its view, and repeats the CSP on the content item', async () => {
+    for (const [uri, view] of [
+      ['ui://nod/card/v1', 'card'],
+      ['ui://nod/home/v1', 'home'],
+    ] as const) {
+      const result = resultOf(await rpc('resources/read', { uri }))
+      const contents = Array.isArray(result['contents']) ? result['contents'].filter(Predicate.isObject) : []
+      expect(contents).toHaveLength(1)
+      const item = contents[0]
+      expect(item).toMatchObject({ uri, mimeType: 'text/html;profile=mcp-app', _meta: { ui: { csp: EMPTY_CSP } } })
+      const html = String(item?.['text'])
+      expect(html).toContain(`<meta name="nod-view" content="${view}">`)
+      expect(html).toMatch(/<meta name="nod-card-inputs" content="[0-9a-f]{64}">/u)
+      expect(html).toContain("connect-src 'none'")
+    }
+  })
+
+  test('an unknown resource is an invalid-params error; there are no resource templates', async () => {
+    const unknown = await rpc('resources/read', { uri: 'ui://nod/nope/v1' })
+    expect(unknown['error']).toMatchObject({ code: -32602 })
+    expect(resultOf(await rpc('resources/templates/list'))).toEqual({ resourceTemplates: [] })
   })
 })
 
