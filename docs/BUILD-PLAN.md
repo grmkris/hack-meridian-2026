@@ -199,3 +199,14 @@ Release 19e1c13 with the seller preferring OpenZeppelin Channels, 204 s end to e
 Bob via passkey `fbfd200c…`, Carol claim `565b7f07…`, rule removed `55beab6d…`, sweep `00129674…`. Judge test path
 section 3 carries this run. Next: redeploy HEAD (36f8466: failed-purchase accounting, lifecycle hashes, 600 XLM cap,
 vault test fix), then the optional `/sample` page.
+
+## Status 15:50 UTC
+
+- Testnet at `0ca5495`: landing redesign (e6), llms.txt with the sample link (a3), `/sample` page live. The hard fee ceiling
+  is 600 XLM in the stage env after a grant install hit the old 100 XLM ceiling at rent factor 278 (the consent page would
+  have failed for judges). Treasury refilled to 405 USDC on the testnet exchange.
+- `/sample`: a server-side run of the nine steps on Nod's own demo wallet (software passkey, encrypted under VAULT_KEY),
+  judge-path amounts (Bob 5, Carol 1), guards: testnet only, one run at a time, 4 runs/hour, 1 per visitor per 10 min,
+  treasury floor, kill switch. First public run sr_4f0bc683: 70 s, every step ok; Carol skipped (already onboarded), a
+  self-reset is being added. Linked from README, llms.txt, deck slide 10 and the landing ("No Claude at hand?").
+- Foundation session closed; deploys run from the worktree per `docs/DEPLOY.md`.

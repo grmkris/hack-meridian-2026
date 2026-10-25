@@ -1,8 +1,8 @@
 # Deploying the testnet stage
 
 Handed over by the foundation session (stream B) on 2026-10-25 15:35 UTC to the orchestrator session. Live: testnet at
-`b1a960b` (deployed 15:36 UTC by the orchestrator: a3's llms.txt proofs; smoke 9/9, llms.txt byte-identical, landing bundle
-carries the 15:12 proof hashes; rent factor 269). The stage URL is https://hack-meridian-testnet.kristjan-grm11775.workers.dev (MCP at `/mcp`).
+`0ca5495` (deployed 15:48 UTC: e6's landing redesign 3845f15/754d538, a3's llms.txt with the /sample link, the /sample page
+with the 600 XLM hard ceiling from 347b7ea/1506dbb; smoke 9/9, llms.txt byte-identical; rent factor ~290). The stage URL is https://hack-meridian-testnet.kristjan-grm11775.workers.dev (MCP at `/mcp`).
 
 ## The deploy worktree is the only place a testnet deploy runs
 
@@ -38,13 +38,14 @@ rehearsal or a recording is in flight. `scripts/stage.ts` appends `-dirty` to th
 ## Queue (main is past `36f8466`)
 
 - ~~`a61dd15`~~ deployed in `b1a960b` (15:36 UTC).
-- e6's landing restyle (~18:30 UTC): `apps/web/src/landing.css`, `src/assets/`, `landing-copy.ts`, the `welcome.ts` view
+- ~~e6's landing restyle~~ deployed in `0ca5495`. Queued: e6's polish `459fd24` (landing.css/landing.ts only) and the
+  sample runner's Carol reset (pending commit). Original restyle conditions: `apps/web/src/landing.css`, `src/assets/`, `landing-copy.ts`, the `welcome.ts` view
   markup, the `index.html` font load. Agreed conditions: unchanged test ids, the "Wallet name" label, and the alert and
   status roles; no 390 px overflow and no console errors (`bun run shots` checks both); AA contrast and focus rings on
   the dark hero; motion only behind `prefers-reduced-motion`; a3's meta and noscript untouched. Verify with
   `bun scripts/site-e2e.ts local` and `bun run shots testnet` after the deploy.
-- `/sample` page (`apps/web/src/server/sample/**`): if it needs a demo-wallet secret, the secret rule above applies, plus
-  a landing link.
+- ~~`/sample` page~~ deployed (347b7ea, amounts 1506dbb): new Durable Object `SAMPLE_RUNNER`, switch `SAMPLE_ENABLED`,
+  `/sample` in runWorkerFirst; first public run `evidence/sample/sr_4f0bc683de9afffaa85fe224.json`.
 
 ## Ownership after the handoff
 
