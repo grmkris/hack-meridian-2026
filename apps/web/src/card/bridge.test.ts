@@ -1,11 +1,13 @@
+import { Option } from 'effect'
 import { afterEach, describe, expect, test, vi } from 'vitest'
 
 import { InMemoryTransport } from '@modelcontextprotocol/client'
 import type { CallToolResult } from '@modelcontextprotocol/client'
-import { AppBridge, type McpUiHostCapabilities } from '@modelcontextprotocol/ext-apps/app-bridge'
+import { AppBridge, type McpUiHostCapabilities, type McpUiHostContext } from '@modelcontextprotocol/ext-apps/app-bridge'
 import { App } from '@modelcontextprotocol/ext-apps/app-with-deps'
 
 import { bootCard } from './boot'
+import { mergeAppearance } from './decode'
 import { BOB, FIXTURES, type Fixture } from './harness/fixtures'
 
 /**
@@ -47,7 +49,11 @@ afterEach(async () => {
 })
 
 /** Mount the card for one fixture behind a test host; `isVisible: false` lets a visibilitychange start a poll now. */
-const mount = async (state: string, capabilities: McpUiHostCapabilities = ALL) => {
+const mount = async (
+  state: string,
+  capabilities: McpUiHostCapabilities = ALL,
+  context: Pick<McpUiHostContext, 'theme'> = { theme: 'light' },
+) => {
   const fixture = fixtureOf(state)
   const calls: Array<string> = []
   const keys: Array<string> = []
@@ -59,7 +65,7 @@ const mount = async (state: string, capabilities: McpUiHostCapabilities = ALL) =
   const polls = fixture.polls ?? [fixture.structured]
 
   const bridge = new AppBridge(null, { name: 'test-host', version: '1.0.0' }, capabilities, {
-    hostContext: { theme: 'light', toolInfo: { tool: { name: fixture.tool, inputSchema: { type: 'object' } } } },
+    hostContext: { ...context, toolInfo: { tool: { name: fixture.tool, inputSchema: { type: 'object' } } } },
   })
   bridge.oncalltool = async ({ name, arguments: args }) => {
     const answers = fixture.answers?.[name] ?? polls
@@ -176,6 +182,37 @@ describe('the payment card in a chat', () => {
     buttonNamed(card.container, 'Approve with your passkey').click()
     await vi.waitFor(() => expect(text(card.container)).toContain('Open this link yourself'))
     expect(text(card.container)).toContain('/approve/pi_bob20')
+  })
+})
+
+describe("the chat's look", () => {
+  test('the host theme reaches the card', async () => {
+    const card = await mount('payment-needs-nod', ALL, { theme: 'dark' })
+    await vi.waitFor(() => expect(document.querySelector('main.nod')?.getAttribute('data-theme')).toBe('dark'))
+    expect(text(card.container)).toContain('Needs your nod')
+  })
+
+  test("the host's colour variables become the card's tokens; Nod keeps its own lamp and fonts", () => {
+    const appearance = mergeAppearance(
+      { maybeTheme: Option.none(), variables: {}, isFullscreen: false },
+      {
+        theme: 'dark',
+        displayMode: 'fullscreen',
+        styles: {
+          variables: {
+            '--color-background-primary': '#1f1e1d',
+            '--color-text-primary': '#faf9f5',
+            '--font-sans': 'Comic Sans MS',
+          },
+        },
+      },
+    )
+    expect(appearance).toEqual({
+      maybeTheme: Option.some('Dark'),
+      variables: { '--nod-paper': '#1f1e1d', '--nod-ink': '#faf9f5' },
+      isFullscreen: true,
+    })
+    expect(mergeAppearance(appearance, { theme: 'light' })).toMatchObject({ variables: appearance.variables })
   })
 })
 

@@ -17,6 +17,7 @@ export const bootCard = (app: App, container: HTMLElement, flags: Flags, transpo
 
   app.ontoolinput = params => handle.ports.toolInput.send(params)
   app.ontoolresult = params => handle.ports.toolResult.send(params)
+  app.ontoolcancelled = params => handle.ports.toolCancelled.send(params)
   app.onhostcontextchanged = params => handle.ports.hostContext.send(params)
 
   const connect = async () => {

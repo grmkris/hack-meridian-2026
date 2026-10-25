@@ -26,7 +26,12 @@
   --nod-code: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 }
 
+.nod[data-theme='light'] {
+  color-scheme: light;
+}
+
 .nod[data-theme='dark'] {
+  color-scheme: dark;
   --nod-canvas: #0b152c;
   --nod-paper: #0b152c;
   --nod-ink: #e6f0fa;

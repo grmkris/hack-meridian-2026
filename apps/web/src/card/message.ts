@@ -10,6 +10,7 @@ export const Message = defineMessageUnion({
   ReceivedHostContext: { context: Schema.Unknown },
   ReceivedToolInput: { params: Schema.Unknown },
   ReceivedToolResult: { params: Schema.Unknown },
+  ReceivedToolCancelled: {},
   ChangedVisibility: { isVisible: Schema.Boolean },
   TickedPoll: {},
   SucceededPollPayment: { reply: ToolReply },

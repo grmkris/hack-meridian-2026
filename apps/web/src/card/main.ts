@@ -38,6 +38,7 @@ export const ports = {
     hostContext: Port.inbound(Schema.Unknown),
     toolInput: Port.inbound(Schema.Unknown),
     toolResult: Port.inbound(Schema.Unknown),
+    toolCancelled: Port.inbound(Schema.Unknown),
   },
 }
 
@@ -387,6 +388,14 @@ export const update = (model: Model, message: Message) =>
         maybePollError: () => Option.none(),
       }),
     }),
+    ReceivedToolCancelled: () => ({
+      model:
+        model.shown._tag === 'Waiting'
+          ? modifyFields(model, {
+              shown: () => Shown.ToolFailed({ message: 'The tool call was cancelled before Nod answered.' }),
+            })
+          : model,
+    }),
     ChangedVisibility: ({ isVisible }) => {
       const changed = modifyFields(model, { isVisible: () => isVisible })
       return isVisible && !model.isVisible ? startPoll(changed) : { model: changed }
@@ -478,6 +487,7 @@ export const subscriptions = Subscription.make<Model, Message, Host>()(entry => 
   hostContext: Port.subscriptionEntry(ports.inbound.hostContext, context => Message.ReceivedHostContext({ context })),
   toolInput: Port.subscriptionEntry(ports.inbound.toolInput, params => Message.ReceivedToolInput({ params })),
   toolResult: Port.subscriptionEntry(ports.inbound.toolResult, params => Message.ReceivedToolResult({ params })),
+  toolCancelled: Port.subscriptionEntry(ports.inbound.toolCancelled, () => Message.ReceivedToolCancelled()),
   visibility: Subscription.persistentEntry(visibilityChanges),
   poll: entry(
     { schedule: Schedule },

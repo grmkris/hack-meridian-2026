@@ -31,8 +31,8 @@ export const decodeCapabilities = (capabilities: unknown): Capabilities => ({
 
 /** The host CSS variables the card takes over, onto the card's own tokens. Brand colours and fonts stay Nod's. */
 const HOST_VARIABLES: ReadonlyArray<readonly [string, ReadonlyArray<string>]> = [
-  ['--nod-canvas', ['--color-background-primary']],
-  ['--nod-paper', ['--color-background-secondary', '--color-background-primary']],
+  ['--nod-paper', ['--color-background-primary']],
+  ['--nod-wash', ['--color-background-secondary', '--color-background-tertiary']],
   ['--nod-ink', ['--color-text-primary']],
   ['--nod-muted', ['--color-text-secondary', '--color-text-tertiary']],
   ['--nod-line', ['--color-border-primary']],
