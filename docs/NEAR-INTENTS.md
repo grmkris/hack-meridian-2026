@@ -31,10 +31,10 @@ a brand-new wallet can be funded from another chain before it is even deployed.
 
 ## Flow A (deliver): top up from another chain
 
-1. **Prerequisite:** the deposit router on pubnet (`contracts/deposit`, token pinned to mainnet USDC
-   `CCW67TSZV3SSS2HXMBQ5JFGCKJNXKZM7UQUWUZPUTHXSTZLEO7SJMI75`), `DEPOSIT_ROUTER_ID` in `apps/web/.env.mainnet`, HEAD
-   deployed to mainnet. Relayer A pays ~1–2 XLM rent for the router and 2 XLM reserve per address (reclaimed at
-   teardown). Kristjan topped up relayer A for this at 21:40 UTC.
+1. **Prerequisite, already met (21:50 UTC check):** the deposit router is live on pubnet
+   (`CBWDC7KRPOHSUIPADS6NHXHPYZ2KXHUZ7TONHBPVK7AKIWYXNLRFI6YX`, `contracts/deployments/mainnet.json`, bound through
+   `DEPOSIT_ROUTER_ID` since release `2a86e7e`), and both stages serve `1cd71c7` with deposit-first signup. Relayer A
+   pays 2 XLM reserve per address (reclaimed at teardown); Kristjan topped it up to 101 XLM at 21:40 UTC.
 2. **Service** (`apps/web/src/server/topup.ts`, Effect service, schemas at the boundary, fixture for tests):
    - `POST /api/wallet/topup/quote` `{ origin_asset, amount, refund_to }` → ensures the wallet's deposit address exists
      (creates it on first use, ~15 s), calls 1Click with `recipient = deposit G`, `recipientType DESTINATION_CHAIN`,
@@ -74,8 +74,8 @@ a brand-new wallet can be funded from another chain before it is even deployed.
 
 - Build: an Opus agent under the delivery session (`nod-hackathon-delivery-orchestration`), pathspec commits,
   `heavy bun run check`, additive hunks in the MCP-Apps session's files.
-- Deploy: `nod-mcp-apps-wallet` per `docs/DEPLOY.md` ("19:10 UTC"): router on pubnet first (Kristjan's go given with
-  the XLM at 21:40 UTC), then testnet HEAD, then mainnet HEAD; never during a recording.
+- Deploy: the delivery session (`nod-hackathon-delivery-orchestration`), which has owned testnet and mainnet deploys
+  since 19:10 UTC (`docs/DEPLOY.md` from "20:25 UTC" on); testnet first, then mainnet; never during a recording.
 - Freeze 04:00 UTC. If Flow A is not green on mainnet with a real top-up by then, the card tab and the tools stay
   behind the `topup_unavailable` answer and the pitch keeps "top up from any chain via NEAR Intents" as the next line,
   backed by the live quotes above.
