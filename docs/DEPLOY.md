@@ -6,7 +6,7 @@ Plans and queues live in the release plan (.local/brainstorm/FINAL-REVIEW.md §K
 below; mainnet only on the orchestrator's explicit go, never during a recording.
 
 Live: **testnet at `3d4364f`** (19:56 UTC: claim link v2 and migration 0009 over `9a965a3`) on https://testnet.trynod.si
-(MCP at `/mcp`; the workers.dev host redirects there); **mainnet at `9a965a3`** (19:50 UTC) on https://trynod.si. Dated sections
+(MCP at `/mcp`; the workers.dev host redirects there); **mainnet at `3d4364f`** (20:04 UTC) on https://trynod.si. Dated sections
 below are the history.
 
 ## The deploy worktree is the only place a testnet deploy runs
@@ -274,3 +274,10 @@ exists), health release `3d4364f0…`.
 - probe all green, 1 warn (`evidence/probe/2026-10-25T20-02-31-251Z.json`). Treasury 85.5 USDC.
 
 Rollback: re-pin `9a965a3` (0009 additive).
+
+## 20:04 UTC: mainnet at `3d4364f` (orchestrator's go)
+
+Plan `[WalletDb] update` (0009) + `[Web] update` + RELEASE, deploy `"deletedClasses":[]`; 0009 applied 20:03:50 UTC
+(`claim_links` exists; still one wallet, none created). Health release `3d4364f0…`, pubnet, invite off, payments on.
+`/llms.txt` identical; unknown `/claim/cl_0123…` → 404 "Not found · Nod"; anonymous `POST /mcp` 401. tools/list needs a
+mainnet connection (none made); same build as the 19:56 testnet list.
