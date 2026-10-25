@@ -112,9 +112,9 @@ try {
       await page.getByTestId('sign-in').waitFor()
     })
 
-    await step('the same passkey signs back in', async () => {
+    await step('the same passkey signs back in, on the page it left', async () => {
       await page.getByTestId('sign-in').click()
-      await page.getByRole('heading', { name: 'Home', level: 1 }).or(page.getByRole('alert')).first().waitFor()
+      await page.getByRole('navigation', { name: 'Wallet' }).or(page.getByRole('alert')).first().waitFor()
       await page.screenshot({ path: join(directory, 'signed-in-again.png'), fullPage: true })
       await noAlert(page)
     })
