@@ -183,6 +183,8 @@ export interface DepositAddress {
   readonly recipient: string
   /** The router's allowance over G ends after this ledger (~180 days); a later deposit needs a fresh address. */
   readonly expirationLedger: number
+  /** The ledger the registration landed in (with `expirationLedger`, the allowance's span; ~5 s per ledger). */
+  readonly registeredLedger: number
   /** Proof: the sponsored create + trustline, the registration (approve), the lock (master weight 0). */
   readonly txs: { readonly create: string; readonly register: string; readonly lock: string }
   /**

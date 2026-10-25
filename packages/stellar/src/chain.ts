@@ -608,16 +608,23 @@ export const makeStellar = Effect.gen(function* () {
         address,
         recipient: contractId,
         expirationLedger: until.u32(),
+        registeredLedger: registered.ledger,
         txs: { create: created.hash, register: registered.hash, lock: locked.hash },
         teardownXdr: teardown.xdr,
       } satisfies DepositAddress
     })
 
-  /** Anyone may sweep; the relayer submits with no authorization entries. Refuses a G the router binds elsewhere. */
+  /**
+   * Anyone may sweep; the relayer submits with no authorization entries. Refuses a G the router binds elsewhere.
+   * Null, with nothing submitted, when G holds no USDC or the router may take none of it (allowance expired).
+   */
   const sweepDeposit = (depositAddress: string, contractId: string) =>
     Effect.gen(function* () {
       const router = yield* depositRouter
       if (accountOf(depositAddress) !== depositAddress) return yield* badInput(`not a G… address: ${depositAddress}`)
+      // The balance first: an idle address (the watcher's usual case) costs one ledger read and no simulation.
+      const held = yield* classicBalances(depositAddress)
+      if (held.usdc <= 0n) return null
       const raw = yield* view(router, 'deposit', [addr(depositAddress)])
       const bound = yield* decodeDepositRecord(nativeOf(raw) ?? null).pipe(
         Effect.mapError(e => badInput(`deposit record: ${messageOf(e)}`)),
@@ -632,8 +639,6 @@ export const makeStellar = Effect.gen(function* () {
           kind: 'declined',
           message: `deposit_mismatch: ${depositAddress} pays ${bound.recipient}, not ${contractId}`,
         })
-      const held = yield* classicBalances(depositAddress)
-      if (held.usdc <= 0n) return null
       const outcome = yield* invoker.submit(sweepFunc(router, depositAddress), []).pipe(
         Effect.catchIf(
           e => contractCodes(e.message).includes(NOTHING_TO_SWEEP),

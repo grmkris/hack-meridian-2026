@@ -17,6 +17,16 @@ import { Chain, type ChainHealth, type Wallet } from '@hm/protocol'
 import { Counter } from './counter.ts'
 import type { DbError } from './db.ts'
 import type { Db } from './db.ts'
+import {
+  type DepositError,
+  depositAddressOf,
+  depositOfWallet,
+  depositView,
+  ensureDepositAddress,
+  pendingOf,
+  sweepDeposit,
+  watchDeposit,
+} from './deposit.ts'
 import type { LedgerError } from './ledger.ts'
 import type { Ledger } from './ledger.ts'
 import { inviteRequired, Network, type NetworkShape, transferFeeCeiling } from './network.ts'
@@ -85,6 +95,12 @@ const fromCreate = (error: OwnerError | WalletCapReached) =>
 const visitor = Effect.flatMap(HttpServerRequest.HttpServerRequest, request =>
   visitorOf(request.headers['cf-connecting-ip']),
 )
+
+/** Deposit addresses: 404 where the network has no router, 503 while another request builds it or the chain refused. */
+const fromDeposit = (error: DepositError) =>
+  error.reason === 'unavailable'
+    ? new NotFound({ error: `deposit_unavailable: ${error.message}` })
+    : new Unavailable({ error: error.message })
 
 const fromStorage = (error: DbError | LedgerError) =>
   new Unavailable({ error: error._tag === 'DbError' ? `storage: ${error.operation}` : error.message })
@@ -270,7 +286,7 @@ const WalletHandlers = HttpApiBuilder.group(
             const connections = yield* connectionsOfWallet(wallet.id)
             const pending = yield* pendingOfWallet(wallet.id)
             return {
-              wallet: summary(wallet, network),
+              wallet: { ...summary(wallet, network), deposit_address: yield* depositAddressOf(wallet.id) },
               network: network.caip,
               explorer_base: network.explorerBase,
               balances,
@@ -354,6 +370,37 @@ const WalletHandlers = HttpApiBuilder.group(
         ),
       )
       .handle('receipts', () => run(Effect.flatMap(sessionWallet, wallet => receiptsOfWallet(wallet.id, 100))))
+      .handle('depositAddress', () =>
+        run(
+          Effect.gen(function* () {
+            const wallet = yield* sessionWallet
+            const row = yield* ensureDepositAddress(wallet).pipe(
+              Effect.catchTag('DepositError', error => Effect.fail(fromDeposit(error))),
+            )
+            // Shown now: the wallet's Durable Object sweeps it every minute for the next day.
+            yield* watchDeposit(wallet.id)
+            return depositView(row, yield* pendingOf(row))
+          }),
+        ),
+      )
+      .handle('sweepDeposit', () =>
+        run(
+          Effect.gen(function* () {
+            const wallet = yield* sessionWallet
+            const row = yield* depositOfWallet(wallet.id)
+            if (row === undefined || row.status !== 'active' || row.address === null)
+              return yield* new NotFound({ error: 'no deposit address yet: GET /api/wallet/deposit-address' })
+            const result = yield* sweepDeposit({ ...row, status: 'active', address: row.address }).pipe(
+              Effect.catchTag('DepositError', error => Effect.fail(fromDeposit(error))),
+            )
+            return {
+              swept: result.swept.toString(),
+              tx: result.tx,
+              deposit: depositView(result.row, yield* pendingOf(result.row)),
+            }
+          }),
+        ),
+      )
       .handle('pending', () =>
         run(
           Effect.gen(function* () {

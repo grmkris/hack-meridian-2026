@@ -106,8 +106,45 @@ export const WalletSummary = Schema.Struct({
   /** The relayer's deploy transaction and the welcome funding (testnet): proof links via `<explorer_base>/tx/<hash>`. */
   deploy_tx: Schema.optionalKey(Schema.NullOr(Schema.String)),
   fund_tx: Schema.optionalKey(Schema.NullOr(Schema.String)),
+  /**
+   * The wallet's deposit address (a `G…` anyone, an exchange included, can pay USDC to; it lands in `contract_id`),
+   * once `GET /api/wallet/deposit-address` has created it; null before. Sent by `/api/overview`.
+   */
+  deposit_address: Schema.optionalKey(Schema.NullOr(Schema.String)),
 })
 export type WalletSummary = typeof WalletSummary.Type
+
+/**
+ * A wallet's deposit address (docs/spikes/s8-deposit.md): pay any amount of USDC to `address`, any number of times,
+ * no memo; the deposit router sweeps it into `recipient` (the wallet), and nothing else can move it. Amounts in stroops.
+ */
+export const DepositAddressView = Schema.Struct({
+  address: Schema.String,
+  /** The wallet's `C…`: the only place a deposit can go. */
+  recipient: Schema.String,
+  /** The router's allowance over the address ends after this ledger (~180 days); later deposits need a new address. */
+  expires_ledger: Schema.Int,
+  /** Approximate wall time of `expires_ledger` (5 s ledgers), ISO 8601 UTC. */
+  expires_at: Schema.String,
+  /** USDC sitting on the address, not yet swept (stroops); null when the chain did not answer. */
+  pending: Schema.NullOr(Schema.String),
+  /** Everything swept into the wallet so far (stroops). */
+  swept_total: Schema.String,
+  /** Proof links (`<explorer_base>/tx/<hash>`): the sponsored create, the router registration, the lock, the last sweep. */
+  create_tx: Schema.String,
+  register_tx: Schema.String,
+  lock_tx: Schema.String,
+  last_sweep_tx: Schema.NullOr(Schema.String),
+})
+export type DepositAddressView = typeof DepositAddressView.Type
+
+export const SweepReply = Schema.Struct({
+  /** Stroops moved into the wallet by this sweep; "0" when there was nothing to sweep (nothing was submitted). */
+  swept: Schema.String,
+  tx: Schema.NullOr(Schema.String),
+  deposit: DepositAddressView,
+})
+export type SweepReply = typeof SweepReply.Type
 const WalletReply = Schema.Struct({ wallet: WalletSummary })
 
 export const RegistrationOptions = Schema.Struct({
@@ -284,5 +321,12 @@ export class Api extends HttpApi.make('hack-meridian')
         }),
       )
       .add(HttpApiEndpoint.get('receipts', '/api/receipts', { success: Schema.Array(ReceiptRecord), error: Errors }))
-      .add(HttpApiEndpoint.get('pending', '/api/pending', { success: Schema.Array(PendingApproval), error: Errors })),
+      .add(HttpApiEndpoint.get('pending', '/api/pending', { success: Schema.Array(PendingApproval), error: Errors }))
+      .add(
+        HttpApiEndpoint.get('depositAddress', '/api/wallet/deposit-address', {
+          success: DepositAddressView,
+          error: Errors,
+        }),
+      )
+      .add(HttpApiEndpoint.post('sweepDeposit', '/api/wallet/sweep', { success: SweepReply, error: Errors })),
   ) {}

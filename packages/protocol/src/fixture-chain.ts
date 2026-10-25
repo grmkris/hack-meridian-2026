@@ -365,6 +365,7 @@ export const makeFixtureChain = (options: FixtureOptions = {}): FixtureChain => 
             address,
             recipient: contractId,
             expirationLedger: ledger + 3_110_400,
+            registeredLedger: ledger,
             txs,
             teardownXdr: `fixture-teardown-${address}`,
           }
