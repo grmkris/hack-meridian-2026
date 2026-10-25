@@ -1,0 +1,72 @@
+{
+  "step": "pocket",
+  "startedAt": "2026-10-25T12:10:09.528Z",
+  "relayerBefore": {
+    "exists": true,
+    "xlm": "10000.0000000",
+    "subentries": 0,
+    "numSponsored": 0,
+    "numSponsoring": 0
+  },
+  "pocketBefore": {
+    "exists": true,
+    "xlm": "9999.9999900",
+    "usdc": "8.1000000",
+    "subentries": 1,
+    "numSponsored": 0,
+    "numSponsoring": 0
+  },
+  "returnS1Leftover": {
+    "amount": "8.10",
+    "hash": "ccdf083d15d6708b46b549467a617b8306e6301c2282b29601d8e709e99b4368",
+    "feeCharged": "21921",
+    "timings": {
+      "recordSim": 138,
+      "recordSimMinResourceFee": 55435828,
+      "sign": 9,
+      "enforceSim": 141,
+      "enforceSimMinResourceFee": 28580,
+      "sendToFinal": 5994
+    }
+  },
+  "merge": {
+    "label": "merge friendbot-funded G(K) into the relayer",
+    "hash": "95920d7338be1b885364f47b5589151f8b81dccff10fbe382a69fe0da9785124",
+    "ms": 5243,
+    "explorer": "https://stellar.expert/explorer/testnet/tx/95920d7338be1b885364f47b5589151f8b81dccff10fbe382a69fe0da9785124"
+  },
+  "create": {
+    "label": "create G(K) GCEM4W with sponsored reserves + USDC trustline",
+    "hash": "b0c22b384fcf49fe444bf8fdc38bf4cbaf58f63255b3481efcd6ed7b2a4e94f2",
+    "ms": 4833,
+    "explorer": "https://stellar.expert/explorer/testnet/tx/b0c22b384fcf49fe444bf8fdc38bf4cbaf58f63255b3481efcd6ed7b2a4e94f2"
+  },
+  "pocketAfter": {
+    "exists": true,
+    "xlm": "0.0000000",
+    "usdc": "0.0000000",
+    "subentries": 1,
+    "numSponsored": 3,
+    "numSponsoring": 0,
+    "sponsor": "GCSZT4Q2TWKBPD2GRHTWRH6PMAMSA7KV7JGKOVPSYJXD73MXWGM7FHZU"
+  },
+  "relayerAfter": {
+    "exists": true,
+    "xlm": "19999.9977379",
+    "subentries": 0,
+    "numSponsored": 0,
+    "numSponsoring": 3
+  },
+  "snapshot": {
+    "ledger": 5381328,
+    "policy": {
+      "limit": "5.00",
+      "spent": "0.00",
+      "remaining": "5.00",
+      "history": []
+    },
+    "pocketUsdc": "0.00",
+    "accountUsdc": "24.00"
+  },
+  "finishedAt": "2026-10-25T12:10:29.652Z"
+}
