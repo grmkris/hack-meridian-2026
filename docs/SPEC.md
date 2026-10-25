@@ -226,3 +226,9 @@ Show the explorer for two transactions (a delegated one and the owner-approved o
 - Same source: the CAP-73 feature is a **claim link**. The recipient signs the `trust` auth entry; the sender's transfer
   and an optional 0.5 XLM reserve top-up ride in the same router call. We never promise "pay any G address silently".
 - A Genesis project may enter both tracks. Name Composed and Unlocked explicitly in the README and the answers.
+- 2026-10-25 12:40 UTC, from `docs/research/x402-stellar.md`: **the demo seller runs our own facilitator.** Hosted
+  facilitators (x402.org, OpenZeppelin Channels) reject OpenZeppelin smart accounts whose policy emits an event and cap
+  fees below what a smart account costs, and the stock `@x402/stellar` client cannot sign as a C-address. We ship a
+  small scheme class that signs with our account's auth payload, and an in-process facilitator with a 1M-stroop ceiling.
+  Third-party sellers get a G-account fallback lane until the upstream fixes merge. Stellar's docs state "there is no
+  policy layer for x402 on Stellar today": that gap is the product.
