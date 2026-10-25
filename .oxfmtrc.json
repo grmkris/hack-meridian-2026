@@ -16,6 +16,7 @@
     "dist",
     "repos",
     "spikes/**",
+    "evidence/**",
     "contracts/target",
     "contracts/**/test_snapshots",
     "packages/counter-client",
