@@ -12,6 +12,7 @@
 import {
   Account,
   Address,
+  Asset,
   authorizeEntry,
   buildInvocationTree,
   Contract,
@@ -26,7 +27,7 @@ import {
   type Keypair,
 } from '@stellar/stellar-sdk'
 
-import { expert, HORIZON_URL, key, PASSPHRASE, server, USDC_SAC } from './env'
+import { expert, HORIZON_URL, key, PASSPHRASE, server, USDC_ISSUER, USDC_SAC } from './env'
 
 export const ROUTER = 'CCLFB4I4CNGWHHL53UO33CSWKKXJBANMDGOGL43J7RBT7SWK2H2BPGN4'
 
@@ -35,6 +36,9 @@ const arg = (name: string, fallback: string) => {
   return i > 0 ? process.argv[i + 1]! : fallback
 }
 const omitRecipient = process.argv.includes('--omit-recipient')
+// --trust-first: after both parties sign, the recipient adds the trustline classically (ChangeTrust), so the signed
+// recipient entry is no longer needed when the payment lands. Answers "does an unused auth entry fail the tx?".
+const trustFirst = process.argv.includes('--trust-first')
 const recipientRole = arg('recipient', 'recipient')
 const amount = BigInt(arg('amount', '50000000')) // 5 USDC, 7 decimals
 
@@ -107,6 +111,17 @@ for (const e of entries) {
   console.log(`  signed by ${who === sender.publicKey() ? 'sender' : 'recipient'} (valid until ledger ${validUntil})`)
 }
 
+if (trustFirst) {
+  const acct = await horizon.loadAccount(recipient.publicKey())
+  const ct = new TransactionBuilder(acct, { fee: '10000', networkPassphrase: PASSPHRASE })
+    .addOperation(Operation.changeTrust({ asset: new Asset('USDC', USDC_ISSUER) }))
+    .setTimeout(60)
+    .build()
+  ct.sign(recipient)
+  const res = await horizon.submitTransaction(ct)
+  console.log(`\nrecipient added the trustline itself first (classic ChangeTrust): ${expert(res.hash)}`)
+}
+
 // 3) Re-simulate with the signed entries (enforcing auth) for exact resources.
 const sim2 = await server.simulateTransaction(build(signed), undefined, 'enforce')
 let assembled
@@ -116,7 +131,7 @@ if (rpc.Api.isSimulationSuccess(sim2)) {
 } else {
   const err = rpc.Api.isSimulationError(sim2) ? sim2.error : JSON.stringify(sim2)
   console.log(`\n[sim enforce, signed] ERROR:\n${err}`)
-  if (!omitRecipient) process.exit(1)
+  if (!omitRecipient && !trustFirst) process.exit(1)
   console.log('\nsubmitting anyway with the record-mode footprint to get the onchain rejection')
   assembled = rpc.assembleTransaction(build(signed), sim1).build()
 }
