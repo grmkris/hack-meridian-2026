@@ -5,8 +5,8 @@ Plans and queues live in the release plan (.local/brainstorm/FINAL-REVIEW.md §K
 **Deploys: session A ("ops and hardening") only, since 19:10 UTC 2026-10-25**, testnet and mainnet, from the worktree
 below; mainnet only on the orchestrator's explicit go, never during a recording.
 
-Live: **testnet at `31a84de`** (19:30 UTC: C's pages in the night identity with self-hosted fonts, D's served files) on
-https://testnet.trynod.si (MCP at `/mcp`; the workers.dev host redirects there); **mainnet at `31a84de`** (19:37 UTC) on https://trynod.si. Dated sections
+Live: **testnet at `9a965a3`** (19:41 UTC: deposit-first signup and migration 0008, C's Home / Connections / header, D's
+landing per host) on https://testnet.trynod.si (MCP at `/mcp`; the workers.dev host redirects there); **mainnet at `31a84de`** (19:37 UTC) on https://trynod.si. Dated sections
 below are the history.
 
 ## The deploy worktree is the only place a testnet deploy runs
@@ -218,3 +218,29 @@ Plan `[Web] update` + `[Web/RELEASE] update` only; deploy `"deletedClasses":[]`.
 `31a84de0…`, pubnet, invite off, payments on, relayers 27.0 / 10.0 XLM, treasury 0 USDC. `/llms.txt` byte-identical to the
 repository file; the three `/fonts/*.woff2` 200 `font/woff2`. Backfill: still no Worker `UPDATE … SET network` in the
 mainnet D1 analytics after the 19:24 deploy's first requests.
+
+## 19:39 and 19:41 UTC: testnet at `d221e51`, then `9a965a3` (orchestrator's goes)
+
+`d221e51` (B's deposit-first signup `405498e` with migration `0008_wallet_activations.sql`, C's tokens `b7269f0`, Home's
+Add money `758b74d`): gate green, plan `[WalletDb] update` + `[Web] update` + RELEASE, deploy `"deletedClasses":[]`,
+0008 applied 19:38:48 UTC (`wallet_activations` exists), smoke 9/9, events-check 8/8 (`f2e3befe…`). The full check set
+moved to the next deploy, two minutes later:
+
+`9a965a3` (adds C's Connections and header `93049bf` and D's landing `9a965a3`; no migration): gate green, plan `[Web]
+update` + RELEASE, deploy `"deletedClasses":[]`, health release `9a965a3a…`.
+
+- smoke 9/9 (`evidence/probe/smoke-testnet-2026-10-25T19-41-16Z.json`).
+- `bun scripts/landing-shots.ts testnet`: 9 looks PASS (no page or console errors, no overflow, etchings draw); the hero
+  badge reads "Stellar testnet", the connector line `https://testnet.trynod.si/mcp`.
+- events-check 8/8, settlement
+  https://stellar.expert/explorer/testnet/tx/c872ed5214070f2acf1c897c4b3ecce8520c85988d2b23515000c38f8688f929.
+- claude-code-check 7/7 (`.local/claude-code-check/2026-10-25T19-43-24-170Z/`).
+- rehearsal s1–s11 green, acceptance 1, 2, 4–9 PASS, 3 REF (`evidence/demo/2026-10-25T19-44-34-505Z/`; seven hashes
+  `successful` on Horizon); Connections after the revoke shows the two-step notice with "Remove the rule" and the
+  header pill "Stellar Testnet" (`connections-revoked.png`).
+- `bun scripts/site-e2e.ts testnet`: 8/8 (new wallet funded 10 USDC by the SPA signup, every page, sign out, sign back
+  in); Home shows the wallet balance and "What your AI may spend", and Add money offers "Get a deposit address" (not
+  pressed live; B's gate covers it).
+- probe all green, 1 warn (`evidence/probe/2026-10-25T19-48-59-754Z.json`). Treasury 166.5 USDC.
+
+Rollback: re-pin `31a84de` (0008 is additive; the table stays).
