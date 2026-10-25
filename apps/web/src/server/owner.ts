@@ -111,6 +111,7 @@ export const createWallet = (site: Site, input: NewWalletInput) =>
         )
       : null
     const wallet = yield* createOwnerWallet({
+      network: network.caip,
       name: input.name.trim().slice(0, 40) || 'Personal',
       contractId: deployed.contractId,
       credentialId: input.credentialId,

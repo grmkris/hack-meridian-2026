@@ -31,7 +31,29 @@ const CHALLENGE_TTL_MS = 5 * 60 * 1000
 
 // Owners and wallets
 
+type NetworkId = 'stellar:testnet' | 'stellar:pubnet'
+
+/**
+ * A stage runs on one network and has its own database, so every wallet and contact row is on the stage's network.
+ * Rows written before the column followed the stage (mainnet wallets said testnet) get it here, once per isolate.
+ */
+export const backfillNetwork = (network: NetworkId) =>
+  write(
+    sql('UPDATE wallets SET network = ? WHERE network <> ?', network, network),
+    sql('UPDATE contact_destinations SET network = ? WHERE network <> ?', network, network),
+  )
+
+/** The network of the owner's wallet (the stage's), for rows that belong to the owner. */
+const networkOfOwner = (ownerId: string) =>
+  Effect.map(
+    first(sql('SELECT network FROM wallets WHERE owner_id = ? LIMIT 1', ownerId), row =>
+      Effect.succeed(String(row['network'])),
+    ),
+    network => network ?? 'stellar:testnet',
+  )
+
 export const createOwnerWallet = (input: {
+  readonly network: NetworkId
   readonly name: string
   readonly contractId: string
   readonly credentialId: string
@@ -52,7 +74,7 @@ export const createOwnerWallet = (input: {
         contract_id: input.contractId,
         passkey_credential_id: input.credentialId,
         passkey_public_key: input.publicKey,
-        network: 'stellar:testnet',
+        network: input.network,
         deploy_tx: input.deployTx,
         fund_tx: input.fundTx,
         created_at: now,
@@ -355,7 +377,7 @@ export const createContact = (input: {
         id: yield* randomId('cd'),
         contact_id: id,
         address: input.address,
-        network: 'stellar:testnet',
+        network: yield* networkOfOwner(input.ownerId),
         memo: input.memo,
         readiness: input.readiness,
         verified_at: now,
@@ -383,7 +405,7 @@ export const replaceDestination = (input: {
         id: yield* randomId('cd'),
         contact_id: input.contactId,
         address: input.address,
-        network: 'stellar:testnet',
+        network: yield* networkOfOwner(input.ownerId),
         memo: input.memo,
         readiness: input.readiness,
         verified_at: now,

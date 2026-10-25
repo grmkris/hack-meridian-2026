@@ -10,6 +10,7 @@ import type { Ledger } from './ledger.ts'
 import { Network } from './network.ts'
 import { type GrantHelpers, OAuthGrants } from './oauth-grants.ts'
 import { Settings } from './settings.ts'
+import { backfillNetwork } from './store.ts'
 import { WalletCaps } from './wallet-caps.ts'
 import { ledgerViaObject, type WalletObject } from './wallet-object.ts'
 import { parseDemoContacts, stringBindings, WalletSettings } from './wallet-settings.ts'
@@ -74,17 +75,30 @@ const walletCaps = (env: WorkerEnv) =>
     env.OAUTH_STORE.getByName('oauth').walletCreation(visitor, limits, take),
   ).pipe(Layer.provide(ConfigProvider.layer(ConfigProvider.fromEnvRecord(stringBindings(env)))))
 
+/** Wallet and contact rows on the stage's network (store.ts backfillNetwork); never fails the isolate. */
+const networkBackfill = Layer.effectDiscard(
+  Effect.gen(function* () {
+    const network = yield* Network
+    yield* backfillNetwork(network.caip)
+  }).pipe(Effect.catch(error => Effect.logWarning('network backfill failed', error))),
+)
+
 export const appLayer = (env: WorkerEnv, helpers: GrantHelpers) =>
-  Layer.mergeAll(
-    Counter.layer,
-    WalletSettings.fromBindings(env),
-    Db.fromEngine(d1Engine(env.WALLET_DB)),
-    ledgerViaObject(env.WALLET_OBJECT),
-    chainLayer(env),
-    OAuthGrants.fromHelpers(helpers),
-    eventsHost(env),
-    walletCaps(env),
-  ).pipe(Layer.provideMerge(Settings.fromBindings(env)))
+  networkBackfill.pipe(
+    Layer.provideMerge(
+      Layer.mergeAll(
+        Counter.layer,
+        WalletSettings.fromBindings(env),
+        Db.fromEngine(d1Engine(env.WALLET_DB)),
+        ledgerViaObject(env.WALLET_OBJECT),
+        chainLayer(env),
+        OAuthGrants.fromHelpers(helpers),
+        eventsHost(env),
+        walletCaps(env),
+      ),
+    ),
+    Layer.provideMerge(Settings.fromBindings(env)),
+  )
 
 export const makeRuntime = (env: WorkerEnv, helpers: GrantHelpers): AppRuntime =>
   ManagedRuntime.make(appLayer(env, helpers))

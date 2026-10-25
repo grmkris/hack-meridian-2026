@@ -97,11 +97,12 @@ const sessionWallet = Effect.gen(function* () {
   return wallet
 })
 
-const summary = (wallet: Wallet) => ({
+/** The wallet as /api shows it, on the stage's network (one stage = one network = one database), not a stored column. */
+const summary = (wallet: Wallet, network: NetworkShape) => ({
   id: wallet.id,
   name: wallet.name,
   contract_id: wallet.contract_id,
-  network: wallet.network,
+  network: network.caip,
   deploy_tx: wallet.deploy_tx ?? null,
   fund_tx: wallet.fund_tx ?? null,
 })
@@ -176,11 +177,12 @@ const SessionHandlers = HttpApiBuilder.group(
   'session',
   Effect.fn(function* (handlers) {
     const context = yield* Effect.context<Db | Chain | WalletSettings | Network | WalletCaps>()
+    const network = yield* Network
     const run = <A, E, R>(effect: Effect.Effect<A, E, R>) => Effect.provide(effect, context)
     return handlers
       .handle('current', () =>
         run(sessionWallet).pipe(
-          Effect.map(wallet => ({ wallet: summary(wallet) })),
+          Effect.map(wallet => ({ wallet: summary(wallet, network) })),
           Effect.catchTag('DbError', error => Effect.fail(fromStorage(error))),
         ),
       )
@@ -208,7 +210,7 @@ const SessionHandlers = HttpApiBuilder.group(
         ).pipe(
           Effect.mapError(fromCreate),
           Effect.tap(created => setSession(created.token)),
-          Effect.map(created => ({ wallet: summary(created.wallet) })),
+          Effect.map(created => ({ wallet: summary(created.wallet, network) })),
         ),
       )
       .handle('assertionOptions', () => run(Effect.flatMap(site, assertionOptions)).pipe(Effect.mapError(fromOwner)))
@@ -225,7 +227,7 @@ const SessionHandlers = HttpApiBuilder.group(
         ).pipe(
           Effect.mapError(fromOwner),
           Effect.tap(created => setSession(created.token)),
-          Effect.map(created => ({ wallet: summary(created.wallet) })),
+          Effect.map(created => ({ wallet: summary(created.wallet, network) })),
         ),
       )
       .handle('signOut', () =>
@@ -268,7 +270,7 @@ const WalletHandlers = HttpApiBuilder.group(
             const connections = yield* connectionsOfWallet(wallet.id)
             const pending = yield* pendingOfWallet(wallet.id)
             return {
-              wallet: summary(wallet),
+              wallet: summary(wallet, network),
               network: network.caip,
               explorer_base: network.explorerBase,
               balances,
