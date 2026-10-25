@@ -142,3 +142,15 @@ the same receipt, 4 needs the nod, Carol 1 by claim link, revoke. Kristjan's mai
 on his wallet once Claude is connected to it with his passkey (consent at `https://trynod.si/mcp`), not from the runner.
 `home_domain=trynod.si` is set on the mainnet relayers and treasury (SEP-1 step 2; `aa276a3f…`, `865aa489…`,
 `7d307c2b…`), matching `ACCOUNTS` in https://trynod.si/.well-known/stellar.toml.
+
+## 18:59 UTC: the whole flow on mainnet, in claude.ai, on Kristjan's wallet
+
+Every demo beat ran on pubnet through the public claude.ai connector "Nod (mainnet)" (`https://trynod.si/mcp`,
+release `9fc080f`) on Kristjan's own wallet with his own passkey, driven from his browser: consent with a 5 USDC
+allowance (`f803994b…`), overview, the market brief for 0.10 over x402 (pull `6485e55c…`, settlement `cb296cc3…`
+through OpenZeppelin Channels, fee paid by the facilitator), Alice 2 inside the allowance (`c8ee8b5a…`), Bob 5 by the
+passkey (`0339b8dd…`, allowance untouched), the same request again → the same receipt, 4 USDC → awaiting the nod with
+nothing reserved, Carol 1 by claim link with the trustline and payment in one transaction (`1fe4e852…`), revoke →
+rule removed on chain (`e17e15d5…`) and the pocket's 0.90 swept back (`ab6d493d…`), then a refused payment. Hashes,
+balances and the three wording findings (post-nod result text, post-claim readiness, approval-page order sentence) are
+in `evidence/mainnet/claude-run-2026-10-25.md`. Wallet after the run: 1.80 USDC.
