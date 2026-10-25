@@ -19,7 +19,7 @@ Nod
 
 Small stuff, it just pays. Big stuff needs your nod. A Stellar wallet inside your AI, with one allowance you set.
 
-### Description (Markdown, ≤ 8000 characters; this one: 7323)
+### Description (Markdown, ≤ 8000 characters; this one: 7689)
 
 **Apps are turning into conversations and agents, so wallets have to follow them into the chat.** Nod is a Stellar
 wallet that lives inside the AI you already use: one connector URL in Claude, Goblin, Claude Code or any MCP app, and in
@@ -46,17 +46,15 @@ The full flow runs on Stellar mainnet at trynod.si, in claude.ai, on the founder
 by OpenZeppelin Channels, a payment inside the allowance, one that needed the nod, a claim link that created a
 trustline and paid in one transaction, a revoke that removed the rule and swept the pocket.
 
-- 5 USDC allowance installed on the account: [`f803994b`](https://stellar.expert/explorer/public/tx/f803994b1f0313b0c9fe81c51355eb51296b86992c65c70e2e04effa8d73d7eb)
 - x402 market brief, 0.10 USDC: pull into the pocket [`6485e55c`](https://stellar.expert/explorer/public/tx/6485e55cd8f69d51b60f608bdc253d40c3d7ee02f9b86bcccd6cefbeeb08c7bb), settled by OpenZeppelin Channels [`cb296cc3`](https://stellar.expert/explorer/public/tx/cb296cc3a539cfaf966d79fa3662e48e83e3f1fb01fe9be24b767d3c3c8dea58)
 - 2 USDC to Alice inside the allowance: [`c8ee8b5a`](https://stellar.expert/explorer/public/tx/c8ee8b5ad7599b9db13a4dd551a918d55ecafc6de2f31c79a61fcc7edb1032cb) · 5 USDC to Bob, past it, approved with the passkey: [`0339b8dd`](https://stellar.expert/explorer/public/tx/0339b8dd088b46d500de425d0afe8707ff6922186ef70070396323f2d3312e4f)
 - 1 USDC to Carol, trustline and payment in one transaction: [`1fe4e852`](https://stellar.expert/explorer/public/tx/1fe4e852314ea638ed53ba79acebc60a129b587e0ef80c9b051d434aa01e68c6)
-- Revoke: pocket swept back [`ab6d493d`](https://stellar.expert/explorer/public/tx/ab6d493d483f6ea5d560a9561ab7cdd2668b9d7597632023095a397ca1fd53dd), rule removed [`e17e15d5`](https://stellar.expert/explorer/public/tx/e17e15d5efd2f43e883073873ff9d5dc0333ea9dca318cea0f38a5c7678f04c9); the next payment was refused
+- Revoke: rule removed [`e17e15d5`](https://stellar.expert/explorer/public/tx/e17e15d5efd2f43e883073873ff9d5dc0333ea9dca318cea0f38a5c7678f04c9), pocket swept back; the next payment was refused
 
 #### What works today
 
-- **Passkey wallet.** Face ID or a fingerprint creates an OpenZeppelin smart account. Nod pays every network fee.
-- **One allowance per AI app.** Connecting the app over OAuth and setting its allowance is one step; the allowance is a
-  context rule on your account with a spending limit and an expiry.
+- **Passkey wallet, one allowance per AI app.** Face ID creates an OpenZeppelin smart account; connecting an AI app
+  and setting its allowance is one step, a context rule with a spending limit and an expiry. Nod pays every fee.
 - **Pays for APIs.** The AI buys a 0.10 USDC market brief from an x402 seller, settled by a public facilitator. No
   prompt; 4.90 left.
 - **Pays people.** "Send Alice 2 USDC" goes out under the same allowance, signed by the app's own key; 2.90 left.
@@ -71,21 +69,28 @@ trustline and paid in one transaction, a revoke that removed the rule and swept 
   turning into its receipt. Notifications (MCP Events) arrive in Goblin and ChatGPT; claude.ai and Claude Code do not
   implement them, so there the cards poll.
 
+Live on testnet, on the public sandbox (release `3473ee4`):
+
+- **Sign up with a deposit.** A wallet can start with nothing onchain and a `G…` address any exchange can pay; our
+  deposit router sweeps what arrives into that wallet only, and the account deploys with the first USDC
+  ([`04704caf`](https://stellar.expert/explorer/testnet/tx/04704caf5ef4fe361c18452fc00d06f4df0dd8d302ca10cf6cadd6e90aa14873)).
+- **Pay someone who is not on Stellar.** Claude makes a claim link for a name; Jan opened it with no wallet, created
+  one with a passkey, and the USDC landed in it ([`eb9def8c`](https://stellar.expert/explorer/testnet/tx/eb9def8cebc58e8ad0f659e70123ab12449cc91184a243172825bd1f25dd4f1e)).
+- **Contacts from the chat.** Claude adds contacts; the first payment to one it added needs your nod
+  ([`b5efd05d`](https://stellar.expert/explorer/testnet/tx/b5efd05d326c936908785b99050b7719d4b0f341923fd24ae0c56e5a2dcca282)). A bigger allowance is a link your passkey signs.
+
 #### How it uses Stellar
 
-- OpenZeppelin smart account: one contract account per wallet, your passkey as admin, one context rule per AI app.
-- OpenZeppelin spending-limit policy: the allowance, N USDC until T, enforced by the account.
-- WebAuthn (secp256r1) and Ed25519 verifiers: your passkey, and each AI app's own key.
-- Circle USDC through the Stellar Asset Contract (SEP-41).
-- SAC `trust` (CAP-73) and our trust-and-pay router: trustline and transfer in one invocation, on mainnet and testnet.
-- SAC `approve` and our deposit router: deposit addresses that exchanges can pay, swept into the wallet (testnet only).
-- x402 through x402.org and OpenZeppelin Channels, public facilitators, never one of ours.
-- Sponsored reserves and relayers as transaction source: the owner holds no XLM.
-- SEP-1 `stellar.toml` and `home_domain`: the service's accounts name trynod.si.
+- OpenZeppelin smart account and spending-limit policy: your passkey as admin, one rule per AI app with its allowance.
+- WebAuthn (secp256r1) and Ed25519 verifiers: your passkey and each AI app's own key.
+- Circle USDC through the Stellar Asset Contract.
+- SAC `trust` (CAP-73) and our trust-and-pay router: trustline and transfer in one invocation.
+- SAC `approve` and our deposit router: deposit addresses swept into the wallet (testnet).
+- x402 through x402.org and OpenZeppelin Channels, never a facilitator of ours.
+- Sponsored reserves and fee-paying relayers (the owner holds no XLM); SEP-1 `stellar.toml` with `home_domain`.
 
 Hosted x402 facilitators do not take smart-account payers yet, so each AI app's key also owns a small pocket account,
-filled from your wallet under the same policy in 1 USDC steps. Both transactions are on the receipt. Contract ids for
-both networks are in the README.
+filled from your wallet under the same policy in 1 USDC steps. Both transactions are on the receipt.
 
 #### Proof on testnet
 
@@ -100,13 +105,13 @@ Add `https://testnet.trynod.si/mcp` as a custom connector in Claude, create a pa
 set a 5 USDC allowance. Then ask: "Buy the market brief", "Send Alice 2 USDC", "Pay Bob 5 USDC for dinner" (more than
 the 2.90 left, so it needs your nod). Full steps: `evidence/JUDGE-TEST-PATH.md`. No Claude at hand?
 https://testnet.trynod.si/sample runs a sample agent through the same tools on Nod's own demo wallet, with a live log
-and explorer links.
+and explorer links. More to try after a revoke: a claim link for Jan, Dave as a new contact, a bigger allowance.
 
 #### Built at HackMeridian
 
-Research and pinned versions first, then time-boxed spikes that proved each risky part on testnet with transaction
-hashes, then the product: a Cloudflare Worker (Effect, OAuth 2.1, MCP with cards and events), a Foldkit site and a
-Stellar chain package. Mainnet went live the same evening. Every commit is on `main` from 25 October.
+Spikes proved each risky part on testnet first, then the product: a Cloudflare Worker (Effect, OAuth 2.1, MCP with
+cards and events), a Foldkit site, a Stellar chain package. Mainnet went live the same evening. Every commit is on
+`main` from 25 October.
 
 ### Problem solved
 
@@ -147,11 +152,9 @@ notifications, and a person who has never held USDC can be paid through a claim 
 
 ### What's next
 
-- **Deposit-first signup on mainnet.** Show a deposit address the moment the passkey exists, and deploy the account when
-  the first USDC arrives; the deposit router moves to mainnet after its testnet proof.
-- **A claim link that creates a wallet.** Someone with nothing at all taps the link, a passkey creates their Nod
-  wallet, and the USDC lands in it.
-- **Contacts the AI can add,** with the first payment to a new contact always needing the nod.
+- **Mainnet for what runs on testnet tonight.** Deposit-first signup with an exchange deposit address, the claim link
+  that creates a wallet for someone with nothing, and contacts the AI adds, once the deposit router passes its mainnet
+  run.
 - **Recovery and shared wallets.** A second passkey or a guardian, and wallets two people own.
 - **Cash-out** to a bank through a Stellar anchor.
 - **No pocket step** once x402 facilitators accept smart-account payers.

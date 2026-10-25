@@ -72,6 +72,19 @@ is paid by the facilitator. The current relayer addresses are published at
 [`/api/health`](https://testnet.trynod.si/api/health) under `chain.relayers` (the deployed
 stage uses different relayers from the local reference run). Your wallet holds **0 XLM**.
 
+### More to try (live on testnet)
+
+Three newer features, run on this host at release `3473ee4` (records in `evidence/deposit-first/`,
+`evidence/claims/`, `evidence/tools/`). After step 9, Claude asks you to reconnect: do it (the consent page sets a new
+allowance) and your wallet still holds about 1.90 USDC, enough for these.
+
+| Prompt | What you should see |
+| --- | --- |
+| "Send 1 USDC to Jan; he isn't on Stellar yet, so make him a claim link." | `payment_prepare` with recipient "new": a **claim link**, nothing paid yet. Open it in a private window to see what Jan sees: create a Nod wallet with a passkey, sign in, or paste a Stellar address. When he claims, it pays from the allowance (reference: Jan's 1 USDC [eb9def8c…](https://stellar.expert/explorer/testnet/tx/eb9def8cebc58e8ad0f659e70123ab12449cc91184a243172825bd1f25dd4f1e), his wallet deployed [bccfbc61…](https://stellar.expert/explorer/testnet/tx/bccfbc61f23d03e79b6771f962d84ff74828f41f82536c0233fc699696cc4f6f)) |
+| "Add Dave to my contacts with address GCCZ3V53QHGVWMJJ4AJZJPGCPQVRAWK3B2KAWR6QLTYNHJHEPUJHBIE3, then send him 0.50 USDC." | `contact_add`, then the payment **needs your nod** even inside the allowance: Claude saved Dave, and the first payment to a contact an AI app added always asks you. Contacts on the site shows "Added by Claude". A second 0.50 goes alone (reference: [b5efd05d…](https://stellar.expert/explorer/testnet/tx/b5efd05d326c936908785b99050b7719d4b0f341923fd24ae0c56e5a2dcca282), then [016a0772…](https://stellar.expert/explorer/testnet/tx/016a0772866f2b53ac531622b690fd48041207b206e2011a73d8b8d5f879e545)) |
+| "Raise my allowance to 6 USDC for two days." | `connection_grant_update` changes nothing itself: Claude gives you a **link**; your passkey signs the new allowance, which replaces the old rule (reference: [3ff0e2e0…](https://stellar.expert/explorer/testnet/tx/3ff0e2e018ebffb17b5cf9c98b9b16d2abca4f6077ecfa57d78a4c08f95f42d2), old rule removed [c2a73011…](https://stellar.expert/explorer/testnet/tx/c2a730119d079eaabce1997a16bba4faa7503cdd563f6d4d2c52ca2b6e6d92af)) |
+| On the site: Home → **Add money** → Get a deposit address | a `G…` address any exchange can pay, any amount, no memo; what arrives is swept into your wallet within about a minute (reference: 3 USDC deposited [06bd7d2e…](https://stellar.expert/explorer/testnet/tx/06bd7d2e98824817b1117d28a42a9f13e10e3526a30bc9e18e812dd63e1fe305), swept [04704caf…](https://stellar.expert/explorer/testnet/tx/04704caf5ef4fe361c18452fc00d06f4df0dd8d302ca10cf6cadd6e90aa14873)) |
+
 ## 3. Reference run (explorer links)
 
 The [19:14 UTC run](demo/2026-10-25T19-14-24-616Z/run.json) drove the deployed Worker (`5253df0`) through Claude's
