@@ -5,7 +5,8 @@ import { DecimalAmount } from './money.ts'
 
 /**
  * The ten MCP tools of docs/SPEC.md, as the agent sees them: JSON in, JSON out, amounts as decimal strings. Every
- * call carries an idempotency key (required on writes); every result carries `grant_remaining`.
+ * call carries an idempotency key (required on writes); every result carries `grant_remaining` (policy remaining plus
+ * the pocket balance).
  */
 
 const IdempotencyKey = Schema.String.check(Schema.isMinLength(1), Schema.isMaxLength(128)).annotate({
@@ -23,6 +24,9 @@ export const GrantView = Schema.Struct({
   total: Schema.String,
   spent: Schema.String,
   reserved: Schema.String,
+  /** USDC already pulled into the connection's pocket, spendable on x402 purchases. */
+  pocket_balance: Schema.String,
+  /** total − spent − reserved + pocket_balance: what the connection can still spend. */
   remaining: Schema.String,
   valid_until: IsoTime,
   status: Schema.Literals(['active', 'revoked', 'expired']),

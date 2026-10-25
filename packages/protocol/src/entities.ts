@@ -88,6 +88,8 @@ export const SpendingGrant = Schema.Struct({
   rule_status: RuleStatus,
   /** G(K): the pocket the x402 lane pays from (sponsored reserves + USDC trustline). */
   pocket_address: Schema.NullOr(AccountAddress),
+  /** USDC in the pocket: pulled under the rule (so already counted in `spent`) and not yet paid to a seller. */
+  pocket_balance: Stroops,
   /** The first delegated payment under a rule extends its rent (up to ~17 XLM); later ones cost ~1.5 XLM. */
   first_payment_done: Schema.Boolean,
   status: GrantStatus,

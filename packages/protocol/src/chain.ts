@@ -149,6 +149,13 @@ export interface ChainHealth {
   readonly treasury: { readonly address: string; readonly usdcStroops: bigint; readonly xlmStroops: bigint } | null
   /** Testnet rent relative to normal (≈ 47 on 2026-10-25); null when unknown. */
   readonly rentFactor: number | null
+  /** The shared contracts (verifiers, policy, USDC) and when their instance/code entries expire. */
+  readonly contracts?: ReadonlyArray<{
+    readonly name: string
+    readonly id: string
+    readonly liveUntilLedger: number | null
+    readonly ledgersLeft: number | null
+  }>
 }
 
 /** The quote hook: called with the seller's terms before anything is signed. Fail with `declined` to stop. */

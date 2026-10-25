@@ -27,7 +27,13 @@ export const fromStroops = (stroops: bigint): string => {
   return `${negative ? '-' : ''}${whole.toString()}.${fraction}`
 }
 
-/** XLM fee ceilings: the first delegated payment under a new rule extends rent on the rule, signer and policy. */
-export const FEE_CEILING_FIRST_PAYMENT_XLM = 25
-export const FEE_CEILING_LATER_PAYMENT_XLM = 2
-export const FEE_CEILING_OWNER_PAYMENT_XLM = 2
+/**
+ * XLM fee ceilings (docs/spikes/s5.md): the first pull or payment under a new rule extends rent on the rule, signer and
+ * policy (≤ 20 XLM on testnet's 47× rent); every later pull or direct payment ≤ 3 XLM.
+ */
+export const FEE_CEILING_FIRST_PAYMENT_XLM = 20
+export const FEE_CEILING_LATER_PAYMENT_XLM = 3
+export const FEE_CEILING_OWNER_PAYMENT_XLM = 3
+
+/** x402 pulls take at least this much into the pocket (S5 chunk policy), so a run of small purchases pulls once. */
+export const POCKET_CHUNK_STROOPS = 10_000_000n

@@ -74,6 +74,11 @@ export interface FixtureOptions {
   readonly x402PriceStroops?: bigint
   /** Fail the next calls of these methods with this kind (e.g. `{ delegatedTransfer: 'submit_failed' }`). */
   readonly failNext?: Partial<Record<keyof ChainShape, ChainError['kind']>>
+  /**
+   * For a long-running dev stage whose isolate restarts lose the in-memory ledger: an unknown contract starts with
+   * 50 USDC and an unknown rule is live with no onchain limit (the service's own lane check still applies).
+   */
+  readonly lenient?: boolean
 }
 
 export interface FixtureChain {
@@ -130,7 +135,8 @@ export const makeFixtureChain = (options: FixtureOptions = {}): FixtureChain => 
 
   const next = () => ++counter
   const txHash = () => next().toString(16).padStart(64, '0')
-  const balance = (address: string) => balances.get(address) ?? 0n
+  const balance = (address: string) =>
+    balances.get(address) ?? (options.lenient === true && address.startsWith('C') ? 500_000_000n : 0n)
   const credit = (address: string, amount: bigint) => balances.set(address, balance(address) + amount)
   const receipt = (feePayer = FIXTURE_RELAYER, feeStroops = 15_000_000n): Receipt => {
     const tx = txHash()
@@ -166,8 +172,21 @@ export const makeFixtureChain = (options: FixtureOptions = {}): FixtureChain => 
     }
   }
 
-  const ruleOf = (contractId: string, ruleId: number) =>
-    rules.find(rule => rule.contractId === contractId && rule.ruleId === ruleId)
+  const ruleOf = (contractId: string, ruleId: number) => {
+    const found = rules.find(rule => rule.contractId === contractId && rule.ruleId === ruleId)
+    if (found !== undefined || options.lenient !== true) return found
+    const adopted: FixtureRule = {
+      contractId,
+      ruleId,
+      signer: 'unknown',
+      limit: 2n ** 62n,
+      spent: 0n,
+      removed: false,
+      validUntilLedger: ledger + 1_000_000,
+    }
+    rules.push(adopted)
+    return adopted
+  }
 
   const x402Quote = (resource: string): X402Quote => ({
     scheme: 'exact',
@@ -414,6 +433,14 @@ export const makeFixtureChain = (options: FixtureOptions = {}): FixtureChain => 
           relayers: [{ address: FIXTURE_RELAYER, xlmStroops: 10_000_000_000n }],
           treasury: { address: strkey('G', 1, 'TREASURY'), usdcStroops: 1_000_000_000n, xlmStroops: 100_000_000n },
           rentFactor: 47,
+          contracts: [
+            {
+              name: 'spending_limit_policy',
+              id: 'CFIXTUREPOLICY',
+              liveUntilLedger: ledger + 100_000,
+              ledgersLeft: 100_000,
+            },
+          ],
         }),
       ),
     ),
@@ -432,4 +459,5 @@ export const makeFixtureChain = (options: FixtureOptions = {}): FixtureChain => 
 }
 
 /** The fixture as the `Chain` service (`CHAIN=fixture`). One ledger per layer build. */
-export const FixtureChainLayer = Layer.sync(Chain, () => makeFixtureChain().chain)
+export const FixtureChainLayer = (options: FixtureOptions = {}) =>
+  Layer.sync(Chain, () => makeFixtureChain(options).chain)
