@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { accountOf, readinessFrom, rentFactor, rentWriteFeePer1Kb } from '../src/index.ts'
+import { accountOf, readinessFrom, rentFactor, rentWriteFeePer1Kb, USDC_ISSUER } from '../src/index.ts'
 import { accountKey, contractCodeKey, contractInstanceKey, usdcTrustlineKey } from '../src/readiness.ts'
 
 const G = 'GCEM4WKCAWO6ZZAA7SSSTG4SQWLRAI36ZM45QT7QHCPO6SB5ZLVLDH4K'
@@ -25,7 +25,7 @@ describe('readiness decoding (docs/SPEC.md "Contacts and recipient readiness")',
 
   it('builds the ledger keys it reads', () => {
     expect(accountKey(G).switch().name).toBe('account')
-    expect(usdcTrustlineKey(G).switch().name).toBe('trustline')
+    expect(usdcTrustlineKey(G, USDC_ISSUER).switch().name).toBe('trustline')
     expect(contractInstanceKey(C).switch().name).toBe('contractData')
     expect(contractCodeKey('1b5f4534a76322da2ad7c745f6900857a6802b0ca79850c35a03561df997785a').switch().name).toBe(
       'contractCode',

@@ -12,8 +12,8 @@ import { createEd25519Signer } from '@x402/stellar'
 import { ExactStellarScheme } from '@x402/stellar/exact/client'
 
 import { toBuffer, toHex, utf8 } from './bytes.ts'
-import { HOSTED_FACILITATOR_URL, USDC_SAC, X402_NETWORK } from './constants.ts'
 import { messageOf } from './errors.ts'
+import type { NetworkParams } from './network.ts'
 import type { Soroban, TxOutcome } from './soroban.ts'
 
 /**
@@ -53,14 +53,32 @@ export const quoteOf = (r: Requirements, resource: string): X402Quote => ({
   maxTimeoutSeconds: r.maxTimeoutSeconds,
 })
 
-/** Our acceptance rule for a seller's option: exact scheme, Stellar testnet, Circle USDC, within the cap. */
-export const acceptable = (r: Requirements, maxAmountStroops: bigint): string | undefined =>
+type Caip2 = `${string}:${string}`
+const isCaip2 = (s: string): s is Caip2 => /^[a-z0-9-]+:[a-zA-Z0-9-]+$/u.test(s)
+const caip2 = (s: string): Caip2 => {
+  if (!isCaip2(s)) throw new RangeError(`not a CAIP-2 network id: ${s}`)
+  return s
+}
+
+/** What a seller's option is checked against: this network's CAIP-2 id and its USDC SAC. */
+export interface X402Target {
+  readonly x402Network: string
+  readonly usdcSac: string
+}
+
+export const x402TargetOf = (n: NetworkParams): X402Target => ({
+  x402Network: n.x402Network,
+  usdcSac: n.contracts.usdcSac,
+})
+
+/** Our acceptance rule for a seller's option: exact scheme, our network, Circle USDC, within the cap. */
+export const acceptable = (r: Requirements, maxAmountStroops: bigint, target: X402Target): string | undefined =>
   r.scheme !== 'exact'
     ? `scheme ${r.scheme} is not supported`
-    : r.network !== X402_NETWORK
-      ? `network ${r.network} is not ${X402_NETWORK}`
-      : r.asset !== USDC_SAC
-        ? `asset ${r.asset} is not testnet USDC`
+    : r.network !== target.x402Network
+      ? `network ${r.network} is not ${target.x402Network}`
+      : r.asset !== target.usdcSac
+        ? `asset ${r.asset} is not USDC (${target.usdcSac})`
         : !/^\d+$/u.test(r.amount)
           ? `amount ${r.amount} is not an integer`
           : BigInt(r.amount) > maxAmountStroops
@@ -84,6 +102,7 @@ const isReceipt = Schema.is(Receipt)
  */
 const buildClient = (
   pocket: Keypair,
+  target: X402Target,
   rpcUrl: string,
   maxAmountStroops: bigint,
   paymentId: string,
@@ -91,16 +110,17 @@ const buildClient = (
   runQuote: (quote: X402Quote) => Promise<Exit.Exit<unknown, ChainError>>,
   attempt: Attempt,
 ) => {
-  const scheme = new ExactStellarScheme(createEd25519Signer(pocket.secret(), X402_NETWORK), { url: rpcUrl })
+  const network = caip2(target.x402Network)
+  const scheme = new ExactStellarScheme(createEd25519Signer(pocket.secret(), network), { url: rpcUrl })
   const client = new x402Client()
-    .register(X402_NETWORK, scheme)
-    .registerPolicy((_version, reqs) => reqs.filter(r => acceptable(r, maxAmountStroops) === undefined))
+    .register(network, scheme)
+    .registerPolicy((_version, reqs) => reqs.filter(r => acceptable(r, maxAmountStroops, target) === undefined))
   client.setSpendControls({ maxAmountPerPayment: stroopsToUsd(maxAmountStroops) })
   client.onBeforePaymentCreation(async ctx => {
     const r = ctx.selectedRequirements
     const quote = quoteOf(r, ctx.paymentRequired.resource?.url ?? resource)
     attempt.quote = quote
-    const refused = acceptable(r, maxAmountStroops)
+    const refused = acceptable(r, maxAmountStroops, target)
     if (refused !== undefined) {
       attempt.failure = declined(refused)
       return { abort: true, reason: refused }
@@ -121,6 +141,7 @@ const buildClient = (
 
 export interface X402Deps {
   readonly soroban: Soroban
+  readonly target: X402Target
   readonly rpcUrl: string
   readonly fetch: typeof globalThis.fetch
   readonly receipt: (o: TxOutcome) => Receipt
@@ -162,6 +183,7 @@ export const payX402 = (
     const attempt: Attempt = { quote: undefined, failure: undefined, pull: undefined }
     const client = buildClient(
       pocket,
+      deps.target,
       deps.rpcUrl,
       maxAmountStroops,
       paymentId,
@@ -213,6 +235,7 @@ export const payX402Mcp = (
     const attempt: Attempt = { quote: undefined, failure: undefined, pull: undefined }
     const client = buildClient(
       pocket,
+      deps.target,
       deps.rpcUrl,
       maxAmountStroops,
       paymentId,
@@ -230,7 +253,7 @@ export const payX402Mcp = (
           const wrapped = wrapMCPClientWithPayment(mcp, client, {
             autoPayment: true,
             onPaymentRequested: ({ paymentRequired }) =>
-              paymentRequired.accepts.some(r => acceptable(r, maxAmountStroops) === undefined),
+              paymentRequired.accepts.some(r => acceptable(r, maxAmountStroops, deps.target) === undefined),
           })
           await wrapped.connect(new StreamableHTTPClientTransport(new URL(mcpUrl), { fetch: deps.fetch }))
           return wrapped
@@ -254,18 +277,21 @@ export const payX402Mcp = (
     return { result: content, settlement, quote: attempt.quote ?? null, pull: attempt.pull ?? null }
   }).pipe(Effect.scoped)
 
-/** Probe a facilitator's `/supported` for `exact` on stellar:testnet (startup and health). */
-export const probeFacilitator = (fetchImpl: typeof globalThis.fetch, url: string, bearer?: string) =>
+/** Probe a facilitator's `/supported` for our CAIP-2 network (startup and health). */
+export const probeFacilitator = (
+  fetchImpl: typeof globalThis.fetch,
+  url: string,
+  x402Network: string,
+  bearer?: string,
+) =>
   Effect.tryPromise({
     try: async () => {
       const res = await fetchImpl(`${url.replace(/\/$/u, '')}/supported`, {
         headers: bearer === undefined ? {} : { Authorization: `Bearer ${bearer}` },
       })
-      if (!res.ok) return { url, ok: false, stellarTestnet: false, status: res.status }
+      if (!res.ok) return { url, ok: false, supportsNetwork: false, status: res.status }
       const text = await res.text()
-      return { url, ok: true, stellarTestnet: text.includes(X402_NETWORK), status: res.status }
+      return { url, ok: true, supportsNetwork: text.includes(x402Network), status: res.status }
     },
-    catch: () => ({ url, ok: false, stellarTestnet: false, status: 0 }),
+    catch: () => ({ url, ok: false, supportsNetwork: false, status: 0 }),
   }).pipe(Effect.catch(e => Effect.succeed(e)))
-
-export { HOSTED_FACILITATOR_URL }

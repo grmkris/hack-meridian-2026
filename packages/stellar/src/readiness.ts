@@ -2,7 +2,7 @@ import type { ChainReadiness } from '@hm/protocol'
 import { Address, Asset, StrKey, xdr } from '@stellar/stellar-sdk'
 
 import { fromHex, toBuffer } from './bytes.ts'
-import { USDC_CODE, USDC_ISSUER } from './constants.ts'
+import { USDC_CODE } from './constants.ts'
 
 /**
  * Recipient readiness from chain state (docs/SPEC.md "Contacts and recipient readiness"): a `C…` is ready when its
@@ -11,7 +11,7 @@ import { USDC_CODE, USDC_ISSUER } from './constants.ts'
  */
 export type AddressKind = 'contract' | 'account'
 
-export const usdcAsset = (): Asset => new Asset(USDC_CODE, USDC_ISSUER)
+export const usdcAsset = (issuer: string): Asset => new Asset(USDC_CODE, issuer)
 
 /** The classic account behind a `G…` or `M…`, or undefined for a contract. */
 export const accountOf = (address: string): string | undefined => {
@@ -28,11 +28,11 @@ export const accountKey = (account: string): xdr.LedgerKey =>
     new xdr.LedgerKeyAccount({ accountId: xdr.PublicKey.publicKeyTypeEd25519(StrKey.decodeEd25519PublicKey(account)) }),
   )
 
-export const usdcTrustlineKey = (account: string): xdr.LedgerKey =>
+export const usdcTrustlineKey = (account: string, issuer: string): xdr.LedgerKey =>
   xdr.LedgerKey.trustline(
     new xdr.LedgerKeyTrustLine({
       accountId: xdr.PublicKey.publicKeyTypeEd25519(StrKey.decodeEd25519PublicKey(account)),
-      asset: usdcAsset().toTrustLineXDRObject(),
+      asset: usdcAsset(issuer).toTrustLineXDRObject(),
     }),
   )
 

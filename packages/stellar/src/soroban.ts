@@ -13,8 +13,9 @@ import {
   xdr,
 } from '@stellar/stellar-sdk'
 
-import { explorerTx, INCLUSION_FEE } from './constants.ts'
+import { INCLUSION_FEE } from './constants.ts'
 import { fromOnchainFailure, fromSimulationError, messageOf, rpcError } from './errors.ts'
+import { explorerTx, type NetworkParams } from './network.ts'
 
 /**
  * Soroban RPC as Effects (`fetch` underneath, via the SDK's default entry, so it runs in workerd). Reads retry twice;
@@ -59,14 +60,24 @@ export interface Soroban {
   ) => Transaction
 }
 
-export const makeSoroban = (rpcUrl: string, networkPassphrase: string): Soroban => {
-  const server = new rpc.Server(rpcUrl, { allowHttp: rpcUrl.startsWith('http://') })
+const attempt = <A>(label: string, s: rpc.Server, f: (s: rpc.Server) => Promise<A>) =>
+  Effect.tryPromise({ try: () => f(s), catch: e => rpcError(label, e) }).pipe(
+    Effect.timeoutOrElse({ duration: READ_TIMEOUT, orElse: () => Effect.fail(rpcError(label, 'timed out')) }),
+    Effect.retry(readRetry),
+  )
 
+const serverFor = (url: string) => new rpc.Server(url, { allowHttp: url.startsWith('http://') })
+
+export const makeSoroban = (network: NetworkParams): Soroban => {
+  const networkPassphrase = network.passphrase
+  const server = serverFor(network.rpcUrl)
+  const fallback = network.rpcFallbackUrl === null ? undefined : serverFor(network.rpcFallbackUrl)
+
+  /** A read on the primary RPC, then on the fallback when the primary does not answer. */
   const read = <A>(label: string, f: (s: rpc.Server) => Promise<A>): Effect.Effect<A, ChainError> =>
-    Effect.tryPromise({ try: () => f(server), catch: e => rpcError(label, e) }).pipe(
-      Effect.timeoutOrElse({ duration: READ_TIMEOUT, orElse: () => Effect.fail(rpcError(label, 'timed out')) }),
-      Effect.retry(readRetry),
-    )
+    fallback === undefined
+      ? attempt(label, server, f)
+      : attempt(label, server, f).pipe(Effect.catch(() => attempt(`${label} (fallback RPC)`, fallback, f)))
 
   const latestLedger = read('getLatestLedger', s => s.getLatestLedger()).pipe(Effect.map(r => r.sequence))
   const sequence = (address: string) =>
@@ -102,7 +113,7 @@ export const makeSoroban = (rpcUrl: string, networkPassphrase: string): Soroban 
       feeSource: env instanceof FeeBumpTransaction ? env.feeSource : env.source,
       rentCharged: rentOf(r.resultMetaXdr),
       returnValue: r.returnValue,
-      explorer: explorerTx(hash),
+      explorer: explorerTx(network, hash),
     }
   }
 
@@ -134,7 +145,10 @@ export const makeSoroban = (rpcUrl: string, networkPassphrase: string): Soroban 
     Effect.gen(function* () {
       const hash = tx.hash().toString('hex')
       const sent = yield* Effect.tryPromise({
-        try: () => server.sendTransaction(tx),
+        try: () =>
+          server
+            .sendTransaction(tx)
+            .catch(e => (fallback === undefined ? Promise.reject(e) : fallback.sendTransaction(tx))),
         catch: e => new ChainError({ kind: 'unknown', message: `sendTransaction: ${messageOf(e)}`, tx: hash }),
       })
       if (sent.status === 'ERROR') {

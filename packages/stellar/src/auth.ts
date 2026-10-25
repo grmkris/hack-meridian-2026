@@ -3,7 +3,6 @@ import { Schema } from 'effect'
 import { Address, authorizeEntry, buildAuthorizationEntryPreimage, hash, Keypair, xdr } from '@stellar/stellar-sdk'
 
 import { concatBytes, fromHex, fromUtf8, toBase64Url, toBuffer, toHex } from './bytes.ts'
-import { ED25519_VERIFIER, WEBAUTHN_VERIFIER } from './constants.ts'
 import { bytes, compareScVal, externalSigner, mapEntry, sym, u32Vec } from './scval.ts'
 
 /**
@@ -44,15 +43,15 @@ export const authPayloadScVal = (
   ])
 }
 
-/** `External(ED25519_VERIFIER, 32-byte pubkey)`; the signature is the raw 64-byte Ed25519 signature over the digest. */
-export const ed25519Signer = (kp: Keypair): SmartSigner => ({
-  scVal: externalSigner(ED25519_VERIFIER, kp.rawPublicKey()),
+/** `External(verifier, 32-byte pubkey)`; the signature is the raw 64-byte Ed25519 signature over the digest. */
+export const ed25519Signer = (kp: Keypair, verifier: string): SmartSigner => ({
+  scVal: externalSigner(verifier, kp.rawPublicKey()),
   sign: digest => Promise.resolve(new Uint8Array(kp.sign(toBuffer(digest)))),
 })
 
-/** `External(WEBAUTHN_VERIFIER, 65-byte uncompressed P-256 pubkey ‖ credential id)` */
-export const webAuthnSignerScVal = (publicKey65: Uint8Array, credentialId: Uint8Array): xdr.ScVal =>
-  externalSigner(WEBAUTHN_VERIFIER, concatBytes(publicKey65, credentialId))
+/** `External(webauthnVerifier, 65-byte uncompressed P-256 pubkey ‖ credential id)` */
+export const webAuthnSignerScVal = (publicKey65: Uint8Array, credentialId: Uint8Array, verifier: string): xdr.ScVal =>
+  externalSigner(verifier, concatBytes(publicKey65, credentialId))
 
 /** Authorize one smart-account entry with signers under `ruleIds` (one rule id per auth context). */
 export const authorizeWithSigners = (
@@ -80,8 +79,9 @@ export const authorizeWithEd25519 = (
   ruleIds: ReadonlyArray<number>,
   validUntilLedger: number,
   networkPassphrase: string,
+  verifier: string,
 ): Promise<xdr.SorobanAuthorizationEntry> =>
-  authorizeWithSigners(entry, [ed25519Signer(kp)], ruleIds, validUntilLedger, networkPassphrase)
+  authorizeWithSigners(entry, [ed25519Signer(kp, verifier)], ruleIds, validUntilLedger, networkPassphrase)
 
 const addressCredentials = (entry: xdr.SorobanAuthorizationEntry): xdr.SorobanAddressCredentials => {
   const creds = entry.credentials()

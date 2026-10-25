@@ -27,11 +27,25 @@ export type { StellarOpsShape, TtlEntry, TtlStatus } from './ops.ts'
 export {
   ChainConfig,
   chainSettingsConfig,
-  DEFAULT_MAX_FEE_STROOPS,
+  DEFAULT_CAPS,
   DEFAULT_OWNER_AUTH_LEDGERS,
   DEFAULT_WALLET_TTL_LEDGERS,
+  networkConfig,
+  usdcToStroops,
 } from './config.ts'
-export type { ChainSettings } from './config.ts'
+export type { ChainSettings, SafetyCaps } from './config.ts'
+export {
+  explorerAccount,
+  explorerContract,
+  explorerTx,
+  missingFields,
+  networkName,
+  PRESETS,
+  PUBNET,
+  TESTNET,
+  usdcAssetOf,
+} from './network.ts'
+export type { NetworkContracts, NetworkFees, NetworkName, NetworkParams } from './network.ts'
 export { KeyVault } from './vault.ts'
 export {
   authDigest,

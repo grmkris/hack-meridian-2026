@@ -71,7 +71,7 @@ describe('authorize with a connection key', () => {
     const unsigned = xdr.SorobanAuthorizationEntry.fromXDR(signed.toXDR())
     unsigned.credentials().address().signature(xdr.ScVal.scvVoid())
     const k = Keypair.random()
-    const out = await authorizeWithEd25519(unsigned, k, [7], 5_400_000, Networks.TESTNET)
+    const out = await authorizeWithEd25519(unsigned, k, [7], 5_400_000, Networks.TESTNET, ED25519_VERIFIER)
     const { ruleIds, signers } = authPayload(out)
     expect(ruleIds).toEqual([7])
     expect(signers).toHaveLength(1)

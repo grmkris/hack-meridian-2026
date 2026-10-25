@@ -24,17 +24,10 @@ import {
 } from './auth.ts'
 import { fromHex, toBase64Url, toBuffer, toHex } from './bytes.ts'
 import { ChainConfig } from './config.ts'
-import {
-  ACCOUNT_WASM_HASH,
-  ED25519_VERIFIER,
-  ONBOARD_ROUTER,
-  SPENDING_LIMIT_POLICY,
-  USDC_SAC,
-  WEBAUTHN_VERIFIER,
-} from './constants.ts'
 import { messageOf } from './errors.ts'
 import { grantRuleName, grantWindow, ruleLive, SpendingLimitData, spentAt } from './grant.ts'
 import { makeInvoker } from './invoke.ts'
+import type { NetworkParams } from './network.ts'
 import { StellarOps, type StellarOpsShape, type TtlEntry, type TtlStatus } from './ops.ts'
 import {
   accountKey,
@@ -62,7 +55,7 @@ import {
 } from './scval.ts'
 import { makeSoroban, nativeOf, type TxOutcome } from './soroban.ts'
 import { deriveVaultKey, makeVaultCore } from './vault.ts'
-import { payX402, payX402Mcp, probeFacilitator } from './x402.ts'
+import { payX402, payX402Mcp, probeFacilitator, x402TargetOf } from './x402.ts'
 
 /** Ledgers a delegated (connection-key) auth entry stays valid: it is signed and submitted in one go. */
 const DELEGATED_AUTH_LEDGERS = 60
@@ -110,16 +103,16 @@ const scMapField = (v: xdr.ScVal, name: string): xdr.ScVal | undefined =>
     ? (v.map() ?? []).find(e => e.key().switch().name === 'scvSymbol' && e.key().sym().toString() === name)?.val()
     : undefined
 
-const isWebAuthnSigner = (s: xdr.ScVal): boolean => {
+const isWebAuthnSigner = (s: xdr.ScVal, verifier: string): boolean => {
   const parts = s.vec() ?? []
-  return parts[1] !== undefined && Address.fromScVal(parts[1]).toString() === WEBAUTHN_VERIFIER
+  return parts[1] !== undefined && Address.fromScVal(parts[1]).toString() === verifier
 }
 
-const transferFunc = (from: string, to: string, amount: bigint) =>
-  invokeContractFunc(USDC_SAC, 'transfer', [addr(from), addr(to), i128(amount)])
+const transferFunc = (usdcSac: string, from: string, to: string, amount: bigint) =>
+  invokeContractFunc(usdcSac, 'transfer', [addr(from), addr(to), i128(amount)])
 
 /** The recipient's signed entry must be exactly the prepared `trust(recipient)` (same nonce and invocation). */
-const checkRecipientEntry = (prepared: PreparedClaim, signedXdr: string) =>
+const checkRecipientEntry = (prepared: PreparedClaim, signedXdr: string, usdcSac: string) =>
   Effect.gen(function* () {
     const unsigned = yield* fromXdr('recipientEntryXdr', () =>
       xdr.SorobanAuthorizationEntry.fromXDR(prepared.recipientEntryXdr, 'base64'),
@@ -130,7 +123,7 @@ const checkRecipientEntry = (prepared: PreparedClaim, signedXdr: string) =>
     const root = entryRootCall(signed)
     const same =
       entryAddress(signed) === prepared.recipient &&
-      root?.contract === USDC_SAC &&
+      root?.contract === usdcSac &&
       root.fn === 'trust' &&
       toBase64Url(signed.rootInvocation().toXDR()) === toBase64Url(unsigned.rootInvocation().toXDR()) &&
       signed.credentials().address().nonce().toString() === unsigned.credentials().address().nonce().toString()
@@ -149,16 +142,37 @@ const wasmHashOf = (val: xdr.LedgerEntryData): string | undefined => {
   return exec.switch().name === 'contractExecutableWasm' ? toHex(new Uint8Array(exec.wasmHash())) : undefined
 }
 
+const capped = (what: string, amount: bigint, cap: bigint) =>
+  amount <= cap
+    ? Effect.void
+    : Effect.fail(
+        new ChainError({
+          kind: 'declined',
+          message: `cap_exceeded: ${what} ${amount} stroops is above the cap ${cap}`,
+        }),
+      )
+
 export const makeStellar = Effect.gen(function* () {
   const config = yield* ChainConfig
-  const passphrase = config.networkPassphrase
-  const soroban = makeSoroban(config.rpcUrl, passphrase)
+  const net: NetworkParams = config.network
+  const C = net.contracts
+  const passphrase = net.passphrase
+  const soroban = makeSoroban(net)
   const pool = yield* makeRelayerPool(config.relayerSecrets)
   const invoker = makeInvoker(soroban, pool, config.maxFeeStroops)
   const vault = makeVaultCore(yield* deriveVaultKey(config.vaultKey))
   const treasury = Option.map(config.treasurySecret, s => Keypair.fromSecret(Redacted.value(s)))
   const demoRecipient = Option.map(config.demoRecipientSecret, s => Keypair.fromSecret(Redacted.value(s)))
   const viewSource = pool.primary.publicKey()
+  const caps = config.caps
+
+  /** The kill switch: nothing that moves value or grants spend authority is signed while payments are disabled. */
+  const enabled = (what: string) =>
+    caps.paymentsEnabled
+      ? Effect.void
+      : Effect.fail(
+          new ChainError({ kind: 'declined', message: `payments_disabled: ${what} refused (PAYMENTS_ENABLED=false)` }),
+        )
 
   const view = (contract: string, fn: string, args: ReadonlyArray<xdr.ScVal>) =>
     soroban.view(viewSource, invokeContractFunc(contract, fn, args))
@@ -170,7 +184,7 @@ export const makeStellar = Effect.gen(function* () {
     Effect.gen(function* () {
       const rule = yield* view(contractId, 'get_context_rule', [u32(0)])
       const signers = scMapField(rule, 'signers')?.vec() ?? []
-      const signer = signers.find(isWebAuthnSigner) ?? signers[0]
+      const signer = signers.find(x => isWebAuthnSigner(x, C.webauthnVerifier)) ?? signers[0]
       if (signer === undefined) return yield* badInput(`account ${contractId} has no rule-0 signer`)
       return signer
     })
@@ -254,7 +268,7 @@ export const makeStellar = Effect.gen(function* () {
   /** A SAC transfer from a classic G account that authorizes by signature; a relayer is source and pays. */
   const classicTransfer = (from: Keypair, to: string, amount: bigint) =>
     Effect.gen(function* () {
-      const func = transferFunc(from.publicKey(), to, amount)
+      const func = transferFunc(C.usdcSac, from.publicKey(), to, amount)
       const prep = yield* invoker.prepare(func)
       const signed = yield* signClassic(prep.entries, from, prep.latestLedger + DELEGATED_AUTH_LEDGERS)
       return yield* invoker.submit(func, signed)
@@ -266,7 +280,7 @@ export const makeStellar = Effect.gen(function* () {
   /** XLM and USDC of a classic account (0 when it or its trustline is missing). */
   const classicBalances = (account: string) =>
     Effect.gen(function* () {
-      const entries = yield* ledgerEntries([accountKey(account), usdcTrustlineKey(account)])
+      const entries = yield* ledgerEntries([accountKey(account), usdcTrustlineKey(account, net.usdcIssuer)])
       let xlm = 0n
       let usdc = 0n
       for (const e of entries) {
@@ -295,9 +309,12 @@ export const makeStellar = Effect.gen(function* () {
         return { usdc: b.usdc, xlm: b.xlm }
       }
       if (!isContractAddress(address)) return yield* badInput(`not a Stellar address: ${address}`)
-      const [usdc, xlm] = yield* Effect.all([sacBalance(address, usdcAsset()), sacBalance(address, Asset.native())], {
-        concurrency: 2,
-      })
+      const [usdc, xlm] = yield* Effect.all(
+        [sacBalance(address, usdcAsset(net.usdcIssuer)), sacBalance(address, Asset.native())],
+        {
+          concurrency: 2,
+        },
+      )
       return { usdc, xlm }
     })
 
@@ -315,11 +332,11 @@ export const makeStellar = Effect.gen(function* () {
 
   const deployAccount = (owner: OwnerPasskey) =>
     Effect.gen(function* () {
-      const signer = webAuthnSignerScVal(owner.pubkey, owner.credentialId)
+      const signer = webAuthnSignerScVal(owner.pubkey, owner.credentialId, C.webauthnVerifier)
       const { outcome, sim } = yield* invoker.submitSourceAuthorized(relayer =>
         Operation.createCustomContract({
           address: new Address(relayer.publicKey()),
-          wasmHash: toBuffer(fromHex(ACCOUNT_WASM_HASH)),
+          wasmHash: toBuffer(fromHex(C.accountWasmHash)),
           salt: toBuffer(crypto.getRandomValues(new Uint8Array(32))),
           constructorArgs: [xdr.ScVal.scvVec([signer]), xdr.ScVal.scvMap([])],
         }),
@@ -337,6 +354,7 @@ export const makeStellar = Effect.gen(function* () {
 
   const fundNewWallet = (contractId: string, usdc: bigint) =>
     Effect.gen(function* () {
+      yield* enabled('treasury funding')
       const kp = yield* Effect.fromOption(treasury, () => badInput('TREASURY_SECRET is not configured'))
       const outcome = yield* classicTransfer(kp, contractId, usdc)
       return { tx: outcome.hash }
@@ -353,6 +371,7 @@ export const makeStellar = Effect.gen(function* () {
     Effect.gen(function* () {
       if (signerPub.length !== 32) return yield* badInput('signerPub must be a 32-byte Ed25519 public key')
       if (limitStroops <= 0n) return yield* badInput('limit must be positive')
+      yield* capped('grant', limitStroops, caps.maxGrantStroops)
       const window = yield* Effect.try({
         try: () => grantWindow(lifetimeSeconds, 0),
         catch: e => badInput(messageOf(e)),
@@ -360,13 +379,13 @@ export const makeStellar = Effect.gen(function* () {
       const now = yield* latest
       const validUntil = now + window.lifetimeLedgers
       const policies = xdr.ScVal.scvMap([
-        mapEntry(addr(SPENDING_LIMIT_POLICY), spendingLimitParams(limitStroops, window.periodLedgers)),
+        mapEntry(addr(C.spendingLimitPolicy), spendingLimitParams(limitStroops, window.periodLedgers)),
       ])
       const func = invokeContractFunc(contractId, 'add_context_rule', [
-        callContractRule(USDC_SAC),
+        callContractRule(C.usdcSac),
         str(grantRuleName(toHex(signerPub))),
         option(u32(validUntil)),
-        xdr.ScVal.scvVec([externalSigner(ED25519_VERIFIER, signerPub)]),
+        xdr.ScVal.scvVec([externalSigner(C.ed25519Verifier, signerPub)]),
         policies,
       ])
       return yield* prepareOwner('install_grant', contractId, func, config.ownerAuthLedgers, {
@@ -376,6 +395,7 @@ export const makeStellar = Effect.gen(function* () {
 
   const installGrant = (prepared: PreparedOwnerAuth, assertion: WebAuthnAssertion) =>
     Effect.gen(function* () {
+      yield* enabled('grant install')
       const { outcome, payload } = yield* finalizeOwner(prepared, assertion, 'install_grant')
       const id = outcome.returnValue === undefined ? undefined : scMapField(outcome.returnValue, 'id')
       if (id === undefined || id.switch().name !== 'scvU32')
@@ -405,7 +425,7 @@ export const makeStellar = Effect.gen(function* () {
       if (Option.isNone(rule)) return { spent: 0n, limit: 0n, validUntilLedger: 0, live: false }
       const until = scMapField(rule.value, 'valid_until')
       const validUntil = until === undefined || until.switch().name !== 'scvU32' ? null : until.u32()
-      const raw = yield* view(SPENDING_LIMIT_POLICY, 'get_spending_limit_data', [u32(ruleId), addr(contractId)])
+      const raw = yield* view(C.spendingLimitPolicy, 'get_spending_limit_data', [u32(ruleId), addr(contractId)])
       const data = yield* Schema.decodeUnknownEffect(SpendingLimitData)(nativeOf(raw)).pipe(
         Effect.mapError(e => badInput(`spending limit data: ${messageOf(e)}`)),
       )
@@ -418,10 +438,22 @@ export const makeStellar = Effect.gen(function* () {
     })
 
   const prepareOwnerTransfer = (contractId: string, to: string, amountStroops: bigint, validForLedgers: number) =>
-    prepareOwner('owner_transfer', contractId, transferFunc(contractId, to, amountStroops), validForLedgers)
+    capped('owner payment', amountStroops, caps.maxOwnerPaymentStroops).pipe(
+      Effect.andThen(
+        prepareOwner(
+          'owner_transfer',
+          contractId,
+          transferFunc(C.usdcSac, contractId, to, amountStroops),
+          validForLedgers,
+        ),
+      ),
+    )
 
   const finalizeOwnerTransfer = (prepared: PreparedOwnerAuth, assertion: WebAuthnAssertion) =>
-    finalizeOwner(prepared, assertion, 'owner_transfer').pipe(Effect.map(({ outcome }) => receiptOf(outcome)))
+    enabled('owner payment').pipe(
+      Effect.andThen(finalizeOwner(prepared, assertion, 'owner_transfer')),
+      Effect.map(({ outcome }) => receiptOf(outcome)),
+    )
 
   /** K signs the account's entry under its rule; a relayer submits. Over-limit fails at the enforce simulation. */
   const delegatedTransfer = (
@@ -433,13 +465,22 @@ export const makeStellar = Effect.gen(function* () {
     maxFeeStroops?: bigint,
   ) =>
     Effect.gen(function* () {
+      yield* enabled('delegated payment')
       const k = yield* vault.unseal(signerKeyRef)
-      const func = transferFunc(contractId, to, amountStroops)
+      const func = transferFunc(C.usdcSac, contractId, to, amountStroops)
       const prep = yield* invoker.prepare(func)
       const signed = yield* Effect.forEach(prep.entries, e =>
         entryAddress(e) === contractId
           ? Effect.tryPromise({
-              try: () => authorizeWithEd25519(e, k, [ruleId], prep.latestLedger + DELEGATED_AUTH_LEDGERS, passphrase),
+              try: () =>
+                authorizeWithEd25519(
+                  e,
+                  k,
+                  [ruleId],
+                  prep.latestLedger + DELEGATED_AUTH_LEDGERS,
+                  passphrase,
+                  C.ed25519Verifier,
+                ),
               catch: err => badInput(`sign entry: ${messageOf(err)}`),
             })
           : Effect.succeed(e),
@@ -457,7 +498,7 @@ export const makeStellar = Effect.gen(function* () {
         relayer => [
           Operation.beginSponsoringFutureReserves({ sponsoredId: address, source: relayer.publicKey() }),
           ...(now.accountExists ? [] : [Operation.createAccount({ destination: address, startingBalance: '0' })]),
-          Operation.changeTrust({ asset: usdcAsset(), source: address }),
+          Operation.changeTrust({ asset: usdcAsset(net.usdcIssuer), source: address }),
           Operation.endSponsoringFutureReserves({ source: address }),
         ],
         [k],
@@ -486,7 +527,9 @@ export const makeStellar = Effect.gen(function* () {
         return yield* badInput(`pocket ${address} still holds ${now.usdc} stroops of USDC; sweep first`)
       const outcome = yield* invoker.submitClassic(
         relayer => [
-          ...(now.trustline ? [Operation.changeTrust({ asset: usdcAsset(), limit: '0', source: address })] : []),
+          ...(now.trustline
+            ? [Operation.changeTrust({ asset: usdcAsset(net.usdcIssuer), limit: '0', source: address })]
+            : []),
           Operation.accountMerge({ destination: relayer.publicKey(), source: address }),
         ],
         [k],
@@ -548,15 +591,19 @@ export const makeStellar = Effect.gen(function* () {
     }),
   )
 
-  const x402Deps = { soroban, rpcUrl: config.rpcUrl, fetch: config.fetch, receipt: receiptOf }
+  /** The x402 price cap is the smaller of the caller's and MAX_X402_PRICE_USDC. */
+  const x402Cap = (max: bigint) => (max < caps.maxX402PriceStroops ? max : caps.maxX402PriceStroops)
+
+  const x402Deps = { soroban, target: x402TargetOf(net), rpcUrl: net.rpcUrl, fetch: config.fetch, receipt: receiptOf }
 
   const prepareClaim = (sender: string, recipient: string, amountStroops: bigint, validForLedgers: number) =>
     Effect.gen(function* () {
       if (accountOf(recipient) === undefined) return yield* badInput('a claim recipient must be a G… account')
-      const func = invokeContractFunc(ONBOARD_ROUTER, 'pay_and_trust', [
+      yield* capped('claim payment', amountStroops, caps.maxOwnerPaymentStroops)
+      const func = invokeContractFunc(C.onboardRouter, 'pay_and_trust', [
         addr(sender),
         addr(recipient),
-        addr(USDC_SAC),
+        addr(C.usdcSac),
         i128(amountStroops),
       ])
       const signer = isContractAddress(sender) ? Option.some(yield* ownerSigner(sender)) : Option.none()
@@ -600,6 +647,7 @@ export const makeStellar = Effect.gen(function* () {
 
   const finalizeClaim = (prepared: PreparedClaim, recipientSignedEntryXdr: string, sender: ClaimSenderAuth) =>
     Effect.gen(function* () {
+      yield* enabled('claim payment')
       const p = yield* decodeClaimPayload(prepared.payload).pipe(
         Effect.mapError(() => badInput('bad prepared payload')),
       )
@@ -608,7 +656,9 @@ export const makeStellar = Effect.gen(function* () {
         xdr.SorobanAuthorizationEntry.fromXDR(prepared.senderEntryXdr, 'base64'),
       )
       const recipientSigned =
-        prepared.recipientEntryXdr === '' ? [] : [yield* checkRecipientEntry(prepared, recipientSignedEntryXdr)]
+        prepared.recipientEntryXdr === ''
+          ? []
+          : [yield* checkRecipientEntry(prepared, recipientSignedEntryXdr, C.usdcSac)]
       const senderSigned =
         sender._tag === 'Owner'
           ? yield* p.signer === undefined
@@ -619,7 +669,14 @@ export const makeStellar = Effect.gen(function* () {
               const now = yield* latest
               return yield* Effect.tryPromise({
                 try: () =>
-                  authorizeWithEd25519(senderEntry, k, [sender.ruleId], now + DELEGATED_AUTH_LEDGERS, passphrase),
+                  authorizeWithEd25519(
+                    senderEntry,
+                    k,
+                    [sender.ruleId],
+                    now + DELEGATED_AUTH_LEDGERS,
+                    passphrase,
+                    C.ed25519Verifier,
+                  ),
                 catch: e => badInput(`sign sender entry: ${messageOf(e)}`),
               })
             })
@@ -643,19 +700,18 @@ export const makeStellar = Effect.gen(function* () {
         })),
     })
     const rent = yield* readRentFactor.pipe(Effect.orElseSucceed(() => null))
+    const ozKey = Option.getOrUndefined(Option.map(config.ozApiKey, Redacted.value))
     const facilitators = yield* Effect.all(
       [
-        probeFacilitator(config.fetch, config.facilitatorUrl),
-        probeFacilitator(
-          config.fetch,
-          config.fallbackFacilitatorUrl,
-          Option.getOrUndefined(Option.map(config.ozApiKey, Redacted.value)),
-        ),
+        ...(net.facilitatorUrl === '' ? [] : [probeFacilitator(config.fetch, net.facilitatorUrl, net.x402Network)]),
+        ...(net.fallbackFacilitatorUrl === ''
+          ? []
+          : [probeFacilitator(config.fetch, net.fallbackFacilitatorUrl, net.x402Network, ozKey)]),
       ],
       { concurrency: 2 },
     )
     return {
-      network: passphrase,
+      network: net.name,
       latestLedger,
       relayers,
       treasury: treasuryHealth,
@@ -679,10 +735,14 @@ export const makeStellar = Effect.gen(function* () {
     createPocket,
     sweepPocket,
     payX402: (signerKeyRef, url, maxAmountStroops, paymentId, onQuote) =>
-      Effect.flatMap(vault.unseal(signerKeyRef), k => payX402(x402Deps, k, url, maxAmountStroops, paymentId, onQuote)),
+      enabled('x402 payment').pipe(
+        Effect.andThen(vault.unseal(signerKeyRef)),
+        Effect.flatMap(k => payX402(x402Deps, k, url, x402Cap(maxAmountStroops), paymentId, onQuote)),
+      ),
     payX402Mcp: (signerKeyRef, mcpUrl, tool, args, maxAmountStroops, paymentId, onQuote) =>
-      Effect.flatMap(vault.unseal(signerKeyRef), k =>
-        payX402Mcp(x402Deps, k, mcpUrl, tool, args, maxAmountStroops, paymentId, onQuote),
+      enabled('x402 payment').pipe(
+        Effect.andThen(vault.unseal(signerKeyRef)),
+        Effect.flatMap(k => payX402Mcp(x402Deps, k, mcpUrl, tool, args, x402Cap(maxAmountStroops), paymentId, onQuote)),
       ),
     balances,
     readiness,
@@ -691,7 +751,7 @@ export const makeStellar = Effect.gen(function* () {
     finalizeClaim,
     health,
   })
-  const ops = StellarOps.of({ closePocket, ttlStatus, extendTtl, rentFactor: readRentFactor })
+  const ops = StellarOps.of({ closePocket, ttlStatus, extendTtl, rentFactor: readRentFactor, network: net, caps })
   return { chain, ops } satisfies { chain: Chain['Service']; ops: StellarOpsShape }
 })
 

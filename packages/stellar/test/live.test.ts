@@ -102,6 +102,11 @@ describe.skipIf(!LIVE)('Chain on Stellar testnet (live)', () => {
     if (passkey === undefined || contractId === undefined) throw new Error('no wallet')
     const signer = await run(Effect.flatMap(chain, c => c.newSigner))
     state.signer = signer
+    const overCap = await runExit(
+      Effect.flatMap(chain, c => c.prepareInstallGrant(contractId, signer.publicKey, USDC(25), 3600)),
+    )
+    record('grant.overCap', failureKind(overCap))
+    expect(failureKind(overCap)).toEqual(['declined'])
     const prepared = await run(
       Effect.flatMap(chain, c => c.prepareInstallGrant(contractId, signer.publicKey, USDC(1), 3600)),
     )

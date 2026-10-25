@@ -2,6 +2,9 @@ import { Context, type Effect } from 'effect'
 
 import type { ChainError, Receipt } from '@hm/protocol'
 
+import type { SafetyCaps } from './config.ts'
+import type { NetworkParams } from './network.ts'
+
 /**
  * Operations the wallet service and the demo probe need beyond `Chain` (spike S5 follow-ups): closing a pocket,
  * reading and extending contract TTLs, and the live rent factor. Same relayer pool and keys as `Chain`.
@@ -36,6 +39,10 @@ export interface StellarOpsShape {
   readonly extendTtl: (target: string, ledgers: number, maxFeeStroops?: bigint) => Effect.Effect<Receipt, ChainError>
   /** Testnet rent relative to the at-target rate, read live from the network config (null when unreadable). */
   readonly rentFactor: Effect.Effect<number | null, ChainError>
+  /** The network in use: name, explorer base (build links from it), contract ids, suggested fee ceilings. */
+  readonly network: NetworkParams
+  /** MAX_GRANT_USDC, MAX_OWNER_PAYMENT_USDC, MAX_X402_PRICE_USDC and PAYMENTS_ENABLED as configured. */
+  readonly caps: SafetyCaps
 }
 
 export class StellarOps extends Context.Service<StellarOps, StellarOpsShape>()('hm/stellar/StellarOps') {}

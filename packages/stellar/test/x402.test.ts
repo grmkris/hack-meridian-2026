@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest'
 
-import { normalizePaymentId, stroopsToUsd, USDC_SAC } from '../src/index.ts'
-import { acceptable, quoteOf } from '../src/x402.ts'
+import { normalizePaymentId, stroopsToUsd, TESTNET, USDC_SAC } from '../src/index.ts'
+import { acceptable, quoteOf, x402TargetOf } from '../src/x402.ts'
+
+const target = x402TargetOf(TESTNET)
 
 const req = {
   scheme: 'exact',
@@ -28,13 +30,13 @@ describe('x402 helpers', () => {
   })
 
   it('accepts exact / stellar:testnet / USDC within the cap, and says why otherwise', () => {
-    expect(acceptable(req, 1_000_000n)).toBeUndefined()
-    expect(acceptable(req, 999_999n)).toContain('above the cap')
-    expect(acceptable({ ...req, network: 'stellar:pubnet' }, 1_000_000n)).toContain('network')
+    expect(acceptable(req, 1_000_000n, target)).toBeUndefined()
+    expect(acceptable(req, 999_999n, target)).toContain('above the cap')
+    expect(acceptable({ ...req, network: 'stellar:pubnet' }, 1_000_000n, target)).toContain('network')
     expect(
-      acceptable({ ...req, asset: 'CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC' }, 1_000_000n),
+      acceptable({ ...req, asset: 'CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC' }, 1_000_000n, target),
     ).toContain('asset')
-    expect(acceptable({ ...req, scheme: 'upto' }, 1_000_000n)).toContain('scheme')
+    expect(acceptable({ ...req, scheme: 'upto' }, 1_000_000n, target)).toContain('scheme')
   })
 
   it('reads a quote from the seller terms', () => {
