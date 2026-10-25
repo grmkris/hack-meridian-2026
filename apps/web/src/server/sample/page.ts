@@ -62,7 +62,7 @@ export const samplePage = (c: Chrome, view: { readonly unavailable: string | nul
     'the demo owner nods with its passkey and the agent gets the receipt',
     'repeats the dinner request: same receipt, nothing paid twice',
     `asks for ${SAMPLE_AMOUNTS.tooMuch} USDC with 2.90 left: it comes back to the owner instead of failing`,
-    `sends Carol, who has never held USDC, ${SAMPLE_AMOUNTS.carol} USDC through a claim link`,
+    `sends Carol, who has never held USDC, ${SAMPLE_AMOUNTS.carol} USDC through a claim link (the run removes her trustline before and after, so every run onboards her for real)`,
     'the owner revokes the agent; its next payment is refused and the allowance is gone from Stellar',
   ]
   const button =

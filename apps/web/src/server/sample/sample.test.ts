@@ -1,7 +1,7 @@
 import { Effect, Layer, ManagedRuntime, Option } from 'effect'
 import { afterEach, describe, expect, test } from 'vitest'
 
-import { Chain, type FixtureChain, makeFixtureChain, toStroops } from '@hm/protocol'
+import { Chain, type ChainShape, makeFixtureChain, toStroops } from '@hm/protocol'
 
 import { Counter } from '../counter.ts'
 import { Db } from '../db.ts'
@@ -12,6 +12,7 @@ import type { AppRuntime } from '../runtime.ts'
 import { testNetwork, testSettings } from '../test/layers.ts'
 import { sqliteEngine } from '../test/sqlite.ts'
 import { WalletSettings } from '../wallet-settings.ts'
+import { noRecipientReset, type RecipientReset } from './demo-recipient.ts'
 import { type DeskStorage, SampleDesk } from './desk.ts'
 import type { SampleRun, StartReply } from './model.ts'
 import { executeSample } from './run.ts'
@@ -19,7 +20,8 @@ import { executeSample } from './run.ts'
 /**
  * The whole /sample run on the FixtureChain and SQLite, through the services the Worker runs: the demo wallet is
  * created on first use, the soft passkey installs the allowance and nods, every step lands in its state; a second
- * start while a run is going is refused; the next run renews the allowance and skips Carol, who is onboarded by then.
+ * start while a run is going is refused; the next run renews the allowance. Carol's trustline is reset before a run
+ * that finds one and after every claim; a failed reset skips the claim with its reason.
  */
 
 const SITE = { origin: 'https://wallet.test', rpId: 'wallet.test' }
@@ -28,7 +30,7 @@ const ALICE = 'CALICEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
 const BOB = 'GBOBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
 const CAROL = 'GCAROLAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
 
-const services = (fixture: FixtureChain) => {
+const services = (chain: ChainShape) => {
   const db = Layer.unwrap(Effect.promise(async () => Db.fromEngine(await sqliteEngine())))
   return Layer.mergeAll(
     testSettings,
@@ -44,7 +46,7 @@ const services = (fixture: FixtureChain) => {
         { name: 'Carol', address: CAROL, trustline_required: true },
       ],
     }),
-    Layer.succeed(Chain, fixture.chain),
+    Layer.succeed(Chain, chain),
     OAuthGrants.none,
     Layer.succeed(Network, testNetwork),
     Layer.succeed(Counter, { read: Effect.die('no counter in this test') }),
@@ -87,7 +89,34 @@ afterEach(async () => {
 describe('the /sample run on the fixture chain', () => {
   test('the nine steps land in their states; a second start meanwhile is refused; the next run renews', async () => {
     const fixture = makeFixtureChain({ trustlineMissing: [CAROL] })
-    const rt: AppRuntime = ManagedRuntime.make(services(fixture))
+    // Carol's trustline as the chain sees it: the claim creates it, the demo recipient's reset removes it.
+    const carolTrust = { value: false }
+    const chain: ChainShape = {
+      ...fixture.chain,
+      readiness: address =>
+        address === CAROL
+          ? Effect.succeed(carolTrust.value ? 'usdc_ready' : 'trustline_required')
+          : fixture.chain.readiness(address),
+      finalizeClaim: (prepared, signed, sender) =>
+        fixture.chain.finalizeClaim(prepared, signed, sender).pipe(
+          Effect.tap(() =>
+            Effect.sync(() => {
+              carolTrust.value = true
+            }),
+          ),
+        ),
+    }
+    const resets: Array<string> = []
+    const recipient: RecipientReset = {
+      reset: (_address, returnTo) =>
+        Effect.sync(() => {
+          if (!carolTrust.value) return null
+          carolTrust.value = false
+          resets.push(returnTo)
+          return { tx: 'a'.repeat(64), returned: '1.0000000' }
+        }),
+    }
+    const rt: AppRuntime = ManagedRuntime.make(services(chain))
     runtime = rt
     const clock = { now: Date.parse('2026-10-25T16:00:00Z') }
     const desk = memoryDesk(clock)
@@ -99,7 +128,7 @@ describe('the /sample run on the fixture chain', () => {
       desk
         .start('visitor-b', SITE)
         .then(reply => during.push(reply))
-        .then(() => executeSample(rt, { id: ticket.id, site: ticket.site, secret: SECRET }, report))
+        .then(() => executeSample(rt, { id: ticket.id, site: ticket.site, secret: SECRET, recipient }, report))
 
     const first = await desk.start('visitor-a', SITE)
     if (!first.ok) throw new Error(first.message)
@@ -123,8 +152,11 @@ describe('the /sample run on the fixture chain', () => {
       '8:paid',
       '9:revoked',
       '9:refused',
+      'end:ok', // Carol reset for the next run
       'end:ok',
     ])
+    expect(carolTrust.value).toBe(false)
+    expect(resets).toHaveLength(1)
     const line = (step: string, state: string) => run?.lines.find(l => l.step === step && l.state === state)
     expect(line('2', 'paid')?.amount).toBe('0.10 USDC')
     expect(line('3', 'paid')?.detail).toContain('2.90 USDC left')
@@ -134,7 +166,6 @@ describe('the /sample run on the fixture chain', () => {
     expect(line('7', 'left_pending')?.detail).toContain('2.90')
     expect(line('9', 'refused')?.detail).toContain('revoked')
     expect(fixture.balanceOf(BOB)).toBe(toStroops('5'))
-    expect(fixture.balanceOf(CAROL)).toBe(toStroops('1'))
     expect(fixture.callsOf('payX402')).toHaveLength(1)
     expect(fixture.callsOf('installGrant')).toHaveLength(1)
     expect(fixture.callsOf('removeGrant')).toHaveLength(1)
@@ -143,14 +174,15 @@ describe('the /sample run on the fixture chain', () => {
     // The owner lane never consumed the allowance: Bob and Carol went through the passkey.
     expect(fixture.callsOf('delegatedTransfer')).toHaveLength(2)
 
-    // The same visitor waits ten minutes; another visitor may start the next run.
+    // The same visitor waits ten minutes; another visitor may start the next run. Meanwhile a judge onboarded Carol.
+    carolTrust.value = true
     clock.now += 60_000
     const again = await desk.start('visitor-a', SITE)
     expect(again).toEqual(expect.objectContaining({ ok: false, reason: 'visitor' }))
     const next = await desk.start('visitor-c', SITE)
     if (!next.ok) throw new Error(next.message)
     await desk.runQueued(
-      (ticket, report) => executeSample(rt, { id: ticket.id, site: ticket.site, secret: SECRET }, report),
+      (ticket, report) => executeSample(rt, { id: ticket.id, site: ticket.site, secret: SECRET, recipient }, report),
       false,
     )
     const second = await desk.status(next.id)
@@ -158,6 +190,7 @@ describe('the /sample run on the fixture chain', () => {
     expect(states(second)).toEqual([
       '0:ok', // a new allowance (the last run revoked its own); the wallet is reused
       '0:ok', // top-up
+      '0:ok', // Carol reset before the claim
       '1:ok',
       '2:paid',
       '3:paid',
@@ -165,14 +198,35 @@ describe('the /sample run on the fixture chain', () => {
       '5:nodded',
       '6:same_receipt',
       '7:left_pending',
-      '8:skipped',
+      '8:needs_nod',
+      '8:paid',
       '9:revoked',
       '9:refused',
       'end:ok',
+      'end:ok',
     ])
-    expect(second?.lines.find(l => l.step === '8')?.detail).toContain('Carol already onboarded')
+    expect(resets).toHaveLength(3)
     expect(fixture.callsOf('deployAccount')).toHaveLength(1)
     expect(fixture.callsOf('installGrant')).toHaveLength(2)
+    expect(fixture.callsOf('finalizeClaim')).toHaveLength(2)
+
+    // A reset that fails: the claim is skipped with the reason, and the end says Carol is still onboarded.
+    carolTrust.value = true
+    const third = await executeSample(
+      rt,
+      {
+        id: 'sr_third',
+        site: SITE,
+        secret: SECRET,
+        recipient: noRecipientReset('this stage has no demo recipient key'),
+      },
+      () => Promise.resolve(),
+    )
+    expect(third.status).toBe('done')
+    const skipped = third.lines.find(l => l.step === '8')
+    expect(skipped?.state).toBe('skipped')
+    expect(skipped?.detail).toContain('the reset failed: this stage has no demo recipient key')
+    expect(third.lines.filter(l => l.step === 'end').map(l => l.state)).toEqual(['failed', 'ok'])
   }, 30_000)
 
   test('an interrupted run is not repeated: a retried alarm marks it failed and frees the lock', async () => {

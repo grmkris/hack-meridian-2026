@@ -16,6 +16,7 @@ import {
   walletOverview,
 } from '../tools.ts'
 import { type Site, WalletSettings } from '../wallet-settings.ts'
+import type { RecipientReset } from './demo-recipient.ts'
 import {
   demoPasskey,
   demoWallet,
@@ -40,6 +41,8 @@ export interface SampleInput {
   readonly site: Site
   /** VAULT_KEY, which seals the demo owner's passkey. */
   readonly secret: string
+  /** Testnet: puts Carol back to "never held USDC" before and after the run. */
+  readonly recipient: RecipientReset
 }
 
 const messageOf = (error: unknown): string =>
@@ -146,6 +149,40 @@ export const sampleProgram = (runtime: AppRuntime, input: SampleInput, report: (
     }
     const { wallet, owner, ctx } = setup.success
     const walletUrl = `${network.explorerBase}/contract/${wallet.contract_id}`
+
+    // Carol, the claim-link recipient, must not hold a USDC trustline: reset her now (and again at the end).
+    const carol = settings.demoContacts.find(contact => contact.name === 'Carol')
+    const carolReadiness = () =>
+      carol === undefined
+        ? Effect.succeed('missing')
+        : chain.readiness(carol.address).pipe(Effect.catchTag('ChainError', () => Effect.succeed('unknown')))
+    const treasury = yield* chain.health.pipe(
+      Effect.map(health => health.treasury?.address ?? null),
+      Effect.catchTag('ChainError', () => Effect.succeed(null)),
+    )
+    /** Reset Carol; the reason when it could not be done (null: done, or nothing to do). */
+    const resetCarol = (when: 'start' | 'end') =>
+      Effect.gen(function* () {
+        if (carol === undefined) return 'Carol is not a demo contact on this stage'
+        if (treasury === null) return "the treasury's address is unknown"
+        const result = yield* input.recipient.reset(carol.address, treasury).pipe(Effect.result)
+        if (result._tag === 'Failure') return result.failure.message
+        if (result.success === null) return null
+        const returned = fromStroops(toStroops(result.success.returned))
+        yield* say({
+          step: when === 'start' ? '0' : 'end',
+          title:
+            when === 'start' ? 'Carol is reset: she holds no USDC trustline again' : 'Carol is reset for the next run',
+          tool: 'payment + ChangeTrust(limit 0), signed with the demo recipient key',
+          state: 'ok',
+          amount: `${returned} USDC back to the treasury`,
+          fee: 'Carol paid the 0.0002 XLM classic fee',
+          detail: `Her ${returned} USDC went back to Nod's testnet treasury and her USDC trustline was removed. ${when === 'start' ? 'So the claim link below onboards her for real.' : "The next run, and any judge's own claim, finds her without a trustline."}`,
+          links: [{ label: 'reset', url: tx(result.success.tx) }],
+        })
+        return null
+      })
+    const startProblem = (yield* carolReadiness()) === 'usdc_ready' ? yield* resetCarol('start') : null
 
     // 1. wallet_overview
     yield* step(
@@ -351,11 +388,7 @@ export const sampleProgram = (runtime: AppRuntime, input: SampleInput, report: (
     )
 
     // 8. Carol, who has never held USDC: claim link (CAP-73)
-    const carol = settings.demoContacts.find(contact => contact.name === 'Carol')
-    const carolReady =
-      carol === undefined
-        ? 'missing'
-        : yield* chain.readiness(carol.address).pipe(Effect.catchTag('ChainError', () => Effect.succeed('unknown')))
+    const carolReady = yield* carolReadiness()
     if (carolReady !== 'trustline_required')
       yield* say({
         step: '8',
@@ -366,7 +399,7 @@ export const sampleProgram = (runtime: AppRuntime, input: SampleInput, report: (
         fee: null,
         detail:
           carolReady === 'usdc_ready'
-            ? 'Carol already onboarded; run `treasury.ts --new-carol` to reset. (Her trustline already exists, so there is no claim to show.)'
+            ? `Carol already onboarded and the reset failed: ${startProblem ?? 'her trustline is still there'}. Run \`treasury.ts --new-carol\` to reset her by hand.`
             : `Carol cannot be checked right now (${carolReady}); skipped.`,
         links: carol === undefined ? [] : [{ label: 'Carol', url: `${network.explorerBase}/account/${carol.address}` }],
       })
@@ -475,6 +508,22 @@ export const sampleProgram = (runtime: AppRuntime, input: SampleInput, report: (
             }
       }),
     )
+
+    // Carol back to "never held USDC" for the next run and for any judge's own claim
+    if ((yield* carolReadiness()) === 'usdc_ready') {
+      const endProblem = yield* resetCarol('end')
+      if (endProblem !== null)
+        yield* say({
+          step: 'end',
+          title: 'Carol could not be reset for the next run',
+          tool: null,
+          state: 'failed',
+          amount: null,
+          fee: null,
+          detail: `${endProblem}. The next run tries again before its claim step.`,
+          links: [],
+        })
+    }
 
     // The end: where to look
     const final = yield* asToolError(walletOverview(ctx)).pipe(Effect.result)

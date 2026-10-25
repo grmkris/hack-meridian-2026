@@ -2,6 +2,7 @@ import { DurableObject } from 'cloudflare:workers'
 
 import type { GrantHelpers } from '../oauth-grants.ts'
 import { type AppRuntime, makeRuntime, realChain, type WorkerEnv } from '../runtime.ts'
+import { horizonRecipientReset, noRecipientReset } from './demo-recipient.ts'
 import { SampleDesk } from './desk.ts'
 import type { SampleSite, StartReply, SampleRun } from './model.ts'
 import { executeSample } from './run.ts'
@@ -9,6 +10,8 @@ import { executeSample } from './run.ts'
 /** The bindings the sample needs beyond the service's own (apps/web/alchemy.run.ts). */
 export interface SampleEnv extends WorkerEnv {
   readonly VAULT_KEY?: string
+  /** Testnet: Carol's key, which the claim page's demo path signs with; the sample resets her trustline with it. */
+  readonly DEMO_RECIPIENT_SECRET?: string
   /** `false` switches /sample off; unset = on (the page exists on testnet only either way). */
   readonly SAMPLE_ENABLED?: string
   readonly SAMPLE_RUNNER?: DurableObjectNamespace<SampleRunner>
@@ -58,7 +61,12 @@ export class SampleRunner extends DurableObject<SampleEnv> {
         const secret = sampleSecret(this.env)
         if (secret === undefined) return Promise.reject(new Error('VAULT_KEY is not set on this stage'))
         this.runtime ??= makeRuntime(this.env, NO_OAUTH)
-        return executeSample(this.runtime, { id: ticket.id, site: ticket.site, secret }, report)
+        const carolKey = this.env.DEMO_RECIPIENT_SECRET ?? ''
+        const recipient =
+          realChain(this.env) && carolKey !== ''
+            ? horizonRecipientReset(carolKey, fetch.bind(globalThis))
+            : noRecipientReset('this stage has no demo recipient key')
+        return executeSample(this.runtime, { id: ticket.id, site: ticket.site, secret, recipient }, report)
       },
       (info?.retryCount ?? 0) > 0,
     )
