@@ -1,7 +1,11 @@
 # Deploying the testnet stage
 
 Handed over by the foundation session (stream B) on 2026-10-25 15:35 UTC to the orchestrator session. Live: testnet at
-`4dd5d42` (deployed 15:53 UTC: the sample runner's Carol reset, e6's polish 459fd24, the judge-path Carol note; before it
+`0659ad8` (deployed 17:21 UTC by the MCP-Apps session: MCP Apps cards, MCP Events, payment requests, the 2026-07-28 lane,
+migrations 0004/0005, landing parts 1–2, the mainnet agent's four fixes; pre-deploy in the worktree: heavy check green,
+local real-chain rehearsal s1–s11 pass `evidence/demo/2026-10-25T17-14-09-199Z`, local /sample run, events-check 8/8;
+post-deploy: release = SHA, smoke 9/9, GET /sample 200, public /sample run `evidence/sample/sr_24d2441b134baf79f93871c4.json`
+all steps, events-check testnet 8/8, Claude Code check 7/7). Before that, `4dd5d42` (deployed 15:53 UTC: the sample runner's Carol reset, e6's polish 459fd24, the judge-path Carol note; before it
 `0ca5495` brought the landing redesign, a3's llms.txt with the /sample link and the /sample page with the 600 XLM hard
 ceiling; smoke 9/9; rent factor ~290). Queue: empty; the stage is frozen unless something breaks. The stage URL is https://hack-meridian-testnet.kristjan-grm11775.workers.dev (MCP at `/mcp`).
 
