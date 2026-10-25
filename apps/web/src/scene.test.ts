@@ -1,5 +1,5 @@
 import { Option } from 'effect'
-import { expect, given, role, scene, text } from 'foldkit/scene'
+import { Mount, expect, given, role, scene, text } from 'foldkit/scene'
 import { modifyFields } from 'foldkit/struct'
 import { describe, test } from 'vitest'
 
@@ -42,6 +42,8 @@ describe('signed out', () => {
       ),
       expect(role('button', { name: 'Create your wallet' })).toExist(),
       expect(role('button', { name: 'Sign in with your passkey' })).toExist(),
+      // The hero's night flight decides in the browser whether to play; here it settles without playing.
+      Mount.resolve(Welcome.PlayNightFlight, Welcome.Message.SettledNightFlight({ playing: false })),
     )
   })
 })

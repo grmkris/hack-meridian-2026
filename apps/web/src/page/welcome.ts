@@ -1,5 +1,5 @@
 import { Effect, Option, Schema, String } from 'effect'
-import { Command, Submodel, type Update } from 'foldkit'
+import { Command, Mount, Submodel, type Update } from 'foldkit'
 import type { Html, HtmlBuilder } from 'foldkit/html'
 import { defineMessageUnion } from 'foldkit/message'
 import { defineTaggedUnion } from 'foldkit/schema'
@@ -70,6 +70,7 @@ export const Message = defineMessageUnion({
   RequiredInviteCode: {},
   ClickedExampleApprove: {},
   ClickedExampleReplay: {},
+  SettledNightFlight: { playing: Schema.Boolean },
 })
 export type Message = typeof Message.Type
 
@@ -151,6 +152,46 @@ export const CopyConnectorUrl = Command.define('CopyConnectorUrl', {
     ),
 })
 
+const NetworkInformation = Schema.Struct({ saveData: Schema.Boolean })
+
+/** The hero's moving etching plays only on a wide screen, when motion is welcome and the visitor is not saving data. */
+const wantsNightFlight = (): boolean =>
+  window.matchMedia('(min-width: 64rem) and (prefers-reduced-motion: no-preference)').matches &&
+  !Option.exists(
+    Schema.decodeUnknownOption(NetworkInformation)(Reflect.get(navigator, 'connection')),
+    ({ saveData }) => saveData,
+  )
+
+/**
+ * Plays the night flight once: the swallow flies home to the lit window and the last frame stays. The video has no
+ * source until this decides to play it, so a phone, reduced motion or Save-Data never downloads it; it fades in over
+ * the identical etching (landing.css) once its first frame is on screen.
+ */
+export const PlayNightFlight = Mount.define('PlayNightFlight', {
+  args: { src: Schema.String },
+  messages: [Message.SettledNightFlight],
+  execute: ({ element, src }) =>
+    Effect.gen(function* () {
+      if (!(element instanceof HTMLVideoElement) || !wantsNightFlight()) {
+        return Message.SettledNightFlight({ playing: false })
+      }
+      element.addEventListener(
+        'playing',
+        () => {
+          element.dataset['playing'] = 'true'
+        },
+        { once: true },
+      )
+      element.muted = true
+      element.src = src
+      const playing = yield* Effect.tryPromise(() => element.play()).pipe(
+        Effect.as(true),
+        Effect.orElseSucceed(() => false),
+      )
+      return Message.SettledNightFlight({ playing })
+    }),
+})
+
 // UPDATE
 
 export type UpdateReturn = Update.ReturnWithOutMessage<Model, Message, OutMessage, Resources>
@@ -220,6 +261,7 @@ export const update = (model: Model, message: Message) =>
     ClickedExampleReplay: () => ({
       model: modifyFields(model, { exampleNod: () => ExampleNod.Asking(), exampleRun: run => run + 1 }),
     }),
+    SettledNightFlight: () => ({ model }),
   })
 
 // VIEW
@@ -360,6 +402,7 @@ export const view = Submodel.defineView<Model, Message>((model, h): Html =>
       walletForm: walletFormView(model, h),
       addToClaude: addToClaudeView(model, h),
       connectorUrl: model.connectorUrl,
+      nightFlight: h.OnMount(PlayNightFlight({ src: Landing.NIGHT_FLIGHT_SRC })),
       example: {
         approved: ExampleNod.match(model.exampleNod, { Asking: () => false, Approved: () => true }),
         run: model.exampleRun,

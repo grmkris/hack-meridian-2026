@@ -1,5 +1,5 @@
 import { Array } from 'effect'
-import type { Html, HtmlBuilder } from 'foldkit/html'
+import type { Attribute, Html, HtmlBuilder } from 'foldkit/html'
 
 import {
   CLAIM,
@@ -22,6 +22,9 @@ import {
 // rooftops at dawn. Words come from landing-copy.ts.
 
 type Plate = 'hand' | 'seal' | 'door' | 'ledger' | 'flight'
+
+/** The night scene as a moving etching (desktop only, played once by welcome.ts's PlayNightFlight). */
+export const NIGHT_FLIGHT_SRC = '/landing/night-flight.mp4'
 
 type Side = 'start' | 'end'
 
@@ -55,10 +58,19 @@ const icon = <Message>(paths: ReadonlyArray<string>, h: HtmlBuilder<Message>): H
 
 // HERO
 
-const sceneView = <Message>(h: HtmlBuilder<Message>): Html =>
+const sceneView = <Message>(nightFlight: Attribute<Message>, h: HtmlBuilder<Message>): Html =>
   h.div(
     [h.Class('landing-hero-art'), h.AriaHidden(true)],
-    [h.div([h.Class('landing-scene')], [h.div([h.Class('landing-etching')]), h.div([h.Class('landing-glow')])])],
+    [
+      h.div(
+        [h.Class('landing-scene')],
+        [
+          h.div([h.Class('landing-etching')]),
+          h.video([h.Class('landing-scene-video'), h.Muted(true), h.Playsinline(true), h.Preload('none'), nightFlight]),
+          h.div([h.Class('landing-glow')]),
+        ],
+      ),
+    ],
   )
 
 const barView = <Message>(h: HtmlBuilder<Message>): Html =>
@@ -204,7 +216,13 @@ const exampleWalletView = <Message>(example: Example<Message>, h: HtmlBuilder<Me
     ],
   )
 
-type Slots<Message> = Readonly<{ walletForm: Html; addToClaude: Html; connectorUrl: string; example: Example<Message> }>
+type Slots<Message> = Readonly<{
+  walletForm: Html
+  addToClaude: Html
+  connectorUrl: string
+  nightFlight: Attribute<Message>
+  example: Example<Message>
+}>
 
 const heroView = <Message>(slots: Slots<Message>, h: HtmlBuilder<Message>): Html =>
   h.section(
@@ -216,7 +234,7 @@ const heroView = <Message>(slots: Slots<Message>, h: HtmlBuilder<Message>): Html
     ],
     [
       barView(h),
-      sceneView(h),
+      sceneView(slots.nightFlight, h),
       h.div(
         [h.Class('landing-hero-grid landing-width')],
         [

@@ -132,6 +132,29 @@
     }
   }
 
+  /*
+   * The moving etching (desktop, motion welcome, data not saved): it starts as the same picture as the etching under
+   * it and fades in only once its first frame plays, so nothing ever shows an empty box.
+   */
+  .landing-scene-video {
+    display: none;
+  }
+  @media (min-width: 64rem) and (prefers-reduced-motion: no-preference) {
+    .landing-scene-video {
+      position: absolute;
+      inset: 0;
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      opacity: 0;
+      transition: opacity 600ms var(--ease-out);
+    }
+    .landing-scene-video[data-playing] {
+      opacity: 1;
+    }
+  }
+
   /* Lamplight in the one lit window: the person who gives the nod. */
   .landing-glow {
     position: absolute;
