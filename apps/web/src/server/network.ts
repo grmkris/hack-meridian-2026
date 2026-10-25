@@ -32,6 +32,8 @@ export interface NetworkShape {
   }
   /** XLM fee ceilings shown on intents: a grant's first pull, later pulls and payments, owner payments. */
   readonly fees: { readonly firstXlm: number; readonly laterXlm: number; readonly ownerXlm: number }
+  /** Live rent relative to normal (testnet: 47× → 110× on 25 Oct), cached for a minute; null when unknown. */
+  readonly rentFactor: Effect.Effect<number | null>
   /** Testnet only: the treasury sends new wallets welcome USDC. */
   readonly welcomeFunding: boolean
   /** Mainnet: wallet creation needs one of these (empty = no gate). */
@@ -45,6 +47,10 @@ export class Network extends Context.Service<Network, NetworkShape>()('hm/Networ
     Effect.gen(function* () {
       const ops = yield* StellarOps
       const params = ops.network
+      const rentFactor = yield* Effect.cachedWithTTL(
+        ops.rentFactor.pipe(Effect.catchTag('ChainError', () => Effect.succeed(null))),
+        '60 seconds',
+      )
       return {
         name: params.name,
         caip: params.name === 'pubnet' ? ('stellar:pubnet' as const) : ('stellar:testnet' as const),
@@ -57,6 +63,7 @@ export class Network extends Context.Service<Network, NetworkShape>()('hm/Networ
           laterXlm: xlm(params.fees.pullMaxFeeStroops),
           ownerXlm: xlm(params.fees.ownerMaxFeeStroops),
         },
+        rentFactor,
         welcomeFunding: params.name === 'testnet',
         inviteCodes: yield* inviteCodes,
       }
@@ -84,6 +91,7 @@ export class Network extends Context.Service<Network, NetworkShape>()('hm/Networ
           laterXlm: FEE_CEILING_LATER_PAYMENT_XLM,
           ownerXlm: FEE_CEILING_OWNER_PAYMENT_XLM,
         },
+        rentFactor: Effect.succeed(null),
         welcomeFunding: true,
         inviteCodes: yield* inviteCodes,
       }
@@ -109,9 +117,25 @@ const inviteCodes = Config.String('INVITE_CODES').pipe(
   ),
 )
 
-/** The fee ceiling (stroops) for a delegated transfer under `grant`: its first one extends rent and costs most. */
-export const transferFeeCeiling = (network: NetworkShape, firstDone: boolean): bigint =>
-  BigInt(Math.round((firstDone ? network.fees.laterXlm : network.fees.firstXlm) * 1e7))
+/**
+ * XLM of fee per unit of rent factor, measured on testnet 25 Oct at 96×: a grant's first pull needed 41–51 XLM (0.53
+ * per unit), a later 2 USDC payment 15.3 XLM (0.16). The multipliers leave ~50 % headroom.
+ */
+const XLM_PER_RENT_UNIT = { first: 0.8, later: 0.25 }
+/** Never authorize more than this for one transfer, whatever the rent does. */
+const HARD_MAX_TRANSFER_XLM = 250
+
+/**
+ * The fee ceiling (stroops) for a delegated transfer: the configured ceiling (the grant's first transfer extends rent
+ * on the rule and costs most), raised to follow the live rent factor so a rent spike does not stop payments, capped.
+ */
+export const transferFeeCeiling = (network: NetworkShape, firstDone: boolean) =>
+  Effect.map(network.rentFactor, factor => {
+    const configured = firstDone ? network.fees.laterXlm : network.fees.firstXlm
+    const following = factor === null ? 0 : factor * (firstDone ? XLM_PER_RENT_UNIT.later : XLM_PER_RENT_UNIT.first)
+    const ceiling = Math.min(Math.max(configured, following), HARD_MAX_TRANSFER_XLM)
+    return BigInt(Math.round(ceiling * 1e7))
+  })
 
 /** Mainnet: wallet creation needs an invite code (none configured = creation closed). */
 export const inviteRequired = (network: NetworkShape) => network.name === 'pubnet'

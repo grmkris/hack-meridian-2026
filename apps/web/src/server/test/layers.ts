@@ -42,6 +42,7 @@ export const testNetwork: NetworkShape = {
     paymentsEnabled: true,
   },
   fees: { firstXlm: 35, laterXlm: 4, ownerXlm: 1 },
+  rentFactor: Effect.succeed(null),
   welcomeFunding: true,
   inviteCodes: [],
 }

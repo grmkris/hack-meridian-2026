@@ -10,7 +10,7 @@ import type { DbError } from './db.ts'
 import type { Db } from './db.ts'
 import type { LedgerError } from './ledger.ts'
 import type { Ledger } from './ledger.ts'
-import { inviteRequired, Network, type NetworkShape } from './network.ts'
+import { inviteRequired, Network, type NetworkShape, transferFeeCeiling } from './network.ts'
 import type { OAuthGrants } from './oauth-grants.ts'
 import { assertionOptions, createWallet, OwnerError, registrationOptions, signIn, walletOfSession } from './owner.ts'
 import { revokeConnection } from './revoke.ts'
@@ -117,8 +117,12 @@ const SystemHandlers = HttpApiBuilder.group(
     const chain = yield* Chain
     return handlers.handle('health', () =>
       Effect.gen(function* () {
+        const fee_ceilings = {
+          first_xlm: Number(yield* transferFeeCeiling(network, false)) / 1e7,
+          later_xlm: Number(yield* transferFeeCeiling(network, true)) / 1e7,
+        }
         const health = yield* chain.health.pipe(
-          Effect.map(reading => chainStatus(wallet.chain === 'fixture', network, reading)),
+          Effect.map(reading => ({ ...chainStatus(wallet.chain === 'fixture', network, reading), fee_ceilings })),
           Effect.timeoutOrElse({ duration: '6 seconds', orElse: () => Effect.succeed(null) }),
           Effect.catchTag('ChainError', error => Effect.as(Effect.logWarning('health', error.message), null)),
         )

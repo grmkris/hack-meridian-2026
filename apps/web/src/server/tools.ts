@@ -278,7 +278,7 @@ export const paymentExecute = (ctx: ToolContext, paymentId: string) =>
           grant.signer_key_ref,
           intent.recipient_address,
           intent.amount,
-          transferFeeCeiling(network, grant.first_payment_done),
+          yield* transferFeeCeiling(network, grant.first_payment_done),
         )
         .pipe(
           Effect.map((settlement): Outcome => ({
@@ -447,7 +447,7 @@ const quoteHook =
           input.grant.signer_key_ref,
           pocket,
           prepared.pullAmount,
-          transferFeeCeiling(network, prepared.grant?.first_payment_done ?? false),
+          yield* transferFeeCeiling(network, prepared.grant?.first_payment_done ?? false),
         )
         yield* Ref.update(input.state, s => ({ ...s, pull, pulled: prepared.pullAmount }))
         return pull

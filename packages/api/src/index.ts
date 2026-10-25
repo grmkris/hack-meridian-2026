@@ -24,6 +24,8 @@ export const ChainStatus = Schema.Struct({
   relayers: Schema.Array(Schema.Struct({ address: Schema.String, xlm: Schema.String })),
   treasury: Schema.NullOr(Schema.Struct({ address: Schema.String, usdc: Schema.String, xlm: Schema.String })),
   rent_factor: Schema.NullOr(Schema.Finite),
+  /** The fee ceilings in force for a grant's first transfer and later ones (XLM), following the rent factor. */
+  fee_ceilings: Schema.optionalKey(Schema.Struct({ first_xlm: Schema.Finite, later_xlm: Schema.Finite })),
   contracts: Schema.Array(
     Schema.Struct({
       name: Schema.String,
