@@ -1,7 +1,8 @@
 {
-  // PREPARED, NOT DEPLOYED. Mainnet moves real money: deploy only on Kristjan's explicit go, with
-  //   bunx wrangler deploy -c wrangler.mainnet.jsonc --secrets-file .dev.vars.mainnet
-  // Until the placeholders below are filled from docs/research/mainnet.md the Worker answers 503 with the problems.
+  // PREPARED, NOT DEPLOYED. Mainnet moves real money: deploy only on Kristjan's explicit go ("go M4"), with
+  //   HM26_MAINNET_GO=yes scripts/mainnet/seller-deploy.sh
+  // which checks PAY_TO's trustline and the OZ key, then runs wrangler deploy -c wrangler.mainnet.jsonc
+  // --secrets-file .dev.vars.mainnet. Without OZ_FACILITATOR_KEY the Worker answers 503 with the problems.
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "hm26-seller-mainnet",
   "account_id": "bceaeae4788dce3493514fde194b4a7e",
@@ -11,8 +12,9 @@
   "observability": { "enabled": true },
   "vars": {
     "STELLAR_NETWORK": "pubnet",
-    // a mainnet G with a USDC trustline (Circle issuer GA5ZSEJY…KZVN); placeholder fails validation on purpose
-    "PAY_TO": "SET_MAINNET_PAYTO_G_ACCOUNT",
+    // the mainnet seller payTo (scripts/mainnet/keys.ts, docs/mainnet-funding.md); its USDC trustline (Circle issuer
+    // GA5ZSEJY…KZVN) comes from scripts/mainnet/seed.ts --only trustlines, checked by scripts/mainnet/seller-deploy.sh
+    "PAY_TO": "GAJ6XSMEBPLATVHRQVQK5QTL7GYGGYGHC2IFNIQZBMRNIYWHVFOAM47G",
     // USDC SAC: the preset CCW67TSZ…MI75 (docs/research/mainnet.md and @x402/stellar 2.28.0 agree)
     // x402.org has no pubnet: OpenZeppelin Channels is the facilitator, key OZ_FACILITATOR_KEY in .dev.vars.mainnet
     // (bun scripts/demo/oz-key.ts --network pubnet; never printed)
