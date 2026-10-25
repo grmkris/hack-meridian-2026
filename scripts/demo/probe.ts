@@ -199,27 +199,39 @@ if (relayers.length === 0) {
   if (seeded !== undefined) relayers.push(seeded)
 }
 const treasury = str(at(health, 'chain.treasury.address')) ?? str(at(seeds, 'accounts.treasury.address'))
+/**
+ * Funding floors per network (orchestrator, 25 Oct): testnet relayers 500 XLM each and the treasury 50 USDC (it funds
+ * every new wallet with 10); mainnet relayer A 12 XLM, relayer B 5 XLM (fees there are cents), and the treasury may be
+ * empty (it funds nobody).
+ */
+const RELAYER_FLOORS = NETWORK === 'stellar:pubnet' ? [12, 5] : [500]
+const TREASURY_FLOOR = NETWORK === 'stellar:pubnet' ? 0 : 50
+const relayerFloor = (index: number) => RELAYER_FLOORS[index] ?? RELAYER_FLOORS.at(-1) ?? 0
 if (relayers.length === 0)
-  rows.push({ check: 'relayer XLM (≥ 500)', level: 'red', detail: 'no relayer from /api/health or seeds.json', ms: 0 })
-for (const relayer of relayers)
-  await probe(`relayer ${relayer.slice(0, 6)}… XLM (≥ 500)`, async () => {
+  rows.push({ check: 'relayer XLM', level: 'red', detail: 'no relayer from /api/health or seeds.json', ms: 0 })
+for (const [index, relayer] of relayers.entries())
+  await probe(`relayer ${relayer.slice(0, 6)}… XLM (≥ ${relayerFloor(index)})`, async () => {
     const response = await get(`${HORIZON_URL}/accounts/${relayer}`)
     const account: unknown = await response.json().catch(() => undefined)
     const b = await classicBalances(relayer)
     const xlm = Number(b?.xlm ?? '0')
     const sponsoring = Number(at(account, 'num_sponsoring') ?? 0)
-    const spare = xlm - 500
+    const floor = relayerFloor(index)
+    const spare = xlm - floor
     return {
-      level: xlm >= 500 ? 'ok' : 'red',
-      detail: `${xlm.toFixed(1)} XLM, ${sponsoring} sponsored entries (${(sponsoring * 0.5).toFixed(1)} XLM locked); ≈ ${Math.max(0, Math.floor(spare / 50))} connection-days at 50 XLM/day above the 500 floor`,
+      level: xlm >= floor ? 'ok' : 'red',
+      detail:
+        NETWORK === 'stellar:pubnet'
+          ? `${xlm.toFixed(1)} XLM, ${sponsoring} sponsored entries (${(sponsoring * 0.5).toFixed(1)} XLM locked)`
+          : `${xlm.toFixed(1)} XLM, ${sponsoring} sponsored entries (${(sponsoring * 0.5).toFixed(1)} XLM locked); ≈ ${Math.max(0, Math.floor(spare / 50))} connection-days at 50 XLM/day above the ${floor} floor`,
     }
   })
-await probe('treasury USDC (≥ 50)', async () => {
+await probe(`treasury USDC (≥ ${TREASURY_FLOOR})`, async () => {
   if (treasury === undefined) return { level: 'red', detail: 'no treasury from /api/health or seeds.json' }
   const b = await classicBalances(treasury)
   const usdc = Number(b?.usdc ?? '0')
   return {
-    level: usdc >= 50 ? 'ok' : usdc >= 10 ? 'warn' : 'red',
+    level: usdc >= TREASURY_FLOOR ? 'ok' : usdc >= 10 ? 'warn' : 'red',
     detail: `${usdc.toFixed(2)} USDC (${Math.floor(usdc / 10)} new wallets at 10), ${Number(b?.xlm ?? 0).toFixed(1)} XLM`,
   }
 })
