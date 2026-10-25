@@ -5,8 +5,8 @@ Plans and queues live in the release plan (.local/brainstorm/FINAL-REVIEW.md §K
 **Deploys: session A ("ops and hardening") only, since 19:10 UTC 2026-10-25**, testnet and mainnet, from the worktree
 below; mainnet only on the orchestrator's explicit go, never during a recording.
 
-Live: **testnet at `1cd71c7`** (21:22 UTC) on https://testnet.trynod.si (MCP at `/mcp`; the workers.dev host redirects
-there); **mainnet at `1cd71c7`** (21:23 UTC; deposit router bound) on https://trynod.si. Both stages serve the same SHA. Dated sections
+Live: **testnet at `843bdfd`** (22:12 UTC: NEAR Intents top-up service, migration 0012) on https://testnet.trynod.si (MCP
+at `/mcp`; the workers.dev host redirects there); **mainnet at `1cd71c7`** (21:23 UTC; deposit router bound) on https://trynod.si. Dated sections
 below are the history.
 
 ## The deploy worktree is the only place a testnet deploy runs
@@ -401,3 +401,31 @@ byte-identical; no wallet. Then mainnet: plan `[Web] update` + RELEASE, deploy `
 byte-identical; the rendered landing reads "Stellar mainnet" and carries the third Why point, Try it the testnet
 connector; unknown `/approve/link/cl_…`, `/approve/revoke-link/cl_…`, `/claim/cl_…` → 404 pages; `/api/links` 401. No
 wallet, no spend. Rollback for either stage: re-pin `4501c48` (testnet) or `4bb4a89` (mainnet).
+
+## 21:37–21:48 UTC: end to end on `1cd71c7`; the first mainnet deposit
+
+Testnet: rehearsal acceptance 1, 2, 4–9 PASS, 3 REF (`evidence/demo/2026-10-25T21-37-23-402Z/`), site-e2e 8/8, Claude
+Code check 7/7, events-check 8/8, probe green. Mainnet: a deposit-first signup funded through its deposit address by a
+classic 1 USDC payment from the treasury, swept and deployed in 83 s, the account holding 1 USDC
+(`evidence/mainnet/deposit-2026-10-25T21-46Z.md`, six hashes); then 10 USDC from the treasury to the founder's wallet
+(0.40 → 10.40); mainnet probe green with network-aware floors.
+
+## 22:12 UTC: testnet at `843bdfd` (orchestrator's go): NEAR Intents top-ups
+
+B's top-up service, tools and events (`45a6d07`, `935caa8`; migration `0012_topups.sql`, a new table), C's API contract
+and Home tab (`341f986`, `843bdfd`), D's llms.txt and landing words (`87c36b0`). Gate green; plan `[WalletDb] update` +
+`[Web] update` + RELEASE; deploy `"deletedClasses":[]`; 0012 applied 22:12:07 UTC (`topups` exists); health release
+`843bdfd4…`.
+
+- smoke 9/9 (`evidence/probe/smoke-testnet-2026-10-25T22-12-34Z.json`); `/llms.txt` byte-identical; the landing's Why plate unchanged and no mainnet lead on
+  testnet.
+- tools/list: 23 tools, the first 21 byte-identical to `evidence/tools/tools-list-testnet-3473ee4.json`, then
+  `wallet_topup_quote`, `wallet_topup_status` (`evidence/tools/tools-list-testnet-843bdfd.json`); events/list: 10 (the
+  six plus `topup.pending`, `topup.detected`, `topup.arrived`, `topup.expired`).
+- `GET /api/topup/assets` → 503 `topup_unavailable` ("NEAR Intents has no testnet"), as designed.
+- events-check 8/8 (`7a64de3d…`); rehearsal s1–s11 green, acceptance 1, 2, 4–9 PASS, 3 REF
+  (`evidence/demo/2026-10-25T22-13-33-426Z/`; claim
+  https://stellar.expert/explorer/testnet/tx/9bb1d500481023fe0de0d439484dba21e61746d20bf7737c044de0de3833ed8d); probe
+  green, 1 warn (`evidence/probe/2026-10-25T22-17-06-972Z.json`). Treasury 235 USDC.
+
+Rollback: re-pin `1cd71c7` (0012 additive).
