@@ -1,0 +1,42 @@
+{
+  "host": "http://localhost:18960 (local stage, CHAIN=testnet, this checkout at b370da6)",
+  "network": "stellar:testnet",
+  "run": "evidence/person-link/2026-10-25T20-45-15-871Z/run.json",
+  "horizon_verified": [
+    {
+      "hash": "004c8e6a894fa15179b136affd5d62288c732fd7ce95665c2d43437c29ed5f70",
+      "successful": true,
+      "ledger": 5387513,
+      "created_at": "2026-10-25T20:45:52Z",
+      "explorer": "https://stellar.expert/explorer/testnet/tx/004c8e6a894fa15179b136affd5d62288c732fd7ce95665c2d43437c29ed5f70"
+    },
+    {
+      "hash": "6b65c28740aa7c53707ce901417ea6d61f08c88c32cda85b6df646aa6742971e",
+      "successful": true,
+      "ledger": 5387519,
+      "created_at": "2026-10-25T20:46:22Z",
+      "explorer": "https://stellar.expert/explorer/testnet/tx/6b65c28740aa7c53707ce901417ea6d61f08c88c32cda85b6df646aa6742971e"
+    },
+    {
+      "hash": "8b94d6274139dea76211ef1c023e5d462a83262f164ddbacfd6357554418d819",
+      "successful": true,
+      "ledger": 5387515,
+      "created_at": "2026-10-25T20:46:02Z",
+      "explorer": "https://stellar.expert/explorer/testnet/tx/8b94d6274139dea76211ef1c023e5d462a83262f164ddbacfd6357554418d819"
+    },
+    {
+      "hash": "988d06ff18c1229dbcab9e6e8aa113968b2daaf39961f22b18afd321d5370192",
+      "successful": true,
+      "ledger": 5387516,
+      "created_at": "2026-10-25T20:46:07Z",
+      "explorer": "https://stellar.expert/explorer/testnet/tx/988d06ff18c1229dbcab9e6e8aa113968b2daaf39961f22b18afd321d5370192"
+    },
+    {
+      "hash": "9a621fa51fb5fb3244dd9467b7ee18c8a35e93ec402e6c78a6f84d64547ecdb1",
+      "successful": true,
+      "ledger": 5387521,
+      "created_at": "2026-10-25T20:46:32Z",
+      "explorer": "https://stellar.expert/explorer/testnet/tx/9a621fa51fb5fb3244dd9467b7ee18c8a35e93ec402e6c78a6f84d64547ecdb1"
+    }
+  ]
+}
