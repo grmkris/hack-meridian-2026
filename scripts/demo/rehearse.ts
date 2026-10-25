@@ -269,12 +269,17 @@ const ctx: Ctx = {
       notes.push(`wallet holds ${usdc(have)} USDC, no top-up`)
       return
     }
-    const sent = await sacTransfer(
-      key('TREASURY', false),
-      contractId,
-      want - have,
-      `treasury tops the wallet up to ${toUsdc} USDC`,
-    )
+    // The service's own auto-fund uses the same treasury; a sequence clash right after onboarding is retried once.
+    const topUp = () =>
+      sacTransfer(key('TREASURY', false), contractId, want - have, `treasury tops the wallet up to ${toUsdc} USDC`)
+    const sent = await topUp().catch(async (error: unknown) => {
+      notes.push(`top-up retry after: ${error instanceof Error ? error.message : String(error)}`)
+      await new Promise(resolve => setTimeout(resolve, 8_000))
+      const again = (await sacBalances(relayer, contractId)).usdc
+      if (again >= want) return undefined
+      return topUp()
+    })
+    if (sent === undefined) return
     txs.push({
       step: current,
       label: 'treasury top-up (rehearsal only)',
