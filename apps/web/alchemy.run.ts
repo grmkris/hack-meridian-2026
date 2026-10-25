@@ -58,7 +58,9 @@ const switchesFor = (stage: string): Record<string, string> => ({
   WALLET_TTL_LEDGERS: '',
   // Testnet rent runs at ~110× normal (25 Oct, rising): a grant's first pull costs 40–60 XLM, later ones up to ~20 XLM. Ceilings in
   // stroops; the relayer pays, never the owner. Mainnet keeps the chain package's preset.
-  MAX_FEE_STROOPS: isMainnet(stage) ? '' : '1000000000',
+  // The ceiling for everything without its own (grant install and removal, pocket, claim): at rent 278× (25 Oct 15:40
+  // UTC) a grant install needs 105 XLM, above the 100 XLM this was. The relayer pays; testnet only.
+  MAX_FEE_STROOPS: isMainnet(stage) ? '' : '3000000000',
   FIRST_PULL_MAX_FEE_STROOPS: isMainnet(stage) ? '' : '1000000000',
   PULL_MAX_FEE_STROOPS: isMainnet(stage) ? '' : '400000000',
 })
