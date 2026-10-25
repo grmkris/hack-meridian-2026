@@ -5,7 +5,7 @@ import { defineMessageUnion } from 'foldkit/message'
 import { modifyFields } from 'foldkit/struct'
 
 import { Backend, type GrantView, Overview, type PendingApproval, type Resources } from '../backend'
-import { dateTime, explorerAccountUrl, percentUsed, shortAddress, usdc, xlm } from '../format'
+import { dateTime, explorerAccountUrl, networkLabel, percentUsed, shortAddress, usdc, xlm } from '../format'
 import { Problem, recoverProblem } from '../problem'
 import { connectionsRouter, receiptsRouter } from '../route'
 import { receiptRow } from '../view/receipt'
@@ -95,10 +95,10 @@ const walletPanel = (overview: Overview, h: HtmlBuilder<Message>): Html =>
       h.p(
         [h.Class('mt-4 flex flex-wrap items-center gap-x-2 text-sm text-muted')],
         [
-          `${overview.wallet.name} smart account`,
+          `${overview.wallet.name} smart account on ${networkLabel(overview.wallet.network)}`,
           h.a(
             [
-              h.Href(explorerAccountUrl(overview.wallet.contract_id)),
+              h.Href(explorerAccountUrl(overview.wallet.network, overview.wallet.contract_id)),
               h.Target('_blank'),
               h.Rel('noreferrer'),
               h.Class(`${LINK} font-mono`),

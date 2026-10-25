@@ -8,7 +8,7 @@ import { modifyFields } from 'foldkit/struct'
 import { Url, toString as urlToString } from 'foldkit/url'
 
 import { Backend, type Resources, WalletSummary } from './backend'
-import { explorerAccountUrl, shortAddress } from './format'
+import { explorerAccountUrl, isMainnet, networkLabel, shortAddress } from './format'
 import { Connections, Contacts, Home, Receipts, Welcome } from './page'
 import { Problem, recoverProblem } from './problem'
 import {
@@ -290,6 +290,16 @@ const navigationView = (route: AppRoute, h: HtmlBuilder<Message>): Html =>
     ],
   )
 
+const networkBadge = (network: string, h: HtmlBuilder<Message>): Html =>
+  h.span(
+    [
+      h.Class(
+        `rounded-full px-2 py-0.5 text-xs font-semibold ${isMainnet(network) ? 'bg-good/12 text-good' : 'bg-warn/12 text-warn'}`,
+      ),
+    ],
+    [networkLabel(network)],
+  )
+
 const headerView = (wallet: WalletSummary, route: AppRoute, h: HtmlBuilder<Message>): Html =>
   h.header(
     [h.Class('border-b border-line bg-paper')],
@@ -308,7 +318,7 @@ const headerView = (wallet: WalletSummary, route: AppRoute, h: HtmlBuilder<Messa
                 [
                   h.span([h.AriaHidden(true), h.Class('size-6 shrink-0 rounded-lg bg-ink')]),
                   'stellarmcpwallet',
-                  h.span([h.Class('rounded-full bg-warn/12 px-2 py-0.5 text-xs font-semibold text-warn')], ['Testnet']),
+                  networkBadge(wallet.network, h),
                 ],
               ),
               h.div(
@@ -316,7 +326,7 @@ const headerView = (wallet: WalletSummary, route: AppRoute, h: HtmlBuilder<Messa
                 [
                   h.a(
                     [
-                      h.Href(explorerAccountUrl(wallet.contract_id)),
+                      h.Href(explorerAccountUrl(wallet.network, wallet.contract_id)),
                       h.Target('_blank'),
                       h.Rel('noreferrer'),
                       h.Title(wallet.contract_id),

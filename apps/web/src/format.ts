@@ -40,8 +40,21 @@ export const dateTime = (iso: string): string =>
     onSome: value => `${DateTime.formatUtc(value, { ...DATE_TIME, locale: 'en-GB' })} UTC`,
   })
 
-export const explorerAccountUrl = (address: string): string =>
-  `https://stellar.expert/explorer/testnet/${String.startsWith('C')(address) ? 'contract' : 'account'}/${address}`
+const NETWORKS: Readonly<Record<string, Readonly<{ label: string; explorer: string; isMainnet: boolean }>>> = {
+  'stellar:testnet': { label: 'Testnet', explorer: 'https://stellar.expert/explorer/testnet', isMainnet: false },
+  'stellar:pubnet': { label: 'Mainnet', explorer: 'https://stellar.expert/explorer/public', isMainnet: true },
+}
+
+const networkOf = (network: string) =>
+  NETWORKS[network] ?? { label: network, explorer: 'https://stellar.expert/explorer/testnet', isMainnet: false }
+
+/** The network's name as the owner reads it: Testnet or Mainnet. */
+export const networkLabel = (network: string): string => networkOf(network).label
+
+export const isMainnet = (network: string): boolean => networkOf(network).isMainnet
+
+export const explorerAccountUrl = (network: string, address: string): string =>
+  `${networkOf(network).explorer}/${String.startsWith('C')(address) ? 'contract' : 'account'}/${address}`
 
 const FULL = 100n
 

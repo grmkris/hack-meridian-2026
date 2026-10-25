@@ -161,7 +161,7 @@ const destinationRow = (destination: Contact['destinations'][number], h: HtmlBui
         [
           h.a(
             [
-              h.Href(explorerAccountUrl(destination.address)),
+              h.Href(explorerAccountUrl(destination.network, destination.address)),
               h.Target('_blank'),
               h.Rel('noreferrer'),
               h.Title(destination.address),
