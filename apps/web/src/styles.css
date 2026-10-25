@@ -1,19 +1,32 @@
 @import 'tailwindcss';
 @import './landing.css';
 
+/* Nod's identity: canvas and paper with ink, intaglio blue for links and the allowance, night and starlight for the
+   header, lamp only for the nod (a payment that waits for the owner's passkey). Besley 700 for headlines and the two
+   numbers, IBM Plex Sans for text, IBM Plex Mono for addresses and hashes. */
 @theme {
-  --color-ink: oklch(0.2 0.02 265);
-  --color-paper: oklch(0.995 0.002 90);
-  --color-canvas: oklch(0.975 0.006 85);
-  --color-mist: oklch(0.955 0.007 85);
-  --color-line: oklch(0.9 0.01 85);
-  --color-muted: oklch(0.5 0.02 265);
-  --color-accent: oklch(0.5 0.2 275);
-  --color-good: oklch(0.52 0.13 155);
-  --color-warn: oklch(0.6 0.14 65);
-  --color-danger: oklch(0.55 0.2 27);
-  --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --font-mono: ui-monospace, 'SFMono-Regular', 'JetBrains Mono', Menlo, monospace;
+  --color-ink: #12161f;
+  --color-paper: #fefdfc;
+  --color-canvas: #f9f6f2;
+  --color-mist: #f2eee8;
+  --color-line: #e7e1d8;
+  --color-muted: #5b6474;
+  --color-accent: #29416f;
+  --color-intaglio: #29416f;
+  --color-good: #1f6b43;
+  --color-warn: #995600;
+  --color-danger: #a8322a;
+  --color-night: #0b152c;
+  --color-night-raised: #13213f;
+  --color-night-line: #263b63;
+  --color-starlight: #e6f0fa;
+  --color-starlight-muted: #b7c6d8;
+  --color-lamp: #f7c15f;
+  --color-on-lamp: #1d1405;
+  --color-nod-wash: #fdf0d5;
+  --font-sans: 'IBM Plex Sans', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-display: 'Besley', ui-serif, Georgia, 'Times New Roman', serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
 }
 
 @layer base {
@@ -27,8 +40,18 @@
 
   body {
     min-height: 100dvh;
-    font-feature-settings:
-      'tnum' 1,
-      'cv11' 1;
+    font-family: var(--font-sans);
+    font-synthesis: none;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
   }
 }

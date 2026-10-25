@@ -24,9 +24,11 @@ describe('signed in', () => {
       { update, view },
       given(signedIn),
       expect(text('27.90 USDC')).toExist(),
-      expect(text('2.90 USDC left')).toExist(),
+      expect(text('Claude may still spend')).toExist(),
+      expect(text('2.90 USDC')).toExist(),
+      expect(text('of 5.00 USDC')).toExist(),
       expect(role('link', { name: 'Home' })).toHaveAttr('aria-current', 'page'),
-      expect(role('link', { name: 'Review' })).toHaveAttr('href', '/approve/int_dinner'),
+      expect(role('link', { name: 'Review and approve' })).toHaveAttr('href', '/approve/int_dinner'),
     )
   })
 })

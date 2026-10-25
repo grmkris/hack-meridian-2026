@@ -4,31 +4,36 @@ import type { Readiness } from '@hm/protocol'
 
 // SHARED STYLES
 
-export const BUTTON_PRIMARY =
-  'inline-flex min-h-11 items-center justify-center rounded-full bg-ink px-5 text-sm font-semibold text-paper transition hover:bg-ink/85 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:cursor-not-allowed disabled:opacity-50'
-export const BUTTON_SECONDARY =
-  'inline-flex min-h-11 items-center justify-center rounded-full border border-line bg-paper px-5 text-sm font-semibold text-ink transition hover:bg-mist focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:cursor-not-allowed disabled:opacity-50'
-export const BUTTON_DANGER =
-  'inline-flex min-h-11 items-center justify-center rounded-full bg-danger px-5 text-sm font-semibold text-paper transition hover:bg-danger/85 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-danger disabled:cursor-not-allowed disabled:opacity-50'
-export const LINK = 'font-medium text-accent underline decoration-accent/40 underline-offset-4 hover:decoration-accent'
+const PRESSABLE =
+  'inline-flex min-h-11 touch-manipulation select-none items-center justify-center rounded-full px-5 text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 disabled:cursor-not-allowed disabled:opacity-50 motion-safe:transition-[color,background-color,border-color,scale] motion-safe:active:scale-[0.97]'
+
+export const BUTTON_PRIMARY = `${PRESSABLE} bg-night text-starlight hover:bg-night-raised active:bg-night-raised focus-visible:outline-accent`
+export const BUTTON_SECONDARY = `${PRESSABLE} border border-line bg-paper text-ink hover:bg-mist active:bg-mist focus-visible:outline-accent`
+export const BUTTON_DANGER = `${PRESSABLE} bg-danger text-paper hover:bg-danger/90 active:bg-danger/90 focus-visible:outline-danger`
+/** The nod moment only: a payment waiting for the owner's passkey. */
+export const BUTTON_NOD = `${PRESSABLE} bg-lamp text-on-lamp hover:bg-lamp/85 active:bg-lamp/85 focus-visible:outline-accent`
+export const LINK =
+  'font-medium text-accent underline decoration-accent/40 underline-offset-4 hover:decoration-accent focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent'
 export const INPUT =
   'min-h-11 w-full rounded-xl border border-line bg-paper px-3 text-base text-ink placeholder:text-muted focus:border-accent focus:outline-2 focus:outline-accent/30'
+/** The two numbers and other amounts a person reads first. */
+export const FIGURE = 'font-display font-bold tracking-[-0.015em] tabular-nums lining-nums'
 
 // LAYOUT
 
 export const pageHeader = <Message>(title: string, lead: string, h: HtmlBuilder<Message>): Html =>
   h.header(
-    [h.Class('flex flex-col gap-1')],
+    [h.Class('flex flex-col gap-1.5')],
     [
-      h.h1([h.Class('text-2xl font-semibold tracking-tight text-ink sm:text-3xl')], [title]),
+      h.h1([h.Class('font-display text-3xl font-bold tracking-[-0.015em] text-ink sm:text-4xl')], [title]),
       h.p([h.Class('max-w-prose text-sm text-muted')], [lead]),
     ],
   )
 
 export const panel = <Message>(title: string, children: ReadonlyArray<Html>, h: HtmlBuilder<Message>): Html =>
   h.section(
-    [h.Class('rounded-3xl border border-line bg-paper p-5 shadow-[0_1px_0_rgb(0_0_0/0.03)] sm:p-6')],
-    [h.h2([h.Class('mb-4 text-xs font-semibold uppercase tracking-[0.14em] text-muted')], [title]), ...children],
+    [h.Class('rounded-3xl bg-paper p-5 shadow-[0_0_0_1px_var(--color-line),0_1px_2px_rgb(18_22_31/0.05)] sm:p-6')],
+    [h.h2([h.Class('mb-4 text-sm font-semibold text-muted')], [title]), ...children],
   )
 
 export const loadingRow = <Message>(h: HtmlBuilder<Message>): Html =>
@@ -38,7 +43,7 @@ export const errorRow = <Message>(error: string, h: HtmlBuilder<Message>): Html 
   h.p([h.Role('alert'), h.Class('rounded-2xl bg-danger/8 px-4 py-3 text-sm text-danger')], [error])
 
 export const emptyRow = <Message>(text: string, h: HtmlBuilder<Message>): Html =>
-  h.p([h.Class('rounded-2xl border border-dashed border-line px-4 py-6 text-center text-sm text-muted')], [text])
+  h.p([h.Class('rounded-2xl bg-mist px-4 py-5 text-center text-sm text-muted')], [text])
 
 // BADGES
 
@@ -49,7 +54,7 @@ const TONE: Readonly<Record<Tone, string>> = {
   warn: 'bg-warn/12 text-warn ring-warn/30',
   bad: 'bg-danger/10 text-danger ring-danger/25',
   quiet: 'bg-mist text-muted ring-line',
-  accent: 'bg-accent/10 text-accent ring-accent/25',
+  accent: 'bg-accent/8 text-accent ring-accent/20',
 }
 
 export const badge = <Message>(text: string, tone: Tone, h: HtmlBuilder<Message>): Html =>
@@ -69,7 +74,7 @@ const READINESS: Readonly<Record<Readiness, Readonly<{ label: string; tone: Tone
     tone: 'warn',
     help: 'Gets a claim link: accepting it adds USDC and pays in one step.',
   },
-  account_missing: { label: 'Account missing', tone: 'bad', help: 'This address does not exist on testnet yet.' },
+  account_missing: { label: 'Account missing', tone: 'bad', help: 'This address does not exist on Stellar yet.' },
   unverified: { label: 'Unverified', tone: 'quiet', help: 'Checked against the chain at the next payment.' },
 }
 
@@ -88,7 +93,12 @@ export const meter = <Message>(percentUsed: number, label: string, h: HtmlBuilde
       h.AriaValuenow(percentUsed),
       h.AriaValuemin(0),
       h.AriaValuemax(100),
-      h.Class('h-2 w-full overflow-hidden rounded-full bg-mist'),
+      h.Class('h-2 w-full overflow-clip rounded-full bg-mist'),
     ],
-    [h.div([h.Class('h-full rounded-full bg-accent transition-[width]'), h.Style({ width: `${100 - percentUsed}%` })])],
+    [
+      h.div([
+        h.Class('h-full rounded-full bg-accent motion-safe:transition-[width] motion-safe:duration-500'),
+        h.Style({ width: `${100 - percentUsed}%` }),
+      ]),
+    ],
   )
