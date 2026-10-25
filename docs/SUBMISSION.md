@@ -100,13 +100,12 @@ transactions appear on the receipt.
 
 #### Proof on testnet
 
-From the live testnet stage:
+One rehearsal on the live site passed all nine acceptance tests:
 
-- Passkey wallet created on the live site: [`CCDOHIGF…BZG4`](https://stellar.expert/explorer/testnet/contract/CCDOHIGFC4Y2EYZWA66HULNXUI3PX3OD3WX27OKGPEHLRR3LDR3OBZG4)
-- 2 USDC to Alice inside the allowance: [`42c8aa3b`](https://stellar.expert/explorer/testnet/tx/42c8aa3bde85f1785d668c1f376c599dfb7e750f324ea96edf85beede10e727a) · 20 USDC to Bob approved with the passkey: [`2577fefc`](https://stellar.expert/explorer/testnet/tx/2577fefcb260f579d28535683e5c1ca3ea645a8bd716c3783561fe5aa804893d)
-- Carol's trustline and 5 USDC in one transaction: [`9e2f5c16`](https://stellar.expert/explorer/testnet/tx/9e2f5c1613cf65a9cb034416a30bd785d50d46117c94a7c59418458493c95765)
-- Revoke: rule removed [`95c909b0`](https://stellar.expert/explorer/testnet/tx/95c909b086835140139ca25ba04f639cdc02706026bfb83d6fc8b1902462993e), pocket swept back [`1975a39d`](https://stellar.expert/explorer/testnet/tx/1975a39d3df82555625df12070e5626eb0c18bea218957e8d1ddb321d6ea243e)
-- x402 purchase: pull into the pocket under the policy [`646d95c9`](https://stellar.expert/explorer/testnet/tx/646d95c918bc43e1ea22f8ffc6efd48b197344d3add94599b2e40c1248a62945), settlement [`1c680612`](https://stellar.expert/explorer/testnet/tx/1c6806128d7020f4fe4aa4906c8d0158cc403dd3e1c38ba9988f649442138a19)
+- x402 purchase: pull into the pocket under the allowance [`97847912`](https://stellar.expert/explorer/testnet/tx/978479126c9339de3a2cf4140dcef4958aa13d95ea39408b50cbf4ae413ed702), settlement by OpenZeppelin Channels [`e3e62e07`](https://stellar.expert/explorer/testnet/tx/e3e62e07dbf11f0bd75ac795a3bef5a50fcc6ffd64e610c98a70dc9676890990)
+- 2 USDC to Alice inside the allowance: [`fb77bd0f`](https://stellar.expert/explorer/testnet/tx/fb77bd0f01aeb515b967e7bf5f7d0b1f8ec5c4c6af7889263ed3172a0a8ebefe) · 20 USDC to Bob approved with the passkey: [`fbfd200c`](https://stellar.expert/explorer/testnet/tx/fbfd200cc85525ee65a0a55f4b3dc338eedf37c1c8273abcc0ac7701f09e97da)
+- Carol's trustline and 5 USDC in one transaction: [`565b7f07`](https://stellar.expert/explorer/testnet/tx/565b7f0740d2cb73975939107c6b3329a03d60d26925101ba7e9a7ae5660735c)
+- Revoke: rule removed [`55beab6d`](https://stellar.expert/explorer/testnet/tx/55beab6dd2866dd95f6bfcc7209d4c3c7e8a423d4955de5607a6009da1003279), pocket swept back [`00129674`](https://stellar.expert/explorer/testnet/tx/00129674edaed2fcce96c73745587f2c599704850c182c38f7d7c12ab5ee55a6)
 - An over-allowance transfer forced onchain is rejected by the account: [`3daf4b00`](https://stellar.expert/explorer/testnet/tx/3daf4b000cb58ad1bbef3629c13a02d44403c4b690dd51815020cbc89723b42a)
 
 #### Try it in three minutes
