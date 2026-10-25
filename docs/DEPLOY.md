@@ -1,8 +1,9 @@
 # Deploying the testnet stage
 
 Handed over by the foundation session (stream B) on 2026-10-25 15:35 UTC to the orchestrator session. Live: testnet at
-`0ca5495` (deployed 15:48 UTC: e6's landing redesign 3845f15/754d538, a3's llms.txt with the /sample link, the /sample page
-with the 600 XLM hard ceiling from 347b7ea/1506dbb; smoke 9/9, llms.txt byte-identical; rent factor ~290). The stage URL is https://hack-meridian-testnet.kristjan-grm11775.workers.dev (MCP at `/mcp`).
+`4dd5d42` (deployed 15:53 UTC: the sample runner's Carol reset, e6's polish 459fd24, the judge-path Carol note; before it
+`0ca5495` brought the landing redesign, a3's llms.txt with the /sample link and the /sample page with the 600 XLM hard
+ceiling; smoke 9/9; rent factor ~290). Queue: empty; the stage is frozen unless something breaks. The stage URL is https://hack-meridian-testnet.kristjan-grm11775.workers.dev (MCP at `/mcp`).
 
 ## The deploy worktree is the only place a testnet deploy runs
 
@@ -38,8 +39,7 @@ rehearsal or a recording is in flight. `scripts/stage.ts` appends `-dirty` to th
 ## Queue (main is past `36f8466`)
 
 - ~~`a61dd15`~~ deployed in `b1a960b` (15:36 UTC).
-- ~~e6's landing restyle~~ deployed in `0ca5495`. Queued: e6's polish `459fd24` (landing.css/landing.ts only) and the
-  sample runner's Carol reset (pending commit). Original restyle conditions: `apps/web/src/landing.css`, `src/assets/`, `landing-copy.ts`, the `welcome.ts` view
+- ~~e6's landing restyle~~ deployed in `0ca5495`. e6's polish `459fd24` and the sample runner's Carol reset `4dd5d42` deployed 15:53 UTC. Original restyle conditions: `apps/web/src/landing.css`, `src/assets/`, `landing-copy.ts`, the `welcome.ts` view
   markup, the `index.html` font load. Agreed conditions: unchanged test ids, the "Wallet name" label, and the alert and
   status roles; no 390 px overflow and no console errors (`bun run shots` checks both); AA contrast and focus rings on
   the dark hero; motion only behind `prefers-reduced-motion`; a3's meta and noscript untouched. Verify with
