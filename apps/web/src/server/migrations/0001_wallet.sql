@@ -51,8 +51,6 @@ CREATE TABLE spending_grants (
   rule_id INTEGER NOT NULL,
   rule_status TEXT NOT NULL CHECK (rule_status IN ('installed', 'removal_pending', 'removed')),
   pocket_address TEXT,
-  -- USDC pulled into the pocket and not yet paid out (already counted in spent); reconciled from chain at each quote.
-  pocket_balance TEXT NOT NULL DEFAULT '0',
   first_payment_done INTEGER NOT NULL DEFAULT 0,
   status TEXT NOT NULL CHECK (status IN ('active', 'revoked', 'expired')),
   install_tx TEXT NOT NULL,
