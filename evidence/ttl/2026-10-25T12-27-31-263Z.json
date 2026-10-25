@@ -1,0 +1,269 @@
+{
+  "at": "2026-10-25T12:27:31.263Z",
+  "payer": "GC66QPIMEWP5ULQJFQREHSVXUZVHE3AFLBBTGKM7L66NLYRZ22F3PZVK",
+  "deadline": {
+    "utc": "2026-11-10T00:00:00.000Z",
+    "ledger": 5649043
+  },
+  "extend_by_days": 18,
+  "before": [
+    {
+      "group": "spending-limit policy",
+      "entry": "instance",
+      "id": "CABXBYJNZ7IUW4G3D6BND5YCAQF3ASSDMDAOKQQ63UYFSO7WUU2TIP5G",
+      "bytes": 96,
+      "live_until": 5408831,
+      "approx_utc": "2026-10-27 02:23Z",
+      "days_left": 1.6
+    },
+    {
+      "group": "spending-limit policy",
+      "entry": "wasm",
+      "id": "e41b563c4454f5a6742acfa6d44e1ece96d443bb5f40efddd6ed05180210219a",
+      "bytes": 14808,
+      "live_until": 5408831,
+      "approx_utc": "2026-10-27 02:23Z",
+      "days_left": 1.6
+    },
+    {
+      "group": "ed25519 verifier",
+      "entry": "instance",
+      "id": "CAAVTMCBXEIBPR64EAASKFXERVPYFZA2JYP5A3BG6PESWEFUJX5IHKN4",
+      "bytes": 96,
+      "live_until": 5807716,
+      "approx_utc": "2026-11-19 04:23Z",
+      "days_left": 24.7
+    },
+    {
+      "group": "ed25519 verifier",
+      "entry": "wasm",
+      "id": "60e8798db610bdaf3370d39ebda56ee1dc2c15ce1c3a9e28b528bfa24a06b477",
+      "bytes": 1940,
+      "live_until": 6274897,
+      "approx_utc": "2026-12-16 05:15Z",
+      "days_left": 51.7
+    },
+    {
+      "group": "webauthn verifier",
+      "entry": "instance",
+      "id": "CC7EKIHQP3TN4CARQDND6CEOY2UXLWWC2X5GHTD5NLAT7BG5GPZIOM3F",
+      "bytes": 96,
+      "live_until": 7878980,
+      "approx_utc": "2027-03-19 01:08Z",
+      "days_left": 144.5
+    },
+    {
+      "group": "webauthn verifier",
+      "entry": "wasm",
+      "id": "e63a030d0f1a1481e36059a4837c433083b33e704c1f9625b7314795b6d72b76",
+      "bytes": 12200,
+      "live_until": 7878982,
+      "approx_utc": "2027-03-19 01:08Z",
+      "days_left": 144.5
+    },
+    {
+      "group": "account wasm",
+      "entry": "wasm",
+      "id": "1b5f4534a76322da2ad7c745f6900857a6802b0ca79850c35a03561df997785a",
+      "bytes": 41948,
+      "live_until": 7878979,
+      "approx_utc": "2027-03-19 01:08Z",
+      "days_left": 144.5
+    },
+    {
+      "group": "onboard router (S3)",
+      "entry": "instance",
+      "id": "CCLFB4I4CNGWHHL53UO33CSWKKXJBANMDGOGL43J7RBT7SWK2H2BPGN4",
+      "bytes": 96,
+      "live_until": 5501870,
+      "approx_utc": "2026-11-01 11:36Z",
+      "days_left": 7
+    },
+    {
+      "group": "onboard router (S3)",
+      "entry": "wasm",
+      "id": "39c97734a92ac1057da3d4785cbc2307d937a3275fc6bcbb76bf6aa5bd503888",
+      "bytes": 1012,
+      "live_until": 5501869,
+      "approx_utc": "2026-11-01 11:36Z",
+      "days_left": 7
+    },
+    {
+      "group": "USDC SAC",
+      "entry": "instance",
+      "id": "CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA",
+      "bytes": 464,
+      "live_until": 8487243,
+      "approx_utc": "2027-04-23 05:57Z",
+      "days_left": 179.7
+    }
+  ],
+  "actions": [
+    {
+      "action": "extend",
+      "group": "spending-limit policy",
+      "entry": "instance",
+      "target_ledgers_from_now": 311040,
+      "steps": [
+        {
+          "hash": "5b729965682c9a054ed8c06a385d75125c44a2191c6240ad5bdd7936b20de443",
+          "ledger": 5381527,
+          "feeChargedStroops": "13490440",
+          "explorer": "https://stellar.expert/explorer/testnet/tx/5b729965682c9a054ed8c06a385d75125c44a2191c6240ad5bdd7936b20de443",
+          "extendTo": 311040
+        }
+      ]
+    },
+    {
+      "action": "extend",
+      "group": "spending-limit policy",
+      "entry": "wasm",
+      "target_ledgers_from_now": 311040,
+      "steps": [
+        {
+          "hash": "66a9e58b05cbecff9efbac4498c842aeb840365389962a95461c3aa6bdb74988",
+          "ledger": 5381528,
+          "feeChargedStroops": "2395902978",
+          "explorer": "https://stellar.expert/explorer/testnet/tx/66a9e58b05cbecff9efbac4498c842aeb840365389962a95461c3aa6bdb74988",
+          "extendTo": 98238
+        },
+        {
+          "hash": "1b2976a01e32a9e3c2c7ce37bde47707b937acd77306f6916fc0269b068c55a7",
+          "ledger": 5381529,
+          "feeChargedStroops": "3593836329",
+          "explorer": "https://stellar.expert/explorer/testnet/tx/1b2976a01e32a9e3c2c7ce37bde47707b937acd77306f6916fc0269b068c55a7",
+          "extendTo": 204639
+        },
+        {
+          "hash": "19339ef0102e3941c986172b3dde3c3eeec4bcbf66488f9e0dbdf8d3a13ae136",
+          "ledger": 5381530,
+          "feeChargedStroops": "3593836329",
+          "explorer": "https://stellar.expert/explorer/testnet/tx/19339ef0102e3941c986172b3dde3c3eeec4bcbf66488f9e0dbdf8d3a13ae136",
+          "extendTo": 311040
+        }
+      ]
+    },
+    {
+      "action": "extend",
+      "group": "onboard router (S3)",
+      "entry": "instance",
+      "target_ledgers_from_now": 311040,
+      "steps": [
+        {
+          "hash": "724e64169b54adc7dbda2c840da6df1f791436c3c4dd0f966612aedb205315dd",
+          "ledger": 5381531,
+          "feeChargedStroops": "9067849",
+          "explorer": "https://stellar.expert/explorer/testnet/tx/724e64169b54adc7dbda2c840da6df1f791436c3c4dd0f966612aedb205315dd",
+          "extendTo": 311040
+        }
+      ]
+    },
+    {
+      "action": "extend",
+      "group": "onboard router (S3)",
+      "entry": "wasm",
+      "target_ledgers_from_now": 311040,
+      "steps": [
+        {
+          "hash": "9976dc975046287a82ddb43ae9becd6ad40f6c95ef09e845bcb1eb6398b3c2a6",
+          "ledger": 5381532,
+          "feeChargedStroops": "1131610985",
+          "explorer": "https://stellar.expert/explorer/testnet/tx/9976dc975046287a82ddb43ae9becd6ad40f6c95ef09e845bcb1eb6398b3c2a6",
+          "extendTo": 311040
+        }
+      ]
+    }
+  ],
+  "after": [
+    {
+      "group": "spending-limit policy",
+      "entry": "instance",
+      "id": "CABXBYJNZ7IUW4G3D6BND5YCAQF3ASSDMDAOKQQ63UYFSO7WUU2TIP5G",
+      "bytes": 96,
+      "live_until": 5692567,
+      "approx_utc": "2026-11-12 12:27Z",
+      "days_left": 18
+    },
+    {
+      "group": "spending-limit policy",
+      "entry": "wasm",
+      "id": "e41b563c4454f5a6742acfa6d44e1ece96d443bb5f40efddd6ed05180210219a",
+      "bytes": 14808,
+      "live_until": 5692570,
+      "approx_utc": "2026-11-12 12:27Z",
+      "days_left": 18
+    },
+    {
+      "group": "ed25519 verifier",
+      "entry": "instance",
+      "id": "CAAVTMCBXEIBPR64EAASKFXERVPYFZA2JYP5A3BG6PESWEFUJX5IHKN4",
+      "bytes": 96,
+      "live_until": 5807716,
+      "approx_utc": "2026-11-19 04:22Z",
+      "days_left": 24.7
+    },
+    {
+      "group": "ed25519 verifier",
+      "entry": "wasm",
+      "id": "60e8798db610bdaf3370d39ebda56ee1dc2c15ce1c3a9e28b528bfa24a06b477",
+      "bytes": 1940,
+      "live_until": 6274897,
+      "approx_utc": "2026-12-16 05:14Z",
+      "days_left": 51.7
+    },
+    {
+      "group": "webauthn verifier",
+      "entry": "instance",
+      "id": "CC7EKIHQP3TN4CARQDND6CEOY2UXLWWC2X5GHTD5NLAT7BG5GPZIOM3F",
+      "bytes": 96,
+      "live_until": 7878980,
+      "approx_utc": "2027-03-19 01:08Z",
+      "days_left": 144.5
+    },
+    {
+      "group": "webauthn verifier",
+      "entry": "wasm",
+      "id": "e63a030d0f1a1481e36059a4837c433083b33e704c1f9625b7314795b6d72b76",
+      "bytes": 12200,
+      "live_until": 7878982,
+      "approx_utc": "2027-03-19 01:08Z",
+      "days_left": 144.5
+    },
+    {
+      "group": "account wasm",
+      "entry": "wasm",
+      "id": "1b5f4534a76322da2ad7c745f6900857a6802b0ca79850c35a03561df997785a",
+      "bytes": 41948,
+      "live_until": 7878979,
+      "approx_utc": "2027-03-19 01:08Z",
+      "days_left": 144.5
+    },
+    {
+      "group": "onboard router (S3)",
+      "entry": "instance",
+      "id": "CCLFB4I4CNGWHHL53UO33CSWKKXJBANMDGOGL43J7RBT7SWK2H2BPGN4",
+      "bytes": 96,
+      "live_until": 5692571,
+      "approx_utc": "2026-11-12 12:27Z",
+      "days_left": 18
+    },
+    {
+      "group": "onboard router (S3)",
+      "entry": "wasm",
+      "id": "39c97734a92ac1057da3d4785cbc2307d937a3275fc6bcbb76bf6aa5bd503888",
+      "bytes": 1012,
+      "live_until": 5692572,
+      "approx_utc": "2026-11-12 12:27Z",
+      "days_left": 18
+    },
+    {
+      "group": "USDC SAC",
+      "entry": "instance",
+      "id": "CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA",
+      "bytes": 464,
+      "live_until": 8487243,
+      "approx_utc": "2027-04-23 05:56Z",
+      "days_left": 179.7
+    }
+  ]
+}
