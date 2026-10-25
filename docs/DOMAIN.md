@@ -1,5 +1,7 @@
 # trynod.si: custom hostnames per stage
 
+Plans and queues live in the release plan (.local/brainstorm/FINAL-REVIEW.md §K, tailnet); procedures below remain valid.
+
 Track D of [MAINNET.md](MAINNET.md). Written 2026-10-25 ~17:30 UTC by the domain session. Nothing here has been
 deployed; deploys run from the deploy worktree per [DEPLOY.md](DEPLOY.md).
 

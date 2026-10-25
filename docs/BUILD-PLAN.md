@@ -1,5 +1,7 @@
 # Build plan: stellarmcpwallet
 
+Plans and queues live in the release plan (.local/brainstorm/FINAL-REVIEW.md §K, tailnet); procedures below remain valid.
+
 Status: architecture locked 2026-10-25 12:10 UTC after spikes S1–S4 passed (S5 integration running). Deadline Mon 26 Oct
 12:00 UTC. Product: `docs/SPEC.md`. Evidence: `docs/spikes/s1.md`, `s2.md`, `s3.md`, `s4.md`. Every number and id below
 comes from those docs.

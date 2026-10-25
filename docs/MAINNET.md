@@ -1,5 +1,7 @@
 # Mainnet and trynod.si: the plan
 
+Plans and queues live in the release plan (.local/brainstorm/FINAL-REVIEW.md §K, tailnet); procedures below remain valid.
+
 Status: started 2026-10-25 16:10 UTC on Kristjan's go ("start thinking about mainnet deployment and the trynod.si
 migration; you can do both independently"). Facts come from `docs/research/mainnet.md`; the deploy mechanics from
 `docs/DEPLOY.md`. Nothing on mainnet moves money until Kristjan funds the accounts and says go for each step that
