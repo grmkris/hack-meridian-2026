@@ -15,7 +15,7 @@ import { afterAll, describe, expect, it } from 'vitest'
 import { Chain, ChainError, type Receipt } from '@hm/protocol'
 import { Keypair } from '@stellar/stellar-sdk'
 
-import { SPENDING_LIMIT_POLICY, stellarLayer, StellarOps } from '../src/index.ts'
+import { ownerOneShot, SPENDING_LIMIT_POLICY, stellarLayer, StellarOps } from '../src/index.ts'
 import { SoftPasskey } from '../src/testing.ts'
 import { sellerRound, treasuryAddressOf } from './workerd/seller-round.ts'
 
@@ -203,9 +203,16 @@ describe.skipIf(!LIVE)('Chain on Stellar testnet (live)', () => {
     const { passkey, contractId, signer, ruleId } = state
     if (passkey === undefined || contractId === undefined || signer === undefined || ruleId === undefined)
       throw new Error('no grant')
-    const prepared = await run(Effect.flatMap(chain, c => c.prepareRemoveGrant(contractId, ruleId)))
-    const assertion = await passkey.assertChallenge(prepared.challenge)
-    const removed = await run(Effect.flatMap(chain, c => c.removeGrant(prepared, assertion)))
+    // The one-shot form: prepare → passkey signs the challenge → finalize.
+    const removed = await run(
+      Effect.flatMap(chain, c =>
+        ownerOneShot(
+          c.prepareRemoveGrant(contractId, ruleId),
+          challenge => Effect.promise(() => passkey.assertChallenge(challenge)),
+          c.removeGrant,
+        ),
+      ),
+    )
     record('removeGrant', removed)
     const grant = await run(Effect.flatMap(chain, c => c.readGrant(contractId, ruleId)))
     expect(grant.live).toBe(false)

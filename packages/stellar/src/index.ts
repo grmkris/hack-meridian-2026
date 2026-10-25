@@ -79,6 +79,7 @@ export {
 } from './grant.ts'
 export type { GrantWindow } from './grant.ts'
 export { makeInvoker } from './invoke.ts'
+export { ownerOneShot } from './owner.ts'
 export type { Invoker, PreparedCall } from './invoke.ts'
 export { accountOf, readinessFrom } from './readiness.ts'
 export { rentFactor, rentWriteFeePer1Kb } from './rent.ts'
