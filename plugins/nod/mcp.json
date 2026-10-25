@@ -1,0 +1,14 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/mcp.schema.json",
+  "mcpServers": {
+    "nod": {
+      "type": "streamable-http",
+      "url": "https://hack-meridian-testnet.kristjan-grm11775.workers.dev/mcp",
+      "extensions": {
+        "com.openai": {
+          "auth": { "type": "oauth", "client": { "mode": "dcr" } }
+        }
+      }
+    }
+  }
+}

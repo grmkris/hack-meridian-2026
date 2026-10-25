@@ -1,0 +1,33 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "nod",
+  "version": "0.1.0",
+  "description": "A Stellar USDC wallet with an allowance for your AI: small payments go through on their own, anything bigger waits for your nod (your passkey).",
+  "author": { "name": "Kristjan Grm", "url": "https://github.com/grmkris" },
+  "homepage": "https://hack-meridian-testnet.kristjan-grm11775.workers.dev",
+  "repository": "https://github.com/grmkris/hack-meridian-2026",
+  "license": "MIT",
+  "keywords": ["stellar", "usdc", "wallet", "payments", "x402", "passkey", "allowance"],
+  "extensions": {
+    "com.openai": {
+      "onboardingSkill": "./skills/setup/SKILL.md",
+      "interface": {
+        "displayName": "Nod",
+        "shortDescription": "Give your AI an allowance. Big stuff needs your nod.",
+        "longDescription": "Nod is a passkey-owned Stellar wallet you connect to your AI. Set an allowance (say 5 USDC until tomorrow) and your AI can pay people and paid APIs (x402) inside it on its own. Anything bigger comes back to you as a link your passkey approves for that exact recipient and amount. Nod tells this chat when money arrives, when someone asks you for money and when a payment settles. Stellar testnet.",
+        "developerName": "Kristjan Grm",
+        "category": "Finance",
+        "capabilities": ["Read", "Write"],
+        "defaultPrompt": [
+          "How much can you spend from my Nod wallet?",
+          "Send Alice 2 USDC",
+          "Tell me here when someone sends me money"
+        ],
+        "brandColor": "#0b152c",
+        "websiteURL": "https://hack-meridian-testnet.kristjan-grm11775.workers.dev",
+        "composerIcon": "./assets/icon.svg",
+        "logo": "./assets/logo.svg"
+      }
+    }
+  }
+}
