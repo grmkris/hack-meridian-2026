@@ -395,7 +395,7 @@ rehearsal (page strings only; the treasury holds 23.5 USDC).
 
 `1cd71c7` differs from `4501c48` by one line in `apps/web/public/llms.txt` (the mainnet purchase of Stellar's own x402
 demo endpoint) plus README, deck and docs; no code, no migration. Testnet first: gate green, plan `[Web] update` +
-RELEASE, deploy `"deletedClasses":[]`, health release `1cd71c78…`, smoke 9/9 (`evidence/probe/`), `/llms.txt`
+RELEASE, deploy `"deletedClasses":[]`, health release `1cd71c78…`, smoke 9/9 (`evidence/probe/smoke-testnet-2026-10-25T21-23-04Z.json`), `/llms.txt`
 byte-identical; no wallet. Then mainnet: plan `[Web] update` + RELEASE, deploy `"deletedClasses":[]`, health release
 `1cd71c78…`, pubnet, invite off, payments on, ceilings 1 / 1 XLM, relayers 91.5 / 50.0 XLM, treasury 30 USDC; `/llms.txt`
 byte-identical; the rendered landing reads "Stellar mainnet" and carries the third Why point, Try it the testnet
