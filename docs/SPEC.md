@@ -155,15 +155,32 @@ account exists and has the USDC trustline; `G…` without trustline → `trustli
 → `account_missing` (out of scope for the demo, show the state). Inbound payments never create trusted contacts; an
 address change on an existing contact requires owner confirmation on the site.
 
-## x402
+## x402: the pocket model (decided 13:00 UTC)
 
-- Stellar scheme via `@x402/stellar` (auth-entry signing). The payer is the smart account; the signer is the connection
-  key under the grant, or the passkey in the owner lane.
-- The service does the whole negotiation: request → 402 → validate (network, asset = USDC SAC, price ≤ remaining, payTo,
-  expiry) → sign → retry → return content + receipt.
-- Sellers for the demo: one HTTP resource we run (Hono middleware), and, if time, one x402-paid MCP tool.
-- The seller must advertise a Stellar option; we do not convert across chains.
-- Facilitator: the one spike S2 verifies as live; keep its URL in config.
+Hosted facilitators reject smart-account payers today (policy events, fee caps), and Kristjan ruled out running our own
+facilitator: a product that only works with its own facilitator is not a product. So the smart account never pays a
+seller directly. Instead the connection key `K` plays two roles:
+
+1. **Rule signer** on the smart account: a context rule scoped to USDC `transfer` with the spending-limit policy
+   (N total until T). This is the budget, enforced onchain.
+2. **Pocket**: `K` is also the key of its own classic `G…` account, created and reserve-funded by our relayer with a USDC
+   trustline. It holds only what it has pulled.
+
+An x402 purchase is two transactions: `K` pulls exactly the price from the smart account into its pocket under the
+policy, then pays the seller from the pocket with the stock `@x402/stellar` client through a **third-party facilitator**
+(x402.org or OpenZeppelin Channels; S2 measures both). Fees for the second step are sponsored by the facilitator. The
+receipt carries both hashes. Payments to people go from the smart account directly under the same rule, one
+transaction, so the policy counts both paths against the same N.
+
+- The service does the whole negotiation: request → 402 → validate (network `stellar:testnet`, asset = USDC SAC, price ≤
+  remaining, payTo, expiry) → pull → sign → retry → return content + receipt.
+- Over-budget x402 purchases never reach the facilitator: the pull is refused onchain by the policy, or routed to the owner
+  lane by the service before that.
+- Revoke: remove the rule, sweep the pocket's leftover USDC back to the smart account, mark the connection revoked.
+- Sellers for the demo: one HTTP resource we run (Hono middleware) that advertises a Stellar option; if time, one
+  x402-paid MCP tool over `@x402/mcp`. We do not convert across chains.
+- Dropped: our own facilitator, and a C-address payer scheme. If upstream fixes land (x402 PRs #3399, #3860), the smart
+  account can pay directly and the pull step disappears; nothing else changes.
 
 ## Acceptance tests (the judges' checklist)
 
@@ -232,3 +249,6 @@ Show the explorer for two transactions (a delegated one and the owner-approved o
   small scheme class that signs with our account's auth payload, and an in-process facilitator with a 1M-stroop ceiling.
   Third-party sellers get a G-account fallback lane until the upstream fixes merge. Stellar's docs state "there is no
   policy layer for x402 on Stellar today": that gap is the product.
+- 2026-10-25 13:00 UTC, Kristjan: **no facilitator of our own; the demo pays through a third-party facilitator.** This
+  supersedes the 12:40 entry. Features that only work with our facilitator are dropped; the x402 section now describes
+  the pocket model that hosted facilitators accept today.

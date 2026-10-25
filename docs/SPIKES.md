@@ -133,6 +133,11 @@ Deliverables: `spikes/s2/seller`, `spikes/s2/client`, `spikes/s2/mcp-seller`, an
 facilitator URL, its `supported` response, and uptime observations. Also reuse notes from Froggy's
 `~/code/ethglobal-online-2026/packages/payments` (chain-agnostic challenge/requirement/receipt handling).
 
+**Scope change 13:00 UTC (Kristjan):** no facilitator of our own. Claim 5 becomes: pay from the G account through both
+hosted facilitators (x402.org, OpenZeppelin Channels testnet) and record `/supported`, latency, fees, caps; simulate the
+pocket pull (funder → payer G account) right before paying so the two-hash receipt shape is recorded; do not write the
+C-address scheme or the in-process facilitator.
+
 ## S3 · CAP-73 recipient onboarding in one invocation — 2.5 h
 
 **Question**: can a tiny router contract call USDC SAC `trust(recipient)` and then `transfer(sender, recipient, amount)`
@@ -176,13 +181,15 @@ Claims:
 Deliverables: `spikes/s4/` deployable stub, the results doc with per-host screenshots and the exact OAuth flags each host
 needed. This spike decides the demo host.
 
-## S5 · Integration: x402 purchase from the smart account under the grant — 2 h (after S1 + S2)
+## S5 · Integration: the pocket model end to end — 2 h (after S1 + S2)
 
-Pay S2's seller with S1's account, signing with the connection key under the spending-limit rule; then exhaust the limit
-and show the facilitator-side or onchain rejection. This is acceptance tests 1–3 in miniature and tells us whether the
-facilitator can settle a contract-account payer. If it cannot, the fallback is the owner lane for x402 or our own
-submission path (the service submits the transfer and then presents the receipt to the seller only if the seller
-supports a verify-by-tx-hash mode; S2 should have noted whether that exists).
+With S1's account and rule and S2's seller: the connection key `K` pulls exactly 0.10 USDC from the smart account into
+its own `G(K)` pocket under the spending-limit policy (one tx), then pays the seller from the pocket with the stock
+`@x402/stellar` client through a hosted facilitator (second tx, fees sponsored). Then exhaust the budget and show the pull
+refused onchain while the facilitator is never contacted. Then revoke: remove the rule and sweep the pocket back. This is
+acceptance tests 1–3 and 6 in miniature. Record both hashes per purchase, total latency per purchase, and the XLM the
+pocket needs (reserve + trustline), so the build can decide between funding pockets from the relayer and sponsored
+reserves.
 
 ## S6 · CCTP top-up (stretch, only if S1–S4 are green by 16:00 UTC) — 3 h
 
