@@ -61,6 +61,11 @@ steps). The two numbers to watch in every answer: **wallet balance** and **remai
 | 10 | "Send Carol 1 USDC." (CAP-73 claim link) | Carol shows as **Trustline required**, so it **needs your nod**: approve with your passkey, then open the **claim link** as Carol and press **Accept with the demo wallet** (testnet: the server holds the demo Carol key). One transaction creates her USDC trustline and pays her; the receipt links to it |
 | 9 | Wallet site → **Connections** → **Revoke** Claude (confirm), then **Remove rule** with your passkey; ask Claude "Send Alice 0.50 USDC." | the site marks Claude revoked, removes the allowance from your account onchain, and sweeps the pocket's 0.90 back to your wallet; Claude's next call is refused (it is asked to reconnect) |
 
+Carol is one shared demo recipient. If another judge or the sample run onboarded her minutes earlier, step 10 shows her
+as **USDC ready** and Claude makes an ordinary payment instead of a claim link; that payment still succeeds. To see the
+claim link itself, open [`/sample`](https://hack-meridian-testnet.kristjan-grm11775.workers.dev/sample), which runs it on
+Nod's own wallet and resets Carol after each run (from the next deploy).
+
 Every receipt links to `stellar.expert`. The smart-account transactions are paid by a Nod relayer; the x402 settlement
 is paid by the facilitator. The current relayer addresses are published at
 [`/api/health`](https://hack-meridian-testnet.kristjan-grm11775.workers.dev/api/health) under `chain.relayers` (the deployed
