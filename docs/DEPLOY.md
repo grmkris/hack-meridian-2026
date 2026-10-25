@@ -94,3 +94,10 @@ plan:mainnet` / `deploy:mainnet`; its Alchemy state is `apps/web/.alchemy/state/
 secrets `apps/web/.env.mainnet` copied unread with `install -m 600`). Health: stage mainnet, network pubnet, invite
 required, payments on, fee ceilings 1 XLM, two relayers, treasury. OAuth issuer `https://trynod.si`, `stellar.toml` 200,
 landing 200, `/mcp` 401 gate, `/sample` present but disabled on pubnet. Plan was 2 creates + 27 bindings, no deletes.
+
+## 18:18 UTC: mainnet open signup
+
+`https://trynod.si` at `24969ee`: `INVITE_REQUIRED=false` (Kristjan, 18:17 UTC: no invite on mainnet), payment caps
+lifted to 1,000,000 USDC on both stages (`c9f7792` deploy). Wallet-creation rate caps and the "Add money" card follow in
+the next deploy; the W1 nod line is being reversed to one number (allowance = total; past it, passkey approval each time,
+no upper limit) in the MCP-Apps session, with the demo beats restored on my side. Testnet is at `c9f7792`.
