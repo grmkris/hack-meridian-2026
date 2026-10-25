@@ -38,6 +38,8 @@ const deployer = async (): Promise<string> => {
   return (await $`stellar keys address ${IDENTITY}`.text()).trim()
 }
 
+const Recorded = Schema.Struct({ contracts: Schema.Record(Schema.String, Schema.Unknown) })
+
 const deploy = async () => {
   await build()
   const account = await deployer()
@@ -48,11 +50,18 @@ const deploy = async () => {
   if (!/^C[A-Z2-7]{55}$/u.test(id)) throw new Error(`the deploy printed no contract id: ${id}`)
   const head = await $`git rev-parse --verify HEAD`.cwd(ROOT).nothrow().quiet()
   const release = head.exitCode === 0 ? head.text().trim() : 'uncommitted'
+  // The record also lists contracts deployed by other means (the onboard router); a counter deploy keeps them.
+  const others = existsSync(DEPLOYMENT)
+    ? Schema.decodeUnknownSync(Recorded)(JSON.parse(readFileSync(DEPLOYMENT, 'utf8'))).contracts
+    : {}
   const record = {
     network: NETWORK.name,
     rpcUrl: NETWORK.rpcUrl,
     networkPassphrase: NETWORK.passphrase,
-    contracts: { counter: { id, wasmHash, deployer: account, deployedAt: new Date().toISOString(), release } },
+    contracts: {
+      ...others,
+      counter: { id, wasmHash, deployer: account, deployedAt: new Date().toISOString(), release },
+    },
   }
   writeFileSync(DEPLOYMENT, `${JSON.stringify(record, null, 2)}\n`)
   console.log(`counter ${id} on ${NETWORK.name}: https://stellar.expert/explorer/testnet/contract/${id}`)

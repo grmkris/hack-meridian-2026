@@ -27,7 +27,7 @@
     "test": "vitest run",
     "contracts:build": "cd contracts && stellar contract build",
     "contracts:test": "cargo test --manifest-path contracts/Cargo.toml",
-    "contracts:lint": "cargo fmt --manifest-path contracts/Cargo.toml --check && cargo clippy --manifest-path contracts/Cargo.toml --all-targets -- -D warnings",
+    "contracts:lint": "cargo fmt --manifest-path contracts/Cargo.toml --all --check && cargo clippy --manifest-path contracts/Cargo.toml --all-targets -- -D warnings",
     "contracts:bindings": "bun scripts/contract.ts bindings",
     "contracts:deploy": "bun scripts/contract.ts deploy",
     "agents:sync": "repoagents",

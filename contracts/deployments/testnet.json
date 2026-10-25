@@ -9,6 +9,16 @@
       "deployer": "GA64JNQLXMCZTNR5IKCDTHUC2HCH34FYODNEOJ7H2MK5HKE4MC62VLKM",
       "deployedAt": "2026-10-25T11:14:43.100Z",
       "release": "uncommitted"
+    },
+    "onboard": {
+      "id": "CCLFB4I4CNGWHHL53UO33CSWKKXJBANMDGOGL43J7RBT7SWK2H2BPGN4",
+      "wasmHash": "39c97734a92ac1057da3d4785cbc2307d937a3275fc6bcbb76bf6aa5bd503888",
+      "deployer": "GDH3AD34I3FH22G2QBNAGZ3XGKUK4Z6JD47I6TC2VQU7JMJAQ5HG7INH",
+      "deployedAt": "2026-10-25T11:35:42Z",
+      "uploadTx": "c40acea7f6e91345ddf12f9a308edd604b791d398d97ed562033c9ed03d97345",
+      "deployTx": "634bcf1894f1c82e76f1674791f8449341db2fade872f680c904e729beaf3626",
+      "source": "contracts/onboard",
+      "evidence": "docs/spikes/s3.md"
     }
   }
 }
