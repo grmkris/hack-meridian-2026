@@ -12,6 +12,10 @@ const PROJECTS = [
   'apps/web/tsconfig.json',
   'apps/web/tsconfig.worker.json',
   'apps/web/tsconfig.infra.json',
+  'packages/protocol/tsconfig.json',
+  'packages/stellar/tsconfig.json',
+  'packages/stellar/tsconfig.test.json',
+  'apps/seller/tsconfig.json',
 ]
 const ROOT = resolve(import.meta.dir, '..')
 const BIN = resolve(ROOT, 'node_modules/.bin/effect-tsrs')
