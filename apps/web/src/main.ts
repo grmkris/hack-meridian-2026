@@ -1,4 +1,4 @@
-import { Array, Duration, Effect, Option, Schema, Stream } from 'effect'
+import { Array, Clock, Duration, Effect, Option, Schema, Stream } from 'effect'
 import { Command, type Runtime, Subscription, Update } from 'foldkit'
 import type { Document, Html, HtmlBuilder } from 'foldkit/html'
 import { defineMessageUnion } from 'foldkit/message'
@@ -54,6 +54,7 @@ export const Message = defineMessageUnion({
   ClickedSignOut: {},
   CompletedSignOut: {},
   TickedLiveRefresh: {},
+  TickedTopupClock: { nowMs: Schema.Number },
   GotHomeMessage: { message: Home.Message },
   GotConnectionsMessage: { message: Connections.Message },
   GotContactsMessage: { message: Contacts.Message },
@@ -251,6 +252,7 @@ export const update = (model: Model, message: Message) =>
     ClickedSignOut: () => ({ model, commands: [SignOut()] }),
     CompletedSignOut: () => endSession(model),
     TickedLiveRefresh: () => whenSignedIn(enterRoute(model.route))(model),
+    TickedTopupClock: ({ nowMs }) => Update.foldChildStep({ update: Home.informClock(nowMs), ...homeSlot })(model),
     GotHomeMessage: ({ message: homeMessage }) => foldHome(model, homeMessage),
     GotConnectionsMessage: ({ message: connectionsMessage }) => foldConnections(model, connectionsMessage),
     GotContactsMessage: ({ message: contactsMessage }) => foldContacts(model, contactsMessage),
@@ -265,7 +267,24 @@ const LIVE_REFRESH = Duration.seconds(8)
 const isWatchingHome = (model: Model): boolean =>
   Session.guards.SignedIn(model.session) && AppRoute.isAnyOf(['Home'])(model.route)
 
+/** A top-up quote waits for its deposit on Home: the countdown to its deadline ticks every second. */
+const isCountingTopup = (model: Model): boolean => isWatchingHome(model) && Home.isTopupWaiting(model.home)
+
 export const subscriptions = Subscription.make<Model, Message>()(entry => ({
+  topupClock: entry(
+    { isCounting: Schema.Boolean },
+    {
+      modelToDependencies: model => ({ isCounting: isCountingTopup(model) }),
+      dependenciesToStream: ({ isCounting }) =>
+        Stream.when(
+          Stream.tick(Duration.seconds(1)).pipe(
+            Stream.mapEffect(() => Clock.currentTimeMillis),
+            Stream.map(nowMs => Message.TickedTopupClock({ nowMs })),
+          ),
+          Effect.sync(() => isCounting),
+        ),
+    },
+  ),
   liveHome: entry(
     { isWatching: Schema.Boolean },
     {
