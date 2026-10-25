@@ -8,7 +8,8 @@ import type { DbError } from './db.ts'
 import { effectiveStatus, Ledger, type LedgerError, type Outcome } from './ledger.ts'
 import { Network } from './network.ts'
 import { checkAssertion, OwnerError, requireWallet, sessionToken, walletOfSession } from './owner.ts'
-import { approvalPage, claimPage, html, messagePage, revokePage } from './pages.ts'
+import { approvalPage, claimPage, html, messagePage, requestPage, revokePage } from './pages.ts'
+import { requestPageView } from './requests.ts'
 import { revokeConnection } from './revoke.ts'
 import type { AppRuntime, AppServices } from './runtime.ts'
 import {
@@ -435,7 +436,27 @@ const claimPost = (runtime: AppRuntime, request: Request, intentId: string) =>
   )
 
 /** Route the owner pages; undefined when the path is not one of them. */
+// /approve/request/<request>
+
+const requestGet = (runtime: AppRuntime, request: Request, requestId: string) =>
+  page(
+    runtime,
+    Effect.gen(function* () {
+      const n = yield* chrome
+      const viewer = yield* walletOfSession(sessionToken(request))
+      const view = yield* requestPageView(requestId, viewer)
+      if (view === undefined)
+        return html(n, messagePage(n, 'Not found', `No payment request ${requestId}.`), { status: 404 })
+      return html(n, requestPage(n, view))
+    }),
+  )
+
 export const ownerRoute = (runtime: AppRuntime, request: Request, path: string): Promise<Response> | undefined => {
+  const asked = /^\/approve\/request\/(rq_[0-9a-f]{32})$/u.exec(path)
+  if (asked !== null)
+    return request.method === 'GET'
+      ? requestGet(runtime, request, asked[1] ?? '')
+      : Promise.resolve(new Response('Method Not Allowed', { status: 405 }))
   const revoke = /^\/approve\/revoke\/(con_[0-9a-f]{32})(\/prepare)?$/u.exec(path)
   if (revoke !== null) {
     const id = revoke[1] ?? ''

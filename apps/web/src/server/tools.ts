@@ -82,7 +82,7 @@ const requirePayments = Effect.gen(function* () {
 })
 
 /** The connection, its wallet and its allowance; refuses a revoked connection for writes. */
-const scope = (ctx: ToolContext, write: boolean) =>
+export const scope = (ctx: ToolContext, write: boolean) =>
   Effect.gen(function* () {
     const connection = yield* connectionById(ctx.props.connection_id)
     if (connection === undefined || connection.wallet_id !== ctx.props.wallet_id)
@@ -165,7 +165,7 @@ export const contactsSearch = (ctx: ToolContext, query: string) =>
 // 3. payment_prepare
 
 /** A contact name, alias, id or address → the destination to pay. */
-const resolveRecipient = (ownerId: string, recipient: string) =>
+export const resolveRecipient = (ownerId: string, recipient: string) =>
   Effect.gen(function* () {
     const text = recipient.trim()
     if (ADDRESS.test(text)) {
@@ -193,7 +193,12 @@ const resolveRecipient = (ownerId: string, recipient: string) =>
     return { address: destination.address, name: contact.display_name, contactId: contact.id }
   })
 
-export const paymentPrepare = (ctx: ToolContext, input: PaymentPrepareInput) =>
+/** `forceOwner`: the owner lane whatever the allowance (request_pay to a requester outside the payer's contacts). */
+export const paymentPrepare = (
+  ctx: ToolContext,
+  input: PaymentPrepareInput,
+  options: { readonly forceOwner?: boolean } = {},
+) =>
   Effect.gen(function* () {
     const { connection, wallet, grant } = yield* scope(ctx, true)
     const network = yield* requirePayments
@@ -230,7 +235,7 @@ export const paymentPrepare = (ctx: ToolContext, input: PaymentPrepareInput) =>
       recipientReadiness: readiness,
       resource: null,
       amount,
-      forceOwner: false,
+      forceOwner: options.forceOwner ?? false,
       claim: false,
       operationKind: 'transfer',
       pocketBalance: null,

@@ -312,3 +312,58 @@ const receiptPending = (input: {
   input.recipientEntryXdr === null
     ? `<div class="card"><p>This link is ${escape(input.status.replace('_', ' '))}.</p></div>`
     : `${input.demo ? '<p class="card warn"><strong>Demo wallet.</strong> Nod’s demo recipient key signs on the server instead of a browser wallet (testnet only).</p>' : ''}<p class="row"><button class="primary" id="accept" data-testid="claim-accept">${input.demo ? 'Accept with the demo wallet' : 'Accept with my wallet'}</button></p>`
+
+// Payment request (/approve/request/<id>): what someone asks this wallet for. Read-only: paying goes through the AI
+// app (request_pay) and, for anyone outside the payer's contacts, the approval page and the passkey.
+
+export interface RequestPageView {
+  readonly id: string
+  readonly status: 'open' | 'paid' | 'declined' | 'expired'
+  readonly amount: bigint
+  readonly requesterAddress: string
+  /** The viewer's contact name for the requester, or null. Never the requester's own wallet name. */
+  readonly requesterName: string | null
+  readonly payerAddress: string
+  readonly payerName: string | null
+  /** Who is looking: the payer, the requester, or someone else (or nobody signed in). */
+  readonly viewer: 'payer' | 'requester' | 'other'
+  readonly note: string | null
+  readonly expiresAt: string
+  readonly paymentId: string | null
+  readonly paidTx: string | null
+}
+
+export const requestPage = (c: Chrome, view: RequestPageView) => {
+  const requester =
+    view.viewer === 'requester'
+      ? 'You'
+      : view.requesterName === null
+        ? 'A Nod wallet you have not saved'
+        : escape(view.requesterName)
+  const payer = view.viewer === 'payer' ? 'You' : view.payerName === null ? 'The payer' : escape(view.payerName)
+  const status =
+    view.status === 'open'
+      ? `Open until ${escape(view.expiresAt.slice(0, 16).replace('T', ' '))} UTC`
+      : view.status === 'paid'
+        ? `<span class="ok">Paid</span>${view.paidTx === null ? '' : `<br>${txLink(c, view.paidTx, 'request-paid-tx')}`}`
+        : escape(view.status === 'declined' ? 'Declined' : 'Expired')
+  const next =
+    view.status !== 'open'
+      ? ''
+      : view.viewer === 'payer'
+        ? `<div class="card"><p>To pay it, ask your AI app to pay request <code>${escape(view.id)}</code>. ${view.requesterName === null ? 'They are not in your contacts, so it will need your nod: your passkey approves the exact amount.' : 'It pays from the AI app’s allowance, or asks for your nod if it is bigger.'}</p></div>`
+        : view.viewer === 'requester'
+          ? `<div class="card"><p>Waiting for ${payer === 'The payer' ? 'the payer' : payer} to pay. Their AI app sees it in their Nod inbox.</p></div>`
+          : `<div class="card"><p>Sign in to Nod with the payer's passkey to see what to do next.</p></div>`
+  return page(
+    'Payment request',
+    c,
+    `<h1 data-testid="request-title">${requester === 'You' ? 'You asked for' : `${requester} asks for`} ${escape(usdc(view.amount))}</h1>
+<div class="card"><p class="amount" data-testid="request-amount">${escape(usdc(view.amount))}</p><dl>
+<dt>From</dt><dd>${requester} · <code>${escape(shortAddress(view.requesterAddress))}</code></dd>
+<dt>To pay</dt><dd>${payer} · <code>${escape(shortAddress(view.payerAddress))}</code></dd>
+<dt>Status</dt><dd data-testid="request-status">${status}</dd>
+${view.note === null ? '' : `<dt>Their note</dt><dd>“${escape(view.note)}” <span class="muted">(the requester’s words)</span></dd>`}
+</dl></div>${next}`,
+  )
+}
