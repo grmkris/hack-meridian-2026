@@ -36,7 +36,9 @@ export interface NetworkShape {
   readonly rentFactor: Effect.Effect<number | null>
   /** Testnet only: the treasury sends new wallets welcome USDC. */
   readonly welcomeFunding: boolean
-  /** Mainnet: wallet creation needs one of these (empty = no gate). */
+  /** Wallet creation needs one of `inviteCodes` (INVITE_REQUIRED; unset = on pubnet only, as before). */
+  readonly inviteRequired: boolean
+  /** The invite codes that open wallet creation while `inviteRequired` (none = creation closed). */
   readonly inviteCodes: ReadonlyArray<string>
 }
 
@@ -65,6 +67,7 @@ export class Network extends Context.Service<Network, NetworkShape>()('hm/Networ
         },
         rentFactor,
         welcomeFunding: params.name === 'testnet',
+        inviteRequired: yield* inviteRequiredConfig(params.name),
         inviteCodes: yield* inviteCodes,
       }
     }),
@@ -93,6 +96,7 @@ export class Network extends Context.Service<Network, NetworkShape>()('hm/Networ
         },
         rentFactor: Effect.succeed(null),
         welcomeFunding: true,
+        inviteRequired: yield* inviteRequiredConfig('testnet'),
         inviteCodes: yield* inviteCodes,
       }
     }),
@@ -118,6 +122,22 @@ const inviteCodes = Config.String('INVITE_CODES').pipe(
 )
 
 /**
+ * INVITE_REQUIRED, a plain "true" or "false": unset (or empty) keeps the network's default, invite-only on pubnet and
+ * open elsewhere. Any other value counts as "true", so a typo never opens signup.
+ */
+export const inviteRequiredFrom = (network: NetworkShape['name'], text: string): boolean => {
+  const value = text.trim().toLowerCase()
+  if (value === '') return network === 'pubnet'
+  return value !== 'false'
+}
+
+const inviteRequiredConfig = (network: NetworkShape['name']) =>
+  Config.String('INVITE_REQUIRED').pipe(
+    Config.withDefault(''),
+    Config.map(text => inviteRequiredFrom(network, text)),
+  )
+
+/**
  * XLM of fee per unit of rent factor, measured on testnet 25 Oct at 96×: a grant's first pull needed 41–51 XLM (0.53
  * per unit), a later 2 USDC payment 15.3 XLM (0.16). The multipliers leave ~50 % headroom.
  */
@@ -140,5 +160,5 @@ export const transferFeeCeiling = (network: NetworkShape, firstDone: boolean) =>
     return BigInt(Math.round(ceiling * 1e7))
   })
 
-/** Mainnet: wallet creation needs an invite code (none configured = creation closed). */
-export const inviteRequired = (network: NetworkShape) => network.name === 'pubnet'
+/** Wallet creation needs an invite code (INVITE_REQUIRED; none configured = creation closed). */
+export const inviteRequired = (network: NetworkShape) => network.inviteRequired

@@ -78,6 +78,8 @@ const switchesFor = (stage: string): Record<string, string> => ({
   MAX_OWNER_PAYMENT_USDC: isMainnet(stage) ? '50' : '100',
   MAX_X402_PRICE_USDC: '1',
   PAYMENTS_ENABLED: 'true',
+  // Wallet creation needs an invite code: 'true' or 'false'; '' = the network decides (invite-only on pubnet).
+  INVITE_REQUIRED: '',
   // /sample: a server-side sample agent on Nod's demo wallet (testnet only; the page refuses on any other network).
   SAMPLE_ENABLED: isMainnet(stage) ? 'false' : 'true',
   WALLET_TTL_LEDGERS: '',
