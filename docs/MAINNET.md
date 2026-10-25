@@ -120,3 +120,12 @@ the rest to his wallet; with the per-allowance nod line (W1) he sets the line on
 10 USDC: allowance 5, brief 0.10 alone, Alice 0.50 alone, Bob 2 needs the nod, repeat → same receipt, Carol 1 by claim
 link, revoke: ~4.5 USDC moves, all between our own accounts. Open signup and the deposit address are gated streams in
 progress (docs/BUILD-PLAN.md).
+
+## 18:15 UTC: first mainnet settlement; payment caps lifted
+
+Smoke payment settled on mainnet: 0.10 USDC from the treasury to the mainnet seller through OpenZeppelin Channels, tx
+`129fbe27c635b86b6ca1f69ccaba1e5d3eae235b58344bd1d877b97aef28d383` (`evidence/mainnet/smoke-pay-2026-10-25T18-12-27-492Z.json`),
+fee paid by OpenZeppelin. Treasury 9.90 USDC for Kristjan's wallet. Kristjan's decision 18:14 UTC: **no per-payment,
+per-allowance or x402 price caps** ("if people want to, let them"); `MAX_GRANT_USDC`, `MAX_OWNER_PAYMENT_USDC` and
+`MAX_X402_PRICE_USDC` are set to 1,000,000 on both stages (config, redeployed). Kept: `PAYMENTS_ENABLED` (our kill
+switch), fee ceilings (relayer cost), and the wallet-creation rate caps being built for open signup (relayer protection).
