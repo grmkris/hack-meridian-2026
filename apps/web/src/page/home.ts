@@ -88,10 +88,7 @@ const walletPanel = (overview: Overview, h: HtmlBuilder<Message>): Html =>
         [h.Class('text-4xl font-semibold tracking-tight tabular-nums text-ink sm:text-5xl')],
         [usdc(overview.balances.usdc)],
       ),
-      h.p(
-        [h.Class('mt-2 text-sm text-muted')],
-        [`${xlm(overview.balances.xlm)} · the wallet service pays every network fee`],
-      ),
+      h.p([h.Class('mt-2 text-sm text-muted')], [`${xlm(overview.balances.xlm)} · Nod pays the network fee`]),
       h.p(
         [h.Class('mt-4 flex flex-wrap items-center gap-x-2 text-sm text-muted')],
         [
@@ -129,7 +126,7 @@ const allowanceRow = (grant: GrantView, h: HtmlBuilder<Message>): Html =>
         [h.Class('text-sm text-muted')],
         [
           Option.match(Option.fromNullishOr(grant.valid_until), {
-            onNone: () => 'Waiting for your passkey to install the allowance',
+            onNone: () => 'Waiting for your nod to set the allowance',
             onSome: until => `Until ${dateTime(until)}`,
           }),
         ],
@@ -139,14 +136,11 @@ const allowanceRow = (grant: GrantView, h: HtmlBuilder<Message>): Html =>
 
 const allowancePanel = (overview: Overview, h: HtmlBuilder<Message>): Html =>
   panel(
-    'What your AI can spend',
+    'What your AI may spend',
     [
       Array.match(overview.grants, {
         onEmpty: () =>
-          emptyRow(
-            'No AI is connected. Add this wallet to Claude as a connector; its consent page asks how much it may spend.',
-            h,
-          ),
+          emptyRow('No AI app yet. Add Nod to Claude as a connector, and set its allowance with your passkey.', h),
         onNonEmpty: grants =>
           h.ul(
             [h.Class('divide-y divide-line')],
@@ -188,10 +182,10 @@ const approvalRow = (approval: PendingApproval, h: HtmlBuilder<Message>): Html =
 
 const approvalsPanel = (overview: Overview, h: HtmlBuilder<Message>): Html =>
   panel(
-    'Waiting for your passkey',
+    'Needs your nod',
     [
       Array.match(overview.pending, {
-        onEmpty: () => emptyRow('Nothing is waiting. Payments above an allowance appear here for you to approve.', h),
+        onEmpty: () => emptyRow('Nothing is waiting. A payment over an allowance shows up here for your nod.', h),
         onNonEmpty: pending =>
           h.ul(
             [h.Class('divide-y divide-line')],

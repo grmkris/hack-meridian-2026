@@ -37,7 +37,7 @@ describe('signed out', () => {
       given(
         modifyFields(signedIn, { session: () => Session.SignedOut({ welcome: Welcome.init(Option.none()).model }) }),
       ),
-      expect(role('button', { name: 'Create wallet with a passkey' })).toExist(),
+      expect(role('button', { name: 'Create your wallet' })).toExist(),
       expect(role('button', { name: 'Sign in with your passkey' })).toExist(),
     )
   })

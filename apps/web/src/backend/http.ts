@@ -6,8 +6,8 @@ import { Api } from '@hm/api'
 
 import { Backend, BackendFailed, type BackendError, SignedOut } from './backend'
 
-const UNREACHABLE = 'The wallet service did not answer. Check your connection and try again.'
-const UNREADABLE = 'The wallet service answered in a way this page cannot read. Reload it.'
+const UNREACHABLE = 'Nod did not answer. Check your connection and try again.'
+const UNREADABLE = 'Nod answered in a way this page cannot read. Reload it.'
 
 const sentenceOf = (error: object): string =>
   Predicate.hasProperty(error, 'error') && Predicate.isString(error.error) ? error.error : UNREACHABLE

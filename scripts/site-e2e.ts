@@ -87,7 +87,7 @@ try {
   const created = await step('a new visitor creates a wallet with a passkey', async () => {
     await page.goto(origin)
     await page.getByLabel('Wallet name').fill(walletName)
-    await page.getByRole('button', { name: 'Create wallet with a passkey' }).click()
+    await page.getByTestId('create-wallet').click()
     await page.getByRole('heading', { name: 'Home', level: 1 }).or(page.getByRole('alert')).first().waitFor()
     await noAlert(page)
     await page.getByText('Wallet balance').waitFor()
@@ -109,11 +109,11 @@ try {
 
     await step('signing out returns to the welcome page', async () => {
       await page.getByRole('button', { name: 'Sign out' }).click()
-      await page.getByRole('button', { name: 'Sign in with your passkey' }).waitFor()
+      await page.getByTestId('sign-in').waitFor()
     })
 
     await step('the same passkey signs back in', async () => {
-      await page.getByRole('button', { name: 'Sign in with your passkey' }).click()
+      await page.getByTestId('sign-in').click()
       await page.getByRole('heading', { name: 'Home', level: 1 }).or(page.getByRole('alert')).first().waitFor()
       await page.screenshot({ path: join(directory, 'signed-in-again.png'), fullPage: true })
       await noAlert(page)

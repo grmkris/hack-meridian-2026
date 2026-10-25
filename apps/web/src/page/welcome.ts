@@ -56,7 +56,7 @@ export const init = (maybeError: Option.Option<string>): Update.Return<Model, Me
 
 const problemMessage = (problem: Problem): string =>
   Problem.match(problem, {
-    SignedOut: () => 'The wallet service did not accept that passkey. Try again.',
+    SignedOut: () => 'Nod did not accept that passkey. Try again.',
     Failed: ({ error }) => error,
   })
 
@@ -141,16 +141,16 @@ export const update = (model: Model, message: Message) =>
 
 const POINTS: ReadonlyArray<Readonly<{ title: string; body: string }>> = [
   {
-    title: 'An allowance per AI',
-    body: 'Each AI you connect gets its own budget and expiry, enforced onchain by your smart account.',
+    title: 'The limit lives on Stellar',
+    body: 'Each AI app gets its own allowance and expiry, enforced by your Stellar account, not by our server.',
   },
   {
-    title: 'Bigger payments ask you',
-    body: 'Anything above the allowance comes back as a link that only your passkey can approve.',
+    title: 'Too big? It asks you',
+    body: 'A payment over the allowance comes to you, and your passkey approves that exact recipient and amount.',
   },
   {
     title: 'No seed phrase, no gas',
-    body: 'Your passkey owns the wallet; the service pays every network fee. Stellar testnet USDC.',
+    body: 'Your passkey owns the wallet, and Nod pays the network fee.',
   },
 ]
 
@@ -184,15 +184,15 @@ export const view = Submodel.defineView<Model, Message>((model, h): Html =>
       h.div(
         [h.Class('flex max-w-xl flex-col gap-6')],
         [
-          h.p([h.Class('text-sm font-semibold uppercase tracking-[0.14em] text-accent')], ['stellarmcpwallet']),
+          h.p([h.Class('text-sm font-semibold tracking-tight text-accent')], ['nod']),
           h.h1(
             [h.Class('text-4xl font-semibold tracking-tight text-balance text-ink sm:text-5xl')],
-            ['Give your AI a spending budget you control.'],
+            ['Give your AI an allowance.'],
           ),
           h.p(
             [h.Class('text-lg text-pretty text-muted')],
             [
-              'Your AI pays people and services from your passkey wallet, within an allowance you set. Larger payments come back to you for approval.',
+              'Nod is a Stellar wallet you add to Claude. Small payments go through on their own, inside the allowance you set. Anything bigger waits for your nod.',
             ],
           ),
           h.ul(
@@ -204,7 +204,7 @@ export const view = Submodel.defineView<Model, Message>((model, h): Html =>
       h.div(
         [h.Class('flex w-full max-w-md flex-col gap-4 rounded-3xl border border-line bg-paper p-6 shadow-sm')],
         [
-          h.h2([h.Class('text-lg font-semibold text-ink')], ['Create your wallet']),
+          h.h2([h.Class('text-lg font-semibold text-ink')], ['Start with a passkey']),
           h.form(
             [h.Class('flex flex-col gap-3'), h.OnSubmit(Message.SubmittedCreateWallet())],
             [
@@ -219,12 +219,17 @@ export const view = Submodel.defineView<Model, Message>((model, h): Html =>
                 h.OnInput(value => Message.UpdatedWalletName({ value })),
               ]),
               h.button(
-                [h.Type('submit'), h.Disabled(isBusy(model.ceremony)), h.Class(BUTTON_PRIMARY)],
+                [
+                  h.Type('submit'),
+                  h.Disabled(isBusy(model.ceremony)),
+                  h.DataAttribute('testid', 'create-wallet'),
+                  h.Class(BUTTON_PRIMARY),
+                ],
                 [
                   Ceremony.matchOrElse(
                     model.ceremony,
                     { CreatingWallet: () => 'Creating your wallet…' },
-                    () => 'Create wallet with a passkey',
+                    () => 'Create your wallet',
                   ),
                 ],
               ),
@@ -239,6 +244,7 @@ export const view = Submodel.defineView<Model, Message>((model, h): Html =>
               h.Type('button'),
               h.Disabled(isBusy(model.ceremony)),
               h.OnClick(Message.ClickedSignIn()),
+              h.DataAttribute('testid', 'sign-in'),
               h.Class(BUTTON_SECONDARY),
             ],
             [

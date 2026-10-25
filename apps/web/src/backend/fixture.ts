@@ -225,7 +225,7 @@ export const fixtureBackend = (options: { readonly signedIn: boolean }) =>
           Effect.succeed({
             challenge: 'Zml4dHVyZS1yZWdpc3RyYXRpb24',
             rp_id: 'localhost',
-            rp_name: 'stellarmcpwallet',
+            rp_name: 'Nod',
             user_id: 'b3duX2ZpeHR1cmU',
             user_name: name,
           }),

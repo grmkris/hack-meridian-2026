@@ -309,7 +309,7 @@ export const view = Submodel.defineView<Model, Message>((model, h): Html =>
     [
       pageHeader(
         'Connections',
-        'Each AI client you connect gets its own allowance and expiry. Revoke one and its next payment is refused.',
+        'Each AI app you connect has its own allowance and expiry. Revoke one and its next payment is refused.',
         h,
       ),
       ...Option.match(model.maybeRuleRemovalUrl, {
@@ -321,8 +321,7 @@ export const view = Submodel.defineView<Model, Message>((model, h): Html =>
         onFailure: error => errorRow(error, h),
         onData: connections =>
           Array.match(connections, {
-            onEmpty: () =>
-              emptyRow('No connections yet. Add this wallet as a connector in Claude to create the first one.', h),
+            onEmpty: () => emptyRow('No AI apps yet. Add Nod to Claude as a connector to set the first allowance.', h),
             onNonEmpty: list =>
               h.ul(
                 [h.Class('flex flex-col gap-4')],

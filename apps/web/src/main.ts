@@ -343,7 +343,7 @@ const headerView = (wallet: WalletSummary, route: AppRoute, h: HtmlBuilder<Messa
                 ],
                 [
                   h.span([h.AriaHidden(true), h.Class('size-6 shrink-0 rounded-lg bg-ink')]),
-                  'stellarmcpwallet',
+                  'nod',
                   networkBadge(wallet.network, h),
                 ],
               ),
@@ -443,9 +443,9 @@ const routeTitle = (route: AppRoute): string =>
 
 const pageTitle = (model: Model): string =>
   Session.match<string>(model.session, {
-    Checking: () => 'stellarmcpwallet',
-    SignedOut: () => 'Sign in | stellarmcpwallet',
-    SignedIn: () => `${routeTitle(model.route)} | stellarmcpwallet`,
+    Checking: () => 'Nod',
+    SignedOut: () => 'Nod | Give your AI an allowance',
+    SignedIn: () => `${routeTitle(model.route)} | Nod`,
   })
 
 export const view = (model: Model, h: HtmlBuilder<Message>): Document => ({

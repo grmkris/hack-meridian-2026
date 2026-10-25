@@ -17,11 +17,11 @@ const title = (receipt: ReceiptRecord): string =>
 
 const feeLine = (receipt: ReceiptRecord): string =>
   receipt.fee_paid_by === 'relayer'
-    ? `Fee ${xlm(receipt.fee_stroops)} paid by the wallet service`
+    ? `Nod paid the ${xlm(receipt.fee_stroops)} network fee`
     : `Fee paid by the facilitator (${receipt.fee_payer})`
 
 const laneBadge = <Message>(receipt: ReceiptRecord, h: HtmlBuilder<Message>): Html =>
-  receipt.lane === 'autonomous' ? badge('Within allowance', 'accent', h) : badge('Approved with passkey', 'good', h)
+  receipt.lane === 'autonomous' ? badge('Within allowance', 'accent', h) : badge('You approved', 'good', h)
 
 const explorerLinks = <Message>(receipt: ReceiptRecord, h: HtmlBuilder<Message>): ReadonlyArray<Html> => [
   h.a([h.Href(receipt.explorer_url), h.Target('_blank'), h.Rel('noreferrer'), h.Class(LINK)], ['Transaction']),
