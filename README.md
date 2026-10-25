@@ -62,15 +62,20 @@ Expected results for every step, with reference transactions: [evidence/JUDGE-TE
 
 ## Proof on testnet
 
-From the product (the wallet service against Stellar testnet):
+From the live testnet stage (release `19e1c13`, rehearsal of 25 October, 15:04 UTC):
 
-| What happened                                                       | Transaction                                                                                                                  |
-| ------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| A passkey wallet created through the product                        | [`CAKADCRB…SDIS`](https://stellar.expert/explorer/testnet/contract/CAKADCRBDPEYNNFVNQUWIMPUY53XP7DJUO6DXNNJAHJDIK5EWFSDSDIS) |
-| x402 purchase: Claude's key fills its pocket under the policy…      | [`646d95c9`](https://stellar.expert/explorer/testnet/tx/646d95c918bc43e1ea22f8ffc6efd48b197344d3add94599b2e40c1248a62945)    |
-| …and x402.org settles the 0.10 USDC to the seller                   | [`1c680612`](https://stellar.expert/explorer/testnet/tx/1c6806128d7020f4fe4aa4906c8d0158cc403dd3e1c38ba9988f649442138a19)    |
-| 20 USDC dinner approved with the passkey                            | [`8f9e79cb`](https://stellar.expert/explorer/testnet/tx/8f9e79cb0df7f06dd7b813988a5b6d71ad5afb32ed57e306c108303b74d44a9f)    |
-| Carol's trustline and 5 USDC in one transaction (CAP-73 claim link) | [`8457e9cb`](https://stellar.expert/explorer/testnet/tx/8457e9cb67895e86155535a37b64308a60bfb3112c6050b60049537860536bf1)    |
+| What happened                                                                  | Transaction                                                                                                                  |
+| ------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------- |
+| A passkey wallet created on the live site, holding its 10 USDC welcome funding | [`CCDOHIGF…BZG4`](https://stellar.expert/explorer/testnet/contract/CCDOHIGFC4Y2EYZWA66HULNXUI3PX3OD3WX27OKGPEHLRR3LDR3OBZG4) |
+| 2 USDC to Alice, signed by the AI app's key inside its allowance               | [`42c8aa3b`](https://stellar.expert/explorer/testnet/tx/42c8aa3bde85f1785d668c1f376c599dfb7e750f324ea96edf85beede10e727a)    |
+| 20 USDC to Bob, more than the allowance, approved with the passkey             | [`2577fefc`](https://stellar.expert/explorer/testnet/tx/2577fefcb260f579d28535683e5c1ca3ea645a8bd716c3783561fe5aa804893d)    |
+| Carol's USDC trustline and 5 USDC in one transaction (CAP-73 claim link)       | [`9e2f5c16`](https://stellar.expert/explorer/testnet/tx/9e2f5c1613cf65a9cb034416a30bd785d50d46117c94a7c59418458493c95765)    |
+| Revoke removes the allowance rule from the account                             | [`95c909b0`](https://stellar.expert/explorer/testnet/tx/95c909b086835140139ca25ba04f639cdc02706026bfb83d6fc8b1902462993e)    |
+| Revoke sweeps the pocket back to the wallet                                    | [`1975a39d`](https://stellar.expert/explorer/testnet/tx/1975a39d3df82555625df12070e5626eb0c18bea218957e8d1ddb321d6ea243e)    |
+| x402 settlement through OpenZeppelin Channels (seller check)                   | [`ae4c60b2`](https://stellar.expert/explorer/testnet/tx/ae4c60b240b6fb3d8761693d527afcb4ea5247cff881709ca114795c1d50134b)    |
+
+An x402 purchase through the product (the Worker run locally against testnet): Claude's key fills its pocket under the
+policy [`646d95c9`](https://stellar.expert/explorer/testnet/tx/646d95c918bc43e1ea22f8ffc6efd48b197344d3add94599b2e40c1248a62945), then x402.org settles 0.10 USDC to the seller [`1c680612`](https://stellar.expert/explorer/testnet/tx/1c6806128d7020f4fe4aa4906c8d0158cc403dd3e1c38ba9988f649442138a19).
 
 From the spikes that proved each risky part first (full record with commands in [docs/spikes/](docs/spikes/)):
 
@@ -80,8 +85,6 @@ From the spikes that proved each risky part first (full record with commands in 
 | An over-allowance transfer forced onchain is rejected by the account (`#3221`) | [`3daf4b00`](https://stellar.expert/explorer/testnet/tx/3daf4b000cb58ad1bbef3629c13a02d44403c4b690dd51815020cbc89723b42a) |
 | A passkey-only account pays with a WebAuthn signature                          | [`4b135c1c`](https://stellar.expert/explorer/testnet/tx/4b135c1cba6872a7cdf1ff6e314674e92635243c7f5e4cdc496ed41144888ee1) |
 | A passkey installs an app's allowance                                          | [`f3160c7e`](https://stellar.expert/explorer/testnet/tx/f3160c7e183e52c4a633804d60d50a956c627e88bc461be2f8f5fad7b14bb110) |
-| A paid MCP tool, settled through OpenZeppelin Channels                         | [`4ddef672`](https://stellar.expert/explorer/testnet/tx/4ddef672157938a4af086bffbf67b66a1e37c8bf7ec8352300019c0398b65671) |
-| Revoke sweeps the pocket back to the wallet                                    | [`b233c0cc`](https://stellar.expert/explorer/testnet/tx/b233c0ccb8ee244602b8fa891c6415062de9be4f2816a23ec87fb5302b4820dd) |
 
 ## Architecture
 

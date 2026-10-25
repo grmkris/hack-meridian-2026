@@ -69,8 +69,8 @@ AI app is what you allowed.
   because Nod pays the network fees. New wallets get 10 testnet USDC so judges can try it.
 - **An allowance per AI app.** Connecting Claude over OAuth and approving its allowance is one step. Each allowance is a
   context rule on your account with a spending limit and an expiry.
-- **Pays for APIs.** Claude buys a 0.10 USDC market brief from an x402 seller, settled by the public x402.org
-  facilitator. No prompt.
+- **Pays for APIs.** Claude buys a 0.10 USDC market brief from an x402 seller, settled by a public facilitator
+  (OpenZeppelin Channels or x402.org). No prompt.
 - **Pays people.** "Send Alice 2 USDC" goes out under the same allowance, signed by Claude's own key.
 - **Needs your nod.** "Pay Bob 20 USDC for dinner" is more than the 2.90 left, so it is never signed with Claude's key.
   You get a link showing Bob's name and address, the amount and who asked; your passkey signs exactly that.
@@ -100,10 +100,13 @@ transactions appear on the receipt.
 
 #### Proof on testnet
 
-- Wallet created through the product: [`CAKADCRB…SDIS`](https://stellar.expert/explorer/testnet/contract/CAKADCRBDPEYNNFVNQUWIMPUY53XP7DJUO6DXNNJAHJDIK5EWFSDSDIS)
-- x402 purchase: pull into the pocket under the policy [`646d95c9`](https://stellar.expert/explorer/testnet/tx/646d95c918bc43e1ea22f8ffc6efd48b197344d3add94599b2e40c1248a62945), settlement by x402.org [`1c680612`](https://stellar.expert/explorer/testnet/tx/1c6806128d7020f4fe4aa4906c8d0158cc403dd3e1c38ba9988f649442138a19)
-- 20 USDC dinner approved with the passkey: [`8f9e79cb`](https://stellar.expert/explorer/testnet/tx/8f9e79cb0df7f06dd7b813988a5b6d71ad5afb32ed57e306c108303b74d44a9f)
-- Carol's trustline and 5 USDC in one transaction: [`8457e9cb`](https://stellar.expert/explorer/testnet/tx/8457e9cb67895e86155535a37b64308a60bfb3112c6050b60049537860536bf1)
+From the live testnet stage:
+
+- Passkey wallet created on the live site: [`CCDOHIGF…BZG4`](https://stellar.expert/explorer/testnet/contract/CCDOHIGFC4Y2EYZWA66HULNXUI3PX3OD3WX27OKGPEHLRR3LDR3OBZG4)
+- 2 USDC to Alice inside the allowance: [`42c8aa3b`](https://stellar.expert/explorer/testnet/tx/42c8aa3bde85f1785d668c1f376c599dfb7e750f324ea96edf85beede10e727a) · 20 USDC to Bob approved with the passkey: [`2577fefc`](https://stellar.expert/explorer/testnet/tx/2577fefcb260f579d28535683e5c1ca3ea645a8bd716c3783561fe5aa804893d)
+- Carol's trustline and 5 USDC in one transaction: [`9e2f5c16`](https://stellar.expert/explorer/testnet/tx/9e2f5c1613cf65a9cb034416a30bd785d50d46117c94a7c59418458493c95765)
+- Revoke: rule removed [`95c909b0`](https://stellar.expert/explorer/testnet/tx/95c909b086835140139ca25ba04f639cdc02706026bfb83d6fc8b1902462993e), pocket swept back [`1975a39d`](https://stellar.expert/explorer/testnet/tx/1975a39d3df82555625df12070e5626eb0c18bea218957e8d1ddb321d6ea243e)
+- x402 purchase: pull into the pocket under the policy [`646d95c9`](https://stellar.expert/explorer/testnet/tx/646d95c918bc43e1ea22f8ffc6efd48b197344d3add94599b2e40c1248a62945), settlement [`1c680612`](https://stellar.expert/explorer/testnet/tx/1c6806128d7020f4fe4aa4906c8d0158cc403dd3e1c38ba9988f649442138a19)
 - An over-allowance transfer forced onchain is rejected by the account: [`3daf4b00`](https://stellar.expert/explorer/testnet/tx/3daf4b000cb58ad1bbef3629c13a02d44403c4b690dd51815020cbc89723b42a)
 
 #### Try it in three minutes
@@ -141,9 +144,11 @@ revoking takes effect at once.
 - **Soroban authorization details.** Signed auth entries must be re-simulated in enforcing mode before submission; the
   two-signer trustline call needs a non-root recording simulation first; passkey signatures cover the exact auth digest,
   so an approval cannot be redirected.
-- **Testnet storage rent at about 50× normal.** The first payment under a new allowance cost 11–17 XLM. We size fee
+- **Testnet storage rent rose from 47× to over 200× normal during the day.** The first payment under a new allowance cost 11–17 XLM. We size fee
   ceilings from the enforcing simulation and pull in 1 USDC steps, which cut relayer cost per purchase from 1.69 to 0.56
-  XLM. At mainnet rent the whole allowance lifecycle costs about 0.6 XLM.
+  XLM. At over 200× rent, x402.org's fee cap fell below the settlement cost; because we integrated two public
+  facilitators, the seller moved to OpenZeppelin Channels. At mainnet rent the whole allowance lifecycle costs about 0.6
+  XLM.
 - **Keeping the demo alive through judging.** The shared OpenZeppelin policy contract on testnet would have expired on 27
   October; we extended the shared contracts to mid-November.
 - **The trustline needs the recipient.** CAP-73's `trust` requires the recipient's own signature and 0.5 XLM of reserve,

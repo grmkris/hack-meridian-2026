@@ -36,11 +36,18 @@ Built at HackMeridian 2026 (Lisbon, 25–26 October 2026), Genesis builder track
 
 ## Proof on testnet
 
-- Wallet created through the product: https://stellar.expert/explorer/testnet/contract/CAKADCRBDPEYNNFVNQUWIMPUY53XP7DJUO6DXNNJAHJDIK5EWFSDSDIS
-- x402 purchase, pull into the pocket under the policy: https://stellar.expert/explorer/testnet/tx/646d95c918bc43e1ea22f8ffc6efd48b197344d3add94599b2e40c1248a62945
-- x402 purchase, settlement by x402.org: https://stellar.expert/explorer/testnet/tx/1c6806128d7020f4fe4aa4906c8d0158cc403dd3e1c38ba9988f649442138a19
-- 20 USDC payment approved with the passkey: https://stellar.expert/explorer/testnet/tx/8f9e79cb0df7f06dd7b813988a5b6d71ad5afb32ed57e306c108303b74d44a9f
-- Trustline and 5 USDC to a new USDC holder in one transaction: https://stellar.expert/explorer/testnet/tx/8457e9cb67895e86155535a37b64308a60bfb3112c6050b60049537860536bf1
+Live testnet stage (release 19e1c13, 25 October 2026):
+- Passkey wallet created on the live site, holding 10 USDC welcome funding: https://stellar.expert/explorer/testnet/contract/CCDOHIGFC4Y2EYZWA66HULNXUI3PX3OD3WX27OKGPEHLRR3LDR3OBZG4
+- 2 USDC to Alice inside the allowance, signed by the AI app's key: https://stellar.expert/explorer/testnet/tx/42c8aa3bde85f1785d668c1f376c599dfb7e750f324ea96edf85beede10e727a
+- 20 USDC to Bob, over the allowance, approved with the passkey: https://stellar.expert/explorer/testnet/tx/2577fefcb260f579d28535683e5c1ca3ea645a8bd716c3783561fe5aa804893d
+- Carol's trustline and 5 USDC in one transaction (CAP-73 claim link): https://stellar.expert/explorer/testnet/tx/9e2f5c1613cf65a9cb034416a30bd785d50d46117c94a7c59418458493c95765
+- Revoke removes the allowance rule: https://stellar.expert/explorer/testnet/tx/95c909b086835140139ca25ba04f639cdc02706026bfb83d6fc8b1902462993e
+- Revoke sweeps the pocket back to the wallet: https://stellar.expert/explorer/testnet/tx/1975a39d3df82555625df12070e5626eb0c18bea218957e8d1ddb321d6ea243e
+- x402 settlement through OpenZeppelin Channels: https://stellar.expert/explorer/testnet/tx/ae4c60b240b6fb3d8761693d527afcb4ea5247cff881709ca114795c1d50134b
+
+x402 purchase through the product (local Worker against testnet): pull into the pocket under the policy https://stellar.expert/explorer/testnet/tx/646d95c918bc43e1ea22f8ffc6efd48b197344d3add94599b2e40c1248a62945, settlement by x402.org https://stellar.expert/explorer/testnet/tx/1c6806128d7020f4fe4aa4906c8d0158cc403dd3e1c38ba9988f649442138a19
+
+Spikes:
 - An allowance spends exactly 5.0 USDC; one stroop more is rejected: https://stellar.expert/explorer/testnet/tx/c0f6f923936b7dc4d716454ba3e3d3f43f21ddcf353e49e3e083d054bf5f9c57
 - An over-allowance transfer forced onchain is rejected by the account (#3221): https://stellar.expert/explorer/testnet/tx/3daf4b000cb58ad1bbef3629c13a02d44403c4b690dd51815020cbc89723b42a
 
