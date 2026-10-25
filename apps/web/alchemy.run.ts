@@ -201,20 +201,10 @@ export default Alchemy.Stack(
       // global_fetch_strictly_public: workers-oauth-provider fetches CIMD client documents (docs/spikes/s4.md).
       compatibility: { date: '2026-10-09', flags: ['global_fetch_strictly_public'] },
       observability: { enabled: true },
-      // These reach the Worker; every other path is a built asset or, for a client route, index.html.
-      assets: {
-        runWorkerFirst: [
-          '/api/*',
-          '/mcp',
-          '/.well-known/*',
-          '/authorize',
-          '/oauth/*',
-          '/approve/*',
-          '/claim/*',
-          '/sample',
-          '/sample/*',
-        ],
-      },
+      // Every path reaches the Worker first: it answers /api, /mcp, OAuth, the owner pages and /sample itself and hands
+      // everything else to the static assets (src/worker.ts). Worker-first everywhere lets the canonical-origin redirect
+      // (src/server/canonical.ts) cover the landing and the client routes too, so an alias host never serves the app.
+      assets: { runWorkerFirst: ['/*'] },
       dev: { port: 18960, strictPort: true },
       memo: { include: BUILD_INPUTS, lockfile: true },
       env: {
