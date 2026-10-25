@@ -215,6 +215,8 @@ export const fixtureBackend = (options: { readonly signedIn: boolean }) =>
       const overview = whenSignedIn((current): Overview => ({
         wallet,
         balances: { usdc: USDC(27, 90), xlm: '0' },
+        network: 'stellar:testnet',
+        explorer_base: 'https://stellar.expert/explorer/testnet',
         grants: Array.filter(current.grants, grant => grant.connection_status === 'active'),
         pending,
         receipts,

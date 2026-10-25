@@ -92,10 +92,16 @@ const walletPanel = (overview: Overview, h: HtmlBuilder<Message>): Html =>
       h.p(
         [h.Class('mt-4 flex flex-wrap items-center gap-x-2 text-sm text-muted')],
         [
-          `${overview.wallet.name} smart account on ${networkLabel(overview.wallet.network)}`,
+          `${overview.wallet.name} smart account on ${networkLabel(overview.network ?? overview.wallet.network)}`,
           h.a(
             [
-              h.Href(explorerAccountUrl(overview.wallet.network, overview.wallet.contract_id)),
+              h.Href(
+                explorerAccountUrl(
+                  overview.network ?? overview.wallet.network,
+                  overview.wallet.contract_id,
+                  overview.explorer_base,
+                ),
+              ),
               h.Target('_blank'),
               h.Rel('noreferrer'),
               h.Class(`${LINK} font-mono`),

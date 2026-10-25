@@ -53,8 +53,9 @@ export const networkLabel = (network: string): string => networkOf(network).labe
 
 export const isMainnet = (network: string): boolean => networkOf(network).isMainnet
 
-export const explorerAccountUrl = (network: string, address: string): string =>
-  `${networkOf(network).explorer}/${String.startsWith('C')(address) ? 'contract' : 'account'}/${address}`
+/** An address on stellar.expert: under the Worker's explorer base when it sends one, else the network's own. */
+export const explorerAccountUrl = (network: string, address: string, explorerBase?: string): string =>
+  `${explorerBase ?? networkOf(network).explorer}/${String.startsWith('C')(address) ? 'contract' : 'account'}/${address}`
 
 const FULL = 100n
 

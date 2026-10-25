@@ -8,6 +8,8 @@ export const claude: GrantView = Array.getUnsafe(fixture.grants, 0)
 export const overview: Overview = {
   wallet: fixture.wallet,
   balances: { usdc: '279000000', xlm: '0' },
+  network: 'stellar:testnet',
+  explorer_base: 'https://stellar.expert/explorer/testnet',
   grants: [claude],
   pending: fixture.pending,
   receipts: fixture.receipts,

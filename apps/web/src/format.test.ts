@@ -14,6 +14,9 @@ describe('networks', () => {
     expect(explorerAccountUrl('stellar:testnet', ALICE)).toBe(
       `https://stellar.expert/explorer/testnet/contract/${ALICE}`,
     )
+    expect(explorerAccountUrl('stellar:testnet', ALICE, 'https://explorer.example/testnet')).toBe(
+      `https://explorer.example/testnet/contract/${ALICE}`,
+    )
   })
 })
 
