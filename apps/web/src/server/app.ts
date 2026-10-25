@@ -301,6 +301,7 @@ const WalletHandlers = HttpApiBuilder.group(
               network: network.caip,
               explorer_base: network.explorerBase,
               balances,
+              deposits_available: chain.depositsAvailable,
               grants: connections.map(entry => apiGrantView(entry.connection, entry.grant)),
               pending: pending.map(intent => pendingApproval(intent, here.origin)),
               receipts: yield* receiptsOfWallet(wallet.id, 5),

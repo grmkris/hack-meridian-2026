@@ -235,6 +235,8 @@ export const Overview = Schema.Struct({
   explorer_base: Schema.optionalKey(Schema.String),
   /** The wallet's own balance, never the allowance. */
   balances: Schema.Struct({ usdc: Schema.String, xlm: Schema.String }),
+  /** Whether this network has a deposit router, so the wallet can get a deposit address (a `G…` exchanges can pay). */
+  deposits_available: Schema.optionalKey(Schema.Boolean),
   grants: Schema.Array(GrantView),
   pending: Schema.Array(PendingApproval),
   receipts: Schema.Array(ReceiptRecord),

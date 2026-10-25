@@ -20,6 +20,7 @@ import {
   type X402QuoteHook,
 } from '@hm/protocol'
 
+import { claimLinkState, claimLinkUrl, claimLinkView, createClaimLink, isClaimLinkId } from './claims.ts'
 import { nowMillis, randomId } from './clock.ts'
 import type { DbError } from './db.ts'
 import { Ledger, type LedgerError, type Outcome } from './ledger.ts'
@@ -193,6 +194,65 @@ export const resolveRecipient = (ownerId: string, recipient: string) =>
     return { address: destination.address, name: contact.display_name, contactId: contact.id }
   })
 
+/**
+ * Claim link v2 (claims.ts): recipient "new" with a name stores a link and pays nothing; the person who opens it picks
+ * the destination, and the payment then takes the normal lanes.
+ */
+const claimLinkPrepare = (ctx: ToolContext, input: PaymentPrepareInput, amount: bigint) =>
+  Effect.gen(function* () {
+    const { connection, wallet, grant } = yield* scope(ctx, true)
+    const network = yield* Network
+    const name = input.recipient_name?.trim() ?? ''
+    if (name === '')
+      return yield* fail('With recipient "new", give recipient_name: who the claim link is for (e.g. "Jan").')
+    const created = yield* createClaimLink({
+      walletId: wallet.id,
+      connectionId: connection.id,
+      scope: connection.id,
+      idempotencyKey: input.idempotency_key,
+      requester: connection.oauth_client_name,
+      recipientName: name,
+      reason: input.reason ?? null,
+      amount,
+      network: network.caip,
+    }).pipe(Effect.catchTag('ClaimError', error => fail(error.message)))
+    const view = yield* claimLinkView({
+      link: created.link,
+      intent: undefined,
+      grant,
+      origin: ctx.origin,
+      nowMs: yield* nowMillis,
+      fees: network.fees,
+    })
+    const url = claimLinkUrl(ctx.origin, created.link.id)
+    return {
+      sentence: `Claim link for ${name}: ${url} (${view.amount} USDC). Nothing is paid yet: send ${name} the link; when ${name} opens it and picks where the money goes, Nod pays${view.lane === 'autonomous' ? " from this AI app's allowance" : ", after the user's nod (it is past what this AI app may spend alone)"}. Poll payment_status with payment_id ${created.link.id}.`,
+      value: { ...view, outcome: 'claim_link' },
+    }
+  })
+
+/** payment_status / payment_execute / payment_approve_url on a claim link id: the link, or its payment once claimed. */
+const claimLinkStatus = (ctx: ToolContext, linkId: string) =>
+  Effect.gen(function* () {
+    const { grant, nowMs } = yield* scope(ctx, false)
+    const state = yield* claimLinkState(linkId)
+    if (state === undefined || state.link.connection_id !== ctx.props.connection_id)
+      return yield* fail(`No payment ${linkId} for this connection.`)
+    const view = yield* claimLinkView({ link: state.link, intent: state.intent, grant, origin: ctx.origin, nowMs })
+    const name = state.link.recipient_name
+    const sentence =
+      state.intent === undefined
+        ? view.status === 'expired'
+          ? `${name} did not claim the link in time; nothing was paid.`
+          : `${name} has not opened the claim link yet: ${view.claim_url ?? ''}. Nothing is paid until then.`
+        : view.status === 'confirmed' && view.receipt !== null
+          ? `${name} claimed it: paid ${view.amount} USDC to ${view.recipient.address}. Transaction ${view.receipt.tx_hash} (${view.receipt.explorer_url}).`
+          : view.approval_url !== null
+            ? `${name} claimed it to ${view.recipient.address}; the payment needs the user's nod at ${view.approval_url}.`
+            : `${name} claimed it to ${view.recipient.address}. ${view.next_step}`
+    return { sentence, value: view }
+  })
+
 /** `forceOwner`: the owner lane whatever the allowance (request_pay to a requester outside the payer's contacts). */
 export const paymentPrepare = (
   ctx: ToolContext,
@@ -204,6 +264,8 @@ export const paymentPrepare = (
     const network = yield* requirePayments
     const amount = toStroops(input.amount)
     if (amount <= 0n) return yield* fail('The amount must be more than zero.')
+    if (input.recipient.trim().toLowerCase() === 'new' && !options.forceOwner)
+      return yield* claimLinkPrepare(ctx, input, amount)
     const recipient = yield* resolveRecipient(ctx.props.owner_id, input.recipient)
     if (recipient.address === wallet.contract_id) return yield* fail('That is this wallet itself.')
     const chain = yield* Chain
@@ -264,6 +326,7 @@ const outcomeOf = (error: ChainError, pull: Receipt | null, pulled: bigint): Out
 
 export const paymentExecute = (ctx: ToolContext, paymentId: string) =>
   Effect.gen(function* () {
+    if (isClaimLinkId(paymentId)) return yield* claimLinkStatus(ctx, paymentId)
     const { connection, wallet } = yield* scope(ctx, true)
     const network = yield* requirePayments
     const ledger = yield* Ledger
@@ -325,12 +388,13 @@ const ownIntent = (ctx: ToolContext, paymentId: string) =>
 
 export const paymentStatus = (ctx: ToolContext, paymentId: string) =>
   Effect.gen(function* () {
+    if (isClaimLinkId(paymentId)) return yield* claimLinkStatus(ctx, paymentId)
     const { grant, nowMs } = yield* scope(ctx, false)
     const intent = yield* ownIntent(ctx, paymentId)
     const view = paymentView(intent, yield* receiptOfIntent(intent.id), grant, ctx.origin, nowMs)
     const sentence =
       view.status === 'confirmed' && view.receipt !== null
-        ? `Confirmed. Transaction ${view.receipt.tx_hash} in ledger ${view.receipt.ledger} (${view.receipt.explorer_url}).`
+        ? `Confirmed. Transaction ${view.receipt.tx_hash} in ledger ${view.receipt.ledger} (${view.receipt.explorer_url}). ${view.next_step}`
         : view.approval_url !== null
           ? `Still waiting for the user's nod at ${view.approval_url}.`
           : view.next_step
@@ -339,6 +403,19 @@ export const paymentStatus = (ctx: ToolContext, paymentId: string) =>
 
 export const paymentApproveUrl = (ctx: ToolContext, paymentId: string) =>
   Effect.gen(function* () {
+    if (isClaimLinkId(paymentId)) {
+      const status = yield* claimLinkStatus(ctx, paymentId)
+      return {
+        sentence: status.sentence,
+        value: {
+          payment_id: status.value.payment_id,
+          status: status.value.status,
+          approval_url: status.value.approval_url,
+          expires_at: status.value.expires_at,
+          grant_remaining: status.value.grant_remaining,
+        },
+      }
+    }
     const { grant, nowMs } = yield* scope(ctx, false)
     const intent = yield* ownIntent(ctx, paymentId)
     const view = paymentView(intent, undefined, grant, ctx.origin, nowMs)

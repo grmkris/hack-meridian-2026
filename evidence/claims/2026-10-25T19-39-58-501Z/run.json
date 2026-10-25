@@ -1,0 +1,71 @@
+{
+  "base": "http://localhost:18960",
+  "steps": [
+    {
+      "at": "2026-10-25T19:39:58.804Z",
+      "step": "sender browser",
+      "line": "goto http://localhost:18960/authorize?response_type=code&client_id=kb4uSCKAbr0vlGBs&code_challenge=<redacted>&code_challenge_method=S256&redirect_uri=http%3A%2F%2F127.0.0.1%3A38003%2Fcallback&state=<redacted>&scope=wallet&resource=http%3A%2F%2Flocalhost%3A18960%2Fmcp → 200"
+    },
+    {
+      "at": "2026-10-25T19:39:58.912Z",
+      "step": "sender browser",
+      "line": "click [data-testid=\"passkey-create\"], [data-testid=\"passkey-signin\"]"
+    },
+    {
+      "at": "2026-10-25T19:40:13.636Z",
+      "step": "sender browser",
+      "line": "visible [data-testid=\"consent-allow\"], button[value=approve]"
+    },
+    {
+      "at": "2026-10-25T19:40:13.700Z",
+      "step": "sender browser",
+      "line": "fill [data-testid=\"allowance\"], input[name=allowance]"
+    },
+    {
+      "at": "2026-10-25T19:40:13.819Z",
+      "step": "sender browser",
+      "line": "screenshot /home/kristjan/code/hack-meridian-2026/evidence/claims/2026-10-25T19-39-58-501Z/sender-consent.png"
+    },
+    {
+      "at": "2026-10-25T19:40:13.988Z",
+      "step": "sender browser",
+      "line": "click [data-testid=\"consent-allow\"], button[value=approve]"
+    },
+    {
+      "at": "2026-10-25T19:40:22.816Z",
+      "step": "sender connected",
+      "wallet": "CCNG477FBVXOGIAMBTMW2ATOZ2LJGURJGLDPEMI4I2LJ4TBKDXUWF2VJ",
+      "balance": "10.00",
+      "allowance_left": "5.00",
+      "explorer": "https://stellar.expert/explorer/testnet/contract/CCNG477FBVXOGIAMBTMW2ATOZ2LJGURJGLDPEMI4I2LJ4TBKDXUWF2VJ"
+    },
+    {
+      "at": "2026-10-25T19:40:22.903Z",
+      "step": "payment_prepare recipient new",
+      "is_error": false,
+      "sentence": "Claim link for Jan: http://localhost:18960/claim/cl_bd709ee92be364fc99040deac9d5d661 (1.00 USDC). Nothing is paid yet: send Jan the link; when Jan opens it and picks where the money goes, Nod pays from this AI app's allowance. Poll payment_status with payment_id cl_bd709ee92be364fc99040deac9d5d661.",
+      "payment_id": "cl_bd709ee92be364fc99040deac9d5d661",
+      "claim_url": "http://localhost:18960/claim/cl_bd709ee92be364fc99040deac9d5d661",
+      "status": "prepared",
+      "lane": "autonomous"
+    },
+    {
+      "at": "2026-10-25T19:40:38.328Z",
+      "step": "jan claimed",
+      "page": "http://localhost:18960/claim/cl_bd709ee92be364fc99040deac9d5d661",
+      "passkeys": 1
+    },
+    {
+      "at": "2026-10-25T19:40:38.870Z",
+      "step": "payment_status on the link",
+      "sentence": "Jan claimed it: paid 1.00 USDC to CC6KINQCM3JOWLEKR22U673RTEMLP6IZTKXVWUSLUFR7WVBUSNL2QHNA. Transaction b807b9e60b8ee14e1dee6ce7fca2664432edd509161ab837847e953ddc70ae7f (https://stellar.expert/explorer/testnet/tx/b807b9e60b8ee14e1dee6ce7fca2664432edd509161ab837847e953ddc70ae7f).",
+      "status": "confirmed",
+      "lane": "autonomous",
+      "recipient": "CC6KINQCM3JOWLEKR22U673RTEMLP6IZTKXVWUSLUFR7WVBUSNL2QHNA",
+      "tx": "https://stellar.expert/explorer/testnet/tx/b807b9e60b8ee14e1dee6ce7fca2664432edd509161ab837847e953ddc70ae7f",
+      "jan_wallet": "https://stellar.expert/explorer/testnet/contract/CC6KINQCM3JOWLEKR22U673RTEMLP6IZTKXVWUSLUFR7WVBUSNL2QHNA",
+      "jan_contract_onchain": true,
+      "jan_usdc_stroops": "10000000"
+    }
+  ]
+}

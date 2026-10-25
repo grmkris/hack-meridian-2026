@@ -154,6 +154,10 @@ export const PaymentPrepareInput = Schema.Struct({
   memo: Schema.optionalKey(Schema.String.check(Schema.isMaxLength(28))),
   reason: Schema.optionalKey(Reason),
   idempotency_key: IdempotencyKey,
+  recipient_name: Schema.optionalKey(Schema.String.check(Schema.isMinLength(1), Schema.isMaxLength(40))).annotate({
+    description:
+      'With recipient "new": the name of someone without a saved contact or a Stellar address. Nod returns a claim_url to send them; when they open it they choose where the money goes (a new Nod wallet, their Nod wallet or a Stellar address), and it pays then from the allowance, or with the user\'s nod past it. Unclaimed, it pays nothing and expires.',
+  }),
 })
 export type PaymentPrepareInput = typeof PaymentPrepareInput.Type
 export const PaymentPrepareOutput = PaymentView

@@ -3,6 +3,7 @@ import { Effect, Schema } from 'effect'
 import { Assertion } from '@hm/api'
 import { Chain, type ChainError, PreparedClaim, PreparedOwnerAuth } from '@hm/protocol'
 
+import { claimLinkRoute } from './claim-link-page.ts'
 import { nowMillis, randomId } from './clock.ts'
 import type { DbError } from './db.ts'
 import { effectiveStatus, Ledger, type LedgerError, type Outcome } from './ledger.ts'
@@ -476,6 +477,9 @@ export const ownerRoute = (runtime: AppRuntime, request: Request, path: string):
       return approve[2] === undefined ? approvalPost(runtime, request, id) : approvalPrepare(runtime, request, id)
     return Promise.resolve(new Response('Method Not Allowed', { status: 405 }))
   }
+  // Claim link v2 (claims.ts): /claim/cl_… lets the recipient choose where the money goes.
+  const link = claimLinkRoute(runtime, request, path)
+  if (link !== undefined) return link
   const claim = /^\/claim\/(pi_[0-9a-f]{32})$/u.exec(path)
   if (claim !== null && request.method === 'GET') return claimGet(runtime, request, claim[1] ?? '')
   if (claim !== null && request.method === 'POST') return claimPost(runtime, request, claim[1] ?? '')
