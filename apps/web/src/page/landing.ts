@@ -27,7 +27,7 @@ import {
 
 type Plate = 'hand' | 'seal' | 'door' | 'ledger' | 'flight'
 
-/** The night scene as a moving etching (desktop only, played once by welcome.ts's PlayNightFlight). */
+/** The night scene as a moving etching, played once by welcome.ts's PlayNightFlight. */
 export const NIGHT_FLIGHT_SRC = '/landing/night-flight.mp4'
 
 type Side = 'start' | 'end'

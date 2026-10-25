@@ -1,4 +1,4 @@
-import { Duration, Effect, Option, Schema, String } from 'effect'
+import { Effect, Option, Schema, String } from 'effect'
 import { Command, Mount, Submodel, type Update } from 'foldkit'
 import type { Html, HtmlBuilder } from 'foldkit/html'
 import { defineMessageUnion } from 'foldkit/message'
@@ -154,24 +154,18 @@ export const CopyConnectorUrl = Command.define('CopyConnectorUrl', {
 
 const NetworkInformation = Schema.Struct({ saveData: Schema.Boolean })
 
-/** The hero's moving etching plays only on a wide screen, when motion is welcome and the visitor is not saving data. */
+/** The hero's moving etching plays when motion is welcome and the visitor is not saving data. */
 const wantsNightFlight = (): boolean =>
-  window.matchMedia('(min-width: 64rem) and (prefers-reduced-motion: no-preference)').matches &&
+  window.matchMedia('(prefers-reduced-motion: no-preference)').matches &&
   !Option.exists(
     Schema.decodeUnknownOption(NetworkInformation)(Reflect.get(navigator, 'connection')),
     ({ saveData }) => saveData,
   )
 
 /**
- * The flight runs on the card's clock or not at all: if it has not started this soon after the landing appears (a slow
- * connection), the etching stays still, so the window never lights twice at different moments.
- */
-const NIGHT_FLIGHT_START_WITHIN = Duration.millis(1200)
-
-/**
  * Plays the night flight once: the swallow flies home to the lit window and the last frame stays. The video has no
- * source until this decides to play it, so a phone, reduced motion or Save-Data never downloads it; it fades in over
- * the identical etching (landing.css) once its first frame is on screen.
+ * source until this decides to play it, so reduced motion or Save-Data never downloads it. Slow connections keep
+ * the etching visible while loading; autoplay refusal keeps it still. Unmount cancels a pending load.
  */
 export const PlayNightFlight = Mount.define('PlayNightFlight', {
   args: { src: Schema.String },
@@ -181,24 +175,24 @@ export const PlayNightFlight = Mount.define('PlayNightFlight', {
       if (!(element instanceof HTMLVideoElement) || !wantsNightFlight()) {
         return Message.SettledNightFlight({ playing: false })
       }
-      element.addEventListener(
-        'playing',
-        () => {
-          element.dataset['playing'] = 'true'
-        },
-        { once: true },
-      )
-      element.muted = true
-      element.src = src
-      const playing = yield* Effect.tryPromise(() => element.play()).pipe(
-        Effect.timeoutOption(NIGHT_FLIGHT_START_WITHIN),
-        Effect.map(Option.isSome),
-        Effect.orElseSucceed(() => false),
-      )
-      if (!playing) {
+      const releaseVideo = Effect.sync(() => {
         element.pause()
         element.removeAttribute('src')
         element.load()
+        delete element.dataset['playing']
+      })
+      yield* Effect.addFinalizer(() => releaseVideo)
+      element.muted = true
+      element.playsInline = true
+      element.src = src
+      const playing = yield* Effect.tryPromise(() => element.play()).pipe(
+        Effect.as(true),
+        Effect.orElseSucceed(() => false),
+      )
+      if (playing) {
+        element.dataset['playing'] = 'true'
+      } else {
+        yield* releaseVideo
       }
       return Message.SettledNightFlight({ playing })
     }),

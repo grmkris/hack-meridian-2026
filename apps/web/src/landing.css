@@ -3,10 +3,10 @@
 
 /*
  * Nod's signed-out landing (page/landing.ts, words in page/landing-copy.ts). The drawings are etchings
- * (scripts/landing-art.ts): grey maps of how much ink each pixel holds, used as luminance masks over a token, so the
+ * (scripts/landing-art.ts): grey maps of how much ink each pixel holds, converted to alpha by landing-alpha.ts, so the
  * night scene carries starlight lines and the chapters the page's intaglio blue. The only warm colour is lamplight,
- * the colour of the nod. Nothing moves except the hero's one sequence, and only without reduced motion. A browser
- * without luminance masks shows no drawings, never a filled box.
+ * the colour of the nod. The hero moves only without reduced motion. The drawings use real image transparency,
+ * including on Safari where JPEG luminance masks can paint filled boxes.
  */
 @layer components {
   :root {
@@ -109,37 +109,32 @@
   }
 
   .landing-etching {
-    display: none;
-  }
-  @supports (mask-mode: luminance) {
-    .landing-etching {
-      display: block;
-      mask-mode: luminance;
-      mask-position: center;
-      mask-repeat: no-repeat;
-      mask-size: 100% 100%;
-    }
+    display: block;
+    mask-mode: alpha;
+    mask-position: center;
+    mask-repeat: no-repeat;
+    mask-size: 100% 100%;
   }
   .landing-scene > .landing-etching {
     position: absolute;
     inset: 0;
     background: var(--etch-night);
-    mask-image: url('./assets/landing/etching-night-1200.jpg');
+    mask-image: url('./assets/landing/etching-night-1200.webp');
   }
   @media (min-width: 48rem) {
     .landing-scene > .landing-etching {
-      mask-image: url('./assets/landing/etching-night-2000.jpg');
+      mask-image: url('./assets/landing/etching-night-2000.webp');
     }
   }
 
   /*
-   * The moving etching (desktop, motion welcome, data not saved): it starts as the same picture as the etching under
+   * The moving etching (motion welcome, data not saved): it starts as the same picture as the etching under
    * it and fades in only once its first frame plays, so nothing ever shows an empty box.
    */
   .landing-scene-video {
     display: none;
   }
-  @media (min-width: 64rem) and (prefers-reduced-motion: no-preference) {
+  @media (prefers-reduced-motion: no-preference) {
     .landing-scene-video {
       position: absolute;
       inset: 0;
@@ -727,23 +722,23 @@
   }
   .landing-plate[data-plate='hand'] {
     --plate-ratio: 992 / 918;
-    mask-image: url('./assets/landing/etching-plate-hand.jpg');
+    mask-image: url('./assets/landing/etching-plate-hand.webp');
   }
   .landing-plate[data-plate='seal'] {
     --plate-ratio: 992 / 1008;
-    mask-image: url('./assets/landing/etching-plate-seal.jpg');
+    mask-image: url('./assets/landing/etching-plate-seal.webp');
   }
   .landing-plate[data-plate='door'] {
     --plate-ratio: 857 / 1328;
-    mask-image: url('./assets/landing/etching-plate-door.jpg');
+    mask-image: url('./assets/landing/etching-plate-door.webp');
   }
   .landing-plate[data-plate='ledger'] {
     --plate-ratio: 992 / 822;
-    mask-image: url('./assets/landing/etching-plate-ledger.jpg');
+    mask-image: url('./assets/landing/etching-plate-ledger.webp');
   }
   .landing-plate[data-plate='flight'] {
     --plate-ratio: 992 / 942;
-    mask-image: url('./assets/landing/etching-plate-flight.jpg');
+    mask-image: url('./assets/landing/etching-plate-flight.webp');
   }
 
   /* ─── Dawn: the same rooftops in the morning, closing the page ──────────── */
@@ -778,11 +773,11 @@
     position: absolute;
     inset: 0;
     background: var(--etch-page);
-    mask-image: url('./assets/landing/etching-dawn-1200.jpg');
+    mask-image: url('./assets/landing/etching-dawn-1200.webp');
   }
   @media (min-width: 48rem) {
     .landing-dawn-scene > .landing-etching {
-      mask-image: url('./assets/landing/etching-dawn-2000.jpg');
+      mask-image: url('./assets/landing/etching-dawn-2000.webp');
     }
   }
   /* The sun on the river's horizon, the page's warm light at morning strength. */

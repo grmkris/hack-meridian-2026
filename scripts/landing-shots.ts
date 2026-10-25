@@ -5,8 +5,8 @@ import { chromium } from 'playwright-core'
 /**
  * Looks at the signed-out landing the way its art has to hold up: phone, tablet, laptop, desktop and wide, light and
  * dark, and with reduced motion. Each look saves its first screen and the whole page to .local/landing-shots/ and
- * fails on page errors, console errors, sideways overflow, or an etching that does not draw as a luminance mask
- * (scripts/landing-art.ts). Each look then taps the example wallet's Approve and saves the nod. `scripts/shots.ts`
+ * fails on page errors, console errors, sideways overflow, or an etching that does not draw as an alpha mask
+ * (scripts/landing-alpha.ts). Each look then taps the example wallet's Approve and saves the nod. `scripts/shots.ts`
  * stays the quick phone + desktop check for every page.
  *
  *   bun scripts/landing-shots.ts [local|testnet|<origin>] [path] [label prefix]
@@ -124,14 +124,13 @@ try {
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)
     if (overflow > 0) problems.push(`scrolls sideways by ${overflow}px`)
 
-    // Every etching draws through a luminance mask with an image, and has a box; without mask support it is hidden.
+    // Every etching draws through real transparency, so Safari need not interpret an opaque JPEG's luminance.
     const etchings = await page.evaluate(() =>
       [...document.querySelectorAll<HTMLElement>('.landing-etching')].map(element => {
         const style = getComputedStyle(element)
         const box = element.getBoundingClientRect()
         return {
           name: element.dataset['scene'] ?? element.dataset['chapter'] ?? element.className,
-          supported: CSS.supports('mask-mode', 'luminance'),
           display: style.display,
           mode: style.maskMode,
           image: style.maskImage,
@@ -141,10 +140,8 @@ try {
       }),
     )
     for (const etching of etchings) {
-      if (!etching.supported) {
-        if (etching.display !== 'none') problems.push(`etching ${etching.name} shows without mask support`)
-      } else if (etching.mode !== 'luminance' || !etching.image.startsWith('url(')) {
-        problems.push(`etching ${etching.name} is not a luminance mask (mode ${etching.mode}, image ${etching.image})`)
+      if (etching.display === 'none' || etching.mode !== 'alpha' || !etching.image.startsWith('url(')) {
+        problems.push(`etching ${etching.name} is not an alpha mask (mode ${etching.mode}, image ${etching.image})`)
       } else if (etching.width === 0 || etching.height === 0) {
         problems.push(`etching ${etching.name} has no box`)
       }
