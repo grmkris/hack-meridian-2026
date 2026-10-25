@@ -1,3 +1,7 @@
 {"kind":"sweep","label":"return S1 leftover 8.10 G(K) → C","hash":"ccdf083d15d6708b46b549467a617b8306e6301c2282b29601d8e709e99b4368","step":"pocket","at":"2026-10-25T12:10:17.186Z"}
 {"kind":"pocket","label":"merge friendbot-funded G(K) into the relayer","hash":"95920d7338be1b885364f47b5589151f8b81dccff10fbe382a69fe0da9785124","step":"pocket","at":"2026-10-25T12:10:22.431Z"}
 {"kind":"pocket","label":"create G(K) GCEM4W with sponsored reserves + USDC trustline","hash":"b0c22b384fcf49fe444bf8fdc38bf4cbaf58f63255b3481efcd6ed7b2a4e94f2","step":"pocket","at":"2026-10-25T12:10:27.369Z"}
+{"kind":"pull","label":"pull 0.10 (int_mvnse0yi_0001_c91e93a9)","hash":"594e5b6a722a995ee65c42d30807195f808a73b171c7c61234f7720251925a9d","step":"http","at":"2026-10-25T12:11:19.348Z"}
+{"kind":"settlement","label":"x402 settle 0.10 via http (int_mvnse0yi_0001_c91e93a9)","hash":"f2d4b987428d4b2a8390e4fd3d54d19c9da4f1bbed54e1d1312ad93894e7c784","step":"http","at":"2026-10-25T12:11:19.349Z"}
+{"kind":"pull","label":"pull 0.10 (int_mvnsegdf_0001_659a7b91)","hash":"ed8407b459ee50cc58e47d6fa7bdc6544b0726d5979e919dc0eaf742f6ba6337","step":"mcp","at":"2026-10-25T12:11:42.270Z"}
+{"kind":"settlement","label":"x402 settle 0.10 via mcp (int_mvnsegdf_0001_659a7b91)","hash":"4ddef672157938a4af086bffbf67b66a1e37c8bf7ec8352300019c0398b65671","step":"mcp","at":"2026-10-25T12:11:42.270Z"}

@@ -1,0 +1,136 @@
+{
+  "step": "mcp",
+  "startedAt": "2026-10-25T12:11:26.595Z",
+  "purchaseB": {
+    "before": {
+      "ledger": 5381339,
+      "policy": {
+        "limit": "5.00",
+        "spent": "0.10",
+        "remaining": "4.90",
+        "history": [
+          "0.10@5381337"
+        ]
+      },
+      "pocketUsdc": "0.00",
+      "accountUsdc": "23.90"
+    },
+    "after": {
+      "ledger": 5381342,
+      "policy": {
+        "limit": "5.00",
+        "spent": "0.20",
+        "remaining": "4.80",
+        "history": [
+          "0.10@5381337",
+          "0.10@5381341"
+        ]
+      },
+      "pocketUsdc": "0.00",
+      "accountUsdc": "23.80"
+    },
+    "purchase": {
+      "id": "int_mvnsegdf_0001_659a7b91",
+      "key": "s5-mcp-1792930288205",
+      "state": "confirmed",
+      "price": "0.10",
+      "floatBefore": "0.00",
+      "pullAmount": "0.10",
+      "pull": {
+        "hash": "ed8407b459ee50cc58e47d6fa7bdc6544b0726d5979e919dc0eaf742f6ba6337",
+        "explorer": "https://stellar.expert/explorer/testnet/tx/ed8407b459ee50cc58e47d6fa7bdc6544b0726d5979e919dc0eaf742f6ba6337",
+        "feeCharged": 16934697,
+        "declared": 19478889,
+        "resourceDeclared": 19477889,
+        "rent": 16921109,
+        "feeSource": "GCSZT4Q2TWKBPD2GRHTWRH6PMAMSA7KV7JGKOVPSYJXD73MXWGM7FHZU",
+        "txSource": "GCSZT4Q2TWKBPD2GRHTWRH6PMAMSA7KV7JGKOVPSYJXD73MXWGM7FHZU",
+        "envelope": "tx",
+        "ledger": 5381341,
+        "steps": {
+          "recordSim": 146,
+          "recordSimMinResourceFee": 52518568,
+          "sign": 4,
+          "enforceSim": 436,
+          "enforceSimMinResourceFee": 19477889,
+          "sendToFinal": 2548
+        }
+      },
+      "settlement": {
+        "success": true,
+        "transaction": "4ddef672157938a4af086bffbf67b66a1e37c8bf7ec8352300019c0398b65671",
+        "payer": "GCEM4WKCAWO6ZZAA7SSSTG4SQWLRAI36ZM45QT7QHCPO6SB5ZLVLDH4K",
+        "network": "stellar:testnet",
+        "explorer": "https://stellar.expert/explorer/testnet/tx/4ddef672157938a4af086bffbf67b66a1e37c8bf7ec8352300019c0398b65671",
+        "feeCharged": 22771,
+        "declared": 29534,
+        "resourceDeclared": 29331,
+        "rent": 12427,
+        "feeSource": "GA6THKUY2XJZOBRFMEQMMEADSCQLCZ2QMQWAWMMDXBTE7SARKAXVH7TL",
+        "txSource": "GCOEGPP5EAHE5WPTBV2W2X3GTRCOVGRJBIMEQQ6L2GPPA2SIU5HRC6JA",
+        "envelope": "feeBump",
+        "ledger": 5381342
+      },
+      "wallMs": {
+        "pull": 4375,
+        "total": 12467,
+        "raw": {
+          "connected": 68,
+          "termsParsed": 83,
+          "precheck": 930,
+          "pulled": 4458,
+          "signed": 5436,
+          "total": 12467
+        }
+      },
+      "content": "[{\"type\":\"text\",\"text\":\"{\\\"quote\\\":\\\"Ledgers close every ~5s (s5 purchase B).\\\",\\\"served\\\":1}\"}]"
+    }
+  },
+  "seller": {
+    "before": {
+      "mode": "oz",
+      "payTo": "GCEKVZO7QV5AC6JLDNWXEYQQ7CS5DSWRDCK3VEQWXGHI6XJN3F4UOANH",
+      "toolCalls": 0,
+      "unpaidCalls": 0,
+      "paidAttempts": 0,
+      "executed": 0,
+      "settled": 0,
+      "facilitator": {
+        "verify": 0,
+        "settle": 0,
+        "settleSuccess": 0,
+        "supported": 1,
+        "lastSettleMs": 0,
+        "lastVerifyMs": 0
+      }
+    },
+    "after": {
+      "mode": "oz",
+      "payTo": "GCEKVZO7QV5AC6JLDNWXEYQQ7CS5DSWRDCK3VEQWXGHI6XJN3F4UOANH",
+      "toolCalls": 2,
+      "unpaidCalls": 1,
+      "paidAttempts": 1,
+      "executed": 1,
+      "settled": 1,
+      "facilitator": {
+        "verify": 1,
+        "settle": 1,
+        "settleSuccess": 1,
+        "supported": 1,
+        "lastSettleMs": 6605,
+        "lastVerifyMs": 410
+      }
+    }
+  },
+  "counters": {
+    "calls": 1,
+    "replays": 0,
+    "pulls": 1,
+    "pullRefusals": 0,
+    "routedToOwner": 0,
+    "paymentsSigned": 1,
+    "settlements": 1,
+    "sellerRequests": 0
+  },
+  "finishedAt": "2026-10-25T12:11:42.271Z"
+}
