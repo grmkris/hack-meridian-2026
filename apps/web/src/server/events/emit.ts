@@ -264,3 +264,116 @@ export const requestAnswered = (input: {
     },
   }
 }
+
+// Top-ups from another chain (topup.ts, NEAR Intents 1Click): one event per state, keyed by the top-up.
+
+export interface TopupFacts {
+  readonly walletId: string
+  readonly network: string
+  readonly topupId: string
+  readonly originChain: string
+  readonly asset: string
+  readonly amountIn: string
+  readonly amountOut: string
+  readonly deadline: string
+  readonly payTo: string
+  readonly occurredAt: string
+}
+
+const topupQuote = (input: TopupFacts) => ({
+  topup_id: input.topupId,
+  origin_chain: input.originChain,
+  asset: input.asset,
+  amount_in: input.amountIn,
+  amount_out: input.amountOut,
+  deadline: input.deadline,
+})
+
+/** Add money is the wallet's Home. */
+const HOME = '/'
+
+export const topupPending = (input: TopupFacts): JournalEvent => ({
+  eventId: `topup.pending:${input.topupId}`,
+  walletId: input.walletId,
+  name: 'topup.pending',
+  occurredAt: input.occurredAt,
+  data: {
+    ...notice(
+      `Top-up waiting: send ${input.amountIn} ${input.asset} on ${input.originChain}`,
+      `Send ${input.amountIn} ${input.asset} on ${input.originChain} to ${input.payTo} before ${input.deadline}; about ${input.amountOut} USDC arrives in your Nod wallet on ${networkWord(input.network)}.`,
+      HOME,
+      input.network,
+      input.walletId,
+    ),
+    ...topupQuote(input),
+    pay_to: input.payTo,
+  },
+})
+
+export const topupDetected = (input: TopupFacts): JournalEvent => ({
+  eventId: `topup.detected:${input.topupId}`,
+  walletId: input.walletId,
+  name: 'topup.detected',
+  occurredAt: input.occurredAt,
+  data: {
+    ...notice(
+      `Top-up on its way: ${input.amountIn} ${input.asset} from ${input.originChain}`,
+      `NEAR Intents saw your ${input.amountIn} ${input.asset} on ${input.originChain} and is swapping it; about ${input.amountOut} USDC arrives in your Nod wallet shortly.`,
+      HOME,
+      input.network,
+      input.walletId,
+    ),
+    ...topupQuote(input),
+  },
+})
+
+export const topupArrived = (input: {
+  readonly walletId: string
+  readonly network: string
+  readonly topupId: string
+  readonly amount: bigint
+  readonly tx: string
+  readonly explorer: string
+  readonly balance: bigint | null
+  readonly occurredAt: string
+}): JournalEvent => {
+  const amount = fromStroops(input.amount)
+  return {
+    eventId: `topup.arrived:${input.topupId}`,
+    walletId: input.walletId,
+    name: 'topup.arrived',
+    occurredAt: input.occurredAt,
+    data: {
+      ...notice(
+        `Top-up arrived: ${amount} USDC`,
+        `${amount} USDC from another chain landed in your Nod wallet on ${networkWord(input.network)}.${input.balance === null ? '' : ` It now holds ${fromStroops(input.balance)} USDC.`}`,
+        input.explorer,
+        input.network,
+        input.walletId,
+      ),
+      topup_id: input.topupId,
+      amount,
+      asset: 'USDC',
+      tx: input.tx,
+      explorer: input.explorer,
+      balance: input.balance === null ? null : fromStroops(input.balance),
+    },
+  }
+}
+
+export const topupExpired = (input: TopupFacts): JournalEvent => ({
+  eventId: `topup.expired:${input.topupId}`,
+  walletId: input.walletId,
+  name: 'topup.expired',
+  occurredAt: input.occurredAt,
+  data: {
+    ...notice(
+      `Top-up expired: no ${input.asset} arrived from ${input.originChain}`,
+      `The ${input.amountIn} ${input.asset} top-up from ${input.originChain} expired before a deposit arrived; nothing was sent. Ask for a new one if you still want it.`,
+      HOME,
+      input.network,
+      input.walletId,
+    ),
+    ...topupQuote(input),
+  },
+})

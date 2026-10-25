@@ -120,8 +120,10 @@ export const walletOverview = (ctx: ToolContext) =>
     const pending = yield* pendingOfWallet(wallet.id, connection.id)
     const receipts = yield* receiptsOfWallet(wallet.id, 5, connection.id)
     const remaining = grantRemaining(grant, nowMs)
+    // Less in the wallet than this AI app may still spend: a top-up from another chain is worth offering.
+    const lowBalance = balances.usdc !== 'unavailable' && toStroops(balances.usdc) < toStroops(remaining)
     return {
-      sentence: `Nod wallet ${wallet.name} (Stellar ${network.label}) holds ${balances.usdc} USDC. This AI app may still spend ${remaining} USDC on its own${grant === undefined ? '' : ` until ${grant.valid_until}`}; anything bigger needs the user's nod.`,
+      sentence: `Nod wallet ${wallet.name} (Stellar ${network.label}) holds ${balances.usdc} USDC. This AI app may still spend ${remaining} USDC on its own${grant === undefined ? '' : ` until ${grant.valid_until}`}; anything bigger needs the user's nod.${lowBalance ? ` The wallet holds less than that: offer a top-up from another chain (wallet_topup_quote) or Add money at ${ctx.origin}/.` : ''}`,
       value: {
         network: network.caip,
         explorer_base: network.explorerBase,
@@ -139,6 +141,7 @@ export const walletOverview = (ctx: ToolContext) =>
         recent_receipts: receipts.map(receiptView),
         connection: { id: connection.id, client_name: connection.oauth_client_name, status: connection.status },
         grant_remaining: remaining,
+        low_balance: lowBalance,
       },
     }
   })

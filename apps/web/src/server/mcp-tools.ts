@@ -23,6 +23,8 @@ import {
   type ToolName,
   WalletDepositAddressInput,
   WalletOverviewInput,
+  WalletTopupQuoteInput,
+  WalletTopupStatusInput,
 } from '@hm/protocol'
 import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js'
 
@@ -55,6 +57,7 @@ import {
   type ToolResult,
   walletOverview,
 } from './tools.ts'
+import { walletTopupQuote, walletTopupStatus } from './topup-tools.ts'
 
 /**
  * The MCP tools: their specs, the tools/list entries and one call. Both MCP lanes (mcp.ts) serve these. Tool inputs are
@@ -281,6 +284,23 @@ const TOOLS = [
     ConnectionGrantUpdateInput,
     { readOnlyHint: true, openWorldHint: false },
     (ctx, args) => connectionGrantUpdate(ctx, args),
+  ),
+  // Appended after the first twenty-one (topup-tools.ts): top up from another chain through NEAR Intents.
+  spec(
+    'wallet_topup_quote',
+    'Top up from another chain',
+    "Top the Nod wallet up from another chain through NEAR Intents: the user sends USDC (or the chain's own coin) on Base, Solana, Ethereum, Arbitrum or Polygon to the returned address within 30 minutes, and it arrives as USDC in the wallet. Offer it when the wallet holds less than the user wants to pay (wallet_overview's low_balance). Moves nothing itself.",
+    WalletTopupQuoteInput,
+    { readOnlyHint: false, idempotentHint: true, openWorldHint: true },
+    (ctx, args) => walletTopupQuote(ctx, args),
+  ),
+  spec(
+    'wallet_topup_status',
+    'Top-up status',
+    'Where a top-up from another chain stands: waiting for the deposit, being swapped, arrived in the wallet (with the transaction), failed or expired.',
+    WalletTopupStatusInput,
+    { readOnlyHint: true, openWorldHint: true },
+    (ctx, args) => walletTopupStatus(ctx, args.id),
   ),
 ]
 

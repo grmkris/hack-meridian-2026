@@ -6,7 +6,7 @@ import { McpEventError } from './errors.ts'
 import type { EventDescriptor } from './schemas.ts'
 
 /**
- * What a connection can subscribe to: six wallet-wide events, each delivered by webhook and by poll (Goblin subscribes
+ * What a connection can subscribe to: ten wallet-wide events (four of them the topup family), each delivered by webhook and by poll (Goblin subscribes
  * only to events that offer both). Every payload carries `title`, `summary`, `url` and `network`, written by Nod
  * (Goblin builds its notice from them), plus ids, amounts as decimal USDC strings and the counterparty as the owner
  * knows it. Never a third party's free text: no request notes, no AI-written reasons, no other owner's wallet name.
@@ -19,6 +19,11 @@ export const EVENT_NAMES = [
   'request.received',
   'request.answered',
   'allowance.changed',
+  // Top-ups from another chain (topup.ts): appended, the six above unchanged.
+  'topup.pending',
+  'topup.detected',
+  'topup.arrived',
+  'topup.expired',
 ] as const
 export type EventName = (typeof EVENT_NAMES)[number]
 
@@ -33,6 +38,10 @@ const ARGUMENTS = {
   'request.received': Schema.Struct({}),
   'request.answered': Schema.Struct({ request_id: Schema.optional(Id) }),
   'allowance.changed': Schema.Struct({}),
+  'topup.pending': Schema.Struct({ topup_id: Schema.optional(Id) }),
+  'topup.detected': Schema.Struct({ topup_id: Schema.optional(Id) }),
+  'topup.arrived': Schema.Struct({ topup_id: Schema.optional(Id) }),
+  'topup.expired': Schema.Struct({ topup_id: Schema.optional(Id) }),
 } as const
 
 const object = (properties: Record<string, Schema.Json> = {}, required: ReadonlyArray<string> = []) => ({
@@ -171,7 +180,63 @@ export const EVENT_DESCRIPTORS: ReadonlyArray<EventDescriptor> = [
     },
     ['connection_id', 'change', 'allowance', 'remaining', 'valid_until'],
   ),
+  ...topupDescriptors(),
 ]
+
+/** The topup family (topup.ts): a top-up from another chain through NEAR Intents, followed by its id. */
+function topupDescriptors(): ReadonlyArray<EventDescriptor> {
+  const topupId = object({ topup_id: string('Only this top-up (the id wallet_topup_quote returned).') })
+  const quote = {
+    topup_id: string('The top-up.'),
+    origin_chain: string('The chain the money comes from, e.g. "base".'),
+    asset: string('What is sent there, e.g. "USDC" or "ETH".'),
+    amount_in: string('Decimal amount sent on the origin chain.'),
+    amount_out: { ...amount, description: 'About this much USDC arrives (decimal).' },
+    deadline: string('When the deposit address stops taking deposits (ISO-8601).'),
+  }
+  const quoteKeys = ['topup_id', 'origin_chain', 'asset', 'amount_in', 'amount_out', 'deadline']
+  return [
+    descriptor(
+      'topup.pending',
+      'Top-up waiting',
+      'A top-up from another chain was quoted: send amount_in of asset on origin_chain to the address before the deadline. Optional topup_id follows one top-up.',
+      topupId,
+      { ...quote, pay_to: string('Where to send it on the origin chain.') },
+      [...quoteKeys, 'pay_to'],
+    ),
+    descriptor(
+      'topup.detected',
+      'Top-up on its way',
+      'NEAR Intents saw the deposit on the origin chain and is swapping it to USDC on Stellar.',
+      topupId,
+      quote,
+      quoteKeys,
+    ),
+    descriptor(
+      'topup.arrived',
+      'Top-up arrived',
+      'The top-up landed in the wallet as USDC (swept from its deposit address).',
+      topupId,
+      {
+        topup_id: string('The top-up.'),
+        amount: { ...amount, description: 'USDC that arrived (decimal).' },
+        asset: string('Always "USDC".'),
+        tx: string('The sweep transaction hash.'),
+        explorer: string('stellar.expert link to the sweep.'),
+        balance: nullableString('The wallet balance after it, decimal USDC, when known.'),
+      },
+      ['topup_id', 'amount', 'asset', 'tx', 'explorer', 'balance'],
+    ),
+    descriptor(
+      'topup.expired',
+      'Top-up expired',
+      'The deadline passed before any deposit arrived; nothing was sent. A late deposit is refunded by NEAR Intents.',
+      topupId,
+      quote,
+      quoteKeys,
+    ),
+  ]
+}
 
 export const isEventName = (name: string): name is EventName => EVENT_NAMES.some(known => known === name)
 
@@ -205,6 +270,10 @@ export const matchesArguments = (name: string, args: Schema.JsonObject, data: Sc
   if (name === 'payment.settled') {
     const id = field(args, 'payment_id')
     return typeof id !== 'string' || field(data, 'payment_id') === id
+  }
+  if (name.startsWith('topup.')) {
+    const id = field(args, 'topup_id')
+    return typeof id !== 'string' || field(data, 'topup_id') === id
   }
   if (name === 'request.answered') {
     const id = field(args, 'request_id')

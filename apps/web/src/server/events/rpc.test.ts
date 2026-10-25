@@ -153,7 +153,7 @@ describe('events on the legacy lane', () => {
     })
   })
 
-  test('events/list offers six events, each by webhook and poll, with object schemas', async () => {
+  test('events/list offers ten events (the six, then the topup family), each by webhook and poll, with object schemas', async () => {
     const list = events(await resultOf('events/list'))
     expect(list.map(event => event['name'])).toEqual([
       'payment.received',
@@ -162,6 +162,10 @@ describe('events on the legacy lane', () => {
       'request.received',
       'request.answered',
       'allowance.changed',
+      'topup.pending',
+      'topup.detected',
+      'topup.arrived',
+      'topup.expired',
     ])
     for (const event of list) {
       expect(event['delivery']).toEqual(['webhook', 'poll'])

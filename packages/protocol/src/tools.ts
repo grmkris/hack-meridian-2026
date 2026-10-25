@@ -108,6 +108,8 @@ export const WalletOverviewOutput = Schema.Struct({
   recent_receipts: Schema.Array(ReceiptView),
   connection: Schema.Struct({ id: Schema.String, client_name: Schema.String, status: Schema.String }),
   grant_remaining: Schema.String,
+  /** The wallet holds less than this AI app may still spend: offer a top-up (wallet_topup_quote). */
+  low_balance: Schema.optionalKey(Schema.Boolean),
 })
 export type WalletOverviewOutput = typeof WalletOverviewOutput.Type
 
@@ -372,6 +374,47 @@ export const ConnectionGrantUpdateOutput = Schema.Struct({
   grant_remaining: Schema.String,
 })
 
+// 22–23. wallet_topup_quote / wallet_topup_status: top the wallet up from another chain (NEAR Intents 1Click)
+export const TopupOriginChain = Schema.Literals(['base', 'solana', 'ethereum', 'arbitrum', 'polygon'])
+export const TopupOriginAsset = Schema.Literals(['USDC', 'ETH', 'SOL', 'POL'])
+export const TopupStatus = Schema.Literals(['pending', 'processing', 'arrived', 'failed', 'expired'])
+export const WalletTopupQuoteInput = Schema.Struct({
+  origin_chain: TopupOriginChain.annotate({ description: 'The chain the user sends from' }),
+  asset: TopupOriginAsset.annotate({
+    description: "USDC, or the chain's native coin: ETH on base, ethereum and arbitrum; SOL on solana; POL on polygon",
+  }),
+  amount: Schema.String.check(Schema.isPattern(/^\d{1,12}(?:\.\d{1,18})?$/u)).annotate({
+    description: 'How much of the asset the user sends, decimal (e.g. "5" or "0.002")',
+  }),
+  refund_address: Schema.String.check(Schema.isMinLength(1), Schema.isMaxLength(128)).annotate({
+    description: "The user's own address on the origin chain; a swap that cannot complete is refunded there",
+  }),
+  idempotency_key: IdempotencyKey,
+})
+export type WalletTopupQuoteInput = typeof WalletTopupQuoteInput.Type
+export const TopupView = Schema.Struct({
+  id: Schema.String,
+  /** Where to send it on the origin chain. */
+  pay_to: Schema.String,
+  amount_in: Schema.String,
+  /** About this much USDC arrives (decimal; an estimate until it arrives). */
+  amount_out: Schema.String,
+  origin_chain: Schema.String,
+  asset: Schema.String,
+  deadline: IsoTime,
+  status: TopupStatus,
+  /** The sweep that put it in the wallet, once arrived. */
+  sweep_tx: Schema.NullOr(Schema.String),
+})
+export const WalletTopupQuoteOutput = Schema.Struct({
+  ...TopupView.fields,
+  /** The wallet's Add money card, where the user can follow it too. */
+  add_money_url: Schema.String,
+  message: Schema.String,
+  grant_remaining: Schema.String,
+})
+export const WalletTopupStatusInput = Schema.Struct({ id: Schema.String, idempotency_key: OptionalKey })
+
 export const TOOL_NAMES = [
   'wallet_overview',
   'contacts_search',
@@ -394,5 +437,7 @@ export const TOOL_NAMES = [
   'wallet_deposit_address',
   'payments_list',
   'connection_grant_update',
+  'wallet_topup_quote',
+  'wallet_topup_status',
 ] as const
 export type ToolName = (typeof TOOL_NAMES)[number]

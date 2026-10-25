@@ -159,6 +159,8 @@ const APPENDED_TOOLS = [
   'wallet_deposit_address',
   'payments_list',
   'connection_grant_update',
+  'wallet_topup_quote',
+  'wallet_topup_status',
 ]
 
 const CARD_TOOLS = [

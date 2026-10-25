@@ -9,6 +9,7 @@ import { depositWatchTick, WATCH_EVERY } from './deposit.ts'
 import { driveWallet, type DriverResult, EventsWake, type WatchSource } from './events/driver.ts'
 import { journalMaxSeq, walletsWithEventsAfter } from './events/store.ts'
 import { Ledger, LedgerError, type LedgerShape, makeLocalLedger } from './ledger.ts'
+import { topupNetOf, topupTick } from './topup.ts'
 import { stringBindings } from './wallet-settings.ts'
 
 /**
@@ -31,6 +32,8 @@ export interface WalletObjectEnv {
   readonly CHAIN?: string
   readonly STAGE?: string
   readonly VAULT_KEY?: string
+  /** pubnet or testnet, as the chain package reads it (the topup events name the network). */
+  readonly STELLAR_NETWORK?: string
 }
 
 /** The wallet whose deposit address this object sweeps (deposit.ts `watchDeposit` pokes it). */
@@ -106,6 +109,11 @@ export class WalletObject extends DurableObject<WalletObjectEnv> {
         ),
       ))
       const exit = await runtime.runPromiseExit(depositWatchTick(walletId).pipe(Effect.provide(this.db())))
+      // Top-ups from another chain (topup.ts): 1Click's progress and the sweep become the topup events.
+      const topups = await runtime.runPromiseExit(
+        topupTick(walletId, env.STAGE === 'local', topupNetOf(env.STELLAR_NETWORK)).pipe(Effect.provide(this.db())),
+      )
+      if (Exit.isSuccess(topups) && topups.value) await this.wake.poke(walletId)
       if (Exit.isSuccess(exit) && exit.value.nextAt === null) await this.ctx.storage.delete(DEPOSIT_WALLET_KEY)
       else await this.wake.armAt(Exit.isSuccess(exit) && exit.value.nextAt !== null ? exit.value.nextAt : retry)
     } catch {

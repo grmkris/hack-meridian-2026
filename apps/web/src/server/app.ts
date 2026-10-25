@@ -1,4 +1,4 @@
-import { Effect, Layer, Option, Redacted } from 'effect'
+import { DateTime, Effect, Layer, Option, Redacted } from 'effect'
 import { HttpRouter, HttpServer, HttpServerRequest } from 'effect/http'
 import { HttpApiBuilder } from 'effect/http-api'
 
@@ -48,6 +48,7 @@ import {
   replaceDestination,
 } from './store.ts'
 import { MEMO_UNSUPPORTED } from './tools.ts'
+import { createTopup, topupAssets, type TopupError, topupStatusOf, topupView } from './topup.ts'
 import { apiGrantView, pendingApproval, revokeUrl } from './views.ts'
 import { visitorOf, type WalletCapReached, WalletCaps } from './wallet-caps.ts'
 import { WalletSettings, type Site } from './wallet-settings.ts'
@@ -109,6 +110,16 @@ const fromDeposit = (error: DepositError) =>
   error.reason === 'unavailable'
     ? new NotFound({ error: `deposit_unavailable: ${error.message}` })
     : new Unavailable({ error: error.message })
+
+/** Top-ups: 503 topup_unavailable when they cannot run here or 1Click failed, 400 for a bad request, 404 unknown id. */
+const fromTopup = (error: TopupError) =>
+  error.reason === 'bad_request'
+    ? new BadRequest({ error: error.message })
+    : error.reason === 'not_found'
+      ? new NotFound({ error: error.message })
+      : new Unavailable({
+          error: error.message.startsWith('topup_unavailable') ? error.message : `topup_unavailable: ${error.message}`,
+        })
 
 const fromStorage = (error: DbError | LedgerError) =>
   new Unavailable({ error: error._tag === 'DbError' ? `storage: ${error.operation}` : error.message })
@@ -445,11 +456,33 @@ const WalletHandlers = HttpApiBuilder.group(
             }),
           ),
         )
-        // Top up from another chain (docs/NEAR-INTENTS.md Flow A): the contract is in @hm/api; until topup.ts lands every
-        // call answers topup_unavailable, which the Add money tab shows as "Top-ups from other chains are next here".
-        .handle('topupAssets', () => Effect.fail(new Unavailable({ error: 'topup_unavailable' })))
-        .handle('topupQuote', () => Effect.fail(new Unavailable({ error: 'topup_unavailable' })))
-        .handle('topupStatus', () => Effect.fail(new Unavailable({ error: 'topup_unavailable' })))
+        // Top up from another chain (topup.ts, NEAR Intents 1Click): on a network where top-ups cannot run, or when 1Click
+        // does not answer, every call is 503 topup_unavailable (the Add money tab says they are next), never a 500.
+        .handle('topupAssets', () =>
+          run(topupAssets.pipe(Effect.catchTag('TopupError', error => Effect.fail(fromTopup(error))))),
+        )
+        .handle('topupQuote', ({ payload }) =>
+          run(
+            Effect.gen(function* () {
+              const wallet = yield* sessionWallet
+              const row = yield* createTopup(wallet, {
+                originAsset: payload.origin_asset,
+                amount: payload.amount,
+                refundTo: payload.refund_to,
+              })
+              return topupView(row, DateTime.toEpochMillis(yield* DateTime.now))
+            }).pipe(Effect.catchTag('TopupError', error => Effect.fail(fromTopup(error)))),
+          ),
+        )
+        .handle('topupStatus', ({ params }) =>
+          run(
+            Effect.gen(function* () {
+              const wallet = yield* sessionWallet
+              const row = yield* topupStatusOf(wallet, params.id)
+              return topupView(row, DateTime.toEpochMillis(yield* DateTime.now))
+            }).pipe(Effect.catchTag('TopupError', error => Effect.fail(fromTopup(error)))),
+          ),
+        )
     )
   }),
 )
