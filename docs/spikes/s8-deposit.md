@@ -211,3 +211,17 @@ Wallets that never come back keep their G and its 2 XLM until a janitor tears do
   service could show an address bound elsewhere, and that holds equally for Nido's variant, because the UI shows
   whatever address the server says. After creation, nobody can redirect funds. `deposit(g)` on the router lets
   anyone check the binding.
+
+## Compared with Nido #165, after the fact (orchestrator, 22:55 UTC)
+
+Same idea, different spender. Nido approves the burner G's USDC to the wallet's own C and installs a signer-less sweep
+policy on the C (the standard OpenZeppelin policy library, upgradable by a governance key); we approve it to an immutable
+router that only knows how to move G into the C it was registered with. What ours can do that theirs cannot: create the
+address on a page load with no passkey, and therefore **deposit-first signup**, binding an address to a planned C that
+does not exist yet (a policy must be installed on a deployed account by its owner). What theirs has that ours lacks: the
+ecosystem's policy framework instead of a contract of our own. Shared by both, in Nido's words: "the secret is gone, so
+the allowance cannot be renewed; deposits after expiry cannot be claimed" (the rotation above). Adopting Nido's design
+would be one to two days (rebuild the policy for our account build on soroban-sdk 29, install a rule per wallet with the
+passkey, change provisioning and the watcher) and would lose deposit-first; CAP-72 (draft) would simplify both designs.
+Stellar's own guide on paying contract accounts offers no classic-payment path to a C and no forwarding pattern, so the
+gap this closes is real and undocumented; see docs/research/ecosystem-alignment.md.
