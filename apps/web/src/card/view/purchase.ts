@@ -56,14 +56,12 @@ const sellerLine = (purchase: Purchase, input: ToolInput, h: Builder): Html => {
   })
 }
 
-const priceFacts = (purchase: Purchase, input: ToolInput): ReadonlyArray<Fact> => {
-  const price: ReadonlyArray<Fact> = purchase.price === null ? [] : [['Price', decimalUsdc(purchase.price)]]
-  const limit: ReadonlyArray<Fact> = Option.match(input.maybeMaxAmount, {
+/** The AI's own limit beside the price (the price itself is the card's headline amount). */
+const limitFacts = (input: ToolInput): ReadonlyArray<Fact> =>
+  Option.match(input.maybeMaxAmount, {
     onNone: () => [],
     onSome: max => [['The AI’s limit', decimalUsdc(max)]],
   })
-  return [...price, ...limit]
-}
 
 const preview = (purchase: Purchase, h: Builder): Html =>
   Option.match(purchase.maybePreview, {
@@ -107,7 +105,7 @@ const awaiting = (model: Model, purchase: Purchase, h: Builder): ReadonlyArray<H
   purchase.price === null ? h.empty : amount(decimalUsdc(purchase.price), h),
   sellerLine(purchase, model.toolInput, h),
   reasonQuote(model, Option.getOrNull(model.toolInput.maybeReason), h),
-  facts([...priceFacts(purchase, model.toolInput), allowanceLeft(model, purchase.grant_remaining, h)], h),
+  facts([...limitFacts(model.toolInput), allowanceLeft(model, purchase.grant_remaining, h)], h),
   purchase.approval_url === null
     ? h.empty
     : actions([primaryAction('Approve with your passkey ↗', purchase.approval_url, h)], h),
@@ -152,8 +150,8 @@ const bought = (model: Model, purchase: Purchase, h: Builder): ReadonlyArray<Htm
   sellerLine(purchase, model.toolInput, h),
   facts(
     purchase.receipt === null
-      ? priceFacts(purchase, model.toolInput)
-      : [...priceFacts(purchase, model.toolInput), ...receiptFacts(purchase.receipt, purchase.grant_remaining, h)],
+      ? limitFacts(model.toolInput)
+      : [...limitFacts(model.toolInput), ...receiptFacts(purchase.receipt, purchase.grant_remaining, h)],
     h,
   ),
   preview(purchase, h),
@@ -166,11 +164,7 @@ const notBought = (model: Model, purchase: Purchase, h: Builder): ReadonlyArray<
   sellerLine(purchase, model.toolInput, h),
   lead(purchase.message, h),
   facts(
-    [
-      ...priceFacts(purchase, model.toolInput),
-      ...pocketFact(purchase, h),
-      allowanceLeft(model, purchase.grant_remaining, h),
-    ],
+    [...limitFacts(model.toolInput), ...pocketFact(purchase, h), allowanceLeft(model, purchase.grant_remaining, h)],
     h,
   ),
   purchase.facilitator_message === null ? h.empty : details('What the seller said', purchase.facilitator_message, h),
