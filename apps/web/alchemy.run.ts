@@ -98,13 +98,13 @@ const switchesFor = (stage: string): Record<string, string> => ({
   SEED_DEMO_CONTACTS: '',
   // Mainnet's contacts come from .env.mainnet (scripts/mainnet/seed.ts prints them); the other stages use seeds.json.
   ...(isMainnet(stage) ? { DEMO_CONTACTS: '[]' } : {}),
-  // Testnet rent runs at ~110× normal (25 Oct, rising): a grant's first pull costs 40–60 XLM, later ones up to ~20 XLM. Ceilings in
-  // stroops; the relayer pays, never the owner. Mainnet keeps the chain package's preset.
-  // The ceiling for everything without its own (grant install and removal, pocket, claim): at rent 278× (25 Oct 15:40
-  // UTC) a grant install needs 105 XLM, above the 100 XLM this was. The relayer pays; testnet only.
-  MAX_FEE_STROOPS: isMainnet(stage) ? '' : '3000000000',
-  FIRST_PULL_MAX_FEE_STROOPS: isMainnet(stage) ? '' : '1000000000',
-  PULL_MAX_FEE_STROOPS: isMainnet(stage) ? '' : '400000000',
+  // Fee ceilings in stroops; '' = the chain package's network preset (testnet 40 / 35 / 4 XLM, mainnet 1 / 0.5 / 0.1
+  // XLM), and a transfer's ceiling still follows the live rent factor up to its hard cap (src/server/network.ts). The
+  // 300 / 100 / 40 XLM testnet defaults of the 25 Oct rent spike are gone now the rent is at its floor (K5); an
+  // `.env.<stage>` line still overrides (.env.mainnet keeps its 1 XLM ceilings).
+  MAX_FEE_STROOPS: '',
+  FIRST_PULL_MAX_FEE_STROOPS: '',
+  PULL_MAX_FEE_STROOPS: '',
 })
 
 const readEnvFile = (file: string): Record<string, string> =>
