@@ -86,3 +86,11 @@ CORS `*`, 5-minute cache, ACCOUNTS = the stage's relayers and treasury). `home_d
 `GBCALSA3…` (`5e7d299a…`), `GAWYWVMH…` (`653755e9…`) and `GB4F3NUA…` (`c1b51014…`) via `scripts/mainnet/home-domain.ts
 --network testnet`. Mainnet: `HM26_MAINNET_GO=yes bun scripts/mainnet/home-domain.ts --network pubnet` after the
 mainnet stage serves its own file. The box's resolver (netcup) had negative-cached the name from before the zone was live; it resolves now (no hosts entry). Note: the apex `trynod.si` and `www.trynod.si` have no DNS records until the mainnet stage deploys with its custom domain; until then the apex does not resolve.
+
+## 18:02 UTC: mainnet stage live
+
+`https://trynod.si` (+ `www`, 301 to the apex) at release `833091a` from the same deploy worktree (`bun scripts/stage.ts
+plan:mainnet` / `deploy:mainnet`; its Alchemy state is `apps/web/.alchemy/state/hack-meridian/mainnet` in the worktree,
+secrets `apps/web/.env.mainnet` copied unread with `install -m 600`). Health: stage mainnet, network pubnet, invite
+required, payments on, fee ceilings 1 XLM, two relayers, treasury. OAuth issuer `https://trynod.si`, `stellar.toml` 200,
+landing 200, `/mcp` 401 gate, `/sample` present but disabled on pubnet. Plan was 2 creates + 27 bindings, no deletes.

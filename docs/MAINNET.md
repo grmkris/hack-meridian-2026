@@ -108,3 +108,15 @@ The SHA must have passed on testnet: `heavy bun run check`, the automated rehear
 state-size target from 4 GB to 7 GB, so live state (~4.1 GB) is below target and rent is at the floor; `/api/health`
 reports `rent_factor` 0.1 (floor vs at-target rate) and the fee ceilings sit at their configured 100 / 40 XLM. The
 day's fee numbers in the spike docs are history. Mainnet unchanged: waiting for Kristjan's XLM.
+
+## 18:05 UTC: M3–M6 done, test run sized to 10 USDC
+
+Mainnet: accounts created from relayer A (`76be677b…`), treasury and Bob trustlines (`d943ec49…`, `6e963f23…`), router
+`CBWYFI6XWQI5C43GISIIUFXTJXBUI52QSNKKYC55GWMPLQRL2RAXT6TM` (same WASM hash as testnet; upload `0cf6a48f…`, deploy
+`eaaf4d5f…`), Alice `CAH553ZKAWKPOK3XGF6AVW2BBN5LOBZC46TFDLY65SHUOMM56YKZX4XV` (`d750db0a…`), seller trustline
+(`34b77981…`), mainnet seller https://hm26-seller-mainnet.kristjan-grm11775.workers.dev (0.10 USDC through OpenZeppelin
+Channels), stage live at https://trynod.si (833091a). Kristjan funds **10 USDC** (not 30): 0.10 for the smoke settlement,
+the rest to his wallet; with the per-allowance nod line (W1) he sets the line on the consent page (1 or 2 USDC). Beats for
+10 USDC: allowance 5, brief 0.10 alone, Alice 0.50 alone, Bob 2 needs the nod, repeat → same receipt, Carol 1 by claim
+link, revoke: ~4.5 USDC moves, all between our own accounts. Open signup and the deposit address are gated streams in
+progress (docs/BUILD-PLAN.md).
