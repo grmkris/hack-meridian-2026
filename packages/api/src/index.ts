@@ -45,6 +45,8 @@ export const Health = Schema.Struct({
   network: Schema.String,
   /** Relayer balances, rent factor and shared-contract TTLs; null when the chain did not answer in time. */
   chain: Schema.optional(Schema.NullOr(ChainStatus)),
+  /** Wallet creation needs an invite code (mainnet). POST /api/wallets/options answers 400 `invite_required` too. */
+  invite_required: Schema.optionalKey(Schema.Boolean),
 })
 export type Health = typeof Health.Type
 

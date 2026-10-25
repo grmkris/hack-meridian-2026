@@ -393,6 +393,11 @@ export const approvalPreparedOf = (intentId: string) =>
     Effect.succeed(typeof row['approval_prepared'] === 'string' ? row['approval_prepared'] : null),
   )
 
+export const claimPreparedOf = (intentId: string) =>
+  first(sql('SELECT claim_prepared FROM payment_intents WHERE id = ?', intentId), row =>
+    Effect.succeed(typeof row['claim_prepared'] === 'string' ? row['claim_prepared'] : null),
+  )
+
 /** Intents waiting for the owner (not yet past their expiry), newest first. */
 export const pendingOfWallet = (walletId: string, connectionId?: string) =>
   Effect.gen(function* () {

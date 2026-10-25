@@ -182,6 +182,8 @@ export interface ApprovalView {
   readonly connectionName: string | null
   readonly rpId: string
   readonly notice?: string
+  /** For a recipient without a trustline: where they accept once you approved. */
+  readonly claimUrl?: string
 }
 
 const intentFacts = (intent: PaymentIntent, connectionName: string | null) => `<dl>
@@ -201,7 +203,12 @@ const receiptBlock = (receipt: ReceiptRecord) => `<div class="card"><h2 class="o
 /** Opening this page has no side effect; only the passkey-signed POST changes anything. */
 export const approvalPage = (c: Chrome, view: ApprovalView) => {
   const open = view.status === 'awaiting_approval'
-  const title = open ? 'Approve this payment?' : `Payment ${view.status.replace('_', ' ')}`
+  const waitingForRecipient = view.status === 'approved' && view.claimUrl !== undefined
+  const title = open
+    ? 'Approve this payment?'
+    : waitingForRecipient
+      ? `Approved: waiting for ${view.intent.recipient_name ?? 'the recipient'} to accept`
+      : `Payment ${view.status.replace('_', ' ')}`
   const action = !open
     ? ''
     : view.signedIn === undefined
@@ -210,7 +217,7 @@ export const approvalPage = (c: Chrome, view: ApprovalView) => {
   return page(
     title,
     c,
-    `<h1${open ? '' : ` data-testid="${view.status === 'confirmed' ? 'approval-done' : `approval-${escape(view.status)}`}"`}>${escape(title)}</h1>${view.notice === undefined ? '' : `<p class="card warn">${escape(view.notice)}</p>`}
+    `<h1${open ? '' : ` data-testid="${view.status === 'confirmed' || waitingForRecipient ? 'approval-done' : `approval-${escape(view.status)}`}"`}>${escape(title)}</h1>${waitingForRecipient ? `<p class="card">Send this link to ${escape(view.intent.recipient_name ?? 'the recipient')}: <a href="${escape(view.claimUrl ?? '')}" data-testid="claim-link"><code>${escape(view.claimUrl ?? '')}</code></a>. Their acceptance and your payment land in one Stellar transaction.</p>` : ''}${view.notice === undefined ? '' : `<p class="card warn">${escape(view.notice)}</p>`}
 ${view.intent.failure !== null && open ? `<p class="card warn">Last attempt: ${escape(view.intent.failure)}</p>` : ''}
 <div class="card">${intentFacts(view.intent, view.connectionName)}</div>
 ${view.receipt === undefined ? '' : receiptBlock(view.receipt)}${action}<p id="status" class="muted" role="status"></p>`,

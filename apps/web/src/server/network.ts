@@ -109,5 +109,9 @@ const inviteCodes = Config.String('INVITE_CODES').pipe(
   ),
 )
 
+/** The fee ceiling (stroops) for a delegated transfer under `grant`: its first one extends rent and costs most. */
+export const transferFeeCeiling = (network: NetworkShape, firstDone: boolean): bigint =>
+  BigInt(Math.round((firstDone ? network.fees.laterXlm : network.fees.firstXlm) * 1e7))
+
 /** Mainnet: wallet creation needs an invite code (none configured = creation closed). */
 export const inviteRequired = (network: NetworkShape) => network.name === 'pubnet'

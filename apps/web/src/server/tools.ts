@@ -22,7 +22,7 @@ import {
 import { nowMillis, randomId } from './clock.ts'
 import type { DbError } from './db.ts'
 import { Ledger, type LedgerError, type Outcome } from './ledger.ts'
-import { Network } from './network.ts'
+import { Network, transferFeeCeiling } from './network.ts'
 import type { ConnectionProps } from './props.ts'
 import { revokeConnection } from './revoke.ts'
 import {
@@ -256,7 +256,7 @@ const outcomeOf = (error: ChainError, pull: Receipt | null, pulled: bigint): Out
 export const paymentExecute = (ctx: ToolContext, paymentId: string) =>
   Effect.gen(function* () {
     const { connection, wallet } = yield* scope(ctx, true)
-    yield* requirePayments
+    const network = yield* requirePayments
     const ledger = yield* Ledger
     const claim = yield* ledger
       .claimAutonomous(wallet.id, { intentId: paymentId, connectionId: connection.id })
@@ -278,6 +278,7 @@ export const paymentExecute = (ctx: ToolContext, paymentId: string) =>
           grant.signer_key_ref,
           intent.recipient_address,
           intent.amount,
+          transferFeeCeiling(network, grant.first_payment_done),
         )
         .pipe(
           Effect.map((settlement): Outcome => ({
@@ -446,6 +447,7 @@ const quoteHook =
           input.grant.signer_key_ref,
           pocket,
           prepared.pullAmount,
+          transferFeeCeiling(network, prepared.grant?.first_payment_done ?? false),
         )
         yield* Ref.update(input.state, s => ({ ...s, pull, pulled: prepared.pullAmount }))
         return pull

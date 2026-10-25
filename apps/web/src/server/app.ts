@@ -10,7 +10,7 @@ import type { DbError } from './db.ts'
 import type { Db } from './db.ts'
 import type { LedgerError } from './ledger.ts'
 import type { Ledger } from './ledger.ts'
-import { Network, type NetworkShape } from './network.ts'
+import { inviteRequired, Network, type NetworkShape } from './network.ts'
 import type { OAuthGrants } from './oauth-grants.ts'
 import { assertionOptions, createWallet, OwnerError, registrationOptions, signIn, walletOfSession } from './owner.ts'
 import { revokeConnection } from './revoke.ts'
@@ -128,6 +128,7 @@ const SystemHandlers = HttpApiBuilder.group(
           release: settings.release,
           network: settings.network,
           chain: health,
+          invite_required: inviteRequired(network),
         }
       }),
     )

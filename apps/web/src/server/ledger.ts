@@ -188,6 +188,18 @@ export interface LedgerShape {
     walletId: string,
     input: { readonly intentId: string; readonly prepared: string },
   ) => Effect.Effect<PaymentIntent, LedgerError>
+  /** CAP-73 claim: remember the prepared router invocation (only while awaiting approval). */
+  readonly setClaimPrepared: (
+    walletId: string,
+    input: { readonly intentId: string; readonly prepared: string },
+  ) => Effect.Effect<PaymentIntent, LedgerError>
+  /** The owner's passkey signed the sender side of a claim: awaiting_approval → approved, the assertion kept. */
+  readonly approveClaim: (
+    walletId: string,
+    input: { readonly intentId: string; readonly assertion: string },
+  ) => Effect.Effect<Claim, LedgerError>
+  /** The recipient signed: approved → submitted (the submit claim); returns the stored owner assertion. */
+  readonly claimApproved: (walletId: string, input: { readonly intentId: string }) => Effect.Effect<Claim, LedgerError>
   /** Service-side revoke: the connection and its grant stop at once; the rule's removal is pending. */
   readonly revokeConnection: (
     walletId: string,
@@ -626,6 +638,68 @@ const setApprovalPrepared = Effect.fnUntraced(function* (
   return intent
 })
 
+const setClaimPrepared = Effect.fnUntraced(function* (
+  _walletId: string,
+  input: { readonly intentId: string; readonly prepared: string },
+) {
+  const intent = yield* loadIntent(input.intentId)
+  if (intent.status !== 'awaiting_approval')
+    return yield* new LedgerError({ reason: 'invalid_state', message: `payment ${intent.id} is ${intent.status}` })
+  yield* write(
+    sql(
+      'UPDATE payment_intents SET claim_prepared = ?, updated_at = ? WHERE id = ?',
+      input.prepared,
+      yield* nowIso,
+      intent.id,
+    ),
+  )
+  return intent
+})
+
+const approveClaim = Effect.fnUntraced(function* (
+  _walletId: string,
+  input: { readonly intentId: string; readonly assertion: string },
+) {
+  const intent = yield* loadIntent(input.intentId)
+  const nowMs = yield* nowMillis
+  const now = yield* nowIso
+  if (intent.status !== 'awaiting_approval') return { _tag: 'NotClaimed' as const, intent, why: 'already' as const }
+  if (effectiveStatus(intent, nowMs) === 'expired') {
+    yield* write(setIntentStatus(intent.id, { status: 'expired', now }))
+    return { _tag: 'NotClaimed' as const, intent: yield* loadIntent(intent.id), why: 'expired' as const }
+  }
+  yield* write(
+    sql(
+      "UPDATE payment_intents SET status = 'approved', approval_prepared = ?, failure = NULL, updated_at = ? WHERE id = ?",
+      input.assertion,
+      now,
+      intent.id,
+    ),
+  )
+  return { _tag: 'Claimed' as const, intent: yield* loadIntent(intent.id), grant: undefined, operationId: '' }
+})
+
+const claimApproved = Effect.fnUntraced(function* (_walletId: string, input: { readonly intentId: string }) {
+  const intent = yield* loadIntent(input.intentId)
+  if (intent.status !== 'approved') return { _tag: 'NotClaimed' as const, intent, why: 'already' as const }
+  const now = yield* nowIso
+  const operationId = yield* randomId('op')
+  yield* write(
+    setIntentStatus(intent.id, { status: 'submitted', now }),
+    insert('operations', {
+      id: operationId,
+      intent_id: intent.id,
+      kind: 'claim',
+      tx_hash: null,
+      submitted_at: now,
+      ledger: null,
+      status: 'submitted',
+      raw_result: null,
+    }),
+  )
+  return { _tag: 'Claimed' as const, intent: yield* loadIntent(intent.id), grant: undefined, operationId }
+})
+
 const revokeConnection = Effect.fnUntraced(function* (_walletId: string, input: { readonly connectionId: string }) {
   const now = yield* nowIso
   const grant = yield* loadGrantOfConnection(input.connectionId)
@@ -718,6 +792,9 @@ export const makeLocalLedger = Effect.gen(function* () {
     claimOwner: serialized(claimOwner),
     settle: serialized(settle),
     setApprovalPrepared: serialized(setApprovalPrepared),
+    setClaimPrepared: serialized(setClaimPrepared),
+    approveClaim: serialized(approveClaim),
+    claimApproved: serialized(claimApproved),
     revokeConnection: serialized(revokeConnection),
     recordRuleRemoved: serialized(recordRuleRemoved),
     recordSweep: serialized(recordSweep),

@@ -43,10 +43,8 @@ const checkInvite = (code: string | undefined) =>
     const network = yield* Network
     if (!inviteRequired(network)) return undefined
     if (code === undefined || !network.inviteCodes.includes(code.trim()))
-      return yield* new OwnerError({
-        kind: 'unauthorized',
-        message: 'Wallets on mainnet need an invite code during the beta.',
-      })
+      // The SPA matches this exact string on a 400 and then asks for the code.
+      return yield* new OwnerError({ kind: 'bad_request', message: 'invite_required' })
     return undefined
   })
 

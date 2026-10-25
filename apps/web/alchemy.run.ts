@@ -54,6 +54,11 @@ const switchesFor = (stage: string): Record<string, string> => ({
   MAX_X402_PRICE_USDC: '1',
   PAYMENTS_ENABLED: 'true',
   WALLET_TTL_LEDGERS: '',
+  // Testnet rent runs at ~96× normal (25 Oct): a grant's first pull costs 35–51 XLM, later ones ~1.5–4 XLM. Ceilings in
+  // stroops; the relayer pays, never the owner. Mainnet keeps the chain package's preset.
+  MAX_FEE_STROOPS: isMainnet(stage) ? '' : '600000000',
+  FIRST_PULL_MAX_FEE_STROOPS: isMainnet(stage) ? '' : '600000000',
+  PULL_MAX_FEE_STROOPS: isMainnet(stage) ? '' : '60000000',
 })
 
 const readEnvFile = (file: string): Record<string, string> =>

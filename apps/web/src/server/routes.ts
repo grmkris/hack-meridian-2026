@@ -1,7 +1,7 @@
 import { Effect, Schema } from 'effect'
 
 import { Assertion } from '@hm/api'
-import { Chain, type ChainError, fromStroops, PreparedOwnerAuth } from '@hm/protocol'
+import { Chain, type ChainError, fromStroops, PreparedClaim, PreparedOwnerAuth } from '@hm/protocol'
 
 import { nowMillis, randomId } from './clock.ts'
 import type { DbError } from './db.ts'
@@ -13,6 +13,7 @@ import { revokeConnection } from './revoke.ts'
 import type { AppRuntime, AppServices } from './runtime.ts'
 import {
   approvalPreparedOf,
+  claimPreparedOf,
   connectionById,
   grantById,
   grantOfConnection,
@@ -21,7 +22,9 @@ import {
   receiptOfIntent,
   toolResult,
 } from './store.ts'
-import { siteOf } from './wallet-settings.ts'
+import { claimUrl } from './views.ts'
+import { siteOf, WalletSettings } from './wallet-settings.ts'
+import { b64urlDecode } from './webauthn.ts'
 
 /**
  * The owner's pages outside the SPA: /approve/<intent> (one exact payment, signed by the passkey), /approve/revoke/
@@ -81,24 +84,36 @@ const page = (runtime: AppRuntime, effect: Effect.Effect<Response, RouteError, A
     ),
   )
 
-const readAssertion = (request: Request) =>
+/** The passkey answer as the page POSTs it: `{ assertion: { credential_id, client_data_json, … } }`, base64url. */
+const readAssertionJson = (request: Request) =>
   Effect.tryPromise({
     try: () => request.json(),
     catch: () => new OwnerError({ kind: 'bad_request', message: 'expected JSON' }),
   }).pipe(
     Effect.flatMap(body => Schema.decodeUnknownEffect(Schema.Struct({ assertion: Assertion }))(body)),
-    Effect.map(({ assertion }) => ({
-      credentialId: assertion.credential_id,
-      clientDataJSON: assertion.client_data_json,
-      authenticatorData: assertion.authenticator_data,
-      signature: assertion.signature,
-    })),
+    Effect.map(({ assertion }) => assertion),
     Effect.mapError(error =>
       error instanceof OwnerError
         ? error
         : new OwnerError({ kind: 'bad_request', message: 'the passkey answer is missing' }),
     ),
   )
+
+const toAssertionInput = (assertion: typeof Assertion.Type) => ({
+  credentialId: assertion.credential_id,
+  clientDataJSON: assertion.client_data_json,
+  authenticatorData: assertion.authenticator_data,
+  signature: assertion.signature,
+})
+
+const readAssertion = (request: Request) => Effect.map(readAssertionJson(request), toAssertionInput)
+
+const decodeClaim = (text: string | null) =>
+  text === null
+    ? Effect.fail(new OwnerError({ kind: 'bad_request', message: 'the owner has not approved this payment yet' }))
+    : Schema.decodeUnknownEffect(Schema.fromJsonString(PreparedClaim))(text).pipe(
+        Effect.mapError(() => new OwnerError({ kind: 'bad_request', message: 'the prepared claim is unreadable' })),
+      )
 
 const decodePrepared = (text: string | null) =>
   text === null
@@ -150,6 +165,9 @@ const approvalGet = (runtime: AppRuntime, request: Request, intentId: string) =>
           connectionName:
             connection === undefined ? null : `${connection.oauth_client_name} · ${connection.id.slice(4, 12)}`,
           rpId: site.rpId,
+          ...(intent.recipient_readiness === 'trustline_required'
+            ? { claimUrl: claimUrl(site.origin, intent.id) }
+            : {}),
           ...(intent.kind !== 'payment'
             ? {
                 notice:
@@ -176,6 +194,17 @@ const approvalPrepare = (runtime: AppRuntime, request: Request, intentId: string
       yield* paymentsAllowed(intent.amount)
       if (effectiveStatus(intent, yield* nowMillis) !== 'awaiting_approval')
         return yield* new OwnerError({ kind: 'bad_request', message: `this payment is ${intent.status}` })
+      if (intent.kind === 'payment' && intent.recipient_readiness === 'trustline_required') {
+        // CAP-73: the owner signs the sender side of the router call now; the recipient accepts on the claim link.
+        const prepared = yield* Chain.use(chain =>
+          chain.prepareClaim(wallet.contract_id, intent.recipient_address, intent.amount, OWNER_AUTH_LEDGERS),
+        )
+        const encoded = yield* Schema.encodeEffect(Schema.fromJsonString(PreparedClaim))(prepared).pipe(
+          Effect.mapError(() => new OwnerError({ kind: 'unavailable', message: 'could not store the prepared claim' })),
+        )
+        yield* Ledger.use(ledger => ledger.setClaimPrepared(wallet.id, { intentId, prepared: encoded }))
+        return { challenge: prepared.senderChallenge, valid_until_ledger: prepared.validUntilLedger }
+      }
       const grant = intent.grant_id === null ? undefined : yield* grantById(intent.grant_id)
       const to = intent.kind === 'payment' ? intent.recipient_address : grant?.pocket_address
       if (to === undefined || to === null)
@@ -199,6 +228,15 @@ const approvalPost = (runtime: AppRuntime, request: Request, intentId: string) =
       const site = yield* siteOf(request)
       const intent = yield* ownedIntent(intentId, wallet.id)
       yield* paymentsAllowed(intent.amount)
+      if (intent.kind === 'payment' && intent.recipient_readiness === 'trustline_required') {
+        const claimPrepared = yield* decodeClaim((yield* claimPreparedOf(intent.id)) ?? null)
+        const raw = yield* readAssertionJson(request)
+        yield* checkAssertion(site, wallet, toAssertionInput(raw), claimPrepared.senderChallenge)
+        const approved = yield* Ledger.use(ledger =>
+          ledger.approveClaim(wallet.id, { intentId, assertion: JSON.stringify(raw) }),
+        )
+        return { status: approved.intent.status }
+      }
       const prepared = yield* decodePrepared((yield* approvalPreparedOf(intent.id)) ?? null)
       const assertion = yield* checkAssertion(site, wallet, yield* readAssertion(request), prepared.challenge)
       const ledger = yield* Ledger
@@ -294,6 +332,14 @@ const revokePost = (runtime: AppRuntime, request: Request, connectionId: string)
 
 // /claim/<intent>: CAP-73 acceptance (the recipient signs `trust`, the transfer rides along)
 
+/** The seeded demo recipient (testnet) signs on the server: for the demo contact without a trustline, or ?demo=1. */
+const isDemo = (request: Request, recipient: string) =>
+  WalletSettings.useSync(
+    settings =>
+      new URL(request.url).searchParams.get('demo') === '1' ||
+      settings.demoContacts.some(contact => contact.trustline_required && contact.address === recipient),
+  )
+
 const claimGet = (runtime: AppRuntime, request: Request, intentId: string) =>
   page(
     runtime,
@@ -302,18 +348,84 @@ const claimGet = (runtime: AppRuntime, request: Request, intentId: string) =>
       const intent = yield* intentById(intentId)
       if (intent === undefined || intent.recipient_readiness !== 'trustline_required')
         return html(n, messagePage(n, 'Not found', 'This claim link is not valid.'), { status: 404 })
-      const demo = new URL(request.url).searchParams.get('demo') === '1'
+      const prepared = intent.status === 'approved' ? yield* claimPreparedOf(intent.id) : null
+      const claim = prepared === null || prepared === undefined ? undefined : yield* decodeClaim(prepared)
+      const status = effectiveStatus(intent, yield* nowMillis)
       return html(
         n,
         claimPage(n, {
           intent,
-          status: effectiveStatus(intent, yield* nowMillis),
-          demo,
-          recipientEntryXdr: null,
+          status,
+          demo: n.network === 'Testnet' && (yield* isDemo(request, intent.recipient_address)),
+          recipientEntryXdr: claim?.recipientEntryXdr ?? null,
           receipt: yield* receiptOfIntent(intent.id),
-          notice: 'Claim links open once the owner approves this payment (coming next in this build).',
+          ...(status === 'awaiting_approval'
+            ? {
+                notice: `This opens once ${intent.requester === 'owner' ? 'the sender' : 'the wallet owner'} approves the payment.`,
+              }
+            : {}),
         }),
       )
+    }),
+  )
+
+/** The recipient signed (or the demo key signs): claim the submit, run the router call, record the receipt. */
+const claimPost = (runtime: AppRuntime, request: Request, intentId: string) =>
+  json(
+    runtime,
+    Effect.gen(function* () {
+      const intent = yield* intentById(intentId)
+      if (intent === undefined || intent.recipient_readiness !== 'trustline_required')
+        return yield* new OwnerError({ kind: 'bad_request', message: 'This claim link is not valid.' })
+      if (intent.status === 'confirmed') return { status: 'confirmed' }
+      if (intent.status !== 'approved')
+        return yield* new OwnerError({ kind: 'bad_request', message: `this payment is ${intent.status}` })
+      const network = yield* Network
+      if (!network.caps.paymentsEnabled)
+        return yield* new OwnerError({ kind: 'unavailable', message: 'Payments are paused on Nod right now.' })
+      const prepared = yield* decodeClaim((yield* claimPreparedOf(intent.id)) ?? null)
+      const chain = yield* Chain
+      const body = yield* Effect.tryPromise({
+        try: () => request.json(),
+        catch: () => new OwnerError({ kind: 'bad_request', message: 'expected JSON' }),
+      })
+      const given = Schema.decodeUnknownOption(Schema.Struct({ signed_entry: Schema.NullOr(Schema.String) }))(body)
+      const demo = network.name === 'testnet' && (yield* isDemo(request, intent.recipient_address))
+      const signed =
+        given._tag === 'Some' && given.value.signed_entry !== null
+          ? given.value.signed_entry
+          : demo
+            ? yield* chain.signClaimAsDemoRecipient(prepared)
+            : yield* new OwnerError({ kind: 'bad_request', message: 'sign the authorization with your wallet first' })
+      const ownerRaw = yield* Schema.decodeUnknownEffect(Schema.fromJsonString(Assertion))(
+        (yield* approvalPreparedOf(intent.id)) ?? '',
+      ).pipe(Effect.mapError(() => new OwnerError({ kind: 'bad_request', message: 'the approval is missing' })))
+      const assertion = yield* Effect.all({
+        authenticatorData: b64urlDecode(ownerRaw.authenticator_data),
+        clientDataJSON: b64urlDecode(ownerRaw.client_data_json),
+        signature: b64urlDecode(ownerRaw.signature),
+      }).pipe(Effect.mapError(() => new OwnerError({ kind: 'bad_request', message: 'the approval is unreadable' })))
+      const ledger = yield* Ledger
+      const claimed = yield* ledger.claimApproved(intent.wallet_id, { intentId })
+      if (claimed._tag === 'NotClaimed') return { status: claimed.intent.status }
+      const outcome: Outcome = yield* chain.finalizeClaim(prepared, signed, { _tag: 'Owner', assertion }).pipe(
+        Effect.map((settlement): Outcome => ({
+          _tag: 'Confirmed',
+          settlement,
+          feePaidBy: 'relayer',
+          pull: null,
+          pulled: 0n,
+        })),
+        Effect.catchTag('ChainError', error =>
+          Effect.succeed<Outcome>(
+            error.kind === 'unknown'
+              ? { _tag: 'Unknown', message: error.message, tx: error.tx ?? null }
+              : { _tag: 'Failed', kind: error.kind, message: error.message, pull: null, pulled: 0n },
+          ),
+        ),
+      )
+      const settled = yield* ledger.settle(intent.wallet_id, { intentId, operationId: claimed.operationId, outcome })
+      return { status: settled.status, failure: settled.failure }
     }),
   )
 
@@ -337,5 +449,6 @@ export const ownerRoute = (runtime: AppRuntime, request: Request, path: string):
   }
   const claim = /^\/claim\/(pi_[0-9a-f]{32})$/u.exec(path)
   if (claim !== null && request.method === 'GET') return claimGet(runtime, request, claim[1] ?? '')
+  if (claim !== null && request.method === 'POST') return claimPost(runtime, request, claim[1] ?? '')
   return undefined
 }

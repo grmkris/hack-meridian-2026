@@ -96,14 +96,17 @@ const nextStep = (intent: PaymentIntent, status: PaymentIntent['status'], url: s
       return `Within the allowance. Call payment_execute with payment_id ${intent.id} to pay.`
     case 'awaiting_approval':
       return intent.recipient_readiness === 'trustline_required'
-        ? `The recipient must accept first, and the owner must approve: ask the user to open ${url ?? ''}, then poll payment_status with payment_id ${intent.id}.`
-        : `This needs the wallet owner's approval. Ask the user to open ${url ?? ''} and approve it with their passkey, then poll payment_status with payment_id ${intent.id}.`
+        ? `This needs the user's nod, and the recipient accepts on a claim link: ask the user to open ${url ?? ''} and approve it with their passkey, then poll payment_status with payment_id ${intent.id}.`
+        : `This needs the user's nod. Ask the user to open ${url ?? ''} and approve it with their passkey, then poll payment_status with payment_id ${intent.id}.`
     case 'approved':
+      return intent.recipient_readiness === 'trustline_required'
+        ? `The user approved. Waiting for ${intent.recipient_name ?? 'the recipient'} to accept on the claim link; poll payment_status with payment_id ${intent.id}.`
+        : `Approved. Poll payment_status with payment_id ${intent.id}.`
     case 'reserved':
     case 'submitted':
       return `Submitted. Poll payment_status with payment_id ${intent.id}; it never pays twice.`
     case 'confirmed':
-      return 'Confirmed onchain; the receipt is final.'
+      return 'Confirmed on Stellar; the receipt is final.'
     case 'failed':
       return `Failed: ${intent.failure ?? 'unknown'}. Prepare a new payment with a new idempotency key if it should be retried.`
     case 'expired':
