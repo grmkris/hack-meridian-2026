@@ -81,18 +81,18 @@ AI app is what you allowed.
 
 #### How it uses Stellar (what it composes)
 
-| Building block                                 | Role in Nod                                                                          | Testnet id           |
-| ---------------------------------------------- | ------------------------------------------------------------------------------------ | -------------------- |
-| OpenZeppelin smart account                     | one contract account per wallet; passkey admin; one context rule per AI app          | WASM `1b5f4534…785a` |
-| OpenZeppelin spending-limit policy             | the allowance: N USDC until T, enforced by the account                               | `CABXBYJN…TIP5G`     |
-| WebAuthn verifier (secp256r1 host function)    | your passkey signs approvals and allowance changes                                   | `CC7EKIHQ…IOM3F`     |
-| Ed25519 verifier                               | each AI app's own key                                                                | `CAAVTMCB…HKN4`      |
-| Circle USDC through the Stellar Asset Contract | the money, as a SEP-41 token                                                         | `CBIELTK6…DAMA`      |
-| SAC `trust` (CAP-73) + our router              | trustline and transfer in one invocation for the claim link                          | `CCLFB4I4…PGN4`      |
-| x402 on `stellar:testnet`                      | paid APIs, settled by x402.org or OpenZeppelin Channels (never a facilitator we run) |                      |
-| Sponsored reserves                             | each AI app's small payer account holds 0 XLM                                        |                      |
-| Relayer as transaction source                  | Nod pays every fee; the owner holds no XLM                                           | `GBGNYETY…BPT6`      |
-| Built-in DEX                                   | the paid market brief reads the XLM/USDC order book                                  |                      |
+| Building block                                 | Role in Nod                                                                          | Testnet id                        |
+| ---------------------------------------------- | ------------------------------------------------------------------------------------ | --------------------------------- |
+| OpenZeppelin smart account                     | one contract account per wallet; passkey admin; one context rule per AI app          | WASM `1b5f4534…785a`              |
+| OpenZeppelin spending-limit policy             | the allowance: N USDC until T, enforced by the account                               | `CABXBYJN…TIP5G`                  |
+| WebAuthn verifier (secp256r1 host function)    | your passkey signs approvals and allowance changes                                   | `CC7EKIHQ…IOM3F`                  |
+| Ed25519 verifier                               | each AI app's own key                                                                | `CAAVTMCB…HKN4`                   |
+| Circle USDC through the Stellar Asset Contract | the money, as a SEP-41 token                                                         | `CBIELTK6…DAMA`                   |
+| SAC `trust` (CAP-73) + our router              | trustline and transfer in one invocation for the claim link                          | `CCLFB4I4…PGN4`                   |
+| x402 on `stellar:testnet`                      | paid APIs, settled by x402.org or OpenZeppelin Channels (never a facilitator we run) |                                   |
+| Sponsored reserves                             | each AI app's small payer account holds 0 XLM                                        |                                   |
+| Relayer pool as transaction source             | Nod pays every fee; the owner holds no XLM                                           | `GBCALSA3…YWBR`, `GAWYWVMH…YSE4I` |
+| Built-in DEX                                   | the paid market brief reads the XLM/USDC order book                                  |                                   |
 
 Hosted x402 facilitators do not accept smart-account payers yet, so each AI app's key also owns a small classic account
 that it fills from your wallet under the same policy, then pays from with the stock x402 client (the pocket model). Both
