@@ -1,44 +1,62 @@
 # Pitch: Nod
 
-Status: v0, 2026-10-25 13:05 UTC. Owner: session `hack-meridian-2026-a3` (name, pitch, landing copy, deck outline, demo
-and promo video). Product facts come from `docs/SPEC.md` and the evidence from `docs/spikes/*.md`; this file decides
-only the words. Every user-facing surface (app, landing page, README, deck, video, answers) uses the words here.
+Status: v2, 2026-10-25 19:30 UTC. Owner: session D (copy, deck, video, submission). Product facts come from
+`docs/SPEC.md`, evidence from `evidence/` and `docs/spikes/`. This file decides the words; every user-facing surface
+(landing page, README, portal answers, deck, video, `llms.txt`) uses them. A claim enters copy only when its proof
+exists, and only in the wording below. "What we may say" lists the proof behind each one.
 
-## Name
+## Name and lines
 
-**Nod** (Kristjan, 2026-10-25 13:00 UTC). The repository stays `hack-meridian-2026`; the working name
-`stellarmcpwallet` leaves every user-facing surface. Write it **Nod** in prose and **nod** in the wordmark.
+**Nod** in prose, **nod** in the wordmark. The repository stays `hack-meridian-2026`.
 
-- Tagline: **Small stuff, it just pays. Big stuff needs your nod.**
+- Tagline, exact: **Small stuff, it just pays. Big stuff needs your nod.**
 - Product line: **Give your AI an allowance.**
-- Category line, for people who need one: _a Stellar wallet your AI can spend from._
+- Category line, for people who need one: _a Stellar wallet that lives inside the AI you already use._
 
-## The problem
+## Why Nod
 
-AI assistants can research, plan and shop. When one has to pay, you have two options: hand it everything (a card, a key)
-or do the payment yourself. Stellar's own docs say it plainly: "there is no policy layer for x402 on Stellar today."
+Apps are turning into conversations and agents. People already ask Claude to research, plan and buy, and the chat is
+where that work happens. A wallet in a browser extension or a separate app sits outside it, so wallets have to follow
+the apps into the conversation.
+
+MCP is how a wallet gets there. A host that renders MCP Apps draws the wallet's own cards in the chat: the balance, a
+payment waiting for you, the receipt. A host that takes MCP Events lets the wallet tell you when money arrives or a
+payment needs you. Nod's cards and its approval link run live in Goblin, claude.ai and ChatGPT (as a developer-mode
+connector). Its notifications arrive in Goblin and ChatGPT; claude.ai and Claude Code do not implement MCP Events yet,
+so there the cards poll.
+
+Getting in should feel like any other app. You sign up with a passkey and hold USDC, and you never meet XLM, a seed
+phrase or a trustline. From then on the wallet does what wallets do: send, receive, pay.
+
+Every agent wallet then hits the same wall. If you approve every call, the AI is no longer autonomous, and nobody
+trusts an AI with the whole balance. Nod's answer is one number. You give each AI app one allowance, say 5 USDC until
+tomorrow. Inside it, the app pays on its own. Anything past it needs your passkey, every time, for any amount. The
+allowance is an OpenZeppelin spending-limit policy on your own Stellar account.
+
+The people you pay come along. When someone cannot receive USDC yet, the payment becomes a link, so paying them is how
+they join. Today the link serves anyone with a Stellar account who has never held USDC: you nod once, they accept with
+Freighter within 30 minutes (their account needs about 0.5 XLM for the trustline reserve), and the USDC trustline and
+the payment land in one transaction. A link that creates a Nod wallet for someone with nothing at all is next.
 
 ## What Nod is, in 30 seconds
 
-> AI assistants can research, book and shop. When they need to pay, you hand over your card or do it yourself. Nod is a
-> Stellar wallet you add to Claude in one click. Give each AI app an allowance, say five dollars until tomorrow, and it
-> pays for APIs and pays your friends on its own. Anything bigger comes to your phone, and one passkey tap approves that
-> exact payment. The allowance is an OpenZeppelin policy on your Stellar account, not a setting on our server: even if
-> our server were compromised, the most it could spend is what you allowed.
+> Apps are turning into conversations, so your wallet should live in the chat too. Nod is a Stellar wallet you add to
+> Claude with one connector URL. You give each AI app one allowance, say 5 USDC until tomorrow. Inside it, the app pays
+> for APIs and pays people on its own. Anything past it comes back as a link, and your passkey signs that payment,
+> every time, for any amount. The allowance is an OpenZeppelin spending-limit policy on your own Stellar account, so
+> the most Nod's service could ever spend for an AI app is the allowance you set, pocket included. The full flow runs
+> on Stellar mainnet today, at trynod.si.
 
-The last sentence is accurate: the service holds only the connection key, and the account's spending-limit policy caps
-that key at N until T (S1: exactly 5.0 passed, one stroop over was rejected).
+## Four messages, repeated everywhere
 
-## Three messages, repeated everywhere
-
-1. **It lives in the AI you already use.** One connector URL in Claude; any MCP client works. Not an SDK.
-2. **Too big? It asks you.** An over-allowance payment becomes a link your passkey signs for that exact recipient and
-   amount, not an error.
-3. **The limit lives on Stellar.** OpenZeppelin's smart account and spending-limit policy enforce it; x402 sellers are
-   paid through public facilitators (x402.org, OpenZeppelin Channels), not one we run.
-
-Bonus, a Stellar protocol feature (CAP-73, SAC `trust`): **it pays people who have never held USDC.** Their trustline and the payment land in one
-transaction after they sign once.
+1. **It lives in the AI you already use.** One connector URL in Claude, ChatGPT, Goblin, Claude Code or any MCP app.
+   Cards in the chat where the host renders MCP Apps.
+2. **One number.** The allowance is what the AI may spend alone until it expires. Past it, your passkey approves each
+   payment, whatever the amount.
+3. **The limit lives on your Stellar account.** OpenZeppelin's smart account and spending-limit policy enforce it. x402
+   sellers are paid through public facilitators (x402.org, OpenZeppelin Channels).
+4. **A payment can be someone's way in.** A person with no USDC gets a claim link; their trustline and the payment land
+   in one transaction (CAP-73).
 
 ## Why this is not another agent wallet
 
@@ -47,112 +65,200 @@ limits; none placed. The placed projects had a concrete user and reached the rea
 APIs, seller tooling). HackMeridian's Composed track names "Agents that spend" as its first example, so expect
 look-alikes here too. Nod's first 15 seconds must show what the others did not have:
 
-| Typical agent wallet                 | Nod                                                           |
-| ------------------------------------ | ------------------------------------------------------------- |
-| SDK or contract for agent developers | a connector a person adds to Claude                           |
-| over the limit = blocked             | over the allowance = a passkey approval for the exact payment |
-| its own policy contract              | OpenZeppelin's account and policy, no budget contract of ours |
-| its own payment path                 | stock x402 through public facilitators (the pocket model)     |
-| pays APIs                            | pays APIs and people, including people with no trustline      |
+| Typical agent wallet                 | Nod                                                                         |
+| ------------------------------------ | --------------------------------------------------------------------------- |
+| SDK or contract for agent developers | a connector a person adds to Claude, with cards in the chat                 |
+| over the limit = blocked             | past the allowance = a link your passkey signs, for that one payment        |
+| its own policy contract              | OpenZeppelin's account and spending-limit policy                            |
+| its own payment path                 | stock x402 through public facilitators (the pocket model)                   |
+| pays APIs                            | pays APIs and people, including people who have never held USDC             |
+| a testnet demo                       | the full flow on Stellar mainnet, in claude.ai, on the founder's own wallet |
 
-## Proof points we can say out loud (all testnet, all with hashes in `docs/spikes/`)
+## What we may say, and the proof
 
-- A 5 USDC allowance spent exactly 5.0; one stroop more was rejected (S1).
-- Expired and revoked allowances are refused with distinct errors; the owner's own payments leave the allowance untouched
-  (S1).
-- A paid API bought over x402 through x402.org and OpenZeppelin Channels from a policy-bound account (S2, S5).
-- An exhausted allowance is refused before any facilitator is contacted; a repeated request pays once (S5).
-- A recipient with no USDC trustline gets the trustline and the payment in one transaction (S3).
-- Connected live from Claude Code over OAuth (S4).
+| Say (this wording)                                                                                                                                                                                                                                                                                                                                                                                   | Proof                                                                                                                                                                                                                 |
+| ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| "The full flow runs on Stellar mainnet at trynod.si, in claude.ai, on the founder's own wallet: an x402 purchase settled by OpenZeppelin Channels, a payment inside the allowance, one that needed the nod, a claim link that created a trustline and paid in one transaction, a revoke that removed the rule and swept the pocket."                                                                 | `evidence/mainnet/claude-run-2026-10-25.md`: consent `f803994b…`, pull `6485e55c…`, settlement `cb296cc3…`, Alice `c8ee8b5a…`, Bob `0339b8dd…`, Carol `1fe4e852…`, rule removed `e17e15d5…`, pocket swept `ab6d493d…` |
+| "One rehearsal on the live site passed acceptance tests 1, 2 and 4–9; test 3, a forced over-limit transfer, cannot be sent through MCP by design and is proven onchain in spike S1 (`3daf4b00…`)."                                                                                                                                                                                                   | `evidence/demo/2026-10-25T18-31-37-970Z/run.json` (testnet, release `9fc080f`)                                                                                                                                        |
+| "In hosts that render MCP Apps, Nod's cards appear in the chat; in hosts that take MCP Events, Nod tells you when money arrives or a payment needs you. Shown live in Goblin, claude.ai and ChatGPT." Events: Goblin and ChatGPT only. ChatGPT always as "works in ChatGPT as a developer-mode connector (cards, the nod, events); not listed in its app store, whose policy bars crypto transfers". | `evidence/mcp-apps/README.md`: claude-01…04, goblin-01…09, chatgpt-01…07; `payment.received` by webhook in Goblin (`091942b4…`) and ChatGPT (`c85e7693…`)                                                             |
+| "A recipient with no USDC trustline gets the trustline and the payment in one transaction."                                                                                                                                                                                                                                                                                                          | testnet `565b7f07…`, `2b3abb65…`; mainnet `1fe4e852…`                                                                                                                                                                 |
+| "A 5 USDC allowance spends exactly 5.0; one stroop more fails." "An over-allowance transfer forced onchain is rejected by the account."                                                                                                                                                                                                                                                              | spike S1: `c0f6f923…`, `3daf4b00…` (`#3221`)                                                                                                                                                                          |
+| "Add it to claude.ai" and "Claude Code connects over OAuth."                                                                                                                                                                                                                                                                                                                                         | `evidence/mcp-apps/` (claude.ai), spike S4 (Claude Code)                                                                                                                                                              |
+| "Deposit addresses that exchanges can pay are proven on testnet." Always with "on testnet".                                                                                                                                                                                                                                                                                                          | `docs/spikes/s8-deposit.md` (router `CAFLFU5G…`, deposits swept `0f299152…`, `efcbcc48…`)                                                                                                                             |
 
-Never claim: mainnet (until a mainnet transaction exists; if one does, it becomes the headline), CCTP, a facilitator of
-our own, ChatGPT support, "pay any address silently".
+Not yet, until the orchestrator says the proof exists: "open to anyone, USDC only" (deposit-first signup), "they tap the
+link and have a wallet" (claim link v2), "Claude adds your contacts", deposits from exchanges on mainnet, a ChatGPT
+app store listing.
+
+## Never say
+
+"audited" · "nine of nine" · "nod line" or any second threshold · a cap or limit on payments you approve · "no limit on
+what Claude can spend" · CCTP · a facilitator of ours · privacy · recovery · "ChatGPT support" or "in the ChatGPT app
+store" (say "works in ChatGPT as a developer-mode connector") · mainnet deposits from
+exchanges · "ephemeral pocket" · "exact payment" for the pocket (it fills in 1 USDC steps) · "atomic wallet creation" ·
+"on EVM this needs approval hops" · "sent to your phone" (the link opens wherever your passkey is) · MCP Events in
+claude.ai or Claude Code · "pay any address silently".
+
+## Wording, ready to paste
+
+- One number: "You give each AI app one allowance, say 5 USDC until tomorrow. Inside it, the app pays on its own.
+  Anything past it needs your passkey, every time, for any amount."
+- Security: "The allowance is an OpenZeppelin spending-limit policy on your own Stellar account. The most Nod's service
+  could ever spend for an AI app is the allowance you set, pocket included."
+- Revoke: "Revoke stops Nod signing at once and sweeps the pocket back; one passkey tap removes the allowance from your
+  account."
+- Where the nod happens: "Your passkey signs on Nod's own page, never in the chat. A link, on your phone or your laptop."
+- Pocket: "Hosted x402 facilitators do not take smart-account payers yet, so each AI app's key also owns a small pocket
+  account, filled from your wallet under the same policy in 1 USDC steps. Both transactions are on the receipt."
+- Claim link: "Someone who has never held USDC gets a link. You nod once; they accept with Freighter within 30 minutes,
+  and their USDC trustline and the payment land in one transaction."
+- Why Stellar: "Native passkey verification, OpenZeppelin's account rules, and CAP-73, which lets a recipient's first
+  signature create the USDC trustline alongside the payment."
+- Prior work: "Kristjan built Froggy at ETHOnline 2026, an agent wallet on Base and Hedera whose limits were enforced by
+  its own server; no Froggy code is used here, and Nod moves the limit onto the account itself."
 
 ## Vocabulary
 
-| Say                                 | Not                                               |
-| ----------------------------------- | ------------------------------------------------- |
-| allowance                           | grant, budget rule, context rule, session key     |
-| asks you / needs your nod / approve | owner lane, escalation, requires_approval         |
-| AI app, Claude                      | MCP client, connection, host (fine in tech docs)  |
-| on Stellar, on your account         | onchain enforcement (fine once, in the tech part) |
-| Nod pays the network fee            | relayer, fee sponsorship                          |
-| passkey, Face ID, fingerprint       | WebAuthn, secp256r1                               |
-| testnet (always visible)            | hiding the network                                |
+| Say                                                   | Not                                                   |
+| ----------------------------------------------------- | ----------------------------------------------------- |
+| allowance (the one number you set)                    | grant, budget rule, context rule, session key, limits |
+| needs your nod / asks you / approve with your passkey | owner lane, escalation, requires_approval, nod line   |
+| AI app, Claude                                        | MCP client, connection (fine in tech docs)            |
+| cards in the chat                                     | MCP Apps UI resource (fine in tech docs)              |
+| notifications, Nod tells you                          | MCP Events, webhooks (fine in tech docs)              |
+| on Stellar, on your account                           | onchain enforcement (fine once, in the tech part)     |
+| Nod pays the network fee                              | relayer, fee sponsorship                              |
+| passkey, Face ID, fingerprint                         | WebAuthn, secp256r1                                   |
+| pocket                                                | burner, ephemeral account                             |
+| claim link                                            | onboarding transaction                                |
+| mainnet at trynod.si; testnet at testnet.trynod.si    | an unnamed network                                    |
+
+## Hosts
+
+| Host                                                  | What it is                                                                                             |
+| ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| [trynod.si](https://trynod.si)                        | the product on Stellar mainnet; signup is open; USDC only; connector `https://trynod.si/mcp`           |
+| [testnet.trynod.si](https://testnet.trynod.si)        | the judges' sandbox: new wallets get 10 testnet USDC; `/sample` runs a sample agent; connector `…/mcp` |
+| `hack-meridian-testnet.kristjan-grm11775.workers.dev` | the old host; redirects to testnet.trynod.si                                                           |
+
+## Demo beats (one number, the same on both networks)
+
+The sandbox wallet starts with 10 testnet USDC; the founder's mainnet wallet held 9.90 USDC.
+
+| #   | Beat                                                                                                                  | Allowance left |
+| --- | --------------------------------------------------------------------------------------------------------------------- | -------------- |
+| 1   | Connect Claude; the consent page asks for one number: 5 USDC until tomorrow 12:00 UTC; passkey                        | 5.00           |
+| 2   | "Buy the market brief": 0.10 USDC over x402, no prompt                                                                | 4.90           |
+| 3   | "Send Alice 2 USDC": paid on its own                                                                                  | 2.90           |
+| 4   | "Pay Bob 5 USDC for dinner": more than what is left, so it needs your nod; passkey; paid                              | 2.90           |
+| 5   | The same request again (same idempotency key): the same receipt; Bob is paid once                                     | 2.90           |
+| 6   | "Send Alice 4 USDC": needs your nod; nothing is reserved or spent                                                     | 2.90           |
+| 7   | "Send Carol 1 USDC": she has never held USDC; your nod, then her claim link; trustline and payment in one transaction | 2.90           |
+| 8   | Revoke: Nod stops signing, your passkey removes the rule, the pocket comes back; the next payment is refused          | gone           |
+
+## Lines for the recording
+
+The film's structure, order and cut are decided with Kristjan after the code lands. These are the words for each beat,
+one take per line, so any structure can use them.
+
+| Beat    | Line                                                                                                                                                            |
+| ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| the nod | "Claude wants to pay Bob five dollars for dinner. That's more than I let it spend alone, so it asks me. One passkey tap, and Bob is paid."                      |
+| title   | "This is Nod. Small stuff, it just pays. Big stuff needs your nod."                                                                                             |
+| why     | "Apps are turning into conversations. My wallet should be in the conversation too: cards in the chat, and a link when it needs me."                             |
+| connect | "I add Nod to Claude and set one number. Claude may spend five dollars until tomorrow. My passkey writes that onto my Stellar account. No seed phrase, no XLM." |
+| brief   | "Claude buys a market report over x402 for ten cents. It fits the allowance, so nobody asks me. OpenZeppelin's facilitator settles it."                         |
+| Alice   | "It pays Alice two dollars on its own. Two ninety left."                                                                                                        |
+| repeat  | "Ask twice, pay once."                                                                                                                                          |
+| four    | "Four dollars is more than what's left, so it asks me first."                                                                                                   |
+| Carol   | "Carol has never held USDC. She accepts the link, and her trustline and the payment land in one transaction."                                                   |
+| revoke  | "I revoke Claude. Nod stops signing, my passkey takes the rule off my account, and the leftover comes back. The next payment is refused."                       |
+| mainnet | "This is Stellar mainnet, in claude.ai, with my own wallet and real dollars."                                                                                   |
+| end     | "Nod. Small stuff, it just pays. Big stuff needs your nod."                                                                                                     |
 
 ## Landing page (the app's signed-out home)
 
-Lives inside the web app (Kristjan, 13:00 UTC). Sections, top to bottom:
-
-1. **Hero.** "Give your AI an allowance." Sub: "Nod is a Stellar wallet you add to Claude. Small payments go through on
-   their own, inside the allowance you set. Anything bigger waits for your nod." Actions: **Create your wallet**
-   (passkey) and **Add to Claude** (copies the connector URL). Visual: the two-number card (wallet 30.00 USDC / Claude
-   may spend 5.00) beside a chat line and a phone approval.
-2. **How it works**, three steps. _Connect_: add Nod to Claude or any MCP app. _Set an allowance_: "5 USDC until
-   tomorrow", signed with your passkey and written to your Stellar account. _Let it pay_: paid APIs over x402, friends by
-   name; bigger asks come to your phone.
-3. **Why you can trust it.** The limit lives on Stellar, not on our server · Your passkey approves the exact recipient
-   and amount · Revoke any time, instantly and on Stellar · No seed phrase, no gas: Nod pays the network fee.
-4. **Pays people too.** "Even people who have never held USDC": a claim link, then the trustline and the payment in one
-   transaction.
-5. **Proof.** Live stellar.expert links: a payment inside the allowance, an approved payment, an over-limit transfer
-   rejected by the account, a trustline-plus-payment. Filled from `evidence/` after the first testnet run.
-6. **Try it in 3 minutes** (for judges): add the connector, create a passkey wallet (auto-funded with 10 testnet USDC),
-   ask Claude to buy the market brief, pay Alice, then ask for 20 USDC for dinner with Bob.
-7. **Built with** OpenZeppelin smart accounts · Circle USDC · x402 · passkeys · Stellar. HackMeridian 2026, Stellar
-   Composed track. GitHub link. Testnet notice.
+1. **Hero.** "Give your AI an allowance." The example wallet plays the beats: Claude may spend 5.00 → 4.90 → 2.90; Bob's
+   5.00 needs your nod; the passkey approves it and the allowance stays 2.90.
+2. **Why**, three plates: apps become conversations; autonomy needs an allowance; every payment can bring someone on.
+3. **How it works**: connect, set an allowance, let it pay.
+4. **Why you can trust it**: the limit lives on your account; your passkey approves the payment it shows; revoke any
+   time; no seed phrase, no XLM.
+5. **Pays people too**: the claim link, trustline and payment in one transaction.
+6. **Proof**: the mainnet run first, then the testnet rehearsal and the spikes, each with its stellar.expert link.
+7. **Try it** on the testnet sandbox (10 testnet USDC, `/sample`).
+8. **Footer**: built with OpenZeppelin smart accounts, Circle USDC, x402, passkeys, Stellar; both hosts; source.
 
 ## Deck (PDF, 10 slides, each headline a claim)
 
 | #   | Headline                                                    | Rubric line              |
 | --- | ----------------------------------------------------------- | ------------------------ |
-| 1   | Give your AI an allowance. (two-number card)                | title                    |
-| 2   | Your AI can do everything except pay safely.                | User Value & Problem 20% |
-| 3   | One connector, two lanes: it pays, or it asks you.          | what we built            |
-| 4   | Demo stills: buy, pay Alice, 20 asks, approve, revoke.      | Product Design & UX 10%  |
-| 5   | The limit lives on Stellar, not on our server.              | Technical Execution 15%  |
-| 6   | Six building blocks, composed; a trustline through the SAC. | Track Alignment 20%      |
-| 7   | New: the pocket model, connect = allowance, ask not reject. | Innovation 15%           |
-| 8   | Built this weekend: research → 5 spikes → product.          | Hackathon Progress 10%   |
-| 9   | Every AI app is a door; Stellar's x402 sellers need buyers. | Market & Ecosystem 10%   |
-| 10  | Try it in 3 minutes, and what's next.                       | continuation             |
-
-## Demo amounts (Kristjan, 2026-10-25; identical on testnet and mainnet)
-
-Wallet starts at 30 USDC; the AI app's allowance is 5 USDC; it buys a 0.10 USDC API result and pays Alice 2 USDC on its
-own (2.90 left); the 20 USDC dinner for Bob needs his nod; asking twice pays once; 4 USDC is more than the 2.90 left, so
-it comes back to him; Carol, who has never held USDC, gets 5 USDC through a claim link she signs; then revoke.
-
-## Demo video (≤ 3 min; Kristjan's voice, cut by this session)
-
-Kristjan records each line below as its own take (quiet room, phone or USB mic, one take per line, a second of silence
-either side). Picture is cut to the voice from screen captures of the real flow, with captions, chapter marks, a quiet
-music bed and an end card. The cold open is the approval: it is the moment no other entry has.
-
-| #   | Picture                                                                        | Line                                                                                                                                                       |
-| --- | ------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | Claude: "Pay Bob 20 USDC for dinner" → "needs your nod" → phone, Face ID, Paid | "My AI just asked me for twenty dollars. One tap, and it's paid: exactly to Bob, exactly twenty."                                                          |
-| 2   | Title: nod. "Small stuff, it just pays. Big stuff needs your nod."             | "This is Nod, a Stellar wallet your AI can spend from, inside an allowance you set."                                                                       |
-| 3   | Add the connector in Claude → consent page → passkey                           | "I add Nod to Claude. My passkey creates the wallet and signs one rule on Stellar: Claude may spend five dollars, until tomorrow. No seed phrase, no XLM." |
-| 4   | Home: 30.00 USDC wallet, 5.00 Claude may spend                                 | "Two numbers that never blur. The wallet holds thirty. Claude may spend five."                                                                             |
-| 5   | "Buy the market brief" → content + receipt, 4.90 left                          | "Claude buys a paid market report over x402. No prompt, because it fits the allowance. A public facilitator settles it."                                   |
-| 6   | "Send Alice 2 USDC" → receipt, 2.90 left, stellar.expert                       | "It pays Alice two dollars, signed by Claude's own key and checked by an OpenZeppelin policy on my account. Nod pays the fee."                             |
-| 7   | Same request again → same receipt; "Send 4 USDC" → asks                        | "Ask twice, pay once. And four dollars is more than what's left, so it comes to me instead of failing."                                                    |
-| 8   | Forced over-limit transfer → rejected on stellar.expert                        | "Even if our server tried, the account itself rejects anything over the limit."                                                                            |
-| 9   | "Send Carol 5 USDC" → claim link → Carol signs → one transaction               | "Carol has never held USDC. She signs once, and her trustline and the payment land in the same transaction."                                               |
-| 10  | Revoke → next payment refused                                                  | "I revoke Claude. The next payment is refused, and the rule is gone from my account."                                                                      |
-| 11  | End card: nod · repo · Stellar Composed                                        | "Nod. Give your AI an allowance, and keep the last word."                                                                                                  |
-
-## Promo film (20–30 s, no voice, captions, 16:9 and 9:16)
-
-For the landing hero, README GIF, launch post and deck slide 1. Kinetic type over real UI: "Your AI can shop." → "Paying
-is the scary part." → $0.10 report, paid · $2 to Alice, paid · $20 to Bob → "needs your nod" → Face ID → paid →
-"The limit lives on Stellar." → nod wordmark. Built from Playwright captures of the real app, HyperFrames for type and
-motion, and the caption, chapter and music pipeline from `~/code/goblin-videos/demo-cut`.
+| 1   | Give your AI an allowance.                                  | title                    |
+| 2   | Apps are becoming conversations. Wallets have to follow.    | User Value & Problem 20% |
+| 3   | One number. Inside it, it pays. Past it, it asks.           | what we built            |
+| 4   | In the chat: claude.ai, ChatGPT and Goblin.                 | Product Design & UX 10%  |
+| 5   | The limit lives on your Stellar account.                    | Technical Execution 15%  |
+| 6   | Stellar building blocks, one wallet.                        | Track Alignment 20%      |
+| 7   | Four ideas behind Nod.                                      | Innovation 15%           |
+| 8   | Built in one day, live on mainnet by evening.               | Hackathon Progress 10%   |
+| 9   | Every AI app is a door.                                     | Market & Ecosystem 10%   |
+| 10  | Try it: mainnet at trynod.si, sandbox at testnet.trynod.si. | continuation             |
 
 ## Open
 
-- Prior-work disclosure for the README (Kristjan, later).
-- Mainnet: if a real mainnet payment exists before 08:00 UTC, it leads the landing page, slide 1 and the video's end
-  card.
 - Launch posts after submission, from Kristjan's accounts, only with his go.
+- The claim link that creates a wallet, deposit-first signup and contacts added by the AI enter copy when their proof
+  lands.
+
+## Appendix: mentor kit
+
+### 15-second opener
+
+"Apps are turning into conversations, so wallets have to live in the chat. Nod is a Stellar wallet inside Claude. You
+give each AI app one number, an allowance. Inside it, the AI pays on its own; past it, your passkey nods. It runs on
+mainnet today."
+
+### 45-second walk
+
+"I add Nod to Claude with one URL. The consent page asks me one thing: how much may Claude spend on its own, and until
+when. I say five dollars until tomorrow, and my passkey writes that onto my Stellar account as an OpenZeppelin policy.
+Claude buys a market report over x402 for ten cents and pays Alice two dollars, with no prompt. Two ninety left. Then
+it wants five for Bob's dinner. That's past the allowance, so Claude hands me a link. I open it, see Bob and five
+dollars, and tap my passkey. Paid. Carol has never held USDC, so she gets a claim link; her trustline and the payment
+land in one transaction. When I revoke Claude, Nod stops signing, my passkey takes the rule off the account and the
+pocket comes back. All of that ran on mainnet in claude.ai this evening, with my own wallet."
+
+### Technical answers
+
+- **Where is the limit enforced?** On the account. Each AI app is a context rule on the owner's OpenZeppelin smart
+  account: the app's Ed25519 key, OpenZeppelin's spending-limit policy and an expiry. A transfer past what is left fails
+  in the account's own auth check (testnet `3daf4b00…`, error `#3221`). Nod also re-simulates in enforcing mode, so an
+  over-limit payment never reaches the chain.
+- **What if your server is compromised?** The service holds each app's key (encrypted) and the fee-paying relayers.
+  The most it could spend for an AI app is the allowance you set, pocket included. It cannot sign with your passkey.
+- **Why a pocket?** Hosted x402 facilitators do not take a smart-account payer yet (x402 issue #3158, fix in PR #3860)
+  or the policy's extra event (#3352, PR #3399). So each AI app's key also owns a small classic account with sponsored
+  reserves, filled from the wallet under the same policy in 1 USDC steps, and pays with the stock x402 client. Both
+  transactions are on the receipt. When those PRs merge, the account pays sellers directly and the pocket goes.
+- **Do you run a facilitator?** No. x402.org and OpenZeppelin Channels on testnet, OpenZeppelin Channels on mainnet. The
+  mainnet market brief settled through Channels (`cb296cc3…`), which also paid that fee.
+- **What does one number mean for payments I approve?** The allowance is the only limit. Past it, your passkey approves
+  each payment, any amount your balance covers. Approved payments do not use the allowance.
+- **Why Stellar?** Native passkey verification, OpenZeppelin's account rules, and CAP-73, which lets a recipient's first
+  signature create the USDC trustline alongside the payment. Fees are small enough that Nod pays them: on mainnet the
+  payment to Alice cost 0.052 XLM, Bob's 0.0013 XLM, Carol's trustline and payment 0.0021 XLM.
+- **Notifications in Claude?** claude.ai and Claude Code do not implement MCP Events yet, so Nod's cards poll there.
+  Goblin and ChatGPT take them: a `payment.received` notice arrived by webhook in Goblin (testnet `091942b4…`), and in
+  ChatGPT a 1 USDC transfer woke its task within 4 seconds (testnet `c85e7693…`).
+- **Is it audited?** No. The account, verifiers and policy are OpenZeppelin's deployed contracts. The account build
+  (`1b5f4534…`) predates OpenZeppelin's 0.7.3 release; the advisory fixed there concerns Delegated signers, which Nod
+  never uses. Our own contracts, the trust-and-pay router and the testnet deposit router, are small and unaudited.
+- **How does money get in?** Today, Home shows the wallet's address, and wallets that can pay a contract address
+  (Freighter) send USDC to it. Deposit addresses that exchanges can pay are proven on testnet and are off on mainnet.
+- **What about ChatGPT?** Nod works in ChatGPT as a developer-mode connector: cards, the nod and events, shown on
+  testnet (`88973525…`). It is not listed in ChatGPT's app store, whose policy bars crypto transfers.
+- **Recovery?** Not built. A second passkey is the first item after judging.
+
+### Closer
+
+"Small stuff, it just pays. Big stuff needs your nod. Try it on mainnet at trynod.si."
