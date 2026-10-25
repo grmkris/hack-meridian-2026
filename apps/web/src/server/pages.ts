@@ -1,5 +1,6 @@
 import { fromStroops } from '@hm/protocol'
 import type { PaymentIntent, ReceiptRecord, SpendingGrant, Wallet } from '@hm/protocol'
+import { PRESETS } from '@hm/stellar'
 
 /**
  * The Worker's own pages: OAuth consent (sign-in or create wallet, then the grant ceremony), owner approval, claim
@@ -298,10 +299,16 @@ ${input.receipt === undefined ? receiptPending(input) : receiptBlock(input.recei
       ? `const ctx=JSON.parse(document.getElementById('ctx').textContent);
 document.getElementById('accept').onclick=async e=>{const done=busy(e.target,'Signing…');try{let signed=null;
 if(!ctx.demo){const w=window.freighterApi||window.stellarWallet;if(!w||!w.signAuthEntry)throw new Error('No browser wallet with signAuthEntry was found (Freighter supports it).');
-const r=await w.signAuthEntry(ctx.entry,{networkPassphrase:'Test SDF Network ; September 2015'});signed=r.signedAuthEntry||r}
+const r=await w.signAuthEntry(ctx.entry,{networkPassphrase:ctx.passphrase});signed=r.signedAuthEntry||r}
 e.target.textContent='Submitting…';await post('/claim/'+ctx.id+(ctx.demo?'?demo=1':''),{signed_entry:signed});location.reload()}catch(x){done();show('status',x.message)}};`
       : '',
-    { id: input.intent.id, entry: input.recipientEntryXdr, demo: input.demo },
+    {
+      id: input.intent.id,
+      entry: input.recipientEntryXdr,
+      demo: input.demo,
+      // The wallet signs for the stage's network (the chain preset's passphrase), not always testnet's.
+      passphrase: PRESETS[c.network === 'Mainnet' ? 'pubnet' : 'testnet'].passphrase,
+    },
   )
 
 const receiptPending = (input: {
