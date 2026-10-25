@@ -1,7 +1,7 @@
 # Deploying the testnet stage
 
 Handed over by the foundation session (stream B) on 2026-10-25 15:35 UTC to the orchestrator session. Live: testnet at
-`20963b3` on **https://testnet.trynod.si** (cutover 17:32 UTC at 3a63bd5: custom domain attached, ORIGIN/RP_ID bindings set,
+`9fc080f` (18:28 UTC; see the dated sections below) on **https://testnet.trynod.si** (cutover 17:32 UTC at 3a63bd5: custom domain attached, ORIGIN/RP_ID bindings set,
 URL sweep and W1 included; 17:39 UTC: every path worker-first so the old workers.dev host 301-redirects the landing and client
 routes too; smoke 9/9 against the new host). The stage URL is https://testnet.trynod.si (MCP at `/mcp`); https://hack-meridian-testnet.kristjan-grm11775.workers.dev redirects there.
 
@@ -101,3 +101,13 @@ landing 200, `/mcp` 401 gate, `/sample` present but disabled on pubnet. Plan was
 lifted to 1,000,000 USDC on both stages (`c9f7792` deploy). Wallet-creation rate caps and the "Add money" card follow in
 the next deploy; the W1 nod line is being reversed to one number (allowance = total; past it, passkey approval each time,
 no upper limit) in the MCP-Apps session, with the demo beats restored on my side. Testnet is at `c9f7792`.
+
+## 18:28 UTC: both stages at `9fc080f`
+
+Testnet (`https://testnet.trynod.si`) and mainnet (`https://trynod.si`) are at `9fc080f`: one-number allowance (`1b04511`;
+no nod line, no per-payment cap on approved payments), the demo beats sized to a 10 USDC wallet (`71f7a71`), wallet-creation
+caps (`05614ff`; testnet 20/200, mainnet 3/30 per hour), the Home "Add money" card with the `C…` address and a QR (`98d42f0`),
+and a wallet's network taken from the stage with a one-time backfill (`9fc080f`; the mainnet wallet's badge read Testnet).
+Gate green in the worktree, two Alchemy updates (RELEASE binding only), smoke 9/9 on testnet, `/sample` 200, mainnet health
+invite off / payments on. Deploys went 1b04511 (18:25) then 9fc080f (18:27); the intermediate `c9f7792` and `24969ee`
+releases are superseded.
