@@ -129,6 +129,11 @@ How Stellar is used:
 | x402 on `stellar:testnet`                    | paid APIs through x402.org and OpenZeppelin Channels         |                                                                                                                                                                                                                                                           |
 | Built-in DEX                                 | the demo seller's market brief reads the XLM/USDC order book |                                                                                                                                                                                                                                                           |
 
+The router is our one contract. `stellar contract build` in `contracts/` reproduces the deployed WASM byte for byte
+(sha256 `39c97734…`, 920 bytes), so [`CCLFB4I4…PGN4`](https://stellar.expert/explorer/testnet/contract/CCLFB4I4CNGWHHL53UO33CSWKKXJBANMDGOGL43J7RBT7SWK2H2BPGN4) is provably this source
+([deploy transaction](https://stellar.expert/explorer/testnet/tx/634bcf1894f1c82e76f1674791f8449341db2fade872f680c904e729beaf3626); record in
+[`contracts/deployments/testnet.json`](contracts/deployments/testnet.json)).
+
 Deployed:
 
 | What                         | Where                                                                |
@@ -142,8 +147,7 @@ Software: one TypeScript program from the browser to the edge. **[Foldkit](https
 Effect) for the site; **[Effect](https://effect.website) 4** for the Worker, with an `HttpApi` contract in
 `packages/api` shared by browser and Worker; **[Alchemy](https://alchemy.run)** declares the Worker, D1 and Durable
 Objects in `apps/web/alchemy.run.ts` (stages `local` and `testnet`); `packages/stellar` talks to Stellar through
-`@stellar/stellar-sdk` 16.4.1; the trust-and-pay router is Rust on soroban-sdk 29 in [`spikes/s3/contracts/onboard`](spikes/s3/contracts/onboard), where it was built and
-deployed.
+`@stellar/stellar-sdk` 16.4.1; the trust-and-pay router is Rust on soroban-sdk 29 in [`contracts/onboard`](contracts/onboard).
 
 ## Setup and installation
 
@@ -198,17 +202,17 @@ Bindings (not variables): `WALLET_DB` (D1), `WALLET_OBJECT` and `OAUTH_STORE` (D
 
 ## Repository
 
-| Path                | What                                                                            |
-| ------------------- | ------------------------------------------------------------------------------- |
-| `apps/web`          | Foldkit site, Cloudflare Worker (OAuth, MCP tools, pages) and the Alchemy stack |
-| `apps/seller`       | the demo x402 seller Worker (HTTP and a paid MCP tool)                          |
-| `packages/stellar`  | the Stellar chain package: accounts, allowances, payments, pocket, x402, claim  |
-| `packages/protocol` | tool and entity schemas shared by the service and the chain package             |
-| `packages/api`      | the HTTP API contract (Effect Schema) shared by browser and Worker              |
-| `contracts`         | the Soroban workspace and its deployment record (a toolchain check contract)    |
-| `scripts`           | stage runner, smoke and screenshot checks, rehearsal runner                     |
-| `docs`, `spikes`    | product spec, research, and the spikes that de-risked it (incl. the router)     |
-| `evidence`          | rehearsal runs, settlements and the judge test path                             |
+| Path                | What                                                                                            |
+| ------------------- | ----------------------------------------------------------------------------------------------- |
+| `apps/web`          | Foldkit site, Cloudflare Worker (OAuth, MCP tools, pages) and the Alchemy stack                 |
+| `apps/seller`       | the demo x402 seller Worker (HTTP and a paid MCP tool)                                          |
+| `packages/stellar`  | the Stellar chain package: accounts, allowances, payments, pocket, x402, claim                  |
+| `packages/protocol` | tool and entity schemas shared by the service and the chain package                             |
+| `packages/api`      | the HTTP API contract (Effect Schema) shared by browser and Worker                              |
+| `contracts`         | Soroban workspace: the trust-and-pay router (`onboard`), a toolchain counter, deployment record |
+| `scripts`           | stage runner, smoke and screenshot checks, rehearsal runner                                     |
+| `docs`, `spikes`    | product spec, research and the spikes that de-risked it                                         |
+| `evidence`          | rehearsal runs, settlements and the judge test path                                             |
 
 ## Prior work
 
