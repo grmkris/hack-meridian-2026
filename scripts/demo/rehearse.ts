@@ -372,6 +372,22 @@ if (onchain && !args.includes('--no-recycle') && hasKey('TREASURY')) {
   }
 }
 
+// A connection that was not revoked stays usable for probe.ts (refresh token, gitignored, mode 600).
+const refreshToken = provider.tokens()?.refresh_token
+if (
+  !stepResults.some(s => s.id === 's9' && s.status !== 'skip') &&
+  refreshToken !== undefined &&
+  provider.client !== undefined
+) {
+  mkdirSync(join(import.meta.dir, '.state'), { recursive: true })
+  writeFileSync(
+    join(import.meta.dir, '.state', `${target.name}.json`),
+    `${JSON.stringify({ client_id: provider.client.client_id, refresh_token: refreshToken })}\n`,
+    { mode: 0o600 },
+  )
+  notes.push(`connection kept for probe.ts in scripts/demo/.state/${target.name}.json`)
+}
+
 await owner.close()
 await callback.stop()
 

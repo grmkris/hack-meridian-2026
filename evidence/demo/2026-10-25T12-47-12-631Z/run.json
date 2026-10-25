@@ -1,0 +1,470 @@
+{
+  "run_id": "1025124712",
+  "target": "stub",
+  "network": "stellar:testnet",
+  "base": "https://hm26-s4-mcp.kristjan-grm11775.workers.dev",
+  "mcp": "https://hm26-s4-mcp.kristjan-grm11775.workers.dev/mcp",
+  "seller": "https://hm26-seller.kristjan-grm11775.workers.dev",
+  "relayer": "GBGNYETYEEWM5RIRE6KWUUZKD3X4DBZZ72M2LHQJNUGYO3D6ZYADBPT6",
+  "started_at": "2026-10-25T12:47:12.631Z",
+  "finished_at": "2026-10-25T12:47:16.671Z",
+  "oauth": {
+    "client_id": "NaHBwdvunBUXwCok",
+    "redirect": "http://127.0.0.1:38087/callback"
+  },
+  "tools": ["wallet_overview", "payment_prepare", "payment_status"],
+  "steps": [
+    {
+      "id": "s1",
+      "title": "Connect: DCR + PKCE, consent page, passkey, allowance",
+      "status": "pass",
+      "ms": 3142
+    },
+    {
+      "id": "s2",
+      "title": "Grant installed: allowance and expiry on the connection",
+      "status": "pass",
+      "ms": 371
+    },
+    {
+      "id": "s3",
+      "title": "wallet_overview: balance and allowance are two numbers",
+      "status": "pass",
+      "ms": 230
+    },
+    {
+      "id": "s4",
+      "title": "paid_resource_fetch: buy the market brief for 0.10 over x402",
+      "status": "skip",
+      "ms": 0,
+      "error": "needs x402"
+    },
+    {
+      "id": "s5",
+      "title": "Send Alice 2 USDC: payment_prepare → payment_execute (autonomous lane)",
+      "status": "skip",
+      "ms": 0,
+      "error": "needs autonomous"
+    },
+    {
+      "id": "s6",
+      "title": "Ask for 100 USDC to Bob for dinner → requires_approval + link",
+      "status": "skip",
+      "ms": 0,
+      "error": "not selected"
+    },
+    {
+      "id": "s7",
+      "title": "Owner opens the link, sees recipient and amount, approves with the passkey; agent polls",
+      "status": "skip",
+      "ms": 0,
+      "error": "not selected"
+    },
+    {
+      "id": "s8a",
+      "title": "Same request again (same idempotency key) → same receipt, no second payment",
+      "status": "skip",
+      "ms": 0,
+      "error": "not selected"
+    },
+    {
+      "id": "s8b",
+      "title": "Ask for 4 USDC with 2.90 left → owner lane, not an onchain revert",
+      "status": "skip",
+      "ms": 0,
+      "error": "not selected"
+    },
+    {
+      "id": "s10",
+      "title": "Send Carol 10 USDC: trustline required → claim link → trust + transfer in one transaction",
+      "status": "skip",
+      "ms": 0,
+      "error": "needs claim"
+    },
+    {
+      "id": "s9",
+      "title": "Owner revokes the connection on the site → next delegated payment refused, rule gone onchain",
+      "status": "skip",
+      "ms": 0,
+      "error": "not selected"
+    },
+    {
+      "id": "s11",
+      "title": "Fee audit: the relayer paid every fee, the owner account holds no XLM",
+      "status": "skip",
+      "ms": 0,
+      "error": "not selected"
+    }
+  ],
+  "acceptance": {
+    "1": {
+      "status": "N/A",
+      "checks": ["skip s4: s4 skipped on stub (needs x402)"]
+    },
+    "2": {
+      "status": "N/A",
+      "checks": ["skip s8b: s8b skipped on stub"]
+    },
+    "3": {
+      "status": "N/A",
+      "checks": ["skip s11: s11 skipped on stub"]
+    },
+    "4": {
+      "status": "N/A",
+      "checks": ["skip s6: s6 skipped on stub", "skip s7: s7 skipped on stub"]
+    },
+    "5": {
+      "status": "N/A",
+      "checks": ["skip s8a: s8a skipped on stub"]
+    },
+    "6": {
+      "status": "N/A",
+      "checks": ["skip s9: s9 skipped on stub"]
+    },
+    "7": {
+      "status": "N/A",
+      "checks": [
+        "skip s4: s4 skipped on stub (needs x402)",
+        "skip s5: s5 skipped on stub (needs autonomous)",
+        "skip s6: s6 skipped on stub",
+        "skip s7: s7 skipped on stub"
+      ]
+    },
+    "8": {
+      "status": "N/A",
+      "checks": ["skip s10: s10 skipped on stub (needs claim)"]
+    },
+    "9": {
+      "status": "N/A",
+      "checks": [
+        "skip s4: s4 skipped on stub (needs x402)",
+        "skip s5: s5 skipped on stub (needs autonomous)",
+        "skip s7: s7 skipped on stub",
+        "skip s10: s10 skipped on stub (needs claim)",
+        "skip s11: s11 skipped on stub"
+      ]
+    }
+  },
+  "checks": [
+    {
+      "step": "s1",
+      "test": null,
+      "status": "pass",
+      "detail": "DCR client_id NaHBwdvunBUXwCok"
+    },
+    {
+      "step": "s1",
+      "test": null,
+      "status": "pass",
+      "detail": "callback state matches"
+    },
+    {
+      "step": "s1",
+      "test": null,
+      "status": "pass",
+      "detail": "callback iss https://hm26-s4-mcp.kristjan-grm11775.workers.dev (RFC 9207)"
+    },
+    {
+      "step": "s1",
+      "test": null,
+      "status": "pass",
+      "detail": "access token issued (PKCE)"
+    },
+    {
+      "step": "s1",
+      "test": null,
+      "status": "pass",
+      "detail": "tools/list → wallet_overview, payment_prepare, payment_status"
+    },
+    {
+      "step": "s2",
+      "test": null,
+      "status": "pass",
+      "detail": "grant total 5.00 = consent 5.00"
+    },
+    {
+      "step": "s3",
+      "test": null,
+      "status": "pass",
+      "detail": "balance 50.00 USDC, allowance 5.00 remaining until 2026-10-26T12:00:00.000Z"
+    },
+    {
+      "step": "s4",
+      "test": 1,
+      "status": "skip",
+      "detail": "s4 skipped on stub (needs x402)"
+    },
+    {
+      "step": "s4",
+      "test": 7,
+      "status": "skip",
+      "detail": "s4 skipped on stub (needs x402)"
+    },
+    {
+      "step": "s4",
+      "test": 9,
+      "status": "skip",
+      "detail": "s4 skipped on stub (needs x402)"
+    },
+    {
+      "step": "s5",
+      "test": 7,
+      "status": "skip",
+      "detail": "s5 skipped on stub (needs autonomous)"
+    },
+    {
+      "step": "s5",
+      "test": 9,
+      "status": "skip",
+      "detail": "s5 skipped on stub (needs autonomous)"
+    },
+    {
+      "step": "s6",
+      "test": 4,
+      "status": "skip",
+      "detail": "s6 skipped on stub"
+    },
+    {
+      "step": "s6",
+      "test": 7,
+      "status": "skip",
+      "detail": "s6 skipped on stub"
+    },
+    {
+      "step": "s7",
+      "test": 4,
+      "status": "skip",
+      "detail": "s7 skipped on stub"
+    },
+    {
+      "step": "s7",
+      "test": 7,
+      "status": "skip",
+      "detail": "s7 skipped on stub"
+    },
+    {
+      "step": "s7",
+      "test": 9,
+      "status": "skip",
+      "detail": "s7 skipped on stub"
+    },
+    {
+      "step": "s8a",
+      "test": 5,
+      "status": "skip",
+      "detail": "s8a skipped on stub"
+    },
+    {
+      "step": "s8b",
+      "test": 2,
+      "status": "skip",
+      "detail": "s8b skipped on stub"
+    },
+    {
+      "step": "s10",
+      "test": 8,
+      "status": "skip",
+      "detail": "s10 skipped on stub (needs claim)"
+    },
+    {
+      "step": "s10",
+      "test": 9,
+      "status": "skip",
+      "detail": "s10 skipped on stub (needs claim)"
+    },
+    {
+      "step": "s9",
+      "test": 6,
+      "status": "skip",
+      "detail": "s9 skipped on stub"
+    },
+    {
+      "step": "s11",
+      "test": 3,
+      "status": "skip",
+      "detail": "s11 skipped on stub"
+    },
+    {
+      "step": "s11",
+      "test": 9,
+      "status": "skip",
+      "detail": "s11 skipped on stub"
+    }
+  ],
+  "calls": [
+    {
+      "step": "s2",
+      "t": 3372,
+      "tool": "wallet_overview",
+      "arguments": {
+        "idempotency_key": "rh-1025124712-overview-0"
+      },
+      "ms": 369,
+      "ok": true,
+      "isError": false,
+      "structured": {
+        "wallet": {
+          "id": "wal_personal",
+          "name": "Personal",
+          "network": "stellar:testnet",
+          "contract_id": "C…(fixture)"
+        },
+        "balance": {
+          "asset": "USDC",
+          "amount": "50.00"
+        },
+        "allowance": {
+          "grant_id": "gr_18ee0b39",
+          "asset": "USDC",
+          "total": "5.00",
+          "spent": "0.00",
+          "remaining": "5.00",
+          "valid_until": "2026-10-26T12:00:00.000Z",
+          "status": "active"
+        },
+        "pending_approvals": 0,
+        "connection": {
+          "id": "18ee0b39-8c98-4adc-b234-67b5fcdca830",
+          "client_name": "hm26 rehearse (stub)"
+        }
+      },
+      "text": "{\n  \"wallet\": {\n    \"id\": \"wal_personal\",\n    \"name\": \"Personal\",\n    \"network\": \"stellar:testnet\",\n    \"contract_id\": \"C…(fixture)\"\n  },\n  \"balance\": {\n    \"asset\": \"USDC\",\n    \"amount\": \"50.00\"\n  },\n  \"allowance\": {\n    \"grant_id\": \"gr_18ee0b39\",\n    \"asset\": \"USDC\",\n    \"total\": \"5.00\",\n    \"spent\": \"0.00\",\n    \"remaining\": \"5.00\",\n    \"valid_until\": \"2026-10-26T12:00:00.000Z\",\n    \"status\": \"active\"\n  },\n  \"pending_approvals\": 0,\n  \"connection\": {\n    \"id\": \"18ee0b39-8c98-4adc-b234-67b5fcdca830\",\n    \"client_name\": \"hm26 rehearse (stub)\"\n  }\n}"
+    },
+    {
+      "step": "s3",
+      "t": 3742,
+      "tool": "wallet_overview",
+      "arguments": {
+        "idempotency_key": "rh-1025124712-overview-1"
+      },
+      "ms": 230,
+      "ok": true,
+      "isError": false,
+      "structured": {
+        "wallet": {
+          "id": "wal_personal",
+          "name": "Personal",
+          "network": "stellar:testnet",
+          "contract_id": "C…(fixture)"
+        },
+        "balance": {
+          "asset": "USDC",
+          "amount": "50.00"
+        },
+        "allowance": {
+          "grant_id": "gr_18ee0b39",
+          "asset": "USDC",
+          "total": "5.00",
+          "spent": "0.00",
+          "remaining": "5.00",
+          "valid_until": "2026-10-26T12:00:00.000Z",
+          "status": "active"
+        },
+        "pending_approvals": 0,
+        "connection": {
+          "id": "18ee0b39-8c98-4adc-b234-67b5fcdca830",
+          "client_name": "hm26 rehearse (stub)"
+        }
+      },
+      "text": "{\n  \"wallet\": {\n    \"id\": \"wal_personal\",\n    \"name\": \"Personal\",\n    \"network\": \"stellar:testnet\",\n    \"contract_id\": \"C…(fixture)\"\n  },\n  \"balance\": {\n    \"asset\": \"USDC\",\n    \"amount\": \"50.00\"\n  },\n  \"allowance\": {\n    \"grant_id\": \"gr_18ee0b39\",\n    \"asset\": \"USDC\",\n    \"total\": \"5.00\",\n    \"spent\": \"0.00\",\n    \"remaining\": \"5.00\",\n    \"valid_until\": \"2026-10-26T12:00:00.000Z\",\n    \"status\": \"active\"\n  },\n  \"pending_approvals\": 0,\n  \"connection\": {\n    \"id\": \"18ee0b39-8c98-4adc-b234-67b5fcdca830\",\n    \"client_name\": \"hm26 rehearse (stub)\"\n  }\n}"
+    }
+  ],
+  "txs": [],
+  "wire": [
+    {
+      "t": 481,
+      "method": "POST",
+      "url": "https://hm26-s4-mcp.kristjan-grm11775.workers.dev/mcp",
+      "status": 401,
+      "rpc": "initialize"
+    },
+    {
+      "t": 644,
+      "method": "GET",
+      "url": "https://hm26-s4-mcp.kristjan-grm11775.workers.dev/.well-known/oauth-protected-resource/mcp",
+      "status": 200
+    },
+    {
+      "t": 831,
+      "method": "GET",
+      "url": "https://hm26-s4-mcp.kristjan-grm11775.workers.dev/.well-known/oauth-authorization-server",
+      "status": 200
+    },
+    {
+      "t": 990,
+      "method": "POST",
+      "url": "https://hm26-s4-mcp.kristjan-grm11775.workers.dev/oauth/register",
+      "status": 201
+    },
+    {
+      "t": 2014,
+      "method": "GET",
+      "url": "https://hm26-s4-mcp.kristjan-grm11775.workers.dev/.well-known/oauth-protected-resource/mcp",
+      "status": 200
+    },
+    {
+      "t": 2028,
+      "method": "GET",
+      "url": "https://hm26-s4-mcp.kristjan-grm11775.workers.dev/.well-known/oauth-authorization-server",
+      "status": 200
+    },
+    {
+      "t": 2525,
+      "method": "POST",
+      "url": "https://hm26-s4-mcp.kristjan-grm11775.workers.dev/oauth/token",
+      "status": 200
+    },
+    {
+      "t": 2589,
+      "method": "POST",
+      "url": "https://hm26-s4-mcp.kristjan-grm11775.workers.dev/mcp",
+      "status": 200,
+      "rpc": "initialize"
+    },
+    {
+      "t": 2800,
+      "method": "POST",
+      "url": "https://hm26-s4-mcp.kristjan-grm11775.workers.dev/mcp",
+      "status": 202,
+      "rpc": "notifications/initialized"
+    },
+    {
+      "t": 2841,
+      "method": "GET",
+      "url": "https://hm26-s4-mcp.kristjan-grm11775.workers.dev/mcp",
+      "status": 405
+    },
+    {
+      "t": 3363,
+      "method": "POST",
+      "url": "https://hm26-s4-mcp.kristjan-grm11775.workers.dev/mcp",
+      "status": 200,
+      "rpc": "tools/list"
+    },
+    {
+      "t": 3738,
+      "method": "POST",
+      "url": "https://hm26-s4-mcp.kristjan-grm11775.workers.dev/mcp",
+      "status": 200,
+      "rpc": "tools/call wallet_overview"
+    },
+    {
+      "t": 3971,
+      "method": "POST",
+      "url": "https://hm26-s4-mcp.kristjan-grm11775.workers.dev/mcp",
+      "status": 200,
+      "rpc": "tools/call wallet_overview"
+    }
+  ],
+  "browser": [
+    "s1 GET https://hm26-s4-mcp.kristjan-grm11775.workers.dev/authorize?response_type=code&client_id=NaHBwdvunBUXwCok&code_challenge=VmEmPU3v_53yoPdmGIBjhBe7Z8VzC7Cetrwqaa7q6Uk&code_challenge_method=S256&redirect_uri=http%3A%2F%2F127.0.0.1%3A38087%2Fcallback&state=ebeb821c-f443-4b12-9d94-7ea16edc6607&scope=wallet&resource=https%3A%2F%2Fhm26-s4-mcp.kristjan-grm11775.workers.dev%2Fmcp → 200",
+    "s1 POST https://hm26-s4-mcp.kristjan-grm11775.workers.dev/authorize → 302",
+    "s1 GET http://127.0.0.1:38087/callback?code=<redacted>&state=ebeb821c-f443-4b12-9d94-7ea16edc6607&iss=https%3A%2F%2Fhm26-s4-mcp.kristjan-grm11775.workers.dev → 200",
+    "s1 goto https://hm26-s4-mcp.kristjan-grm11775.workers.dev/authorize?response_type=code&client_id=NaHBwdvunBUXwCok&code_challenge=<redacted>&code_challenge_method=S256&redirect_uri=http%3A%2F%2F127.0.0.1%3A38087%2Fcallback&state=<redacted>&scope=wallet&resource=https%3A%2F%2Fhm26-s4-mcp.kristjan-grm11775.workers.dev%2Fmcp → 200",
+    "s1 screenshot /home/kristjan/code/hack-meridian-2026/evidence/demo/2026-10-25T12-47-12-631Z/consent.png",
+    "s1 fill input[name=password] (password)",
+    "s1 fill input[name=allowance]",
+    "s1 click button[value=approve]"
+  ],
+  "notes": ["connection kept for probe.ts in scripts/demo/.state/stub.json"]
+}

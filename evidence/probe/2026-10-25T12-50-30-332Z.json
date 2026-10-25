@@ -1,0 +1,86 @@
+{
+  "at": "2026-10-25T12:50:30.332Z",
+  "network": "stellar:testnet",
+  "base": "https://hack-meridian-testnet.kristjan-grm11775.workers.dev",
+  "seller": "https://hm26-seller.kristjan-grm11775.workers.dev",
+  "rows": [
+    {
+      "check": "facilitator x402org /supported",
+      "level": "ok",
+      "detail": "200, exact on stellar:testnet: yes",
+      "ms": 220
+    },
+    {
+      "check": "facilitator oz /supported",
+      "level": "ok",
+      "detail": "200, exact on stellar:testnet: yes",
+      "ms": 181
+    },
+    {
+      "check": "seller GET /api/market-brief → 402",
+      "level": "ok",
+      "detail": "402, 1000000 of CBIELT… on stellar:testnet → GAINGR…",
+      "ms": 123
+    },
+    {
+      "check": "seller /mcp tools/list",
+      "level": "ok",
+      "detail": "200, tools: market_brief",
+      "ms": 130
+    },
+    {
+      "check": "service testnet /mcp without a token → 401",
+      "level": "red",
+      "detail": "404 ",
+      "ms": 195
+    },
+    {
+      "check": "service /.well-known/oauth-authorization-server",
+      "level": "red",
+      "detail": "404, DCR no, CIMD no",
+      "ms": 102
+    },
+    {
+      "check": "service /.well-known/oauth-protected-resource/mcp",
+      "level": "red",
+      "detail": "404, resource -",
+      "ms": 153
+    },
+    {
+      "check": "service tools/list (saved connection)",
+      "level": "warn",
+      "detail": "no saved connection; run rehearse --target testnet --only s3",
+      "ms": 1
+    },
+    {
+      "check": "service /api/health",
+      "level": "warn",
+      "detail": "404 <!DOCTYPE html>\n<!--[if lt IE 7]> <html class=\"no-js ie6 oldie\" lang=\"en-US\"> <![endif]-->\n<!--[if I",
+      "ms": 155
+    },
+    {
+      "check": "relayer XLM (≥ 500)",
+      "level": "ok",
+      "detail": "9994.8 XLM, 0 sponsored entries (0.0 XLM locked); ≈ 189 connection-days at 50 XLM/day above the 500 floor. https://stellar.expert/explorer/testnet/account/GBGNYETYEEWM5RIRE6KWUUZKD3X4DBZZ72M2LHQJNUGYO3D6ZYADBPT6",
+      "ms": 498
+    },
+    {
+      "check": "treasury USDC (≥ 50)",
+      "level": "ok",
+      "detail": "300.00 USDC (30 new wallets at 10), 9656.9 XLM",
+      "ms": 111
+    },
+    {
+      "check": "RPC latest ledger",
+      "level": "ok",
+      "detail": "ledger 5381808, protocol 29",
+      "ms": 479
+    },
+    {
+      "check": "shared contracts TTL (≥ 7 days)",
+      "level": "ok",
+      "detail": "shortest: spending-limit policy instance 18.0 days (ledger 5692567 ≈ 2026-11-12 12:27Z)",
+      "ms": 1766
+    }
+  ]
+}
