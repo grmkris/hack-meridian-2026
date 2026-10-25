@@ -14,6 +14,10 @@
  * 5. The same claim again: refused by Nod, and the rule refuses one more stroop onchain.
  * 6. A second link is taken back from Connections (remove_context_rule with the passkey); claiming it is refused.
  *
+ * `--dex-funded`: no treasury USDC. The sender's wallet is made deposit-first in the sender's browser, a fresh
+ * friendbot account buys testnet USDC on the DEX and pays it to the wallet's deposit address, and the consent page then
+ * signs in with that passkey instead of creating a funded wallet.
+ *
  * Evidence (run.json, screenshots) in evidence/person-link/<timestamp>/. Testnet only. The link key is printed nowhere.
  */
 import { mkdirSync, writeFileSync } from 'node:fs'
@@ -38,6 +42,7 @@ const arg = (name: string, fallback: string) => {
 }
 const BASE = arg('--base', 'http://localhost:18960')
 const AMOUNT = arg('--amount', '6')
+const DEX_FUNDED = process.argv.includes('--dex-funded')
 const NET = PRESETS.testnet
 const EXPLORER = 'https://stellar.expert/explorer/testnet'
 const stamp = new Date().toISOString().replace(/[:.]/gu, '-')
@@ -124,6 +129,63 @@ step('health', { release: at(health, 'release'), network: at(health, 'network') 
 const mcpUrl = new URL('/mcp', BASE)
 const sender = await ownerBrowser(dir)
 const senderShot = (name: string) => sender.shot(name)
+if (DEX_FUNDED) {
+  // A deposit-first wallet made with the browser's passkey (no welcome USDC), funded from the testnet DEX.
+  await sender.page.goto(`${BASE}/`, { waitUntil: 'load' })
+  // Runs in the page (its own origin and virtual authenticator), as the claim page's "Create my wallet" does.
+  const made: unknown = await sender.page.evaluate(`(async () => {
+    const enc = b => btoa(String.fromCharCode(...new Uint8Array(b))).replace(/\\+/g, '-').replace(/\\//g, '_').replace(/=+$/, '')
+    const dec = t => Uint8Array.from(atob(t.replace(/-/g, '+').replace(/_/g, '/')), c => c.charCodeAt(0))
+    const post = (url, body) => fetch(url, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) }).then(r => r.json())
+    const o = await post('/api/wallets/options', { name: 'Sender' })
+    const c = await navigator.credentials.create({ publicKey: { challenge: dec(o.challenge), rp: { id: o.rp_id, name: o.rp_name },
+      user: { id: dec(o.user_id), name: o.user_name, displayName: o.user_name }, pubKeyCredParams: [{ type: 'public-key', alg: -7 }],
+      authenticatorSelection: { residentKey: 'required', userVerification: 'required' } } })
+    return post('/api/wallets', { name: 'Sender', credential_id: enc(c.rawId), public_key: enc(c.response.getPublicKey()),
+      client_data_json: enc(c.response.clientDataJSON), attestation_object: enc(c.response.attestationObject), deposit_first: true })
+  })()`)
+  const deposit: unknown = await sender.page.evaluate(() =>
+    fetch('/api/wallet/deposit-address').then(response => response.json()),
+  )
+  const exchange = Stellar.Keypair.random()
+  await fetch(`https://friendbot.stellar.org/?addr=${exchange.publicKey()}`)
+  const horizon = new Stellar.Horizon.Server('https://horizon-testnet.stellar.org')
+  const pay = new Stellar.TransactionBuilder(await horizon.loadAccount(exchange.publicKey()), {
+    fee: '1000',
+    networkPassphrase: NET.passphrase,
+  })
+    .addOperation(
+      Stellar.Operation.pathPaymentStrictReceive({
+        sendAsset: Stellar.Asset.native(),
+        sendMax: '2000',
+        destination: at(deposit, 'address'),
+        destAsset: new Stellar.Asset('USDC', NET.usdcIssuer),
+        destAmount: '13',
+        path: [],
+      }),
+    )
+    .setTimeout(60)
+    .build()
+  pay.sign(exchange)
+  const paid = await horizon.submitTransaction(pay)
+  step('sender funded from the DEX', {
+    wallet: at(made, 'wallet', 'contract_id'),
+    deposit_address: at(deposit, 'address'),
+    payment_tx: tx(paid.hash),
+  })
+  const started = Date.now()
+  let funded: unknown = undefined
+  while (Date.now() - started < 240_000) {
+    funded = await sender.page.evaluate(() => fetch('/api/overview').then(response => response.json()))
+    if (at(funded, 'wallet', 'account_status') === 'active' && at(funded, 'balances', 'usdc') !== '0') break
+    await new Promise(resolve => setTimeout(resolve, 10_000))
+  }
+  step('sender wallet open', {
+    account_status: at(funded, 'wallet', 'account_status'),
+    usdc: at(funded, 'balances', 'usdc'),
+    deploy_tx: tx(at(funded, 'wallet', 'deploy_tx')),
+  })
+}
 const callback = loopback()
 const provider = new MemoryAuthProvider(callback.redirect, 'Person link run')
 const authUrl = await startAuthorization(mcpUrl, provider, fetch)
@@ -133,7 +195,14 @@ const browse = (actions: Parameters<typeof perform>[1], vars: Record<string, str
 await browse(
   [
     { do: 'goto', url: '{{auth_url}}' },
-    { do: 'click', selector: '[data-testid="passkey-create"], [data-testid="passkey-signin"]', optional: true },
+    // A DEX-funded sender is signed in already (never the funded create button then).
+    {
+      do: 'click',
+      selector: DEX_FUNDED
+        ? '[data-testid="passkey-signin"]'
+        : '[data-testid="passkey-create"], [data-testid="passkey-signin"]',
+      optional: true,
+    },
     { do: 'waitFor', selector: '[data-testid="consent-allow"], button[value=approve]', timeoutMs: 120_000 },
     { do: 'fill', selector: '[data-testid="allowance"], input[name=allowance]', value: '5', optional: true },
     { do: 'click', selector: '[data-testid="consent-allow"], button[value=approve]', timeoutMs: 120_000 },

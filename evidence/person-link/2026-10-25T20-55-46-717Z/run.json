@@ -1,0 +1,222 @@
+{
+  "base": "http://localhost:18960",
+  "amount": "6",
+  "steps": [
+    {
+      "at": "2026-10-25T20:55:48.179Z",
+      "step": "health",
+      "release": "local",
+      "network": "testnet"
+    },
+    {
+      "at": "2026-10-25T20:56:12.432Z",
+      "step": "sender funded from the DEX",
+      "wallet": "CD2G2TGOTC724XFCXMG4UZQ3WOEW7ABRHU2D6ZG5W2T5W3A7D77JLPIF",
+      "deposit_address": "GCOVJKIFSTOPJIBC2ZMXGFCMQDIKK7LA5WEIY7J7ONJE3R46KGGDJ7OT",
+      "payment_tx": "https://stellar.expert/explorer/testnet/tx/1caac140b3e8aef15b5e9526c15a4d86fa35e6bf00e78344c859d03f48816aea"
+    },
+    {
+      "at": "2026-10-25T20:57:25.406Z",
+      "step": "sender wallet open",
+      "account_status": "active",
+      "usdc": "130000000",
+      "deploy_tx": "https://stellar.expert/explorer/testnet/tx/844d12b42e8d9e8397f9a39136684d0ed045346b3cc1787a2a67b9eeb75a1543"
+    },
+    {
+      "at": "2026-10-25T20:57:25.685Z",
+      "step": "sender browser",
+      "line": "goto http://localhost:18960/authorize?response_type=code&client_id=vhQs1129CehAp28Q&code_challenge=<redacted>&code_challenge_method=S256&redirect_uri=http%3A%2F%2F127.0.0.1%3A39983%2Fcallback&state=<redacted>&scope=wallet&resource=http%3A%2F%2Flocalhost%3A18960%2Fmcp → 200"
+    },
+    {
+      "at": "2026-10-25T20:57:30.689Z",
+      "step": "sender browser",
+      "line": "skipped optional click (click: Timeout 5000ms exceeded.)"
+    },
+    {
+      "at": "2026-10-25T20:57:30.697Z",
+      "step": "sender browser",
+      "line": "visible [data-testid=\"consent-allow\"], button[value=approve]"
+    },
+    {
+      "at": "2026-10-25T20:57:30.708Z",
+      "step": "sender browser",
+      "line": "fill [data-testid=\"allowance\"], input[name=allowance]"
+    },
+    {
+      "at": "2026-10-25T20:57:30.771Z",
+      "step": "sender browser",
+      "line": "click [data-testid=\"consent-allow\"], button[value=approve]"
+    },
+    {
+      "at": "2026-10-25T20:57:43.018Z",
+      "step": "wallet_overview",
+      "sentence": "Nod wallet Sender (Stellar Testnet) holds 13.00 USDC. This AI app may still spend 5.00 USDC on its own until 2026-10-26T12:00:05.791Z; anything bigger needs the user's nod."
+    },
+    {
+      "at": "2026-10-25T20:57:43.018Z",
+      "step": "sender",
+      "wallet": "CD2G2TGOTC724XFCXMG4UZQ3WOEW7ABRHU2D6ZG5W2T5W3A7D77JLPIF",
+      "usdc": "13.00"
+    },
+    {
+      "at": "2026-10-25T20:57:43.064Z",
+      "step": "payment_prepare",
+      "sentence": "6.00 USDC for Jan is past what this AI app may spend on its own, so it needs the user's nod. Ask the user to open http://localhost:18960/approve/link/cl_3a55eb32e60a6cf7cca817b8542b5c82: approving on Nod's page creates a link they send Jan; nothing leaves their wallet until Jan claims it. Then poll payment_status with payment_id cl_3a55eb32e60a6cf7cca817b8542b5c82."
+    },
+    {
+      "at": "2026-10-25T20:57:43.064Z",
+      "step": "payment_prepare person link",
+      "outcome": "person_link",
+      "status": "awaiting_approval",
+      "approval_url": "http://localhost:18960/approve/link/cl_3a55eb32e60a6cf7cca817b8542b5c82",
+      "claim_url": null
+    },
+    {
+      "at": "2026-10-25T20:57:43.138Z",
+      "step": "sender browser",
+      "line": "goto http://localhost:18960/approve/link/cl_3a55eb32e60a6cf7cca817b8542b5c82 → 200"
+    },
+    {
+      "at": "2026-10-25T20:57:43.216Z",
+      "step": "sender browser",
+      "line": "screenshot /home/kristjan/code/hack-meridian-2026/evidence/person-link/2026-10-25T20-55-46-717Z/sender-approval.png"
+    },
+    {
+      "at": "2026-10-25T20:57:43.246Z",
+      "step": "sender browser",
+      "line": "click [data-testid=\"link-approve\"]"
+    },
+    {
+      "at": "2026-10-25T20:57:48.598Z",
+      "step": "sender browser",
+      "line": "visible [data-testid=\"link-done\"]"
+    },
+    {
+      "at": "2026-10-25T20:57:48.681Z",
+      "step": "payment_status",
+      "sentence": "The user approved and has the link to send Jan; it carries its own key, so neither Nod nor this app sees it. Nothing leaves the wallet until Jan claims it, by 2026-11-01 20:57 UTC. Poll payment_status with payment_id cl_3a55eb32e60a6cf7cca817b8542b5c82."
+    },
+    {
+      "at": "2026-10-25T20:57:48.978Z",
+      "step": "wallet_overview",
+      "sentence": "Nod wallet Sender (Stellar Testnet) holds 13.00 USDC. This AI app may still spend 5.00 USDC on its own until 2026-10-26T12:00:05.791Z; anything bigger needs the user's nod."
+    },
+    {
+      "at": "2026-10-25T20:57:48.979Z",
+      "step": "the nod: rule installed, nothing moved",
+      "install_tx": "https://stellar.expert/explorer/testnet/tx/2b39ff49acb1f0588e91cccca555eafa6d8e9b0974a337eeb1e45b0800bc53f4",
+      "rule_id": 2,
+      "status": "approved",
+      "sentence_has_no_key": true,
+      "link_shape": "http://localhost:18960/claim/cl_3a55eb32e60a6cf7cca817b8542b5c82#k=<seed>.<public> (not recorded)",
+      "sender_usdc": "13.00"
+    },
+    {
+      "at": "2026-10-25T20:57:50.512Z",
+      "step": "boundary onchain (enforcing simulation, link key)",
+      "amount_plus_one_stroop": {
+        "ok": false,
+        "codes": [
+          3221
+        ],
+        "error": "HostError: Error(Auth, InvalidAction)"
+      },
+      "exactly_the_amount": {
+        "ok": true,
+        "codes": [],
+        "error": null
+      }
+    },
+    {
+      "at": "2026-10-25T20:58:08.429Z",
+      "step": "payment_status",
+      "sentence": "Jan claimed it: paid 6.00 USDC to CDLKJTXEDGFHE65WEHQZU5GXTOM27EBBY5W3HPLEJOGY5PP343WFVXKA. Transaction b8d2d53a996c3b05d1553d3031f4baf97fc19cca61d657fef88e7c37879a5611 (https://stellar.expert/explorer/testnet/tx/b8d2d53a996c3b05d1553d3031f4baf97fc19cca61d657fef88e7c37879a5611)."
+    },
+    {
+      "at": "2026-10-25T20:58:08.674Z",
+      "step": "Jan claimed",
+      "status": "confirmed",
+      "claim_tx": "https://stellar.expert/explorer/testnet/tx/b8d2d53a996c3b05d1553d3031f4baf97fc19cca61d657fef88e7c37879a5611",
+      "jan_wallet": "https://stellar.expert/explorer/testnet/contract/CDLKJTXEDGFHE65WEHQZU5GXTOM27EBBY5W3HPLEJOGY5PP343WFVXKA",
+      "jan_usdc": "60000000",
+      "jan_account_status": "active",
+      "jan_deploy_tx": "https://stellar.expert/explorer/testnet/tx/9a22da0afb9f55a10c2f393dd491ecaf488b51089041f0bee03e2a1b356f97ae"
+    },
+    {
+      "at": "2026-10-25T20:58:09.377Z",
+      "step": "the same claim again",
+      "nod": {
+        "status": 409,
+        "body": "{\"error\":\"This link was already claimed.\"}"
+      },
+      "onchain_one_more_stroop": {
+        "ok": false,
+        "codes": [
+          3221
+        ],
+        "error": "HostError: Error(Auth, InvalidAction)"
+      }
+    },
+    {
+      "at": "2026-10-25T20:58:09.417Z",
+      "step": "payment_prepare",
+      "sentence": "5.50 USDC for Ana is past what this AI app may spend on its own, so it needs the user's nod. Ask the user to open http://localhost:18960/approve/link/cl_0652f8af4d4e3beae2434ca957ac6ec3: approving on Nod's page creates a link they send Ana; nothing leaves their wallet until Ana claims it. Then poll payment_status with payment_id cl_0652f8af4d4e3beae2434ca957ac6ec3."
+    },
+    {
+      "at": "2026-10-25T20:58:09.464Z",
+      "step": "sender browser",
+      "line": "goto http://localhost:18960/approve/link/cl_0652f8af4d4e3beae2434ca957ac6ec3 → 200"
+    },
+    {
+      "at": "2026-10-25T20:58:09.523Z",
+      "step": "sender browser",
+      "line": "click [data-testid=\"link-approve\"]"
+    },
+    {
+      "at": "2026-10-25T20:58:17.909Z",
+      "step": "sender browser",
+      "line": "visible [data-testid=\"link-done\"]"
+    },
+    {
+      "at": "2026-10-25T20:58:23.236Z",
+      "step": "taken back",
+      "via_connections": true,
+      "remove_tx": "https://stellar.expert/explorer/testnet/tx/62c94ccafc411ff1eb0104e51d52a9c4c249d99623fc1cf64d3899bb84f2ab39",
+      "claim_after_revoke": {
+        "status": 410,
+        "body": "{\"error\":\"The sender took this link back.\"}"
+      },
+      "onchain_after_revoke": {
+        "ok": false,
+        "codes": [
+          3000
+        ],
+        "error": "HostError: Error(Auth, InvalidAction)"
+      },
+      "links": [
+        {
+          "id": "cl_0652f8af4d4e3beae2434ca957ac6ec3",
+          "recipient_name": "Ana",
+          "amount": "55000000",
+          "status": "revoked",
+          "expires_at": "2026-11-01T20:58:10.742Z",
+          "revoke_url": null,
+          "paid_at": null,
+          "tx_hash": null,
+          "install_tx": "1c7193c9a16cfc2df003c33d661cc7d4d1caa5774ee38d818148b1ac7277d56d"
+        },
+        {
+          "id": "cl_3a55eb32e60a6cf7cca817b8542b5c82",
+          "recipient_name": "Jan",
+          "amount": "60000000",
+          "status": "paid",
+          "expires_at": "2026-11-01T20:57:44.019Z",
+          "revoke_url": null,
+          "paid_at": "2026-10-25T20:57:51.402Z",
+          "tx_hash": "b8d2d53a996c3b05d1553d3031f4baf97fc19cca61d657fef88e7c37879a5611",
+          "install_tx": "2b39ff49acb1f0588e91cccca555eafa6d8e9b0974a337eeb1e45b0800bc53f4"
+        }
+      ]
+    }
+  ]
+}
