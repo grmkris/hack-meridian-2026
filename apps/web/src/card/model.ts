@@ -8,6 +8,7 @@ import {
   PaymentView,
   PocketPull,
   ReceiptView,
+  RequestView,
   WalletOverviewOutput,
 } from '@hm/protocol'
 
@@ -82,8 +83,24 @@ export const Shown = defineTaggedUnion({
   Wallet: { overview: WalletOverviewOutput },
   AllowanceLink: { link: ConnectionGrantCreateOutput },
   Revoked: { revoke: ConnectionGrantRevokeOutput },
+  Request: { request: RequestView },
+  Requests: { requests: Schema.Array(RequestView) },
 })
 export type Shown = typeof Shown.Type
+
+/** Paying or declining a request from the card: confirmed first, with one idempotency key per action, kept for retries. */
+export const RequestActionKind = Schema.Literals(['Pay', 'Decline'])
+export type RequestActionKind = typeof RequestActionKind.Type
+
+const ActionFields = { requestId: Schema.String, kind: RequestActionKind, key: Schema.String }
+
+export const RequestAction = defineTaggedUnion({
+  Idle: {},
+  Confirming: ActionFields,
+  Sending: ActionFields,
+  Failed: { ...ActionFields, reason: Schema.String },
+})
+export type RequestAction = typeof RequestAction.Type
 
 export const Poll = defineTaggedUnion({
   Idle: {},
@@ -113,5 +130,11 @@ export const Model = Schema.Struct({
   maybePollError: Schema.Option(Schema.String),
   maybeSharedContext: Schema.Option(Schema.String),
   link: LinkState,
+  /** A payment the card itself prepared (paying a request); shown over everything else until settled or dismissed. */
+  maybeActivePayment: Schema.Option(PaymentView),
+  requestAction: RequestAction,
+  maybeSelectedRequestId: Schema.Option(Schema.String),
+  /** Home: requests waiting for this wallet to pay. */
+  inbox: Schema.Array(RequestView),
 })
 export type Model = typeof Model.Type

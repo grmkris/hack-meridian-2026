@@ -6,6 +6,8 @@ import {
   PaidMcpCallOutput,
   PaidResourceFetchOutput,
   PaymentView,
+  RequestView,
+  RequestsListOutput,
   WalletOverviewOutput,
 } from '@hm/protocol'
 
@@ -117,6 +119,13 @@ const decodeFetch = Schema.decodeUnknownOption(PaidResourceFetchOutput)
 const decodeMcpCall = Schema.decodeUnknownOption(PaidMcpCallOutput)
 const decodeAllowanceLink = Schema.decodeUnknownOption(ConnectionGrantCreateOutput)
 const decodeRevoke = Schema.decodeUnknownOption(ConnectionGrantRevokeOutput)
+const decodeRequest = Schema.decodeUnknownOption(RequestView)
+const decodeRequests = Schema.decodeUnknownOption(RequestsListOutput)
+
+export const requestOf = (structured: unknown): Option.Option<RequestView> => decodeRequest(structured)
+
+export const requestsOf = (structured: unknown): Option.Option<ReadonlyArray<RequestView>> =>
+  Option.map(decodeRequests(structured), list => list.requests)
 
 export const paymentOf = (structured: unknown): Option.Option<PaymentView> => decodePayment(structured)
 
@@ -167,9 +176,12 @@ const MCP_CALL: Decoder = structured =>
 const ALLOWANCE_LINK: Decoder = structured =>
   Option.map(decodeAllowanceLink(structured), link => Shown.AllowanceLink({ link }))
 const REVOKED: Decoder = structured => Option.map(decodeRevoke(structured), revoke => Shown.Revoked({ revoke }))
+const REQUEST: Decoder = structured => Option.map(decodeRequest(structured), request => Shown.Request({ request }))
+const REQUESTS: Decoder = structured =>
+  Option.map(decodeRequests(structured), list => Shown.Requests({ requests: list.requests }))
 
 /** Shape order when the host does not name the tool: the most specific shapes first. */
-const BY_SHAPE: ReadonlyArray<Decoder> = [PAYMENT, WALLET, FETCH, MCP_CALL, REVOKED, ALLOWANCE_LINK]
+const BY_SHAPE: ReadonlyArray<Decoder> = [PAYMENT, WALLET, REQUEST, REQUESTS, FETCH, MCP_CALL, REVOKED, ALLOWANCE_LINK]
 
 const BY_TOOL: Readonly<Record<string, Decoder>> = {
   payment_prepare: PAYMENT,
@@ -181,6 +193,10 @@ const BY_TOOL: Readonly<Record<string, Decoder>> = {
   paid_mcp_call: MCP_CALL,
   connection_grant_create: ALLOWANCE_LINK,
   connection_grant_revoke: REVOKED,
+  request_create: REQUEST,
+  requests_list: REQUESTS,
+  request_pay: PAYMENT,
+  request_decline: REQUEST,
 }
 
 /** What a tool result shows: the named tool's shape first, then any shape it fits. */

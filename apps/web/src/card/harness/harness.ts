@@ -69,17 +69,18 @@ const bridge = new AppBridge(
   },
 )
 
-/** The fixture's answers to the card's own tool calls, in order; the last one repeats. */
-const makeAnswerer = (answers: ReadonlyArray<unknown>) => {
-  let calls = 0
+/** The fixture's answers to the card's own tool calls, by tool and in order; the last one repeats. */
+const makeAnswerer = () => {
+  const counts = new Map<string, number>()
   return (name: string): CallToolResult => {
-    const answer = answers[Math.min(calls, answers.length - 1)]
-    calls += 1
-    say(`tools/call ${name} #${calls}`)
-    return toolResult(answer, `${name} answered`)
+    const answers = fixture.answers?.[name] ?? fixture.polls ?? [fixture.structured]
+    const count = counts.get(name) ?? 0
+    counts.set(name, count + 1)
+    say(`tools/call ${name} #${count + 1}`)
+    return toolResult(answers[Math.min(count, answers.length - 1)], `${name} answered`)
   }
 }
-const answer = makeAnswerer(fixture.polls ?? [fixture.structured])
+const answer = makeAnswerer()
 bridge.oncalltool = async ({ name }) => answer(name)
 bridge.onopenlink = async ({ url }) => {
   say(`open-link ${url}`)

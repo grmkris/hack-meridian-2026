@@ -1,5 +1,6 @@
 import type {
   GrantView,
+  RequestView,
   PaidMcpCallOutput,
   PaidResourceFetchOutput,
   PaymentView,
@@ -28,6 +29,8 @@ export interface Fixture {
   readonly isError?: boolean
   /** What `payment_status` / `wallet_overview` answer, in order; the last answer repeats. */
   readonly polls?: ReadonlyArray<unknown>
+  /** Answers for named tools (request_pay, requests_list, …), in order; the last answer repeats. */
+  readonly answers?: Readonly<Record<string, ReadonlyArray<unknown>>>
 }
 
 const receipt = (overrides: Partial<ReceiptView> = {}): ReceiptView => ({
@@ -161,6 +164,49 @@ const mcpResult = (overrides: Partial<PaidMcpCallOutput> = {}): PaidMcpCallOutpu
   grant_remaining: '2.95',
   ...overrides,
 })
+
+const request = (overrides: Partial<RequestView> = {}): RequestView => ({
+  request_id: 'rq_dinner',
+  direction: 'incoming',
+  status: 'open',
+  amount: '12.50',
+  asset: 'USDC',
+  network: 'stellar:testnet',
+  requester: { address: 'CBOBWALLET5JLN6HOD7ENHNJDQ3C4HICTCPKINJOG2PHUNKQS7QLBYH', contact_name: 'Bob', is_you: false },
+  payer: { address: WALLET, contact_name: null, is_you: true },
+  payer_is_nod_wallet: true,
+  note: 'Your half of Saturday’s dinner 🍝',
+  request_url: `${ORIGIN}/approve/request/rq_dinner`,
+  payment_id: null,
+  receipt: null,
+  expires_at: '2026-11-01T18:00:00.000Z',
+  created_at: '2026-10-25T18:00:00.000Z',
+  next_step: 'Call request_pay with request_id rq_dinner to pay it, or request_decline.',
+  ...overrides,
+})
+
+const STRANGER = request({
+  request_id: 'rq_stranger',
+  amount: '40.00',
+  requester: { address: 'CSTRANGER2N4P3R7T5V6B2C4D6F7H2J3K4L5M6N7P2Q3R4S5T6U7V2W', contact_name: null, is_you: false },
+  note: 'Invoice 2291, pay today please',
+  request_url: `${ORIGIN}/approve/request/rq_stranger`,
+})
+
+const REQUEST_PAYMENT = {
+  ...payment({
+    payment_id: 'pi_rq_dinner',
+    amount: '12.50',
+    recipient: {
+      name: 'Bob',
+      address: 'CBOBWALLET5JLN6HOD7ENHNJDQ3C4HICTCPKINJOG2PHUNKQS7QLBYH',
+      readiness: 'usdc_ready',
+    },
+    reason: 'Payment request rq_dinner from Bob',
+    approval_url: `${ORIGIN}/approve/pi_rq_dinner`,
+  }),
+  request_id: 'rq_dinner',
+}
 
 const PREPARE = { recipient: 'Bob', amount: '20', idempotency_key: 'k-bob-20' }
 const FETCH = { url: 'https://weather.x402.example/forecast?city=lisbon', max_amount: '0.50', idempotency_key: 'k-wx' }
@@ -317,6 +363,74 @@ export const FIXTURES: Readonly<Record<string, Fixture>> = {
     structured: overview(),
     sentence: 'The wallet holds 48.50 USDC.',
     polls: [overview()],
+  },
+  'request-incoming': {
+    tool: 'requests_list',
+    arguments: { direction: 'incoming' },
+    structured: { requests: [request()], grant_remaining: '3.00' },
+    sentence: '1 payment request; 1 waiting for this wallet to pay.',
+    answers: { request_pay: [REQUEST_PAYMENT], request_decline: [request({ status: 'declined' })] },
+  },
+  'request-single': {
+    tool: 'request_create',
+    arguments: { payer: 'Alice', amount: '8', idempotency_key: 'k-rq' },
+    structured: request({
+      request_id: 'rq_tickets',
+      direction: 'outgoing',
+      amount: '8.00',
+      requester: { address: WALLET, contact_name: null, is_you: true },
+      payer: {
+        address: 'CALICEWALLET6HOD7ENHNJDQ3C4HICTCPKINJOG2PHUNKQS7QLBYHSW',
+        contact_name: 'Alice',
+        is_you: false,
+      },
+      note: 'Concert tickets, Friday',
+      request_url: `${ORIGIN}/approve/request/rq_tickets`,
+    }),
+    sentence: 'Asked Alice for 8.00 USDC on Stellar Testnet; it is in their Nod inbox.',
+  },
+  'request-stranger': {
+    tool: 'request_create',
+    arguments: {},
+    structured: STRANGER,
+    sentence: 'A stranger asks for 40.00 USDC.',
+    answers: {
+      request_pay: [{ ...REQUEST_PAYMENT, payment_id: 'pi_rq_stranger', amount: '40.00', request_id: 'rq_stranger' }],
+    },
+  },
+  'requests-list': {
+    tool: 'requests_list',
+    arguments: {},
+    structured: {
+      requests: [
+        request(),
+        STRANGER,
+        request({
+          request_id: 'rq_tickets',
+          direction: 'outgoing',
+          status: 'paid',
+          amount: '8.00',
+          requester: { address: WALLET, contact_name: null, is_you: true },
+          payer: {
+            address: 'CALICEWALLET6HOD7ENHNJDQ3C4HICTCPKINJOG2PHUNKQS7QLBYHSW',
+            contact_name: 'Alice',
+            is_you: false,
+          },
+          receipt: receipt({ amount: '8.00', recipient_name: null }),
+        }),
+      ],
+      grant_remaining: '3.00',
+    },
+    sentence: '3 payment requests; 2 waiting for this wallet to pay.',
+    answers: { request_pay: [REQUEST_PAYMENT] },
+  },
+  'home-inbox': {
+    tool: 'nod_home',
+    arguments: {},
+    structured: overview(),
+    sentence: 'The wallet holds 48.50 USDC.',
+    polls: [overview()],
+    answers: { requests_list: [{ requests: [request(), STRANGER], grant_remaining: '3.00' }] },
   },
   'tool-error': {
     tool: 'payment_prepare',

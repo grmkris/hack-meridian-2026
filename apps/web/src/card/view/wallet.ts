@@ -28,6 +28,7 @@ import {
   primaryAction,
   textLink,
 } from './parts'
+import { requestRows } from './request'
 
 /** `wallet_overview` and `nod_home` (the wallet), `connection_grant_create` and `connection_grant_revoke`. */
 
@@ -157,6 +158,14 @@ export const walletView = (model: Model, overview: WalletOverviewOutput, h: Buil
     allowance(overview.connection.client_name, overview.grant, h),
     Array.isReadonlyArrayNonEmpty(pending) || isHome
       ? list('Needs your nod', pending, pendingRow, 'Nothing is waiting for you.', h)
+      : h.empty,
+    isHome
+      ? requestRows(
+          'Asks you for money',
+          Array.filter(model.inbox, request => request.direction === 'incoming' && request.status === 'open'),
+          'Nobody is asking you for money.',
+          h,
+        )
       : h.empty,
     list(
       'Recent payments',

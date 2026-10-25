@@ -1,11 +1,12 @@
-import { Option } from 'effect'
+import { Array, Option } from 'effect'
 import type { Html, HtmlBuilder } from 'foldkit/html'
 
-import type { Message } from './message'
+import { Message } from './message'
 import { type Model, Shown } from './model'
 import { eyebrow, header, lead, note } from './view/parts'
-import { paymentView } from './view/payment'
+import { paymentBody, paymentView } from './view/payment'
 import { purchaseView } from './view/purchase'
+import { backButton, requestBody, requestsView, requestView } from './view/request'
 import { allowanceLinkView, revokedView, walletView } from './view/wallet'
 
 /** The card: the frame (theme, host variables, surface) around the view of whatever the tool returned. */
@@ -42,10 +43,32 @@ const body = (model: Model, h: Builder): ReadonlyArray<Html> =>
     ],
     Payment: ({ payment }) => paymentView(model, payment, h),
     Purchase: ({ purchase, maybePayment }) => purchaseView(model, purchase, maybePayment, h),
-    Wallet: ({ overview }) => walletView(model, overview, h),
+    Wallet: ({ overview }) =>
+      Option.match(selectedInboxRequest(model), {
+        onSome: request => [
+          header(request.network, h),
+          backButton('Wallet', Message.ClickedAllRequests(), h),
+          ...requestBody(model, request, h),
+        ],
+        onNone: () => walletView(model, overview, h),
+      }),
     AllowanceLink: ({ link }) => allowanceLinkView(model, link, h),
     Revoked: ({ revoke }) => revokedView(model, revoke, h),
+    Request: ({ request }) => requestView(model, request, h),
+    Requests: ({ requests }) => requestsView(model, requests, h),
   })
+
+/** On Home, the inbox request the person chose to review. */
+const selectedInboxRequest = (model: Model) =>
+  Option.flatMap(model.maybeSelectedRequestId, id => Array.findFirst(model.inbox, request => request.request_id === id))
+
+/** A payment the card prepared itself (paying a request), over whatever the card showed before. */
+const activePayment = (model: Model, h: Builder): Option.Option<ReadonlyArray<Html>> =>
+  Option.map(model.maybeActivePayment, payment => [
+    header(payment.network, h),
+    backButton(model.surface === 'Home' ? 'Wallet' : 'Requests', Message.ClickedClosePayment(), h),
+    ...paymentBody(model, payment, h),
+  ])
 
 export const view = (model: Model, h: Builder): Html =>
   h.main(
@@ -60,5 +83,5 @@ export const view = (model: Model, h: Builder): Html =>
       ),
       h.Style(model.appearance.variables),
     ],
-    body(model, h),
+    Option.getOrElse(activePayment(model, h), () => body(model, h)),
   )

@@ -1,8 +1,8 @@
-import { Duration, Effect, Layer, Match, Option, Schema, Stream } from 'effect'
+import { Array, Clock, Duration, Effect, Layer, Match, Option, Random, Schema, Stream } from 'effect'
 import { Command, Port, Runtime, Subscription, type Update } from 'foldkit'
 import { modifyFields } from 'foldkit/struct'
 
-import type { PaymentView } from '@hm/protocol'
+import type { PaymentView, RequestView } from '@hm/protocol'
 
 import {
   appNameOf,
@@ -10,18 +10,20 @@ import {
   decodeToolInput,
   mergeAppearance,
   paymentOf,
+  requestOf,
+  requestsOf,
   shownOfResult,
   toolNameOf,
   walletOf,
 } from './decode'
-import { Host } from './host'
+import { Host, type ToolReply } from './host'
 import { Message } from './message'
-import { Bridge, LinkState, Model, Poll, Shown, Surface } from './model'
+import { Bridge, LinkState, Model, Poll, RequestAction, RequestActionKind, Shown, Surface } from './model'
 import { isSettled, settledSentence } from './phase'
 import { view } from './view'
 
 /**
- * The Nod card: one Foldkit program for every view, embedded by `entry.ts`. The host's notifications arrive on
+ * The Nod card: one Foldkit program for every view, embedded by `boot.ts`. The host's notifications arrive on
  * inbound ports as unknown JSON and are decoded here; everything the card asks of the host goes through `Host`.
  */
 
@@ -65,10 +67,16 @@ export const init: Runtime.ElementInit<Model, Message, Flags, Host> = flags => (
     maybePollError: Option.none(),
     maybeSharedContext: Option.none(),
     link: LinkState.Idle(),
+    maybeActivePayment: Option.none(),
+    requestAction: RequestAction.Idle(),
+    maybeSelectedRequestId: Option.none(),
+    inbox: [],
   },
 })
 
 // COMMAND
+
+const UNREADABLE = 'Nod sent something the card cannot read.'
 
 export const PollPayment = Command.define('PollPayment', {
   args: { paymentId: Schema.String },
@@ -88,6 +96,15 @@ export const PollWallet = Command.define('PollWallet', {
     const reply = yield* host.callTool('wallet_overview', {})
     return Message.SucceededPollWallet({ reply })
   }).pipe(Effect.catch(error => Effect.succeed(Message.FailedPollWallet({ reason: error.reason })))),
+})
+
+export const PollInbox = Command.define('PollInbox', {
+  messages: [Message.SucceededPollInbox, Message.FailedPollInbox],
+  execute: Effect.gen(function* () {
+    const host = yield* Host
+    const reply = yield* host.callTool('requests_list', { direction: 'incoming', status: 'open' })
+    return Message.SucceededPollInbox({ reply })
+  }).pipe(Effect.catch(error => Effect.succeed(Message.FailedPollInbox({ reason: error.reason })))),
 })
 
 export const OpenLink = Command.define('OpenLink', {
@@ -112,6 +129,38 @@ export const ShareContext = Command.define('ShareContext', {
     }).pipe(Effect.orElseSucceed(() => Message.CompletedShareContext())),
 })
 
+const KEY_SPACE = 2 ** 31
+
+/** One idempotency key per pay or decline the person starts; a retry of the same action sends the same key. */
+export const MakeActionKey = Command.define('MakeActionKey', {
+  args: { requestId: Schema.String, kind: RequestActionKind },
+  messages: [Message.CompletedMakeActionKey],
+  execute: ({ requestId, kind }) =>
+    Effect.gen(function* () {
+      const now = yield* Clock.currentTimeMillis
+      const salt = yield* Random.nextIntBetween(0, KEY_SPACE)
+      return Message.CompletedMakeActionKey({
+        requestId,
+        kind,
+        key: `card-${kind === 'Pay' ? 'pay' : 'decline'}-${requestId}-${now.toString(36)}-${salt.toString(36)}`,
+      })
+    }),
+})
+
+export const SendRequestAction = Command.define('SendRequestAction', {
+  args: { requestId: Schema.String, kind: RequestActionKind, key: Schema.String },
+  messages: [Message.SucceededRequestAction, Message.FailedRequestAction],
+  execute: ({ requestId, kind, key }) =>
+    Effect.gen(function* () {
+      const host = yield* Host
+      const reply = yield* host.callTool(kind === 'Pay' ? 'request_pay' : 'request_decline', {
+        request_id: requestId,
+        idempotency_key: key,
+      })
+      return Message.SucceededRequestAction({ kind, reply })
+    }).pipe(Effect.catch(error => Effect.succeed(Message.FailedRequestAction({ reason: error.reason })))),
+})
+
 // POLLING
 
 /** What the card is waiting on, if anything: a payment that has not settled, or the Home wallet. */
@@ -120,26 +169,39 @@ type PollTarget = { readonly _tag: 'Payment'; readonly paymentId: string } | { r
 const unsettled = (payment: PaymentView): Option.Option<PollTarget> =>
   isSettled(payment) ? Option.none() : Option.some({ _tag: 'Payment', paymentId: payment.payment_id })
 
+const shownTarget = (shown: Shown): Option.Option<PollTarget> =>
+  Shown.match<Option.Option<PollTarget>>(shown, {
+    Waiting: () => Option.none(),
+    ToolFailed: () => Option.none(),
+    Unrecognised: () => Option.none(),
+    Payment: ({ payment }) => unsettled(payment),
+    Purchase: ({ purchase, maybePayment }) =>
+      Option.match(maybePayment, {
+        onSome: unsettled,
+        onNone: () =>
+          purchase.status === 'requires_approval' && purchase.payment_id !== null
+            ? Option.some({ _tag: 'Payment', paymentId: purchase.payment_id })
+            : Option.none(),
+      }),
+    Wallet: () => Option.none(),
+    AllowanceLink: () => Option.none(),
+    Revoked: () => Option.none(),
+    Request: () => Option.none(),
+    Requests: () => Option.none(),
+  })
+
 export const pollTargetOf = (model: Model): Option.Option<PollTarget> =>
-  model.surface === 'Home'
-    ? Option.some({ _tag: 'Wallet' })
-    : Shown.match<Option.Option<PollTarget>>(model.shown, {
-        Waiting: () => Option.none(),
-        ToolFailed: () => Option.none(),
-        Unrecognised: () => Option.none(),
-        Payment: ({ payment }) => unsettled(payment),
-        Purchase: ({ purchase, maybePayment }) =>
-          Option.match(maybePayment, {
-            onSome: unsettled,
-            onNone: () =>
-              purchase.status === 'requires_approval' && purchase.payment_id !== null
-                ? Option.some({ _tag: 'Payment', paymentId: purchase.payment_id })
-                : Option.none(),
-          }),
-        Wallet: () => Option.none(),
-        AllowanceLink: () => Option.none(),
-        Revoked: () => Option.none(),
-      })
+  Option.match(Option.flatMap(model.maybeActivePayment, unsettled), {
+    onSome: Option.some,
+    onNone: () => (model.surface === 'Home' ? Option.some({ _tag: 'Wallet' }) : shownTarget(model.shown)),
+  })
+
+/** Whether the payment the card watches had already settled before this poll (so the AI already knows). */
+const wasSettled = (model: Model): boolean =>
+  Option.match(model.maybeActivePayment, {
+    onSome: isSettled,
+    onNone: () => Option.isNone(shownTarget(model.shown)),
+  })
 
 const canCallTools = (model: Model): boolean =>
   Bridge.match<boolean>(model.bridge, {
@@ -181,28 +243,58 @@ const startPoll = (model: Model): UpdateReturn => {
     onNone: () => ({ model }),
     onSome: target => ({
       model: modifyFields(model, { poll: () => Poll.InFlight() }),
-      commands: [target._tag === 'Payment' ? PollPayment({ paymentId: target.paymentId }) : PollWallet()],
+      commands:
+        target._tag === 'Payment' ? [PollPayment({ paymentId: target.paymentId })] : [PollWallet(), PollInbox()],
     }),
   })
 }
 
-const paymentShown = (shown: Shown, payment: PaymentView): Shown =>
-  Shown.match<Shown>(shown, {
-    Waiting: () => Shown.Payment({ payment }),
-    ToolFailed: () => shown,
-    Unrecognised: () => shown,
-    Payment: () => Shown.Payment({ payment }),
-    Purchase: ({ purchase }) => Shown.Purchase({ purchase, maybePayment: Option.some(payment) }),
-    Wallet: () => shown,
-    AllowanceLink: () => shown,
-    Revoked: () => shown,
+const withPayment = (model: Model, payment: PaymentView): Model =>
+  Option.isSome(model.maybeActivePayment)
+    ? modifyFields(model, { maybeActivePayment: () => Option.some(payment) })
+    : modifyFields(model, {
+        shown: shown =>
+          Shown.match<Shown>(shown, {
+            Waiting: () => Shown.Payment({ payment }),
+            ToolFailed: () => shown,
+            Unrecognised: () => shown,
+            Payment: () => Shown.Payment({ payment }),
+            Purchase: ({ purchase }) => Shown.Purchase({ purchase, maybePayment: Option.some(payment) }),
+            Wallet: () => shown,
+            AllowanceLink: () => shown,
+            Revoked: () => shown,
+            Request: () => shown,
+            Requests: () => shown,
+          }),
+      })
+
+const replaceRequest = (requests: ReadonlyArray<RequestView>, request: RequestView) =>
+  Array.map(requests, candidate => (candidate.request_id === request.request_id ? request : candidate))
+
+/** A request the card changed (declined), wherever the card shows it. */
+const withRequest = (model: Model, request: RequestView): Model =>
+  modifyFields(model, {
+    shown: shown =>
+      Shown.match<Shown>(shown, {
+        Waiting: () => shown,
+        ToolFailed: () => shown,
+        Unrecognised: () => shown,
+        Payment: () => shown,
+        Purchase: () => shown,
+        Wallet: () => shown,
+        AllowanceLink: () => shown,
+        Revoked: () => shown,
+        Request: () => Shown.Request({ request }),
+        Requests: ({ requests }) => Shown.Requests({ requests: replaceRequest(requests, request) }),
+      }),
+    inbox: inbox => replaceRequest(inbox, request),
   })
 
 /** Tell the AI once when a payment the card was watching settles; the same sentence is never sent twice. */
-const shareSettled = (model: Model, wasSettled: boolean, payment: PaymentView): UpdateReturn => {
+const shareSettled = (model: Model, settledBefore: boolean, payment: PaymentView): UpdateReturn => {
   const text = settledSentence(payment)
   const isNew = Option.match(model.maybeSharedContext, { onNone: () => true, onSome: shared => shared !== text })
-  if (wasSettled || !isSettled(payment) || !isNew) {
+  if (settledBefore || !isSettled(payment) || !isNew) {
     return { model }
   }
   return {
@@ -211,10 +303,63 @@ const shareSettled = (model: Model, wasSettled: boolean, payment: PaymentView): 
   }
 }
 
-const wasSettled = (model: Model): boolean => Option.isNone(pollTargetOf(model))
-
 const afterPoll = (model: Model): Model =>
   modifyFields(model, { poll: () => Poll.Idle(), pollCount: count => count + 1 })
+
+const unreadable = (reply: ToolReply): string => (reply.text === '' ? UNREADABLE : reply.text)
+
+const pollFailed = (model: Model, reason: string): UpdateReturn => ({
+  model: modifyFields(afterPoll(model), { maybePollError: () => Option.some(reason) }),
+})
+
+type ActionFields = Readonly<{ requestId: string; kind: RequestActionKind; key: string }>
+
+/** The action a confirm (or a retry) sends: the one being confirmed, or the one that failed, with its own key. */
+const actionToSend = (action: RequestAction): Option.Option<ActionFields> =>
+  RequestAction.match<Option.Option<ActionFields>>(action, {
+    Idle: () => Option.none(),
+    Confirming: ({ requestId, kind, key }) => Option.some({ requestId, kind, key }),
+    Sending: () => Option.none(),
+    Failed: ({ requestId, kind, key }) => Option.some({ requestId, kind, key }),
+  })
+
+const failRequestAction = (model: Model, reason: string): UpdateReturn => ({
+  model: modifyFields(model, {
+    requestAction: action =>
+      RequestAction.match<RequestAction>(action, {
+        Idle: () => action,
+        Confirming: () => action,
+        Sending: ({ requestId, kind, key }) => RequestAction.Failed({ requestId, kind, key, reason }),
+        Failed: () => action,
+      }),
+  }),
+})
+
+const requestActionSucceeded = (model: Model, kind: RequestActionKind, reply: ToolReply): UpdateReturn => {
+  if (reply.isError) {
+    return failRequestAction(model, unreadable(reply))
+  }
+  if (kind === 'Pay') {
+    return Option.match(paymentOf(reply.structured), {
+      onNone: () => failRequestAction(model, UNREADABLE),
+      onSome: payment =>
+        startPoll(
+          modifyFields(model, {
+            maybeActivePayment: () => Option.some(payment),
+            requestAction: () => RequestAction.Idle(),
+            pollCount: () => 0,
+            maybePollError: () => Option.none(),
+          }),
+        ),
+    })
+  }
+  return Option.match(requestOf(reply.structured), {
+    onNone: () => failRequestAction(model, UNREADABLE),
+    onSome: request => ({
+      model: modifyFields(withRequest(model, request), { requestAction: () => RequestAction.Idle() }),
+    }),
+  })
+}
 
 export const update = (model: Model, message: Message) =>
   Message.match<UpdateReturn>(message, {
@@ -225,9 +370,7 @@ export const update = (model: Model, message: Message) =>
         appearance: appearance => mergeAppearance(appearance, context),
         maybeToolName: maybeToolName => Option.orElse(toolNameOf(context), () => maybeToolName),
       })
-      return connected.surface === 'Home' && connected.shown._tag === 'Waiting'
-        ? startPoll(connected)
-        : { model: connected }
+      return connected.surface === 'Home' ? startPoll(connected) : { model: connected }
     },
     FailedToConnect: ({ reason }) => ({ model: modifyFields(model, { bridge: () => Bridge.Unavailable({ reason }) }) }),
     ReceivedHostContext: ({ context }) => ({
@@ -251,33 +394,18 @@ export const update = (model: Model, message: Message) =>
     TickedPoll: () => startPoll(model),
     SucceededPollPayment: ({ reply }) =>
       Option.match(reply.isError ? Option.none() : paymentOf(reply.structured), {
-        onNone: () => ({
-          model: modifyFields(afterPoll(model), {
-            maybePollError: () =>
-              Option.some(reply.text === '' ? 'Nod sent something the card cannot read.' : reply.text),
-          }),
-        }),
+        onNone: () => pollFailed(model, unreadable(reply)),
         onSome: payment =>
           shareSettled(
-            modifyFields(afterPoll(model), {
-              shown: shown => paymentShown(shown, payment),
-              maybePollError: () => Option.none(),
-            }),
+            modifyFields(withPayment(afterPoll(model), payment), { maybePollError: () => Option.none() }),
             wasSettled(model),
             payment,
           ),
       }),
-    FailedPollPayment: ({ reason }) => ({
-      model: modifyFields(afterPoll(model), { maybePollError: () => Option.some(reason) }),
-    }),
+    FailedPollPayment: ({ reason }) => pollFailed(model, reason),
     SucceededPollWallet: ({ reply }) =>
       Option.match(reply.isError ? Option.none() : walletOf(reply.structured), {
-        onNone: () => ({
-          model: modifyFields(afterPoll(model), {
-            maybePollError: () =>
-              Option.some(reply.text === '' ? 'Nod sent something the card cannot read.' : reply.text),
-          }),
-        }),
+        onNone: () => pollFailed(model, unreadable(reply)),
         onSome: overview => ({
           model: modifyFields(afterPoll(model), {
             shown: () => Shown.Wallet({ overview }),
@@ -285,9 +413,13 @@ export const update = (model: Model, message: Message) =>
           }),
         }),
       }),
-    FailedPollWallet: ({ reason }) => ({
-      model: modifyFields(afterPoll(model), { maybePollError: () => Option.some(reason) }),
-    }),
+    FailedPollWallet: ({ reason }) => pollFailed(model, reason),
+    SucceededPollInbox: ({ reply }) =>
+      Option.match(reply.isError ? Option.none() : requestsOf(reply.structured), {
+        onNone: () => ({ model }),
+        onSome: requests => ({ model: modifyFields(model, { inbox: () => requests }) }),
+      }),
+    FailedPollInbox: () => ({ model }),
     ClickedOpenLink: ({ url }) => ({
       model: modifyFields(model, { link: () => LinkState.Opening({ url }) }),
       commands: [OpenLink({ url })],
@@ -297,6 +429,39 @@ export const update = (model: Model, message: Message) =>
       model: modifyFields(model, { link: () => LinkState.Failed({ url, reason }) }),
     }),
     CompletedShareContext: () => ({ model }),
+    ClickedReviewRequest: ({ requestId }) => ({
+      model: modifyFields(model, {
+        maybeSelectedRequestId: () => Option.some(requestId),
+        requestAction: () => RequestAction.Idle(),
+      }),
+    }),
+    ClickedAllRequests: () => ({
+      model: modifyFields(model, {
+        maybeSelectedRequestId: () => Option.none(),
+        requestAction: () => RequestAction.Idle(),
+      }),
+    }),
+    ClickedRequestAction: ({ requestId, kind }) => ({ model, commands: [MakeActionKey({ requestId, kind })] }),
+    CompletedMakeActionKey: ({ requestId, kind, key }) => ({
+      model: modifyFields(model, { requestAction: () => RequestAction.Confirming({ requestId, kind, key }) }),
+    }),
+    ClickedConfirmRequestAction: () =>
+      Option.match(actionToSend(model.requestAction), {
+        onNone: () => ({ model }),
+        onSome: fields => ({
+          model: modifyFields(model, { requestAction: () => RequestAction.Sending(fields) }),
+          commands: [SendRequestAction(fields)],
+        }),
+      }),
+    ClickedCancelRequestAction: () => ({ model: modifyFields(model, { requestAction: () => RequestAction.Idle() }) }),
+    SucceededRequestAction: ({ kind, reply }) => requestActionSucceeded(model, kind, reply),
+    FailedRequestAction: ({ reason }) => failRequestAction(model, reason),
+    ClickedClosePayment: () => ({
+      model: modifyFields(model, {
+        maybeActivePayment: () => Option.none(),
+        maybeSelectedRequestId: () => Option.none(),
+      }),
+    }),
   })
 
 // SUBSCRIPTION

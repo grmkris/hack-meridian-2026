@@ -2,6 +2,7 @@ import { Schema } from 'effect'
 import { defineMessageUnion } from 'foldkit/message'
 
 import { ToolReply } from './host'
+import { RequestActionKind } from './model'
 
 export const Message = defineMessageUnion({
   ConnectedToHost: { capabilities: Schema.Unknown, context: Schema.Unknown, hostInfo: Schema.Unknown },
@@ -19,5 +20,16 @@ export const Message = defineMessageUnion({
   SucceededOpenLink: {},
   FailedOpenLink: { url: Schema.String, reason: Schema.String },
   CompletedShareContext: {},
+  SucceededPollInbox: { reply: ToolReply },
+  FailedPollInbox: { reason: Schema.String },
+  ClickedReviewRequest: { requestId: Schema.String },
+  ClickedAllRequests: {},
+  ClickedRequestAction: { requestId: Schema.String, kind: RequestActionKind },
+  CompletedMakeActionKey: { requestId: Schema.String, kind: RequestActionKind, key: Schema.String },
+  ClickedConfirmRequestAction: {},
+  ClickedCancelRequestAction: {},
+  SucceededRequestAction: { kind: RequestActionKind, reply: ToolReply },
+  FailedRequestAction: { reason: Schema.String },
+  ClickedClosePayment: {},
 })
 export type Message = typeof Message.Type

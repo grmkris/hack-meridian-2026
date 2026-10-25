@@ -50,6 +50,9 @@ afterEach(async () => {
 const mount = async (state: string, capabilities: McpUiHostCapabilities = ALL) => {
   const fixture = fixtureOf(state)
   const calls: Array<string> = []
+  const keys: Array<string> = []
+  /** Tool errors to answer the next calls with, before the fixture's answers. */
+  const failNext: Array<string> = []
   const links: Array<string> = []
   const contexts: Array<string> = []
   const messages: Array<unknown> = []
@@ -58,10 +61,15 @@ const mount = async (state: string, capabilities: McpUiHostCapabilities = ALL) =
   const bridge = new AppBridge(null, { name: 'test-host', version: '1.0.0' }, capabilities, {
     hostContext: { theme: 'light', toolInfo: { tool: { name: fixture.tool, inputSchema: { type: 'object' } } } },
   })
-  bridge.oncalltool = async ({ name }) => {
-    const answer = polls[Math.min(calls.length, polls.length - 1)]
+  bridge.oncalltool = async ({ name, arguments: args }) => {
+    const answers = fixture.answers?.[name] ?? polls
+    const count = calls.filter(call => call === name).length
     calls.push(name)
-    return resultOf(answer, `${name} answered`)
+    const key = args?.['idempotency_key']
+    keys.push(typeof key === 'string' ? key : '')
+    const failure = failNext.shift()
+    if (failure !== undefined) return resultOf(undefined, failure, true)
+    return resultOf(answers[Math.min(count, answers.length - 1)], `${name} answered`)
   }
   bridge.onopenlink = async ({ url }) => {
     links.push(url)
@@ -94,7 +102,7 @@ const mount = async (state: string, capabilities: McpUiHostCapabilities = ALL) =
     handle.dispose()
     await bridge.close()
   })
-  return { container, calls, links, contexts, messages, becomeVisible }
+  return { container, calls, keys, failNext, links, contexts, messages, becomeVisible }
 }
 
 /** Lets the card take in the host's answer before the next step. */
@@ -191,5 +199,66 @@ describe('the other cards', () => {
     await vi.waitFor(() => expect(text(card.container)).toContain('48.50 USDC'))
     expect(text(card.container)).toContain('Allowance left')
     expect(text(card.container)).toContain('1 payment needs your nod')
+  })
+})
+
+describe('payment requests', () => {
+  test('paying an incoming request: review, confirm, then the payment that needs your nod', async () => {
+    const card = await mount('request-incoming')
+    await vi.waitFor(() => expect(text(card.container)).toContain('Asked of you'))
+    buttonNamed(card.container, 'Review').click()
+    await vi.waitFor(() => expect(text(card.container)).toContain('Bob asks for'))
+    expect(text(card.container)).toContain('Their note, not checked by Nod')
+    buttonNamed(card.container, 'Pay 12.50 USDC').click()
+    await vi.waitFor(() => expect(text(card.container)).toContain('Yes, pay 12.50 USDC'))
+    expect(card.calls).toEqual([])
+    buttonNamed(card.container, 'Yes, pay').click()
+    await vi.waitFor(() => expect(text(card.container)).toContain('Needs your nod'))
+    expect(card.calls[0]).toBe('request_pay')
+    expect(card.calls.filter(call => call === 'request_pay')).toHaveLength(1)
+    expect(card.keys[0]).toMatch(/^card-pay-rq_dinner-/u)
+    expect(text(card.container)).toContain('Approve with your passkey')
+  })
+
+  test('a failed pay keeps its idempotency key: the retry sends the same one', async () => {
+    const card = await mount('request-incoming')
+    await vi.waitFor(() => expect(text(card.container)).toContain('Asked of you'))
+    buttonNamed(card.container, 'Review').click()
+    await vi.waitFor(() => expect(text(card.container)).toContain('Bob asks for'))
+    buttonNamed(card.container, 'Pay 12.50 USDC').click()
+    await vi.waitFor(() => expect(text(card.container)).toContain('Yes, pay'))
+    card.failNext.push('The chat asked the user first and they said no.')
+    buttonNamed(card.container, 'Yes, pay').click()
+    await vi.waitFor(() => expect(text(card.container)).toContain('Not paid: The chat asked the user first'))
+    expect(text(card.container)).toContain('Open the request on Nod')
+    buttonNamed(card.container, 'Try again').click()
+    await vi.waitFor(() => expect(text(card.container)).toContain('Needs your nod'))
+    expect(card.calls.slice(0, 2)).toEqual(['request_pay', 'request_pay'])
+    expect(card.keys[1]).toBe(card.keys[0])
+  })
+
+  test('declining asks first, then shows the request declined', async () => {
+    const card = await mount('request-incoming')
+    await vi.waitFor(() => expect(text(card.container)).toContain('Asked of you'))
+    buttonNamed(card.container, 'Review').click()
+    await vi.waitFor(() => expect(text(card.container)).toContain('Bob asks for'))
+    buttonNamed(card.container, 'Decline').click()
+    await vi.waitFor(() => expect(text(card.container)).toContain('Yes, decline'))
+    buttonNamed(card.container, 'Yes, decline').click()
+    await vi.waitFor(() => expect(card.calls).toEqual(['request_decline']))
+    await vi.waitFor(() => expect(text(card.container)).toContain('Declined'))
+  })
+
+  test('a chat that lets cards call no tools offers the request page instead of Pay', async () => {
+    const card = await mount('request-stranger', { openLinks: {} })
+    await vi.waitFor(() => expect(text(card.container)).toContain('A Nod wallet you have not saved asks for'))
+    expect(text(card.container)).toContain('always needs your nod')
+    expect(text(card.container)).not.toContain('Pay 40.00 USDC')
+    buttonNamed(card.container, 'Open the request on Nod').click()
+    await vi.waitFor(() =>
+      expect(card.links).toEqual([
+        'https://hack-meridian-testnet.kristjan-grm11775.workers.dev/approve/request/rq_stranger',
+      ]),
+    )
   })
 })
