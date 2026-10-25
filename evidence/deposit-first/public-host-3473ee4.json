@@ -1,0 +1,50 @@
+{
+  "host": "https://testnet.trynod.si (public host)",
+  "release": "3473ee4e7b192b996df278340b15a9ae69e3ede6",
+  "network": "stellar:testnet",
+  "run": "evidence/deposit-first/2026-10-25T20-08-12-894Z.json",
+  "horizon_verified": [
+    {
+      "hash": "04704caf5ef4fe361c18452fc00d06f4df0dd8d302ca10cf6cadd6e90aa14873",
+      "successful": true,
+      "ledger": 5387057,
+      "created_at": "2026-10-25T20:07:52Z",
+      "explorer": "https://stellar.expert/explorer/testnet/tx/04704caf5ef4fe361c18452fc00d06f4df0dd8d302ca10cf6cadd6e90aa14873"
+    },
+    {
+      "hash": "06bd7d2e98824817b1117d28a42a9f13e10e3526a30bc9e18e812dd63e1fe305",
+      "successful": true,
+      "ledger": 5387046,
+      "created_at": "2026-10-25T20:06:57Z",
+      "explorer": "https://stellar.expert/explorer/testnet/tx/06bd7d2e98824817b1117d28a42a9f13e10e3526a30bc9e18e812dd63e1fe305"
+    },
+    {
+      "hash": "8c356236db0689067155bf1cc627c6b3fb2c9270df4644ae64eaedca6a816d98",
+      "successful": true,
+      "ledger": 5387058,
+      "created_at": "2026-10-25T20:07:57Z",
+      "explorer": "https://stellar.expert/explorer/testnet/tx/8c356236db0689067155bf1cc627c6b3fb2c9270df4644ae64eaedca6a816d98"
+    },
+    {
+      "hash": "ad54d85f3598254f1ae85169aebd745d0b69eb4de944b984a3ef87bc448d9bff",
+      "successful": true,
+      "ledger": 5387043,
+      "created_at": "2026-10-25T20:06:42Z",
+      "explorer": "https://stellar.expert/explorer/testnet/tx/ad54d85f3598254f1ae85169aebd745d0b69eb4de944b984a3ef87bc448d9bff"
+    },
+    {
+      "hash": "ceb05d9d3e1c2b3e10d54112625ede07f83b71e00654a9eed4493f982ec6dd21",
+      "successful": true,
+      "ledger": 5387042,
+      "created_at": "2026-10-25T20:06:37Z",
+      "explorer": "https://stellar.expert/explorer/testnet/tx/ceb05d9d3e1c2b3e10d54112625ede07f83b71e00654a9eed4493f982ec6dd21"
+    },
+    {
+      "hash": "ef8314a3c712200becdf5b7e753e1a808642aa19fb5b468f124626ca8b664336",
+      "successful": true,
+      "ledger": 5387044,
+      "created_at": "2026-10-25T20:06:47Z",
+      "explorer": "https://stellar.expert/explorer/testnet/tx/ef8314a3c712200becdf5b7e753e1a808642aa19fb5b468f124626ca8b664336"
+    }
+  ]
+}

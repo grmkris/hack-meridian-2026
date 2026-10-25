@@ -1,0 +1,71 @@
+{
+  "base": "https://testnet.trynod.si",
+  "steps": [
+    {
+      "at": "2026-10-25T20:08:18.667Z",
+      "step": "sender browser",
+      "line": "goto https://testnet.trynod.si/authorize?response_type=code&client_id=cjvlaYo8DgQt3zIl&code_challenge=<redacted>&code_challenge_method=S256&redirect_uri=http%3A%2F%2F127.0.0.1%3A33883%2Fcallback&state=<redacted>&scope=wallet&resource=https%3A%2F%2Ftestnet.trynod.si%2Fmcp → 200"
+    },
+    {
+      "at": "2026-10-25T20:08:18.730Z",
+      "step": "sender browser",
+      "line": "click [data-testid=\"passkey-create\"], [data-testid=\"passkey-signin\"]"
+    },
+    {
+      "at": "2026-10-25T20:08:33.908Z",
+      "step": "sender browser",
+      "line": "visible [data-testid=\"consent-allow\"], button[value=approve]"
+    },
+    {
+      "at": "2026-10-25T20:08:33.924Z",
+      "step": "sender browser",
+      "line": "fill [data-testid=\"allowance\"], input[name=allowance]"
+    },
+    {
+      "at": "2026-10-25T20:08:33.979Z",
+      "step": "sender browser",
+      "line": "screenshot /home/kristjan/code/hack-meridian-2026/evidence/claims/2026-10-25T20-08-17-884Z/sender-consent.png"
+    },
+    {
+      "at": "2026-10-25T20:08:34.029Z",
+      "step": "sender browser",
+      "line": "click [data-testid=\"consent-allow\"], button[value=approve]"
+    },
+    {
+      "at": "2026-10-25T20:08:49.996Z",
+      "step": "sender connected",
+      "wallet": "CAN7BN535V4CKY4AJC3IJ7PXWCLVH2GG2ZKWDRCXVWC24OZBM5JYKAT4",
+      "balance": "10.00",
+      "allowance_left": "5.00",
+      "explorer": "https://stellar.expert/explorer/testnet/contract/CAN7BN535V4CKY4AJC3IJ7PXWCLVH2GG2ZKWDRCXVWC24OZBM5JYKAT4"
+    },
+    {
+      "at": "2026-10-25T20:08:50.326Z",
+      "step": "payment_prepare recipient new",
+      "is_error": false,
+      "sentence": "Claim link for Jan: https://testnet.trynod.si/claim/cl_0204dcd551d21c235b54d30aaaa692c9 (1.00 USDC). Nothing is paid yet: send Jan the link; when Jan opens it and picks where the money goes, Nod pays from this AI app's allowance. Poll payment_status with payment_id cl_0204dcd551d21c235b54d30aaaa692c9.",
+      "payment_id": "cl_0204dcd551d21c235b54d30aaaa692c9",
+      "claim_url": "https://testnet.trynod.si/claim/cl_0204dcd551d21c235b54d30aaaa692c9",
+      "status": "prepared",
+      "lane": "autonomous"
+    },
+    {
+      "at": "2026-10-25T20:09:08.229Z",
+      "step": "jan claimed",
+      "page": "https://testnet.trynod.si/claim/cl_0204dcd551d21c235b54d30aaaa692c9",
+      "passkeys": 1
+    },
+    {
+      "at": "2026-10-25T20:09:08.812Z",
+      "step": "payment_status on the link",
+      "sentence": "Jan claimed it: paid 1.00 USDC to CAJFXPRKUZSGBCGY6RXS5VP3GQ4GJ3CQZBJHPFB2RM6ICDTOJSAJFLYB. Transaction eb9def8cebc58e8ad0f659e70123ab12449cc91184a243172825bd1f25dd4f1e (https://stellar.expert/explorer/testnet/tx/eb9def8cebc58e8ad0f659e70123ab12449cc91184a243172825bd1f25dd4f1e).",
+      "status": "confirmed",
+      "lane": "autonomous",
+      "recipient": "CAJFXPRKUZSGBCGY6RXS5VP3GQ4GJ3CQZBJHPFB2RM6ICDTOJSAJFLYB",
+      "tx": "https://stellar.expert/explorer/testnet/tx/eb9def8cebc58e8ad0f659e70123ab12449cc91184a243172825bd1f25dd4f1e",
+      "jan_wallet": "https://stellar.expert/explorer/testnet/contract/CAJFXPRKUZSGBCGY6RXS5VP3GQ4GJ3CQZBJHPFB2RM6ICDTOJSAJFLYB",
+      "jan_contract_onchain": true,
+      "jan_usdc_stroops": "10000000"
+    }
+  ]
+}

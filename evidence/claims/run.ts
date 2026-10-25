@@ -142,6 +142,12 @@ await jan.page.locator('[data-testid="claim-link-done"], [data-testid="claim-lin
 await jan.shot('jan-claim-after')
 const janPasskeys = await jan.credentials()
 step('jan claimed', { page: jan.page.url(), passkeys: janPasskeys.length })
+// Jan is signed in on the claim page: Jan's own overview names the deploy of the planned C (trigger: the claim).
+const janOverview: unknown = await jan.page.evaluate(() => fetch('/api/overview').then(response => response.json()))
+step('jan overview', {
+  account_status: at(janOverview, 'wallet', 'account_status'),
+  deploy_tx: at(janOverview, 'wallet', 'deploy_tx') === '' ? null : `${EXPLORER}/tx/${at(janOverview, 'wallet', 'deploy_tx')}`,
+})
 
 // 4. The receipt, and the chain.
 const status = await call('payment_status', { payment_id: linkId })

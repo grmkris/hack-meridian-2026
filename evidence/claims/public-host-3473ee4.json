@@ -1,0 +1,30 @@
+{
+  "host": "https://testnet.trynod.si (public host)",
+  "release": "3473ee4e7b192b996df278340b15a9ae69e3ede6",
+  "network": "stellar:testnet",
+  "run": "evidence/claims/2026-10-25T20-08-17-884Z/run.json",
+  "horizon_verified": [
+    {
+      "hash": "eb9def8cebc58e8ad0f659e70123ab12449cc91184a243172825bd1f25dd4f1e",
+      "successful": true,
+      "ledger": 5387070,
+      "created_at": "2026-10-25T20:08:57Z",
+      "explorer": "https://stellar.expert/explorer/testnet/tx/eb9def8cebc58e8ad0f659e70123ab12449cc91184a243172825bd1f25dd4f1e"
+    },
+    {
+      "hash": "bccfbc61f23d03e79b6771f962d84ff74828f41f82536c0233fc699696cc4f6f",
+      "successful": true,
+      "ledger": 5387071,
+      "created_at": "2026-10-25T20:09:02Z",
+      "explorer": "https://stellar.expert/explorer/testnet/tx/bccfbc61f23d03e79b6771f962d84ff74828f41f82536c0233fc699696cc4f6f"
+    }
+  ],
+  "jan_wallet": {
+    "contract": "CAJFXPRKUZSGBCGY6RXS5VP3GQ4GJ3CQZBJHPFB2RM6ICDTOJSAJFLYB",
+    "deploy_tx": "bccfbc61f23d03e79b6771f962d84ff74828f41f82536c0233fc699696cc4f6f",
+    "deploy_explorer": "https://stellar.expert/explorer/testnet/tx/bccfbc61f23d03e79b6771f962d84ff74828f41f82536c0233fc699696cc4f6f",
+    "how_found": "the primary relayer GBCALSA3\u2026 createContract at 20:09:02 UTC; Soroban RPC getTransaction SUCCESS, return value = Jan's contract (the planned id); trigger claim",
+    "note": "Jan made a deposit-first wallet on the claim link (virtual authenticator); 1 USDC paid inside the sender's allowance, then the planned C deployed"
+  },
+  "wallets_used": "two treasury-funded sender wallets (this run and evidence/tools/2026-10-25T20-11-48-883Z), 10 USDC each; runs started before the one-sender instruction arrived"
+}

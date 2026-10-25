@@ -2,6 +2,11 @@
  * Deposit-first signup against a running stage on the real chain (testnet), end to end over HTTP:
  *
  *   bun evidence/deposit-first/run.ts [--base http://localhost:18960] [--usdc 3]
+ *   bun evidence/deposit-first/run.ts --base https://trynod.si --manual-deposit --keep-passkey ~/.config/nod/df.passkey
+ *
+ * `--manual-deposit` (mainnet): no friendbot exchange; the script prints the G… and waits up to 20 minutes for USDC
+ * someone sends there (the treasury, with an ordinary payment). `--keep-passkey <file>` writes the software passkey
+ * (mode 600, outside the repository) so the wallet it made can be signed for later; without it the key is dropped.
  *
  * 1. A software passkey creates a wallet with `deposit_first: true`: no deploy, no welcome USDC.
  * 2. The overview says `awaiting_deposit`; the planned C… has no contract instance onchain.
@@ -12,10 +17,11 @@
  * Writes evidence/deposit-first/<timestamp>.json. Testnet only; no secrets are read (the exchange key is fresh and
  * printed nowhere).
  */
-import { writeFileSync } from 'node:fs'
+import { chmodSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 
 import { Stellar } from '../../apps/seller/demo-deps.ts'
+import { PRESETS } from '../../packages/stellar/src/network.ts'
 import { SoftPasskey } from '../../packages/stellar/src/testing.ts'
 
 const { Address, Asset, Horizon, Keypair, Networks, Operation, rpc, TransactionBuilder, xdr } = Stellar
@@ -26,11 +32,14 @@ const arg = (name: string, fallback: string) => {
 }
 const BASE = arg('--base', 'http://localhost:18960')
 const USDC_AMOUNT = arg('--usdc', '3')
+const MANUAL = process.argv.includes('--manual-deposit')
+const KEEP = process.argv.includes('--keep-passkey') ? arg('--keep-passkey', '') : ''
 const ISSUER = 'GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5'
 const USDC = new Asset('USDC', ISSUER)
-const horizon = new Horizon.Server('https://horizon-testnet.stellar.org')
-const soroban = new rpc.Server('https://soroban-testnet.stellar.org')
-const EXPLORER = 'https://stellar.expert/explorer/testnet'
+const PUBNET = new URL(BASE).hostname === 'trynod.si'
+const horizon = new Horizon.Server(PUBNET ? 'https://horizon.stellar.org' : 'https://horizon-testnet.stellar.org')
+const soroban = new rpc.Server(PUBNET ? PRESETS.pubnet.rpcUrl : PRESETS.testnet.rpcUrl)
+const EXPLORER = `https://stellar.expert/explorer/${PUBNET ? 'public' : 'testnet'}`
 const b64url = (bytes: Uint8Array) => Buffer.from(bytes).toString('base64url')
 const log: Array<Record<string, unknown>> = []
 const step = (name: string, data: Record<string, unknown>) => {
@@ -97,6 +106,10 @@ const origin = new URL(BASE).origin
 const rpId = new URL(BASE).hostname
 const options = await api('POST', '/api/wallets/options', { name: 'Deposit-first' })
 const passkey = await SoftPasskey.create(at(options, 'rp_id') || rpId, origin)
+if (KEEP !== '') {
+  writeFileSync(KEEP, `${await passkey.serialize()}\n`, { mode: 0o600 })
+  chmodSync(KEEP, 0o600)
+}
 const clientData = { type: 'webauthn.create', challenge: at(options, 'challenge'), origin, crossOrigin: false }
 const t0 = Date.now()
 const created = await api('POST', '/api/wallets', {
@@ -140,35 +153,40 @@ step('relayer after the deposit address, before any USDC', {
   contract_onchain: await contractExists(wallet.contract_id),
 })
 
-// The exchange: a fresh friendbot account buys USDC on the testnet DEX and pays it to G in one path payment.
-const exchange = Keypair.random()
-await fetch(`https://friendbot.stellar.org/?addr=${exchange.publicKey()}`)
-const source = await horizon.loadAccount(exchange.publicKey())
-const pay = new TransactionBuilder(source, { fee: '1000', networkPassphrase: Networks.TESTNET })
-  .addOperation(
-    Operation.pathPaymentStrictReceive({
-      sendAsset: Asset.native(),
-      sendMax: '1000',
-      destination: at(deposit, 'address'),
-      destAsset: USDC,
-      destAmount: USDC_AMOUNT,
-      path: [],
-    }),
-  )
-  .setTimeout(60)
-  .build()
-pay.sign(exchange)
-const paid = await horizon.submitTransaction(pay)
-step('exchange pays the deposit address', {
-  exchange: exchange.publicKey(),
-  usdc: USDC_AMOUNT,
-  tx: `${EXPLORER}/tx/${paid.hash}`,
-})
+if (MANUAL) {
+  console.log(`\nSend USDC to ${at(deposit, 'address')} now (an ordinary payment, no memo); waiting up to 20 minutes.\n`)
+  step('waiting for a deposit', { address: at(deposit, 'address') })
+} else {
+  // The exchange: a fresh friendbot account buys USDC on the testnet DEX and pays it to G in one path payment.
+  const exchange = Keypair.random()
+  await fetch(`https://friendbot.stellar.org/?addr=${exchange.publicKey()}`)
+  const source = await horizon.loadAccount(exchange.publicKey())
+  const pay = new TransactionBuilder(source, { fee: '1000', networkPassphrase: Networks.TESTNET })
+    .addOperation(
+      Operation.pathPaymentStrictReceive({
+        sendAsset: Asset.native(),
+        sendMax: '1000',
+        destination: at(deposit, 'address'),
+        destAsset: USDC,
+        destAmount: USDC_AMOUNT,
+        path: [],
+      }),
+    )
+    .setTimeout(60)
+    .build()
+  pay.sign(exchange)
+  const paid = await horizon.submitTransaction(pay)
+  step('exchange pays the deposit address', {
+    exchange: exchange.publicKey(),
+    usdc: USDC_AMOUNT,
+    tx: `${EXPLORER}/tx/${paid.hash}`,
+  })
+}
 
 const t2 = Date.now()
 let overview = await api('GET', '/api/overview')
 while (at(overview, 'wallet', 'account_status') !== 'active' || at(overview, 'balances', 'usdc') === '0') {
-  if (Date.now() - t2 > 240_000) throw new Error('no activation within 4 minutes')
+  if (Date.now() - t2 > (MANUAL ? 1_200_000 : 240_000)) throw new Error('no activation in time')
   await sleep(10_000)
   overview = await api('GET', '/api/overview')
 }
