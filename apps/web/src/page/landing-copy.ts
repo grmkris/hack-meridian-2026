@@ -29,7 +29,7 @@ export const NETWORK_COPY = {
   mainnet: {
     badge: 'Stellar mainnet',
     tryLead:
-      'You need Claude and a device that can make a passkey. Here on trynod.si, Nod runs on Stellar mainnet and your wallet holds USDC only. To try every step without real money, use the sandbox at testnet.trynod.si, where new wallets get 10 testnet USDC.',
+      'You need Claude and a device that can make a passkey. Here on trynod.si, Nod runs on Stellar mainnet: open to anyone, USDC only, funded from any exchange or wallet through your deposit address. To try every step without real money, use the sandbox at testnet.trynod.si, where new wallets get 10 testnet USDC.',
     footerNote:
       'Built at HackMeridian 2026 for the Stellar Composed track. Live on Stellar mainnet; the sandbox at testnet.trynod.si runs on testnet. ',
   },

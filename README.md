@@ -20,10 +20,10 @@ an x402 purchase settled by OpenZeppelin Channels, a payment inside the allowanc
 link that created a trustline and paid in one transaction, a revoke that removed the rule and swept the pocket
 ([proof below](#proof-on-mainnet)).
 
-| Host                                           | What it is                                                                                             | Connector                       |
-| ---------------------------------------------- | ------------------------------------------------------------------------------------------------------ | ------------------------------- |
-| [trynod.si](https://trynod.si)                 | the product on Stellar mainnet; signup is open; the wallet holds USDC only                             | `https://trynod.si/mcp`         |
-| [testnet.trynod.si](https://testnet.trynod.si) | the judges' sandbox on Stellar testnet: new wallets get 10 testnet USDC; `/sample` runs a sample agent | `https://testnet.trynod.si/mcp` |
+| Host                                           | What it is                                                                                                                  | Connector                       |
+| ---------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- | ------------------------------- |
+| [trynod.si](https://trynod.si)                 | the product on Stellar mainnet: open to anyone; USDC only; fund it from any exchange or wallet through your deposit address | `https://trynod.si/mcp`         |
+| [testnet.trynod.si](https://testnet.trynod.si) | the judges' sandbox on Stellar testnet: new wallets get 10 testnet USDC; `/sample` runs a sample agent                      | `https://testnet.trynod.si/mcp` |
 
 The old `hack-meridian-testnet.kristjan-grm11775.workers.dev` host redirects to testnet.trynod.si.
 
@@ -67,12 +67,12 @@ anything past it.
   accept with Freighter within 30 minutes (their account needs about 0.5 XLM for the trustline reserve), and the
   trustline (through the USDC contract's `trust` function, CAP-73) and the payment land in one transaction.
 - **No seed phrase, no XLM.** A passkey owns the account and Nod pays every network fee.
-- **Sign up with a passkey and a deposit, live on testnet.** A wallet can start with nothing onchain and a `G…`
+- **Sign up with a passkey and a deposit, live on mainnet and testnet.** A wallet can start with nothing onchain and a `G…`
   deposit address any exchange can pay (an exchange cannot pay a contract `C…` address). Our deposit router binds that
   address to the wallet; anyone can sweep what arrives, and it can only go to that wallet. When the first USDC lands,
   Nod deploys the account. Every wallet can get a deposit address under Home → Add money. The sandbox still gives
-  ordinary signups 10 testnet USDC so you can start at once. Design: [docs/spikes/s8-deposit.md](docs/spikes/s8-deposit.md);
-  off on mainnet for now.
+  ordinary signups 10 testnet USDC so you can start at once. On mainnet a stranger-style signup was funded this way with
+  a classic 1 USDC payment, no memo (proof below). Design: [docs/spikes/s8-deposit.md](docs/spikes/s8-deposit.md).
 - **Pay someone who is not on Stellar, live on testnet.** Claude makes a claim link for a name. The person opens it,
   creates a wallet with a passkey (no XLM, no trustline) or signs in, and the USDC lands there. Inside the allowance
   the link pays from it when claimed.
@@ -108,6 +108,9 @@ and his own passkey. The wallet went from 9.90 to 1.80 USDC. Record:
 | Revoke: the pocket's unspent 0.90 USDC swept back to the wallet                                                                                                                                                                                                                                                                            | [`ab6d493d`](https://stellar.expert/explorer/public/tx/ab6d493d483f6ea5d560a9561ab7cdd2668b9d7597632023095a397ca1fd53dd) |
 | Revoke: the allowance rule removed from the account with the passkey; Claude's next payment was refused                                                                                                                                                                                                                                    | [`e17e15d5`](https://stellar.expert/explorer/public/tx/e17e15d5efd2f43e883073873ff9d5dc0333ea9dca318cea0f38a5c7678f04c9) |
 | Later, after reconnecting: Claude buys Stellar's own x402 demo endpoint (`stellar.org/x402-demo`, 0.01 USDC), a seller Nod does not run, settled through OpenZeppelin Channels to Stellar's pay-to account (pull [`aa20431d`](https://stellar.expert/explorer/public/tx/aa20431d6bebcfb8b4bfa9f33bc38855bbd17e12bc149277d9a8380ab8041348)) | [`3a63573a`](https://stellar.expert/explorer/public/tx/3a63573ab65fc557c86737af029bd79b0d382f3ebe78eb5911b3a597f55b596e) |
+| Later (21:44–21:46 UTC), a stranger-style signup with nothing onchain: an ordinary 1 USDC payment, no memo, to its deposit address `GAST6OXA…`                                                                                                                                                                                             | [`d1c91074`](https://stellar.expert/explorer/public/tx/d1c910740917987ba0149edf5be778af702c3f18e83b2bb6d4c1b144658719ec) |
+| The deposit router sweeps the 1 USDC into the wallet                                                                                                                                                                                                                                                                                       | [`7c57d530`](https://stellar.expert/explorer/public/tx/7c57d530372b32fe07aac7ea9220380ff52ce54a329518ff838179357329d7af) |
+| Nod deploys the account at its planned id, 83 seconds after the deposit; it holds 1.00 USDC and the user never held XLM                                                                                                                                                                                                                    | [`57b97375`](https://stellar.expert/explorer/public/tx/57b97375c2f1cb8dbfbe122afa9a709c585e536b831b329e6236ef540284796f) |
 
 Carol is Nod's own demo contact on mainnet, so her claim was accepted by Nod's demo key; a stranger accepts with
 Freighter. Earlier the same evening: the first mainnet x402 settlement through OpenZeppelin Channels
@@ -193,7 +196,8 @@ claude.ai.
 
 **Judges: use the sandbox at testnet.trynod.si.** Everything runs on Stellar testnet with testnet USDC, and new wallets
 receive 10 testnet USDC. You need Claude (claude.ai, Claude Desktop or Claude Code) and a device that can create a
-passkey. The same steps work on mainnet at trynod.si with your own USDC.
+passkey. The same steps work on mainnet at trynod.si with your own USDC: fund it from any exchange or wallet through
+Home → Add money.
 
 1. **Connect.** In claude.ai: Settings → Connectors → Add custom connector, name `Nod`, URL
    `https://testnet.trynod.si/mcp`, leave the OAuth client fields empty, then Connect. In Claude Code:
@@ -251,7 +255,7 @@ Stellar mainnet (trynod.si) and testnet (testnet.trynod.si)
    ├─ USDC through the Stellar Asset Contract
    ├─ one small pocket account per AI app (sponsored reserves) for x402
    ├─ trust-and-pay router (CAP-73) for claim links
-   └─ deposit router for exchange deposit addresses (testnet only)
+   └─ deposit router for exchange deposit addresses
 Browser (Foldkit site): passkey sign-in, Home, Connections, Contacts, Receipts, approval and claim pages
 ```
 
@@ -274,7 +278,7 @@ How Stellar is used:
 | Ed25519 verifier                             | each AI app's own key                                        | [`CAAVTMCB…HKN4`](https://stellar.expert/explorer/testnet/contract/CAAVTMCBXEIBPR64EAASKFXERVPYFZA2JYP5A3BG6PESWEFUJX5IHKN4)                                                                                                                                                                                                                                                           | [`CBOOZV2B…UEMC`](https://stellar.expert/explorer/public/contract/CBOOZV2BK5OETGL4Q4KGEBESPRLJFN7DOFWDT7OZGLD7EQEZUVOWUEMC)                                                                                                                            |
 | Circle USDC, Stellar Asset Contract (SEP-41) | the money (7 decimals)                                       | [`CBIELTK6…DAMA`](https://stellar.expert/explorer/testnet/contract/CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA)                                                                                                                                                                                                                                                           | [`CCW67TSZ…MI75`](https://stellar.expert/explorer/public/contract/CCW67TSZV3SSS2HXMBQ5JFGCKJNXKZM7UQUWUZPUTHXSTZLEO7SJMI75)                                                                                                                            |
 | SAC `trust` (CAP-73) + our router            | claim link: trustline and transfer in one invocation         | [`CCLFB4I4…PGN4`](https://stellar.expert/explorer/testnet/contract/CCLFB4I4CNGWHHL53UO33CSWKKXJBANMDGOGL43J7RBT7SWK2H2BPGN4)                                                                                                                                                                                                                                                           | [`CBWYFI6X…T6TM`](https://stellar.expert/explorer/public/contract/CBWYFI6XWQI5C43GISIIUFXTJXBUI52QSNKKYC55GWMPLQRL2RAXT6TM)                                                                                                                            |
-| SAC `approve` + our deposit router           | deposit addresses: a bound `G…` swept into the wallet        | [`CAFLFU5G…OXGL`](https://stellar.expert/explorer/testnet/contract/CAFLFU5GH7QZ6KF3FBKRV7VW5XFYUKQPCFFTCPTKVEUG4TDT5B2ZOXGL)                                                                                                                                                                                                                                                           | not deployed                                                                                                                                                                                                                                           |
+| SAC `approve` + our deposit router           | deposit addresses: a bound `G…` swept into the wallet        | [`CAFLFU5G…OXGL`](https://stellar.expert/explorer/testnet/contract/CAFLFU5GH7QZ6KF3FBKRV7VW5XFYUKQPCFFTCPTKVEUG4TDT5B2ZOXGL)                                                                                                                                                                                                                                                           | [`CBWDC7KR…I6YX`](https://stellar.expert/explorer/public/contract/CBWDC7KRPOHSUIPADS6NHXHPYZ2KXHUZ7TONHBPVK7AKIWYXNLRFI6YX)                                                                                                                            |
 | Soroban authorization                        | per-signer auth entries, enforcing re-simulation             |                                                                                                                                                                                                                                                                                                                                                                                        |                                                                                                                                                                                                                                                        |
 | Sponsored reserves                           | pocket and deposit accounts hold 0 XLM of their own          |                                                                                                                                                                                                                                                                                                                                                                                        |                                                                                                                                                                                                                                                        |
 | Relayer pool as transaction source           | Nod pays every fee; owners hold no XLM                       | [`GBCALSA3…YWBR`](https://stellar.expert/explorer/testnet/account/GBCALSA3XQAWW24AXGFWJIGNUCDBCMUPPWC5XHMZ22VY4HMX6XCFYWBR), [`GAWYWVMH…YSE4I`](https://stellar.expert/explorer/testnet/account/GAWYWVMHLTRN6N7DXKV3XYCLAFPCPPUXPDFC7J5KL3LNKO26YNJSYE4I), [`GBGNYETY…BPT6`](https://stellar.expert/explorer/testnet/account/GBGNYETYEEWM5RIRE6KWUUZKD3X4DBZZ72M2LHQJNUGYO3D6ZYADBPT6) | [`GBVYA2V4…YG5X`](https://stellar.expert/explorer/public/account/GBVYA2V4SMVPXFRPVB5FEFCADW7RXFIACR2HBLN2WP3RHAZKL267YG5X), [`GDMYACRM…CAGP`](https://stellar.expert/explorer/public/account/GDMYACRM646Z4QIUPIAQZ2W3HSKAO2LESWCME73RSCCETSQKSL6HCAGP) |
@@ -289,7 +293,7 @@ The routers are our two product contracts. `stellar contract build` in `contract
 and its mainnet twin
 [`CBWYFI6X…T6TM`](https://stellar.expert/explorer/public/contract/CBWYFI6XWQI5C43GISIIUFXTJXBUI52QSNKKYC55GWMPLQRL2RAXT6TM)
 are provably this source (records in [`contracts/deployments/`](contracts/deployments/)). The deposit router
-(`contracts/deposit`, wasm `7bc3752b…`) is on testnet only.
+(`contracts/deposit`, wasm `7bc3752b…`) runs the same bytes on both networks.
 
 Deployed:
 

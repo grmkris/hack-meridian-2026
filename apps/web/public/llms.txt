@@ -6,7 +6,7 @@ Built at HackMeridian 2026 (Lisbon, 25–26 October 2026), Genesis builder track
 
 ## Hosts
 
-- https://trynod.si/ is the product on Stellar mainnet. Signup is open; the wallet holds USDC only. MCP connector: https://trynod.si/mcp
+- https://trynod.si/ is the product on Stellar mainnet: open to anyone, USDC only; fund it from any exchange or wallet through your deposit address, no memo, and it lands in your wallet. MCP connector: https://trynod.si/mcp
 - https://testnet.trynod.si/ is the judges' sandbox on Stellar testnet. New wallets get 10 testnet USDC; no real money moves. MCP connector: https://testnet.trynod.si/mcp
 - https://testnet.trynod.si/sample runs a sample agent through the same tools on Nod's own demo wallet, with a live log and explorer links. No Claude needed.
 - The old host hack-meridian-testnet.kristjan-grm11775.workers.dev redirects to testnet.trynod.si.
@@ -28,7 +28,7 @@ Built at HackMeridian 2026 (Lisbon, 25–26 October 2026), Genesis builder track
 - Paid APIs: x402 sellers are paid through public facilitators (x402.org, OpenZeppelin Channels), never one Nod runs. Hosted facilitators do not take smart-account payers yet, so each AI app's key also owns a small pocket account with sponsored reserves, filled from the wallet under the same policy in 1 USDC steps, which pays with the stock x402 client. Both transactions are on the receipt. Ask twice, pay once.
 - Claim link: a recipient with no USDC trustline gets a link. The sender nods once; the recipient accepts with Freighter within 30 minutes (their account needs about 0.5 XLM for the trustline reserve), and a small router calls the USDC contract's trust function (CAP-73) and the transfer in one transaction.
 - Revoke: Nod stops signing at once and sweeps the pocket back; one passkey tap removes the allowance from the account.
-- Sign up with a passkey and a deposit (live on testnet): a wallet can start with nothing onchain and a G… deposit address any exchange can pay. Nod's deposit router binds the address to that one wallet; anyone can sweep what arrives, it can only go to that wallet, and Nod deploys the account when the first USDC lands. Every wallet gets one under Home → Add money; sandbox signups still get 10 testnet USDC. Off on mainnet for now.
+- Sign up with a passkey and a deposit (live on mainnet and testnet): a wallet can start with nothing onchain and a G… deposit address any exchange can pay. Nod's deposit router binds the address to that one wallet; anyone can sweep what arrives, it can only go to that wallet, and Nod deploys the account when the first USDC lands. Every wallet gets one under Home → Add money; sandbox signups still get 10 testnet USDC.
 - Pay someone who is not on Stellar (live on testnet): Claude makes a claim link for a name; the person opens it, creates a wallet with a passkey (no XLM, no trustline) or signs in, and the USDC lands there. Inside the allowance the link pays from it when claimed.
 - A link that is an allowance for one person (live on testnet): past the allowance, the sender's one passkey tap installs a rule for exactly the amount, valid seven days. The link's key is made in the sender's browser and lives only in the link; Nod stores the public key and the rule id. The recipient's browser signs the transfer with that key; Nod relays it and pays the fee. Nothing leaves the sender's wallet until the claim, a second claim is refused, and the sender can take an open link back under Connections → Links. Nod never holds the link key or the funds; a leaked link can take at most the amount, once, before it expires.
 - Contacts from the chat (live on testnet): Claude can add, update and remove contacts; the first payment to a contact an AI app added needs the owner's nod, later ones go alone inside the allowance. Claude can ask to change its allowance; that is a link the passkey signs, and the new allowance replaces the old rule.
@@ -45,6 +45,7 @@ Release 9fc080f, 25 October 2026, 18:39–18:59 UTC, through the public claude.a
 - Revoke sweeps the pocket back: https://stellar.expert/explorer/public/tx/ab6d493d483f6ea5d560a9561ab7cdd2668b9d7597632023095a397ca1fd53dd
 - Revoke removes the allowance rule from the account: https://stellar.expert/explorer/public/tx/e17e15d5efd2f43e883073873ff9d5dc0333ea9dca318cea0f38a5c7678f04c9
 - Later (20:53 UTC, after reconnecting): Claude bought Stellar's own x402 demo endpoint https://stellar.org/x402-demo/api/protected/mainnet for 0.01 USDC, a seller Nod does not run, settled through OpenZeppelin Channels to Stellar's pay-to account: https://stellar.expert/explorer/public/tx/3a63573ab65fc557c86737af029bd79b0d382f3ebe78eb5911b3a597f55b596e
+- Later (21:44–21:46 UTC): a stranger-style signup with nothing onchain, funded by an ordinary 1 USDC payment with no memo to its deposit address https://stellar.expert/explorer/public/tx/d1c910740917987ba0149edf5be778af702c3f18e83b2bb6d4c1b144658719ec; the deposit router swept it into the wallet https://stellar.expert/explorer/public/tx/7c57d530372b32fe07aac7ea9220380ff52ce54a329518ff838179357329d7af and Nod deployed the account at its planned id 83 s later https://stellar.expert/explorer/public/tx/57b97375c2f1cb8dbfbe122afa9a709c585e536b831b329e6236ef540284796f; the user never held XLM. Record: https://github.com/grmkris/hack-meridian-2026/blob/main/evidence/mainnet/deposit-2026-10-25T21-46Z.md
 
 ## Proof on testnet
 
@@ -80,6 +81,7 @@ Mainnet (pubnet):
 - Ed25519 verifier: CBOOZV2BK5OETGL4Q4KGEBESPRLJFN7DOFWDT7OZGLD7EQEZUVOWUEMC
 - Circle USDC, Stellar Asset Contract: CCW67TSZV3SSS2HXMBQ5JFGCKJNXKZM7UQUWUZPUTHXSTZLEO7SJMI75
 - Trust-and-pay router (CAP-73 SAC trust + transfer): CBWYFI6XWQI5C43GISIIUFXTJXBUI52QSNKKYC55GWMPLQRL2RAXT6TM
+- Deposit router: CBWDC7KRPOHSUIPADS6NHXHPYZ2KXHUZ7TONHBPVK7AKIWYXNLRFI6YX (source: contracts/deposit, the same WASM as testnet)
 - Relayers (fee payers, listed at https://trynod.si/api/health): GBVYA2V4SMVPXFRPVB5FEFCADW7RXFIACR2HBLN2WP3RHAZKL267YG5X, GDMYACRM646Z4QIUPIAQZ2W3HSKAO2LESWCME73RSCCETSQKSL6HCAGP
 - x402 network stellar:pubnet; facilitator OpenZeppelin Channels; demo seller https://hm26-seller-mainnet.kristjan-grm11775.workers.dev/api/market-brief
 
@@ -89,7 +91,7 @@ Testnet:
 - Ed25519 verifier: CAAVTMCBXEIBPR64EAASKFXERVPYFZA2JYP5A3BG6PESWEFUJX5IHKN4
 - Circle USDC, Stellar Asset Contract: CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA
 - Trust-and-pay router: CCLFB4I4CNGWHHL53UO33CSWKKXJBANMDGOGL43J7RBT7SWK2H2BPGN4 (source: contracts/onboard; `stellar contract build` with stellar-cli 28.1.0 and rustc 1.98.1 reproduces the deployed WASM, sha256 39c97734…, on both networks)
-- Deposit router: CAFLFU5GH7QZ6KF3FBKRV7VW5XFYUKQPCFFTCPTKVEUG4TDT5B2ZOXGL (source: contracts/deposit; testnet only)
+- Deposit router: CAFLFU5GH7QZ6KF3FBKRV7VW5XFYUKQPCFFTCPTKVEUG4TDT5B2ZOXGL (source: contracts/deposit)
 - Relayers (listed at https://testnet.trynod.si/api/health): GBCALSA3XQAWW24AXGFWJIGNUCDBCMUPPWC5XHMZ22VY4HMX6XCFYWBR, GAWYWVMHLTRN6N7DXKV3XYCLAFPCPPUXPDFC7J5KL3LNKO26YNJSYE4I, GBGNYETYEEWM5RIRE6KWUUZKD3X4DBZZ72M2LHQJNUGYO3D6ZYADBPT6
 - x402 network stellar:testnet; facilitators x402.org and OpenZeppelin Channels; demo seller https://hm26-seller.kristjan-grm11775.workers.dev/api/market-brief
 

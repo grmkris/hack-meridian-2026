@@ -86,23 +86,21 @@ look-alikes here too. Nod's first 15 seconds must show what the others did not h
 | "A recipient with no USDC trustline gets the trustline and the payment in one transaction."                                                                                                                                                                                                                                                                                                          | testnet `565b7f07…`, `2b3abb65…`; mainnet `1fe4e852…`                                                                                                                                                                                                                                                        |
 | "A 5 USDC allowance spends exactly 5.0; one stroop more fails." "An over-allowance transfer forced onchain is rejected by the account."                                                                                                                                                                                                                                                              | spike S1: `c0f6f923…`, `3daf4b00…` (`#3221`)                                                                                                                                                                                                                                                                 |
 | "Add it to claude.ai" and "Claude Code connects over OAuth."                                                                                                                                                                                                                                                                                                                                         | `evidence/mcp-apps/` (claude.ai), spike S4 (Claude Code)                                                                                                                                                                                                                                                     |
-| "Deposit addresses that exchanges can pay are proven on testnet." Always with "on testnet".                                                                                                                                                                                                                                                                                                          | `docs/spikes/s8-deposit.md` (router `CAFLFU5G…`, deposits swept `0f299152…`, `efcbcc48…`)                                                                                                                                                                                                                    |
+| "Open to anyone, USDC only." "Deposit from any exchange or wallet to your deposit address, no memo; it lands in your wallet." True on mainnet and testnet.                                                                                                                                                                                                                                           | mainnet: `evidence/mainnet/deposit-2026-10-25T21-46Z.md` (a stranger-style signup with nothing onchain; deposit `d1c91074…`, sweep `7c57d530…`, account deployed `57b97375…` 83 s later, about 0.30 XLM in fees paid by Nod); testnet: `docs/spikes/s8-deposit.md`, `evidence/deposit-first/`                |
 | Live on testnet, always with those words: "sign up with a passkey and a deposit: the account deploys when the first USDC lands"; "pay someone who is not on Stellar: they open the link, create a wallet with a passkey, and the USDC lands in it"; "Claude adds contacts; the first payment to one it added needs your nod"; "Claude asks to change its allowance with a link your passkey signs".  | public host `testnet.trynod.si` at `3473ee4`: `evidence/deposit-first/` (deposit `06bd7d2e…`, sweep `04704caf…`, deploy `8c356236…`), `evidence/claims/` (Jan `eb9def8c…`, his wallet `bccfbc61…`), `evidence/tools/` (Dave `b5efd05d…` by nod, `016a0772…` alone, allowance `3ff0e2e0…`), `evidence/shots/` |
 | Live on testnet: "Past the allowance, your one passkey tap makes a link that is an allowance for one person: a rule for exactly the amount, valid seven days. The key is made in your browser and lives only in the link." Trust line, verbatim: "Nod never holds the link key or the funds; a leaked link can take at most the amount, once, before it expires."                                    | public host at `4bb4a89`: `evidence/person-link/` (rule `929c79eb…`, Jan's claim `fd54c526…`, Jan's wallet `fee254cc…`, 6.0000001 refused `#3221` in enforcing simulation while exactly 6 passes, second claim refused, take-back `1803a30c…`)                                                               |
 
-Not yet, until the orchestrator says the proof exists: any mainnet wording for the testnet features ("open to anyone,
-USDC only", deposits from exchanges on mainnet, wallet-creating links, the link as an allowance for one person and
-AI-added contacts on mainnet; the person link goes to mainnet copy only after the recording's mainnet hash), and a
-ChatGPT app store listing.
+Not yet, until the orchestrator says the proof exists: mainnet wording for wallet-creating links, the link as an
+allowance for one person and AI-added contacts (the person link goes to mainnet copy only after the recording's mainnet
+hash), and a ChatGPT app store listing.
 
 ## Never say
 
 "audited" · "nine of nine" · "nod line" or any second threshold · a cap or limit on payments you approve · "no limit on
 what Claude can spend" · CCTP · a facilitator of ours · privacy · recovery · "ChatGPT support" or "in the ChatGPT app
-store" (say "works in ChatGPT as a developer-mode connector") · mainnet deposits from
-exchanges · "ephemeral pocket" · "exact payment" for the pocket (it fills in 1 USDC steps) · "atomic wallet creation" ·
-"on EVM this needs approval hops" · "sent to your phone" (the link opens wherever your passkey is) · MCP Events in
-claude.ai or Claude Code · "pay any address silently".
+store" (say "works in ChatGPT as a developer-mode connector") · "ephemeral pocket" · "exact payment" for the pocket (it
+fills in 1 USDC steps) · "atomic wallet creation" · "on EVM this needs approval hops" · "sent to your phone" (the link
+opens wherever your passkey is) · MCP Events in claude.ai or Claude Code · "pay any address silently".
 
 ## Wording, ready to paste
 
@@ -140,11 +138,11 @@ claude.ai or Claude Code · "pay any address silently".
 
 ## Hosts
 
-| Host                                                  | What it is                                                                                             |
-| ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
-| [trynod.si](https://trynod.si)                        | the product on Stellar mainnet; signup is open; USDC only; connector `https://trynod.si/mcp`           |
-| [testnet.trynod.si](https://testnet.trynod.si)        | the judges' sandbox: new wallets get 10 testnet USDC; `/sample` runs a sample agent; connector `…/mcp` |
-| `hack-meridian-testnet.kristjan-grm11775.workers.dev` | the old host; redirects to testnet.trynod.si                                                           |
+| Host                                                  | What it is                                                                                                                                                     |
+| ----------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [trynod.si](https://trynod.si)                        | the product on Stellar mainnet: open to anyone; USDC only; fund it from any exchange or wallet through your deposit address; connector `https://trynod.si/mcp` |
+| [testnet.trynod.si](https://testnet.trynod.si)        | the judges' sandbox: new wallets get 10 testnet USDC; `/sample` runs a sample agent; connector `…/mcp`                                                         |
+| `hack-meridian-testnet.kristjan-grm11775.workers.dev` | the old host; redirects to testnet.trynod.si                                                                                                                   |
 
 ## Demo beats (one number, the same on both networks)
 
@@ -269,9 +267,10 @@ pocket comes back. All of that ran on mainnet in claude.ai this evening, with my
   amount, once, before it expires. You can take an open link back under Connections → Links; on testnet the account
   refused one stroop more than the amount (`#3221`), a second claim was refused, and a take-back removed the rule
   (`1803a30c…`).
-- **How does money get in?** On mainnet today, Home shows the wallet's address, and wallets that can pay a contract
-  address (Freighter) send USDC to it. On testnet, Home also gives a `G…` deposit address any exchange can pay, and a
-  new wallet can start from one: the account deploys when the first USDC lands. Off on mainnet until its run passes.
+- **How does money get in?** Home → Add money gives a `G…` deposit address any exchange or wallet can pay, any
+  amount, no memo; our deposit router sweeps it into your wallet and nowhere else. A new wallet can start from one: the
+  account deploys when the first USDC lands. On mainnet a 1 USDC classic payment was swept and the account deployed 83
+  seconds later (`7c57d530…`, `57b97375…`). Freighter can also pay the wallet's `C…` address directly.
 - **What about ChatGPT?** Nod works in ChatGPT as a developer-mode connector: cards, the nod and events, shown on
   testnet (`88973525…`). It is not listed in ChatGPT's app store, whose policy bars crypto transfers.
 - **Recovery?** Not built. A second passkey is the first item after judging.
