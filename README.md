@@ -102,20 +102,20 @@ and the trust-and-pay router's deploy
 
 One rehearsal on the live site passed acceptance tests 1, 2 and 4–9; test 3, a forced over-limit transfer, cannot be
 sent through MCP by design and is proven onchain in spike S1 (`3daf4b00…`, below). The run drove the deployed release
-`9fc080f` at testnet.trynod.si through Claude's path headlessly (OAuth, a new passkey wallet with 10 testnet USDC, the
-one-number beats) on 25 October, 18:31–18:33 UTC. Record:
-[`evidence/demo/2026-10-25T18-31-37-970Z/run.json`](evidence/demo/2026-10-25T18-31-37-970Z/run.json).
+`5253df0` at testnet.trynod.si through Claude's path headlessly (OAuth, a new passkey wallet with 10 testnet USDC, the
+one-number beats) on 25 October, 19:14–19:16 UTC. Record:
+[`evidence/demo/2026-10-25T19-14-24-616Z/run.json`](evidence/demo/2026-10-25T19-14-24-616Z/run.json).
 
 | What happened                                                                                  | Transaction                                                                                                                  |
 | ---------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| The passkey wallet this run created                                                            | [`CDKTGG5K…BRQZ`](https://stellar.expert/explorer/testnet/contract/CDKTGG5K77NCUQIDKJ2SNYIWYE6QZZCCHV2DK5O6GQJOXI7BEUQFBRQZ) |
-| x402: the AI app's key pulls 1.00 USDC into its pocket under the allowance (Nod pays the fee)… | [`cc89e564`](https://stellar.expert/explorer/testnet/tx/cc89e5646c6e7e42001a95909c2ced9fb14f104f9557c88ba0307162a8dbe2c9)    |
-| …then the pocket pays the seller 0.10 USDC, settled by OpenZeppelin Channels; 4.90 left        | [`8a7b7fa4`](https://stellar.expert/explorer/testnet/tx/8a7b7fa45e3d58b5290d39836f4127f7f44a4a7af20d91646f2157bcf6b30e50)    |
-| 2 USDC to Alice, signed by the AI app's key inside its allowance; 2.90 left                    | [`68d0859c`](https://stellar.expert/explorer/testnet/tx/68d0859c208e6b2508a824ad80a6808a50190df9ac75555245f7361a6c980f88)    |
-| 5 USDC to Bob, past the allowance, approved with the passkey; the same request again paid once | [`e53e9d0f`](https://stellar.expert/explorer/testnet/tx/e53e9d0fb4105f8cde014510e27b6c51ceb86764f03fd0f8ea470875bc57b8ab)    |
-| Carol's USDC trustline and 1 USDC in one transaction (CAP-73 claim link)                       | [`2b3abb65`](https://stellar.expert/explorer/testnet/tx/2b3abb657a536ac24c57064c4a9fde8b15082d897cf1c67e2502a84f909653aa)    |
-| Revoke sweeps the pocket back to the wallet                                                    | [`14eeeb58`](https://stellar.expert/explorer/testnet/tx/14eeeb58d4099d2fad5b820ae97ce3a77c35f5e10473dcef51897bfd78b838fd)    |
-| Revoke removes the allowance rule from the account                                             | [`b4b220ef`](https://stellar.expert/explorer/testnet/tx/b4b220ef177f9a0daa38cad293da559b495610fa219349219110c9c7a067dd95)    |
+| The passkey wallet this run created                                                            | [`CDE4KSAH…ROYX`](https://stellar.expert/explorer/testnet/contract/CDE4KSAHEDFVZ6SDX6WZGH5JEE3R4BIBTLKOPKJRW54FY6A6KUE2ROYX) |
+| x402: the AI app's key pulls 1.00 USDC into its pocket under the allowance (Nod pays the fee)… | [`2ecaef08`](https://stellar.expert/explorer/testnet/tx/2ecaef088b748c3de3d3cf70b37699cbe4a934f384c44742f53056def49dcdad)    |
+| …then the pocket pays the seller 0.10 USDC, settled by OpenZeppelin Channels; 4.90 left        | [`0fbbbed6`](https://stellar.expert/explorer/testnet/tx/0fbbbed63eec68b2c3d68860b2555d1fe0c94614e4af317a1d4130791b515e1c)    |
+| 2 USDC to Alice, signed by the AI app's key inside its allowance; 2.90 left                    | [`21d29908`](https://stellar.expert/explorer/testnet/tx/21d29908d5e68047c6ed9faba198c9d3760b02bdf8bce66a9dac2570f88bb3b9)    |
+| 5 USDC to Bob, past the allowance, approved with the passkey; the same request again paid once | [`d5ea13b1`](https://stellar.expert/explorer/testnet/tx/d5ea13b1f9263888c8b9795d1383200bdbc6f5d5ec70182b5876dbf57a0202aa)    |
+| Carol's USDC trustline and 1 USDC in one transaction (CAP-73 claim link)                       | [`13d1b05f`](https://stellar.expert/explorer/testnet/tx/13d1b05fb6a69e488b924b5a354fa33a43bd1211f03041ace384feeb5485e263)    |
+| Revoke sweeps the pocket back to the wallet                                                    | [`9c3e9b1e`](https://stellar.expert/explorer/testnet/tx/9c3e9b1e61ed1ec7a3037c72da4b566a441a45f812207c461f233b0acea11df5)    |
+| Revoke removes the allowance rule from the account                                             | [`c24b051f`](https://stellar.expert/explorer/testnet/tx/c24b051f845a31345f4fc28c74bb4fd5308ada1fed4ef3d2abb6e84480cf0ea7)    |
 
 From the spikes that proved each risky part first (full record with commands in [docs/spikes/](docs/spikes/)):
 
