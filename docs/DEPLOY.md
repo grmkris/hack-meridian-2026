@@ -111,3 +111,33 @@ and a wallet's network taken from the stage with a one-time backfill (`9fc080f`;
 Gate green in the worktree, two Alchemy updates (RELEASE binding only), smoke 9/9 on testnet, `/sample` 200, mainnet health
 invite off / payments on. Deploys went 1b04511 (18:25) then 9fc080f (18:27); the intermediate `c9f7792` and `24969ee`
 releases are superseded.
+
+## 19:10 UTC: the orchestrator session closes; deploys move to the MCP-Apps session
+
+Kristjan closes the orchestrator session after the mainnet run (`evidence/mainnet/claude-run-2026-10-25.md`). From here
+the **MCP-Apps session (`nod-mcp-apps-wallet`) owns every deploy, testnet and mainnet**, from the same worktree
+`/srv/cache/hm26/deploy-testnet` (both stages' Alchemy state and both `.env` files live there; `plan:mainnet` /
+`deploy:mainnet` as in "18:02 UTC: mainnet stage live"). Rules unchanged: pin a commit that is green on main, frozen
+install, `heavy bun run check`, plan with no deletes or replaces, deploy, smoke 9/9 on testnet, health release match,
+Live line here with a pathspec commit. Mainnet only after the same commit has served testnet green, and never during a
+recording.
+
+State at close: testnet at `c54a331` (MCP-Apps deploy 18:45 UTC), mainnet at `9fc080f`. Pending, in order:
+
+1. **Testnet: HEAD (≥ `3473b0f`)** carries the deposit-address service and migration `0007_deposit_addresses.sql`
+   (additive; no new bindings or secrets; `DEPOSIT_ROUTER_ID` optional). After it, the Add money card can code against
+   `GET /api/wallet/deposit-address` and `POST /api/wallet/sweep`; pubnet answers `404 deposit_unavailable` until a
+   router is deployed there (Kristjan's go, needs ~10 XLM more on relayer A).
+2. **Mainnet: the same HEAD** once testnet is green: brings `4a233ba` (a declined or cancelled URL request returns the
+   plain result; on `9fc080f` claude.ai shows Failed) and the deposit code (inert on pubnet). Check on the first request
+   after the deploy that `store.ts` `backfillNetwork` actually runs: on `9fc080f` it did not (the mainnet rows kept
+   `stellar:testnet` until the orchestrator ran the two UPDATE statements by hand on D1 `hack-meridian-mainnet-wallet`
+   at 18:43 UTC); the data is right now, the code path is unverified.
+3. **Before recording:** `bun scripts/demo/probe.ts --target testnet --save` green (the 19:05 UTC run is in
+   `evidence/probe/`), and no deploy from the moment Kristjan starts recording.
+4. **Mainnet deposit router** only on Kristjan's explicit go: `scripts/mainnet/router-deploy.ts` pattern for
+   `contracts/deposit`, then `DEPOSIT_ROUTER_ID` in `.env.mainnet`, then a deploy.
+
+Open findings for the MCP lane (not blocking): the post-nod tool result should say the owner approved with the
+passkey; the post-claim result should restate the recipient's readiness; the approval page's "they accept on the claim
+link first" sentence has the order backwards (approve, then accept, one transaction).
