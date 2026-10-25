@@ -5,8 +5,8 @@ Plans and queues live in the release plan (.local/brainstorm/FINAL-REVIEW.md §K
 **Deploys: session A ("ops and hardening") only, since 19:10 UTC 2026-10-25**, testnet and mainnet, from the worktree
 below; mainnet only on the orchestrator's explicit go, never during a recording.
 
-Live: **testnet at `f6510d0`** (22:19 UTC: NEAR Intents top-ups, migration 0012, the card's top-up view) on
-https://testnet.trynod.si (MCP at `/mcp`; the workers.dev host redirects there); **mainnet at `f6510d0`** (22:20 UTC; deposit router bound) on https://trynod.si. Both stages serve the same SHA. Dated sections
+Live: **testnet at `5d12328`** (22:48 UTC) on https://testnet.trynod.si (MCP at `/mcp`; the workers.dev host redirects
+there); **mainnet at `5d12328`** (22:49 UTC; deposit router bound) on https://trynod.si. Both stages serve the same SHA. Dated sections
 below are the history.
 
 ## The deploy worktree is the only place a testnet deploy runs
@@ -450,3 +450,12 @@ anyone, USDC only, funded from any exchange or wallet through your deposit addre
 signup session A did not make, and the 21:44 deposit test. Kristjan's real top-up is the proof.
 
 Rollback: testnet `843bdfd`, mainnet `1cd71c7` (0012 additive).
+
+## 22:48–22:49 UTC: both stages at `5d12328` (orchestrator's go)
+
+D's `dc54c2f` and `5d12328`: `apps/web/public/llms.txt` (the top-up, 23 tools, ten events, the sellers line) and repository
+docs; no code. Testnet: gate green, plan `[Web] update` + RELEASE, deploy `"deletedClasses":[]`, health release
+`5d12328b…`, smoke 9/9 (`evidence/probe/smoke-testnet-2026-10-25T22-48-54Z.json`), `/llms.txt` byte-identical. Mainnet: plan `[Web] update` + RELEASE,
+deploy `"deletedClasses":[]`, health release `5d12328b…`, pubnet, invite off, payments on, relayers 100.2 / 49.9 XLM,
+treasury 19 USDC; `/llms.txt` byte-identical; `smoke.ts` against trynod.si 7/9, the two failures being its testnet-only
+checks (stage name "testnet", the testnet counter contract). No wallet, no spend. Rollback: `f6510d0` on both.
