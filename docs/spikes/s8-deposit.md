@@ -143,6 +143,40 @@ router). `GDKXTQEX…` was locked without a teardown signer; its 2.75 USDC was s
 - Table `deposit_addresses`, keyed by wallet: status, claim, address, expiry, proof hashes, the teardown XDR (it can
   only close G), swept total, last sweep, watch end.
 
+## Deposit-first signup (405498e, migration 0008)
+
+On a network with a deposit router and no welcome USDC (pubnet, once its router exists), or when `POST /api/wallets`
+says `deposit_first`, signup deploys nothing. `Chain.planAccount` fixes the wallet's `C…` in advance: the primary
+relayer is the deployer and the salt is random, the way scripts/mainnet/seed.ts precomputes Alice's id. The deposit
+address is bound to that planned `C…`. SAC transfers and the router's sweep both reach an undeployed contract address
+(checked by simulation, then live). The account deploys at its planned id (`Chain.deployPlannedAccount`) when USDC is
+on the wallet, or before an AI app's first allowance, because the rule install needs the account.
+
+Live on testnet through the local stage (`evidence/deposit-first/`):
+
+- Signup took 515 ms with nothing onchain.
+- The deposit address cost the relayer 0.0975 XLM and 2 XLM of sponsored reserve.
+- A friendbot "exchange" paid 3 USDC ([6cbf931f…](https://stellar.expert/explorer/testnet/tx/6cbf931ffa3dba4c15e1ab901ff53caf71391beb358dc67280459a207a83b905)).
+- The Durable Object swept it ([5a094760…](https://stellar.expert/explorer/testnet/tx/5a0947605bcb807191ba6a972434ae4ef825414cff488e44aa01a5dfcaf29e48))
+  and deployed the account ([f7ad23a2…](https://stellar.expert/explorer/testnet/tx/f7ad23a26f55f29758246066272556822e244ece20496cd48b2aec4a2879d774)) 74 s later.
+
+## What's next: expiry and renewal
+
+A deposit address works until its allowance expires, at most the network's maximum entry TTL (~180 days; the testnet
+address above until 2027-04-23). Home (`deposit-expires`) and `wallet_deposit_address` (`expires_at`) show that date.
+G's key is gone and its master weight is 0, so the allowance cannot be renewed, and USDC sent after the expiry stays on
+G for good.
+
+The plan, not built (nothing changes for ~165 days, and it needs a migration):
+
+1. Fourteen days before the expiry, the next GET or `wallet_deposit_address` creates a fresh G for the same `C…`.
+2. The old G moves to a `deposit_history` table with its teardown XDR.
+3. The Durable Object keeps sweeping it until its own expiry.
+4. After that, once G is empty, it submits the teardown: `StellarOps.closeDeposit` returns the 2 XLM of reserve.
+5. In the last 30 days the UI says "a new address replaces this on <date>", so senders who saved the old one are told.
+
+Wallets that never come back keep their G and its 2 XLM until a janitor tears down expired, empty addresses.
+
 ## What the deployer must know
 
 - **Migration** `0007_deposit_addresses.sql`: one new table, additive. The D1 migrations directory applies it on
