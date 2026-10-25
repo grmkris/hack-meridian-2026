@@ -109,7 +109,7 @@ const TOOLS = [
   spec(
     'payment_prepare',
     'Prepare a payment',
-    "Freeze a USDC payment to a contact or address into an intent. Inside this AI app's allowance and below its nod line (the user sets it with the allowance, 1.00 USDC by default) it comes back ready (call payment_execute next); at or above the nod line, or over the allowance, it needs the user's nod: status awaiting_approval with an approval_url the user opens and approves with their passkey (approval_reason says why). Never pays by itself. Repeat with the same idempotency_key to get the same intent.",
+    "Freeze a USDC payment to a contact or address into an intent. Within what is left of this AI app's allowance it comes back ready (call payment_execute next); anything past it needs the user's nod: status awaiting_approval with an approval_url the user opens and approves with their passkey, for any amount (approval_reason says why). Never pays by itself. Repeat with the same idempotency_key to get the same intent.",
     PaymentPrepareInput,
     { readOnlyHint: false, idempotentHint: true, openWorldHint: false },
     (ctx, args) => paymentPrepare(ctx, args),
@@ -142,7 +142,7 @@ const TOOLS = [
   spec(
     'paid_resource_fetch',
     'Fetch a paid resource (x402)',
-    "GET a URL. If it answers 402 (x402) with a Stellar USDC price that fits this AI app's allowance and is below its nod line, pay it without asking the user and return the content with the receipt; otherwise return requires_approval (the user's nod) or refused. Same idempotency_key = never pays twice.",
+    "GET a URL. If it answers 402 (x402) with a Stellar USDC price that fits this AI app's allowance, pay it without asking the user and return the content with the receipt; otherwise return requires_approval (the user's nod) or refused. Same idempotency_key = never pays twice.",
     PaidResourceFetchInput,
     { readOnlyHint: false, idempotentHint: true, openWorldHint: true },
     (ctx, args) => paidResourceFetch(ctx, args),

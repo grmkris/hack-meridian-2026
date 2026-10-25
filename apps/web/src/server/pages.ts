@@ -166,16 +166,13 @@ export const consentGrantPage = (
 <div class="card"><p>Allow <strong>${escape(view.clientName)}</strong> to spend up to
 <input name="allowance" data-testid="allowance" value="5.00" inputmode="decimal" pattern="\\d{1,6}(\\.\\d{1,2})?" required> <strong>USDC</strong> total until
 <select name="lifetime">${expiryOptions(nowMs)}</select>.</p>
-<p><label>Ask me for a nod above <input name="nod_above" data-testid="nod-above" value="1.00" inputmode="decimal" pattern="\\d{1,6}(\\.\\d{1,2})?" required aria-describedby="nod-help"> <strong>USDC</strong></label></p>
-<p id="nod-help"><strong>Smaller payments go through on their own; this amount or more, or anything past the allowance, needs your nod.</strong> It comes to you as a link you approve with your passkey. Your passkey now writes this allowance to your Stellar account; you can revoke it any time.</p></div>
+<p><strong>Inside this allowance it pays on its own; anything past it needs your nod, every time.</strong> It comes to you as a link you approve with your passkey, for any amount. Your passkey now writes this allowance to your Stellar account; you can revoke it any time.</p></div>
 <p id="status" class="muted" role="status"></p>
 <p class="row"><button class="primary" id="allow" type="button" data-testid="consent-allow">Allow with passkey</button> <button name="decision" value="deny" formnovalidate>Deny</button></p>
 </form>`,
     `const ctx=JSON.parse(document.getElementById('ctx').textContent);const f=document.getElementById('grant');
-const line=()=>{const n=Number(f.nod_above.value),a=Number(f.allowance.value);f.nod_above.setCustomValidity(n<0.01?'At least 0.01 USDC.':n>a?'At most the allowance ('+f.allowance.value+' USDC).':'')};
-f.allowance.oninput=line;f.nod_above.oninput=line;
-document.getElementById('allow').onclick=async e=>{line();if(!f.reportValidity())return;const done=busy(e.target,'Preparing…');
-try{const p=await post('/oauth/grant/prepare',{handle:f.handle.value,allowance:f.allowance.value,nod_above_usdc:f.nod_above.value,lifetime_seconds:Number(f.lifetime.value)});
+document.getElementById('allow').onclick=async e=>{if(!f.reportValidity())return;const done=busy(e.target,'Preparing…');
+try{const p=await post('/oauth/grant/prepare',{handle:f.handle.value,allowance:f.allowance.value,lifetime_seconds:Number(f.lifetime.value)});
 e.target.textContent='Waiting for passkey…';const a=await assertion(p.challenge,ctx.rpId,[ctx.credential]);
 f.pending_id.value=p.pending_id;f.assertion.value=JSON.stringify(a);f.approve.value='1';
 e.target.textContent='Writing the allowance to Stellar…';f.submit()}catch(x){done();show('status',x.message)}};`,

@@ -20,8 +20,9 @@ vi.mock('@cloudflare/workers-oauth-provider', () => ({
 }))
 
 /**
- * W1, the nod line on the consent page (docs/SPEC.md, decisions 2026-10-25 17:10 UTC): a second field next to the
- * allowance, default 1.00, validated between 0.01 and the allowance, stored with the pending grant and then the grant.
+ * The consent page after Kristjan's 18:20 UTC decision: one number, the allowance. The agent pays on its own until it
+ * has spent it; anything past it needs the passkey, with no upper limit. The W1 nod line is gone from the page and the
+ * lane rule; the 0006 column stays (additive) and carries the allowance.
  */
 
 const WALLET: Wallet = {
@@ -39,8 +40,8 @@ const Reply = Schema.fromJsonString(
   Schema.Struct({ pending_id: Schema.optionalKey(Schema.String), error: Schema.optionalKey(Schema.String) }),
 )
 
-describe('the nod line on the consent page', () => {
-  test('the grant ceremony shows "Ask me for a nod above … USDC" next to the allowance, default 1.00, and posts it', () => {
+describe('one number on the consent page: the allowance', () => {
+  test('the grant ceremony asks for the allowance and the expiry only, and says what happens past it', () => {
     const page = consentGrantPage(
       { nonce: 'n0nce', network: 'Testnet', explorerBase: 'https://stellar.expert/explorer/testnet' },
       {
@@ -56,24 +57,19 @@ describe('the nod line on the consent page', () => {
       'wallet.test',
     )
     expect(page).toContain('data-testid="allowance" value="5.00"')
-    expect(page).toContain('<label>Ask me for a nod above <input name="nod_above" data-testid="nod-above" value="1.00"')
-    expect(page).toContain('this amount or more, or anything past the allowance, needs your nod')
-    expect(page).toContain('nod_above_usdc:f.nod_above.value')
-    expect(page).toContain('At most the allowance')
+    expect(page).not.toContain('data-testid="nod-above"')
+    expect(page).not.toContain('nod_above_usdc')
+    expect(page).toContain('Inside this allowance it pays on its own; anything past it needs your nod, every time.')
+    expect(page).toContain('for any amount')
   })
 
-  test('nodLineOf: default 1.00 (or the allowance when smaller), at least 0.01, at most the allowance', () => {
-    expect(nodLineOf(undefined, toStroops('5'))).toBe(toStroops('1'))
-    expect(nodLineOf('', toStroops('0.5'))).toBe(toStroops('0.5'))
-    expect(nodLineOf('0.01', toStroops('5'))).toBe(toStroops('0.01'))
-    expect(nodLineOf('5', toStroops('5'))).toBe(toStroops('5'))
-    expect(nodLineOf('5.01', toStroops('5'))).toBeUndefined()
-    expect(nodLineOf('0', toStroops('5'))).toBeUndefined()
-    expect(nodLineOf('0.001', toStroops('5'))).toBeUndefined()
-    expect(nodLineOf('one', toStroops('5'))).toBeUndefined()
+  test('nodLineOf stores the allowance, whatever an older client sends', () => {
+    expect(nodLineOf(undefined, toStroops('5'))).toBe(toStroops('5'))
+    expect(nodLineOf('1.00', toStroops('5'))).toBe(toStroops('5'))
+    expect(nodLineOf('one', toStroops('0.5'))).toBe(toStroops('0.5'))
   })
 
-  test('POST /oauth/grant/prepare refuses a line above the allowance and stores the line with the pending grant and the grant', async () => {
+  test('POST /oauth/grant/prepare stores the allowance as the line, and the views show no line', async () => {
     const runtime: AppRuntime = ManagedRuntime.make(testServices())
     try {
       await runtime.runPromise(seedWallet())
@@ -89,25 +85,11 @@ describe('the nod line on the consent page', () => {
         )
         return { status: response.status, reply: Schema.decodeUnknownSync(Reply)(await response.text()) }
       }
-      const lineOf = async (id: string | undefined) =>
-        (await runtime.runPromise(pendingGrant(id ?? '', OWNER_ID)))?.nod_above
-
-      const above = await prepare({ allowance: '5', nod_above_usdc: '5.01' })
-      expect(above.status).toBe(400)
-      expect(above.reply.error).toContain('up to the allowance (5.00)')
-      expect((await prepare({ allowance: '5', nod_above_usdc: '0' })).status).toBe(400)
-
-      const two = await prepare({ allowance: '5', nod_above_usdc: '2' })
-      expect(two.status).toBe(200)
-      expect(await lineOf(two.reply.pending_id)).toBe(toStroops('2'))
-      expect(await lineOf((await prepare({ allowance: '5', nod_above_usdc: '5' })).reply.pending_id)).toBe(
-        toStroops('5'),
-      )
-      expect(await lineOf((await prepare({ allowance: '5' })).reply.pending_id)).toBe(toStroops('1'))
-      expect(await lineOf((await prepare({ allowance: '0.50' })).reply.pending_id)).toBe(toStroops('0.5'))
-
-      const pending = await runtime.runPromise(pendingGrant(two.reply.pending_id ?? '', OWNER_ID))
+      const ignored = await prepare({ allowance: '5', nod_above_usdc: '1' })
+      expect(ignored.status).toBe(200)
+      const pending = await runtime.runPromise(pendingGrant(ignored.reply.pending_id ?? '', OWNER_ID))
       if (pending === undefined) throw new Error('the pending grant vanished')
+      expect(pending.nod_above).toBe(toStroops('5'))
       await runtime.runPromise(
         createConnection({
           connectionId: 'con_w1',
@@ -128,9 +110,8 @@ describe('the nod line on the consent page', () => {
       const grant = await runtime.runPromise(grantOfConnection('con_w1'))
       const connection = await runtime.runPromise(connectionById('con_w1'))
       if (grant === undefined || connection === undefined) throw new Error('the grant was not stored')
-      expect(grant.nod_above).toBe(toStroops('2'))
-      expect(toolGrantView(grant, Date.parse('2026-10-25T17:00:00Z')).nod_above_usdc).toBe('2.00')
-      expect(apiGrantView(connection, grant).nod_above_usdc).toBe('2.00')
+      expect('nod_above_usdc' in toolGrantView(grant, Date.parse('2026-10-25T17:00:00Z'))).toBe(false)
+      expect('nod_above_usdc' in apiGrantView(connection, grant)).toBe(false)
     } finally {
       await runtime.dispose()
     }

@@ -58,8 +58,9 @@ export const effectiveStatus = (intent: PaymentIntent, nowMs: number): PaymentIn
     : intent.status
 
 /**
- * The lane rule (docs/SPEC.md): autonomous only inside a live grant, for a ready recipient, below the grant's nod line
- * and within what is left. A direct payment comes from the smart account under the rule, so only the policy's free
+ * The lane rule (docs/SPEC.md): autonomous only inside a live grant, for a ready recipient, within what is left of the
+ * allowance; anything else takes the owner lane (the passkey, no upper limit). One number, the allowance (Kristjan,
+ * 2026-10-25 18:20 UTC: the per-payment nod line is gone; grants keep the column, unused). A direct payment comes from the smart account under the rule, so only the policy's free
  * amount counts; an x402 purchase is paid from the pocket, so its float counts too. The owner lane carries its reason.
  */
 const owner = (reason: ApprovalReason) => ({ lane: 'owner' as const, reason })
@@ -75,7 +76,6 @@ export const laneDecision = (input: {
   if (input.forceOwner || input.amount <= 0n) return owner('owner_only')
   if (input.grant === undefined || !grantLive(input.grant, input.nowMs)) return owner('no_allowance')
   if (input.readiness !== 'usdc_ready') return owner('recipient_not_ready')
-  if (input.amount >= input.grant.nod_above) return owner('above_nod_line')
   if (input.amount > (input.kind === 'payment' ? policyFreeOf(input.grant) : remainingOf(input.grant)))
     return owner('over_allowance')
   return { lane: 'autonomous', reason: null }

@@ -1,7 +1,7 @@
 import { Effect, Schema } from 'effect'
 
 import { Assertion } from '@hm/api'
-import { Chain, type ChainError, fromStroops, PreparedClaim, PreparedOwnerAuth } from '@hm/protocol'
+import { Chain, type ChainError, PreparedClaim, PreparedOwnerAuth } from '@hm/protocol'
 
 import { nowMillis, randomId } from './clock.ts'
 import type { DbError } from './db.ts'
@@ -123,17 +123,16 @@ const decodePrepared = (text: string | null) =>
         Effect.mapError(() => new OwnerError({ kind: 'bad_request', message: 'the prepared payment is unreadable' })),
       )
 
-/** The kill switch and the per-payment cap, checked before the chain prepares or submits anything. */
+/**
+ * The kill switch, checked before the chain prepares or submits anything. A payment the owner approves with the passkey
+ * has no upper limit beyond the wallet's balance (Kristjan, 2026-10-25 18:20 UTC).
+ */
 const paymentsAllowed = (amount: bigint) =>
   Effect.gen(function* () {
+    void amount
     const network = yield* Network
     if (!network.caps.paymentsEnabled)
       return yield* new OwnerError({ kind: 'unavailable', message: 'Payments are paused on Nod right now.' })
-    if (amount > network.caps.maxOwnerPaymentStroops)
-      return yield* new OwnerError({
-        kind: 'bad_request',
-        message: `Nod caps a single payment at ${fromStroops(network.caps.maxOwnerPaymentStroops)} USDC on ${network.label}.`,
-      })
     return undefined
   })
 

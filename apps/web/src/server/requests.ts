@@ -144,8 +144,6 @@ export const requestCreate = (ctx: ToolContext, input: RequestCreateInput) =>
     const network = yield* Network
     const amount = toStroops(input.amount)
     if (amount <= 0n) return yield* fail('The amount must be more than zero.')
-    if (amount > network.caps.maxOwnerPaymentStroops)
-      return yield* fail(`Nod caps a request at ${fromStroops(network.caps.maxOwnerPaymentStroops)} USDC.`)
     const payer = yield* resolveRecipient(ctx.props.owner_id, input.payer)
     if (payer.address === wallet.contract_id) return yield* fail('That is this wallet itself.')
     const fingerprint = `request|${payer.address}|${amount}|${input.note ?? ''}`

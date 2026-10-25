@@ -9,14 +9,7 @@ import {
   type OAuthResourceContext,
 } from '@cloudflare/workers-oauth-provider'
 import { Assertion } from '@hm/api'
-import {
-  Chain,
-  DEFAULT_NOD_ABOVE_STROOPS,
-  fromStroops,
-  MIN_NOD_ABOVE_STROOPS,
-  PreparedOwnerAuth,
-  toStroops,
-} from '@hm/protocol'
+import { Chain, fromStroops, MIN_NOD_ABOVE_STROOPS, PreparedOwnerAuth, toStroops } from '@hm/protocol'
 
 import { isoIn, nowIso, nowMillis, randomId } from './clock.ts'
 import { serveMcp } from './mcp.ts'
@@ -79,14 +72,12 @@ const GrantRequest = Schema.Struct({
   nod_above_usdc: Schema.optionalKey(Schema.String),
 })
 
-/** The nod line from the consent form, in stroops: 0.01 at least, the allowance at most. */
+/** The stored nod line: always the allowance (one number). Kept so grants and older clients still read and post it. */
 export const nodLineOf = (input: string | undefined, total: bigint): bigint | undefined => {
-  if (input === undefined || input.trim() === '')
-    return DEFAULT_NOD_ABOVE_STROOPS < total ? DEFAULT_NOD_ABOVE_STROOPS : total
-  const text = input.trim()
-  if (!ALLOWANCE.test(text)) return undefined
-  const line = toStroops(text)
-  return line < MIN_NOD_ABOVE_STROOPS || line > total ? undefined : line
+  // One number since 2026-10-25 18:20 UTC: the allowance. The column stays (0006 is additive) and carries the
+  // allowance; an older client that still sends a line is not refused, it is ignored.
+  void input
+  return total
 }
 
 /** POST /oauth/grant/prepare: K, its rule install prepared for the owner's passkey (nothing onchain yet). */

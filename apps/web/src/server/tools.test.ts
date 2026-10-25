@@ -383,133 +383,49 @@ describe('a purchase that fails after the pocket pull', () => {
 const callMcp = (ctx: ToolContext, key: string) =>
   paidMcpCall(ctx, { server_url: 'https://seller.test/mcp', tool: 'brief', idempotency_key: key })
 
-describe('the nod line (W1): below it alone, at or above it the nod', () => {
-  it.effect(
-    'a payment at 0.99 goes alone; 1.00 and 1.01 need the nod (above_nod_line), and execute never signs them',
-    () => {
-      const fixture = makeFixtureChain()
-      return Effect.gen(function* () {
-        const { ctx } = yield* world(yield* Effect.promise(() => SoftPasskey.create('wallet.test', ORIGIN)), '1')
-        const below = yield* prepare(ctx, '0.99', 'line-0.99')
-        expect(below.value).toMatchObject({ lane: 'autonomous', status: 'prepared', approval_reason: null })
-        for (const [amount, key] of [
-          ['1', 'line-1.00'],
-          ['1.01', 'line-1.01'],
-        ] as const) {
-          const asked = yield* prepare(ctx, amount, key)
-          expect(asked.value).toMatchObject({
-            lane: 'owner',
-            status: 'awaiting_approval',
-            approval_reason: 'above_nod_line',
-          })
-          expect(asked.value.approval_url).toBe(`${ORIGIN}/approve/${asked.value.payment_id}`)
-          expect(asked.sentence).toContain('at or above the 1.00 USDC line')
-          const refused = yield* paymentExecute(ctx, asked.value.payment_id)
-          expect(refused.value.status).toBe('awaiting_approval')
-          expect(refused.value.grant_remaining).toBe('5.00')
-        }
-        expect(transfers(fixture)).toBe(0)
-        const paid = yield* paymentExecute(ctx, below.value.payment_id)
-        expect(paid.value.status).toBe('confirmed')
-        expect(paid.value.receipt?.lane).toBe('autonomous')
-        expect(paid.value.grant_remaining).toBe('4.01')
-        expect(transfers(fixture)).toBe(1)
-        const overview = yield* walletOverview(ctx)
-        expect(overview.value.grant?.nod_above_usdc).toBe('1.00')
-        expect(overview.sentence).toContain('in payments below 1.00 USDC')
-      }).pipe(Effect.provide(testServices(fixture)))
-    },
-  )
-
-  it.effect(
-    'at the allowance boundary: a line at the allowance still asks for all of it; below the line, more than is left is over_allowance',
-    () => {
-      const fixture = makeFixtureChain()
-      return Effect.gen(function* () {
-        const { ctx } = yield* world(yield* Effect.promise(() => SoftPasskey.create('wallet.test', ORIGIN)), '5')
-        const most = yield* prepare(ctx, '4.99', 'edge-4.99')
-        expect(most.value).toMatchObject({ lane: 'autonomous', approval_reason: null })
-        const all = yield* prepare(ctx, '5', 'edge-5')
-        expect(all.value).toMatchObject({ lane: 'owner', approval_reason: 'above_nod_line' })
-        const paid = yield* paymentExecute(ctx, most.value.payment_id)
-        expect(paid.value.grant_remaining).toBe('0.01')
-        const over = yield* prepare(ctx, '0.02', 'edge-0.02')
-        expect(over.value).toMatchObject({ lane: 'owner', approval_reason: 'over_allowance' })
-        expect(over.sentence).toContain('above what this AI app may spend on its own')
-        const last = yield* prepare(ctx, '0.01', 'edge-0.01')
-        expect(last.value).toMatchObject({ lane: 'autonomous', approval_reason: null })
-      }).pipe(Effect.provide(testServices(fixture)))
-    },
-  )
-
-  it.effect('paid_mcp_call: a 0.99 price is paid alone, a 1.00 price needs the nod and nothing is pulled', () => {
-    const cheap = makeFixtureChain({ x402PriceStroops: toStroops('0.99') })
+describe('one number, the allowance (Kristjan, 18:20 UTC): inside what is left alone, past it the nod, no cap', () => {
+  it.effect('any amount up to what is left goes alone, all of it included; past it needs the nod', () => {
+    const fixture = makeFixtureChain()
     return Effect.gen(function* () {
-      const { ctx } = yield* world(yield* Effect.promise(() => SoftPasskey.create('wallet.test', ORIGIN)), '1')
-      const paid = (yield* callMcp(ctx, 'mcp-0.99')).value
-      expect(paid.status).toBe('paid')
-      expect(paid.approval_reason).toBeNull()
-      expect(paid.receipt?.lane).toBe('autonomous')
-    }).pipe(
-      Effect.provide(testServices(cheap)),
-      Effect.andThen(() => {
-        const atLine = makeFixtureChain({ x402PriceStroops: toStroops('1') })
-        return Effect.gen(function* () {
-          const { ctx } = yield* world(yield* Effect.promise(() => SoftPasskey.create('wallet.test', ORIGIN)), '1')
-          const asked = (yield* callMcp(ctx, 'mcp-1.00')).value
-          expect(asked).toMatchObject({ status: 'requires_approval', approval_reason: 'above_nod_line', price: '1.00' })
-          expect(asked.approval_url).not.toBeNull()
-          expect(asked.message).toContain('at or above the 1.00 USDC line')
-          expect(atLine.callsOf('delegatedTransfer')).toHaveLength(0)
-        }).pipe(Effect.provide(testServices(atLine)))
-      }),
-    )
-  })
-})
-
-describe('an x402 purchase at the nod line', () => {
-  test('needs the nod (above_nod_line) with the allowance untouched; approving funds the pocket; the retry pays once', async () => {
-    const fixture = makeFixtureChain({ x402PriceStroops: toStroops('1') })
-    const runtime: AppRuntime = ManagedRuntime.make(testServices(fixture))
-    try {
-      const passkey = await SoftPasskey.create('wallet.test', ORIGIN)
-      const { ctx } = await runtime.runPromise(world(passkey, '1'))
-      const token = await runtime.runPromise(createSession(OWNER))
-      const fetch = () =>
-        runtime.runPromise(paidResourceFetch(ctx, { url: 'https://seller.test/api/brief', idempotency_key: 'brief-1' }))
-      const asked = (await fetch()).value
-      expect(asked).toMatchObject({
-        status: 'requires_approval',
-        approval_reason: 'above_nod_line',
-        grant_remaining: '5.00',
+      const { ctx } = yield* world(yield* Effect.promise(() => SoftPasskey.create('wallet.test', ORIGIN)))
+      const two = yield* prepare(ctx, '2', 'one-2')
+      expect(two.value).toMatchObject({ lane: 'autonomous', status: 'prepared', approval_reason: null })
+      const all = yield* prepare(ctx, '5', 'one-5')
+      expect(all.value).toMatchObject({ lane: 'autonomous', approval_reason: null })
+      const paid = yield* paymentExecute(ctx, two.value.payment_id)
+      expect(paid.value.status).toBe('confirmed')
+      expect(paid.value.grant_remaining).toBe('3.00')
+      const over = yield* prepare(ctx, '3.01', 'one-3.01')
+      expect(over.value).toMatchObject({
+        lane: 'owner',
+        status: 'awaiting_approval',
+        approval_reason: 'over_allowance',
       })
-      expect(fixture.callsOf('delegatedTransfer')).toHaveLength(0)
-      const repeat = (await fetch()).value
-      expect(repeat).toMatchObject({ status: 'requires_approval', approval_reason: 'above_nod_line' })
-      const id = asked.payment_id ?? ''
-      const post = async (path: string, payload: string) => {
-        const request = new Request(`${ORIGIN}${path}`, {
-          method: 'POST',
-          headers: { cookie: `hm_owner=${token}`, 'content-type': 'application/json' },
-          body: payload,
-        })
-        const response = await ownerRoute(runtime, request, path)
-        if (response === undefined) throw new Error(`no route for ${path}`)
-        return { status: response.status, text: await response.text() }
-      }
-      const prepared = await post(`/approve/${id}/prepare`, '{}')
-      const signed = await passkey.assertChallenge(challengeOf(prepared.text))
-      expect((await post(`/approve/${id}`, body(passkey, signed))).status).toBe(200)
-      const paid = (await fetch()).value
-      expect(paid.status).toBe('paid')
-      expect(paid.receipt?.lane).toBe('owner')
-      expect((await fetch()).value.body).toBeNull()
-      // The ask and the funded retry reach the seller; the repeats are answered from the intent.
-      expect(fixture.callsOf('payX402')).toHaveLength(2)
-      expect(fixture.callsOf('delegatedTransfer')).toHaveLength(0)
-      expect(paid.grant_remaining).toBe('5.00')
-    } finally {
-      await runtime.dispose()
-    }
+      expect(over.sentence).toContain('above what this AI app may spend on its own')
+      const overview = yield* walletOverview(ctx)
+      expect(overview.value.grant !== null && 'nod_above_usdc' in overview.value.grant).toBe(false)
+      expect(overview.sentence).toContain("anything bigger needs the user's nod")
+    }).pipe(Effect.provide(testServices(fixture)))
+  })
+
+  it.effect('a payment past the allowance has no upper limit: 500 USDC is prepared for the nod, not refused', () => {
+    const fixture = makeFixtureChain()
+    return Effect.gen(function* () {
+      const { ctx } = yield* world(yield* Effect.promise(() => SoftPasskey.create('wallet.test', ORIGIN)))
+      const big = yield* prepare(ctx, '500', 'one-500')
+      expect(big.value).toMatchObject({ lane: 'owner', status: 'awaiting_approval', approval_reason: 'over_allowance' })
+      expect(big.value.approval_url).toBe(`${ORIGIN}/approve/${big.value.payment_id}`)
+      expect(transfers(fixture)).toBe(0)
+    }).pipe(Effect.provide(testServices(fixture)))
+  })
+
+  it.effect('paid_mcp_call: a 1.00 price inside the allowance is paid alone', () => {
+    const fixture = makeFixtureChain({ x402PriceStroops: toStroops('1') })
+    return Effect.gen(function* () {
+      const { ctx } = yield* world(yield* Effect.promise(() => SoftPasskey.create('wallet.test', ORIGIN)))
+      const paid = (yield* callMcp(ctx, 'mcp-1.00')).value
+      expect(paid).toMatchObject({ status: 'paid', approval_reason: null })
+      expect(paid.receipt?.lane).toBe('autonomous')
+    }).pipe(Effect.provide(testServices(fixture)))
   })
 })
