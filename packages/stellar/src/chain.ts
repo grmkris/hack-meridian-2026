@@ -9,6 +9,7 @@ import {
   type DepositAddress,
   type OwnerPasskey,
   type PreparedClaim,
+  type PreparedLinkTransfer,
   type PreparedOwnerAuth,
   type Receipt,
   type WebAuthnAssertion,
@@ -22,11 +23,13 @@ import {
   Keypair,
   Operation,
   rpc,
+  StrKey,
   TransactionBuilder,
   xdr,
 } from '@stellar/stellar-sdk'
 
 import {
+  authorizeWithSigners,
   authorizeWithEd25519,
   authorizeWithWebAuthn,
   ChallengeMismatch,
@@ -35,7 +38,7 @@ import {
   webAuthnChallenge,
   webAuthnSignerScVal,
 } from './auth.ts'
-import { fromHex, toBase64Url, toBuffer, toHex } from './bytes.ts'
+import { fromBase64Url, fromHex, toBase64Url, toBuffer, toHex } from './bytes.ts'
 import { ChainConfig } from './config.ts'
 import { INCLUSION_FEE } from './constants.ts'
 import {
@@ -82,6 +85,8 @@ import { facilitatorBearer, payX402, payX402Mcp, probeFacilitator, x402TargetOf 
 
 /** Ledgers a delegated (connection-key) auth entry stays valid: it is signed and submitted in one go. */
 const DELEGATED_AUTH_LEDGERS = 60
+/** A person link's entry: the recipient's browser signs it between two requests (~10 min). */
+const LINK_AUTH_LEDGERS = 120
 
 /** The opaque `payload` of a PreparedOwnerAuth / PreparedClaim (JSON, written and read only here). */
 const OwnerPayload = Schema.Struct({
@@ -585,6 +590,68 @@ export const makeStellar = Effect.gen(function* () {
       return receiptOf(yield* invoker.submit(func, signed, maxFeeStroops))
     })
 
+  /**
+   * A person link (an allowance for a person): the transfer under the link's rule, with the digest the link key signs
+   * in the recipient's browser. The same legacy-concat digest an AI app's key signs, valid LINK_AUTH_LEDGERS.
+   */
+  const prepareLinkTransfer = (
+    contractId: string,
+    ruleId: number,
+    signerPublicKey: Uint8Array,
+    to: string,
+    amountStroops: bigint,
+  ) =>
+    Effect.gen(function* () {
+      yield* enabled('link payment')
+      if (signerPublicKey.length !== 32) return yield* badInput('the link key must be a 32-byte Ed25519 public key')
+      if (amountStroops <= 0n) return yield* badInput('the amount must be positive')
+      const func = transferFunc(C.usdcSac, contractId, to, amountStroops)
+      const prep = yield* invoker.prepare(func)
+      const entry = yield* Effect.fromOption(entryFor(prep.entries, contractId), () =>
+        badInput(`simulation asked no authorization from ${contractId}`),
+      )
+      const validUntilLedger = prep.latestLedger + LINK_AUTH_LEDGERS
+      const { challenge } = webAuthnChallenge(entry, [ruleId], validUntilLedger, passphrase)
+      return {
+        contractId,
+        ruleId,
+        signerPublicKey: toBase64Url(signerPublicKey),
+        to,
+        amountStroops,
+        digest: challenge,
+        validUntilLedger,
+        entryXdr: entry.toXDR('base64'),
+        func: func.toXDR('base64'),
+      } satisfies PreparedLinkTransfer
+    })
+
+  const finalizeLinkTransfer = (prepared: PreparedLinkTransfer, signature: Uint8Array, maxFeeStroops?: bigint) =>
+    Effect.gen(function* () {
+      yield* enabled('link payment')
+      const publicKey = fromBase64Url(prepared.signerPublicKey)
+      const digest = fromBase64Url(prepared.digest)
+      const signer = yield* Effect.try({
+        try: () => Keypair.fromPublicKey(StrKey.encodeEd25519PublicKey(toBuffer(publicKey))),
+        catch: e => badInput(`link key: ${messageOf(e)}`),
+      })
+      if (signature.length !== 64 || !signer.verify(toBuffer(digest), toBuffer(signature)))
+        return yield* new ChainError({ kind: 'bad_assertion', message: 'the link key did not sign this transfer' })
+      const entry = yield* fromXdr('entryXdr', () => xdr.SorobanAuthorizationEntry.fromXDR(prepared.entryXdr, 'base64'))
+      const func = yield* fromXdr('func', () => xdr.HostFunction.fromXDR(prepared.func, 'base64'))
+      const signed = yield* Effect.tryPromise({
+        try: () =>
+          authorizeWithSigners(
+            entry,
+            [{ scVal: externalSigner(C.ed25519Verifier, publicKey), sign: () => Promise.resolve(signature) }],
+            [prepared.ruleId],
+            prepared.validUntilLedger,
+            passphrase,
+          ),
+        catch: e => badInput(`sign entry: ${messageOf(e)}`),
+      })
+      return receiptOf(yield* invoker.submit(func, [signed], maxFeeStroops))
+    })
+
   const createPocket = (signerKeyRef: string) =>
     Effect.gen(function* () {
       const k = yield* vault.unseal(signerKeyRef)
@@ -950,6 +1017,8 @@ export const makeStellar = Effect.gen(function* () {
     sweepPocket,
     createDepositAddress,
     sweepDeposit,
+    prepareLinkTransfer,
+    finalizeLinkTransfer,
     payX402: (signerKeyRef, url, maxAmountStroops, paymentId, onQuote) =>
       enabled('x402 payment').pipe(
         Effect.andThen(vault.unseal(signerKeyRef)),

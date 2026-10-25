@@ -143,6 +143,24 @@ export const DepositAddressView = Schema.Struct({
 })
 export type DepositAddressView = typeof DepositAddressView.Type
 
+/**
+ * A person link (an allowance for a person): a rule on the wallet's account for exactly `amount` (stroops), signed by a
+ * key only the link carries. `revoke_url` (while open) is where the passkey takes it back. Listed on Connections.
+ */
+export const LinkView = Schema.Struct({
+  id: Schema.String,
+  recipient_name: Schema.String,
+  amount: Schema.String,
+  status: Schema.Literals(['open', 'paid', 'revoked', 'expired']),
+  expires_at: Schema.String,
+  revoke_url: Schema.NullOr(Schema.String),
+  paid_at: Schema.optionalKey(Schema.NullOr(Schema.String)),
+  tx_hash: Schema.optionalKey(Schema.NullOr(Schema.String)),
+  /** The rule's install transaction (`<explorer_base>/tx/<hash>`). */
+  install_tx: Schema.optionalKey(Schema.NullOr(Schema.String)),
+})
+export type LinkView = typeof LinkView.Type
+
 export const SweepReply = Schema.Struct({
   /** Stroops moved into the wallet by this sweep; "0" when there was nothing to sweep (nothing was submitted). */
   swept: Schema.String,
@@ -340,5 +358,6 @@ export class Api extends HttpApi.make('hack-meridian')
           error: Errors,
         }),
       )
-      .add(HttpApiEndpoint.post('sweepDeposit', '/api/wallet/sweep', { success: SweepReply, error: Errors })),
+      .add(HttpApiEndpoint.post('sweepDeposit', '/api/wallet/sweep', { success: SweepReply, error: Errors }))
+      .add(HttpApiEndpoint.get('links', '/api/links', { success: Schema.Array(LinkView), error: Errors })),
   ) {}

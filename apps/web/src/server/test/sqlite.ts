@@ -11,6 +11,7 @@ import depositAddresses from '../migrations/0007_deposit_addresses.sql?raw'
 import walletActivations from '../migrations/0008_wallet_activations.sql?raw'
 import claimLinks from '../migrations/0009_claim_links.sql?raw'
 import contactMarks from '../migrations/0010_contact_marks.sql?raw'
+import personLinks from '../migrations/0011_person_links.sql?raw'
 
 /** The subset of node:sqlite's DatabaseSync the tests use. */
 interface SqliteDatabase {
@@ -46,6 +47,7 @@ export const sqliteEngine = async (): Promise<SqlEngine & { readonly database: S
     walletActivations,
     claimLinks,
     contactMarks,
+    personLinks,
   ])
     database.exec(migration)
   return {

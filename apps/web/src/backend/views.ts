@@ -4,6 +4,7 @@ export {
   Contact,
   DepositAddressView,
   GrantView,
+  LinkView,
   NewContact,
   Overview,
   PendingApproval,

@@ -49,7 +49,8 @@ export const ClaimLink = Schema.Struct({
   reason: Schema.NullOr(Schema.String),
   amount: Stroops,
   network: Schema.Literals(['stellar:testnet', 'stellar:pubnet']),
-  status: Schema.Literals(['open', 'claimed']),
+  /** open, claimed (a destination is set); a person link (kind person) also awaiting_nod and revoked. */
+  status: Schema.Literals(['open', 'claimed', 'awaiting_nod', 'revoked']),
   destination_kind: Schema.NullOr(Schema.Literals(['new_wallet', 'wallet', 'address'])),
   destination_address: Schema.NullOr(Schema.String),
   destination_wallet_id: Schema.NullOr(Schema.String),
@@ -57,6 +58,17 @@ export const ClaimLink = Schema.Struct({
   expires_at: Schema.String,
   claimed_at: Schema.NullOr(Schema.String),
   created_at: Schema.String,
+  // 0011: a person link (person-link.ts), an allowance for a person on the sender's account.
+  kind: Schema.optionalKey(Schema.NullOr(Schema.Literal('person'))),
+  signer_public_key: Schema.optionalKey(Schema.NullOr(Schema.String)),
+  rule_id: Schema.optionalKey(Schema.NullOr(Schema.Finite)),
+  valid_until_ledger: Schema.optionalKey(Schema.NullOr(Schema.Finite)),
+  install_tx: Schema.optionalKey(Schema.NullOr(Schema.String)),
+  pending_grant_id: Schema.optionalKey(Schema.NullOr(Schema.String)),
+  transfer_prepared: Schema.optionalKey(Schema.NullOr(Schema.String)),
+  claim_tx: Schema.optionalKey(Schema.NullOr(Schema.String)),
+  remove_tx: Schema.optionalKey(Schema.NullOr(Schema.String)),
+  revoked_at: Schema.optionalKey(Schema.NullOr(Schema.String)),
 })
 export type ClaimLink = typeof ClaimLink.Type
 
@@ -101,6 +113,8 @@ export interface NewClaimLink {
   readonly reason: string | null
   readonly amount: bigint
   readonly network: 'stellar:testnet' | 'stellar:pubnet'
+  /** person: the sender nods; the link becomes a rule on their account (person-link.ts). */
+  readonly kind?: 'person' | undefined
 }
 
 /** Store the link (nothing onchain). The same idempotency key returns the same link; another request under it fails. */
@@ -129,7 +143,8 @@ export const createClaimLink = (input: NewClaimLink) =>
         reason: input.reason,
         amount: input.amount,
         network: input.network,
-        status: 'open',
+        status: input.kind === 'person' ? 'awaiting_nod' : 'open',
+        ...(input.kind === 'person' ? { kind: 'person' } : {}),
         destination_kind: null,
         destination_address: null,
         destination_wallet_id: null,
@@ -167,10 +182,12 @@ export const claimLinkView = (input: {
       const view = paymentView(intent, yield* receiptOfIntent(intent.id), grant, origin, nowMs)
       return {
         ...view,
-        claim_url: view.status === 'confirmed' ? null : (view.claim_url ?? url),
+        // A person link's URL carries its key: only the sender's page ever shows it.
+        claim_url: view.status === 'confirmed' || link.kind === 'person' ? null : (view.claim_url ?? url),
         claim_link_id: link.id,
       } satisfies PaymentView & { readonly claim_link_id: string }
     }
+    if (link.kind === 'person') return personLinkView(link, grant, origin, nowMs)
     const expired = linkExpired(link, nowMs)
     const decision = laneDecision({
       grant,
@@ -205,6 +222,55 @@ export const claimLinkView = (input: {
     } satisfies PaymentView & { readonly claim_link_id: string }
   })
 
+/**
+ * A person link before its payment, in PaymentView's shape. Waiting for the sender's nod: awaiting_approval with the
+ * approval page; approved: the sender has the link (its key never reaches Nod or the AI app); revoked: failed;
+ * past its expiry: expired. `claim_url` is always null here.
+ */
+const personLinkView = (link: ClaimLink, grant: SpendingGrant | undefined, origin: string, nowMs: number) => {
+  const name = link.recipient_name
+  const lapsed = millisOf(link.expires_at) <= nowMs
+  const status =
+    link.status === 'revoked'
+      ? ('failed' as const)
+      : lapsed
+        ? ('expired' as const)
+        : link.status === 'awaiting_nod'
+          ? ('awaiting_approval' as const)
+          : ('approved' as const)
+  const approvalUrl = `${origin}/approve/link/${link.id}`
+  const until = link.expires_at.slice(0, 16).replace('T', ' ')
+  const nextStep = {
+    awaiting_approval: `Ask the user to open ${approvalUrl} and approve on Nod's page: it creates a link they send ${name}, and nothing leaves their wallet until ${name} claims it. Then poll payment_status with payment_id ${link.id}.`,
+    approved: `The user approved and has the link to send ${name}; it carries its own key, so neither Nod nor this app sees it. Nothing leaves the wallet until ${name} claims it, by ${until} UTC. Poll payment_status with payment_id ${link.id}.`,
+    failed: `The user took the link back; nothing was paid.`,
+    expired: `${name} did not claim it in time; nothing was paid.`,
+  }[status]
+  return {
+    payment_id: link.id,
+    kind: 'payment' as const,
+    status,
+    lane: 'owner' as const,
+    approval_reason:
+      laneDecision({ grant, kind: 'payment', amount: link.amount, readiness: 'usdc_ready', nowMs, forceOwner: false })
+        .reason ?? 'owner_only',
+    amount: fromStroops(link.amount),
+    asset: 'USDC' as const,
+    network: link.network,
+    recipient: { name, address: '', readiness: 'unverified' as const },
+    fee_ceiling_xlm: 0,
+    reason: link.reason,
+    expires_at: link.expires_at,
+    approval_url: status === 'awaiting_approval' ? approvalUrl : null,
+    claim_url: null,
+    receipt: null,
+    failure: status === 'failed' ? 'the user took the link back' : null,
+    next_step: nextStep,
+    grant_remaining: grantRemaining(grant, nowMs),
+    claim_link_id: link.id,
+  } satisfies PaymentView & { readonly claim_link_id: string }
+}
+
 /** Where the person who opened the link wants the money: their (new or existing) Nod wallet, or a pasted address. */
 export type Destination =
   | { readonly kind: 'wallet'; readonly wallet: Wallet; readonly created: boolean }
@@ -216,7 +282,7 @@ const badDestination = (message: string) => new ClaimError({ reason: 'bad_destin
 const walletIdOfContract = (address: string) =>
   first(sql('SELECT id FROM wallets WHERE contract_id = ?', address), row => Effect.succeed(String(row['id'])))
 
-const readinessOf = (destination: Destination) =>
+export const readinessOf = (destination: Destination) =>
   Effect.gen(function* () {
     if (destination.kind === 'wallet') return 'usdc_ready' as const
     if ((yield* walletIdOfContract(destination.address)) !== undefined) return 'usdc_ready' as const
@@ -278,6 +344,11 @@ export const claimLink = (linkId: string, destination: Destination) =>
     const found = yield* claimLinkById(linkId)
     if (found === undefined)
       return yield* new ClaimError({ reason: 'not_found', message: 'This claim link is not valid.' })
+    if (found.kind === 'person')
+      return yield* new ClaimError({
+        reason: 'bad_destination',
+        message: 'This link is received by signing with it: open the whole link the sender gave you.',
+      })
     const now = yield* nowIso
     if (linkExpired(found, millisOf(now)))
       return yield* new ClaimError({ reason: 'expired', message: 'This link expired; nothing was paid.' })
@@ -342,7 +413,13 @@ export const claimLink = (linkId: string, destination: Destination) =>
  * A paid claim: the sender's owner keeps the person as a contact (an address from a claim link counts as known), and
  * a deposit-first wallet that just received its first USDC deploys. Neither failure undoes the payment.
  */
-const afterPaid = (sender: Wallet, link: ClaimLink, destination: Destination, address: string, readiness: Readiness) =>
+export const afterPaid = (
+  sender: Wallet,
+  link: ClaimLink,
+  destination: Destination,
+  address: string,
+  readiness: Readiness,
+) =>
   Effect.gen(function* () {
     const known = yield* searchContacts(sender.owner_id, address)
     if (known.length === 0)

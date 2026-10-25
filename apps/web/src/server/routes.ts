@@ -11,6 +11,7 @@ import { effectiveStatus, Ledger, type LedgerError, type Outcome } from './ledge
 import { Network } from './network.ts'
 import { checkAssertion, OwnerError, requireWallet, sessionToken, walletOfSession } from './owner.ts'
 import { approvalPage, claimPage, html, messagePage, requestPage, revokePage } from './pages.ts'
+import { personLinkRoute } from './person-link.ts'
 import { requestPageView } from './requests.ts'
 import { revokeConnection } from './revoke.ts'
 import type { AppRuntime, AppServices } from './runtime.ts'
@@ -506,6 +507,9 @@ export const ownerRoute = (runtime: AppRuntime, request: Request, path: string):
       return approve[2] === undefined ? approvalPost(runtime, request, id) : approvalPrepare(runtime, request, id)
     return Promise.resolve(new Response('Method Not Allowed', { status: 405 }))
   }
+  // Person links (person-link.ts): the sender's nod installs a rule; the link's key signs the claim in the browser.
+  const person = personLinkRoute(runtime, request, path)
+  if (person !== undefined) return person
   // Claim link v2 (claims.ts): /claim/cl_… lets the recipient choose where the money goes.
   const link = claimLinkRoute(runtime, request, path)
   if (link !== undefined) return link

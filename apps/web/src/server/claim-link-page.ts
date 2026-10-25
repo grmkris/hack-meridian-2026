@@ -2,7 +2,7 @@ import { Effect, Schema } from 'effect'
 
 import { type ChainError, fromStroops, type PaymentIntent, type ReceiptRecord } from '@hm/protocol'
 
-import { type ClaimError, claimLink, claimLinkState, isClaimLinkId, linkExpired } from './claims.ts'
+import { type ClaimError, type ClaimLink, claimLink, claimLinkState, isClaimLinkId, linkExpired } from './claims.ts'
 import { nowMillis, randomId } from './clock.ts'
 import type { DbError } from './db.ts'
 import { effectiveStatus, type LedgerError } from './ledger.ts'
@@ -28,7 +28,10 @@ export interface ClaimLinkPageView {
   readonly requester: string
   readonly reason: string | null
   readonly expiresAt: string
-  readonly state: 'open' | 'expired' | 'claimed'
+  /** not_ready: a person link the sender has not approved yet; finish: chosen, not yet signed (person links). */
+  readonly state: 'open' | 'expired' | 'claimed' | 'not_ready' | 'revoked' | 'finish'
+  /** A person link (person-link.ts): the key is in the URL fragment and this page signs the transfer with it. */
+  readonly person: boolean
   readonly destination: { readonly kind: string; readonly address: string } | null
   readonly intent: Pick<PaymentIntent, 'id' | 'recipient_readiness' | 'failure'> | null
   /** The payment's status as a reader sees it (a wait past its expiry reads expired); null before the claim. */
@@ -59,7 +62,7 @@ ${
 }</section>
 <details class="card more" data-testid="claim-choice-address"><summary>Send it to a Stellar address instead</summary>
 <div style="padding:0 1.2rem 1.1rem"><label>Stellar address<input id="address" data-testid="claim-address" placeholder="G… or C…" autocomplete="off" spellcheck="false"></label>
-<p class="muted">An account without a USDC trustline accepts with its own wallet (Freighter) once the sender approves.</p>
+<p class="muted">${view.person ? 'It needs a USDC trustline already (a Nod wallet needs none).' : 'An account without a USDC trustline accepts with its own wallet (Freighter) once the sender approves.'}</p>
 <p class="actions"><button id="to-address" data-testid="claim-to-address">Send it there</button></p></div></details>`
 
 const claimed = (c: Chrome, view: ClaimLinkPageView, status: string) => {
@@ -80,6 +83,20 @@ ${view.destination?.kind === 'address' ? '' : '<p><a href="/" data-testid="claim
   return `<section class="card" data-testid="claim-link-waiting">${to}<p>${escape(sentence)}</p></section>`
 }
 
+/** A person link: the page signs with the key in the fragment (it never reaches Nod), after the person chose where. */
+const PERSON_JS = `const frag=new URLSearchParams(location.hash.slice(1)).get('k')||'';const [kd,kx]=frag.split('.');
+if(!kd||!kx||kd.length<43||kx.length<43){show('status','This link is missing its key: open the whole link the sender gave you (it ends with #k=…).');document.querySelectorAll('main button').forEach(b=>b.disabled=true)}
+async function signWithLink(digest){const key=await crypto.subtle.importKey('jwk',{kty:'OKP',crv:'Ed25519',d:kd,x:kx,ext:true},{name:'Ed25519'},false,['sign']);
+return b64u.enc(await crypto.subtle.sign({name:'Ed25519'},key,b64u.dec(digest)))}
+async function choose(body,e){e.target.textContent='Signing with the link…';const p=await post('/claim/'+ctx.id+'/prepare',body);const signature=await signWithLink(p.digest);
+e.target.textContent='Receiving (about 10 s)…';await post('/claim/'+ctx.id+'/sign',{signature});location.reload()}`
+
+const LINK_JS = `const choose=(body,e)=>post('/claim/'+ctx.id+'/destination',body).then(()=>{e.target.textContent='Received';location.reload()});`
+
+const finish = (view: ClaimLinkPageView) =>
+  `<section class="card" data-testid="claim-finish"><p>You chose <code>${escape(view.destination?.address ?? '')}</code>. Sign with the link to receive it.</p>
+<p class="actions"><button class="primary" id="finish" data-testid="claim-finish-button">Receive it now</button></p></section>`
+
 export const claimLinkPage = (c: Chrome, view: ClaimLinkPageView) => {
   const status = view.paymentStatus ?? view.state
   const title =
@@ -87,30 +104,39 @@ export const claimLinkPage = (c: Chrome, view: ClaimLinkPageView) => {
       ? 'USDC received'
       : view.state === 'expired'
         ? 'This link expired'
-        : `${view.recipientName}, ${fromStroops(view.amount)} USDC for you`
+        : view.state === 'revoked'
+          ? 'The sender took this link back'
+          : `${view.recipientName}, ${fromStroops(view.amount)} USDC for you`
   const body =
     view.state === 'expired'
       ? '<div class="card"><p>Nobody claimed it in time, so nothing was paid. Ask the sender for a new link.</p></div>'
-      : view.state === 'open'
-        ? choices(view)
-        : claimed(c, view, status)
+      : view.state === 'revoked'
+        ? '<div class="card" data-testid="claim-link-revoked"><p>Nothing was paid. Ask the sender for a new link.</p></div>'
+        : view.state === 'not_ready'
+          ? '<div class="card" data-testid="claim-link-not-ready"><p>The sender has not approved this link yet. Open it again once they have.</p></div>'
+          : view.state === 'finish'
+            ? finish(view)
+            : view.state === 'open'
+              ? choices(view)
+              : claimed(c, view, status)
   const poll = view.state === 'claimed' && view.receipt === undefined && view.acceptUrl === null
   return page(
     title,
     c,
     `<h1 data-testid="${view.receipt === undefined ? 'claim-link-title' : 'claim-link-done'}">${escape(title)}</h1>${intro(view)}${body}<p id="status" class="muted" role="status"></p>`,
-    view.state === 'open'
+    view.state === 'open' || view.state === 'finish'
       ? `const ctx=JSON.parse(document.getElementById('ctx').textContent);
-const choose=body=>post('/claim/'+ctx.id+'/destination',body);
+${view.person ? PERSON_JS : LINK_JS}
 async function newWallet(name){const o=await post('/api/wallets/options',{name});
 const c=await navigator.credentials.create({publicKey:{challenge:b64u.dec(o.challenge),rp:{id:o.rp_id,name:o.rp_name},user:{id:b64u.dec(o.user_id),name:o.user_name,displayName:o.user_name},
 pubKeyCredParams:[{type:'public-key',alg:-7}],authenticatorSelection:{residentKey:'required',userVerification:'required'},attestation:'none',timeout:120000}});
 return post('/api/wallets',{name,credential_id:b64u.enc(c.rawId),public_key:b64u.enc(c.response.getPublicKey()),client_data_json:b64u.enc(c.response.clientDataJSON),attestation_object:b64u.enc(c.response.attestationObject),deposit_first:true})}
 const on=(id,f)=>{const el=document.getElementById(id);if(el)el.onclick=f};
-on('new-wallet',async e=>{const done=busy(e.target,'Waiting for your passkey…');try{await newWallet(document.getElementById('name').value.trim()||ctx.name);e.target.textContent='Receiving (about 10 s)…';await choose({kind:'wallet',new:true});location.reload()}catch(x){done();show('status',x.message)}});
-on('signin',async e=>{const done=busy(e.target,'Waiting for your passkey…');try{await signIn();e.target.textContent='Receiving (about 10 s)…';await choose({kind:'wallet'});location.reload()}catch(x){done();show('status',x.message)}});
-on('to-mine',async e=>{const done=busy(e.target,'Receiving (about 10 s)…');try{await choose({kind:'wallet'});location.reload()}catch(x){done();show('status',x.message)}});
-on('to-address',async e=>{const done=busy(e.target,'Sending…');try{await choose({kind:'address',address:document.getElementById('address').value.trim()});location.reload()}catch(x){done();show('status',x.message)}});`
+on('new-wallet',async e=>{const done=busy(e.target,'Waiting for your passkey…');try{await newWallet(document.getElementById('name').value.trim()||ctx.name);e.target.textContent='Receiving (about 10 s)…';await choose({kind:'wallet',new:true},e)}catch(x){done();show('status',x.message)}});
+on('signin',async e=>{const done=busy(e.target,'Waiting for your passkey…');try{await signIn();e.target.textContent='Receiving (about 10 s)…';await choose({kind:'wallet'},e)}catch(x){done();show('status',x.message)}});
+on('to-mine',async e=>{const done=busy(e.target,'Receiving (about 10 s)…');try{await choose({kind:'wallet'},e)}catch(x){done();show('status',x.message)}});
+on('to-address',async e=>{const done=busy(e.target,'Sending…');try{await choose({kind:'address',address:document.getElementById('address').value.trim()},e)}catch(x){done();show('status',x.message)}});
+on('finish',async e=>{const done=busy(e.target,'Signing with the link…');try{await choose({kind:'again'},e)}catch(x){done();show('status',x.message)}});`
       : poll
         ? 'setTimeout(()=>location.reload(),10000)'
         : '',
@@ -120,15 +146,15 @@ on('to-address',async e=>{const done=busy(e.target,'Sending…');try{await choos
 
 // Routes
 
-const chrome = Effect.gen(function* () {
+export const chrome = Effect.gen(function* () {
   const id = yield* randomId('n')
   const network = yield* Network
   return { nonce: id.slice(2), network: network.label, explorerBase: network.explorerBase } satisfies Chrome
 })
 
-type RouteError = ClaimError | OwnerError | DbError | LedgerError | ChainError
+export type RouteError = ClaimError | OwnerError | DbError | LedgerError | ChainError
 
-const statusOf = (error: RouteError) =>
+export const statusOf = (error: RouteError) =>
   error._tag === 'ClaimError'
     ? error.reason === 'not_found'
       ? 404
@@ -149,12 +175,22 @@ const statusOf = (error: RouteError) =>
         ? 502
         : 503
 
-const messageOf = (error: RouteError) =>
+export const messageOf = (error: RouteError) =>
   error._tag === 'DbError'
     ? 'storage failed; retry'
     : error._tag === 'ChainError'
       ? `chain: ${error.message}`
       : error.message
+
+const stateOf = (link: ClaimLink, nowMs: number): ClaimLinkPageView['state'] => {
+  if (link.status === 'revoked') return 'revoked'
+  if (link.status === 'awaiting_nod') return 'not_ready'
+  const lapsed = Date.parse(link.expires_at) <= nowMs
+  if (link.kind === 'person' && link.status === 'claimed' && (link.claim_tx ?? null) === null)
+    return lapsed ? 'expired' : 'finish'
+  if (link.status === 'claimed') return 'claimed'
+  return linkExpired(link, nowMs) ? 'expired' : 'open'
+}
 
 const pageView = (request: Request, linkId: string) =>
   Effect.gen(function* () {
@@ -172,7 +208,8 @@ const pageView = (request: Request, linkId: string) =>
       requester: link.requester,
       reason: link.reason,
       expiresAt: intent?.expires_at ?? link.expires_at,
-      state: link.status === 'claimed' ? 'claimed' : linkExpired(link, nowMs) ? 'expired' : 'open',
+      state: stateOf(link, nowMs),
+      person: link.kind === 'person',
       destination:
         link.destination_address === null
           ? null
@@ -208,9 +245,11 @@ const linkGet = (runtime: AppRuntime, request: Request, linkId: string) =>
     ),
   )
 
-const DestinationBody = Schema.Union([
+export const DestinationBody = Schema.Union([
   Schema.Struct({ kind: Schema.Literal('wallet'), new: Schema.optionalKey(Schema.Boolean) }),
   Schema.Struct({ kind: Schema.Literal('address'), address: Schema.String.check(Schema.isMaxLength(69)) }),
+  /** A person link chosen before but not yet signed: the same destination again. */
+  Schema.Struct({ kind: Schema.Literal('again') }),
 ])
 
 /** Jan chose: their signed-in Nod wallet (just created, or existing), or an address. Then the payment's lanes run. */
@@ -224,6 +263,8 @@ const linkPost = (runtime: AppRuntime, request: Request, linkId: string) =>
       const body = yield* Schema.decodeUnknownEffect(DestinationBody)(raw).pipe(
         Effect.mapError(() => new OwnerError({ kind: 'bad_request', message: 'say where the money goes' })),
       )
+      if (body.kind === 'again')
+        return yield* new OwnerError({ kind: 'bad_request', message: 'say where the money goes' })
       const destination =
         body.kind === 'address'
           ? { kind: 'address' as const, address: body.address }

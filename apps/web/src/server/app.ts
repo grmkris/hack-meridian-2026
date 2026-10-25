@@ -34,6 +34,7 @@ import type { Ledger } from './ledger.ts'
 import { inviteRequired, Network, type NetworkShape, transferFeeCeiling } from './network.ts'
 import type { OAuthGrants } from './oauth-grants.ts'
 import { assertionOptions, createWallet, OwnerError, registrationOptions, signIn, walletOfSession } from './owner.ts'
+import { linksOfWallet } from './person-link.ts'
 import { revokeConnection } from './revoke.ts'
 import { Settings } from './settings.ts'
 import {
@@ -420,6 +421,15 @@ const WalletHandlers = HttpApiBuilder.group(
               tx: result.tx,
               deposit: depositView(result.row, yield* pendingOf(result.row)),
             }
+          }),
+        ),
+      )
+      .handle('links', () =>
+        run(
+          Effect.gen(function* () {
+            const wallet = yield* sessionWallet
+            const here = yield* site
+            return yield* linksOfWallet(wallet.id, here.origin)
           }),
         ),
       )

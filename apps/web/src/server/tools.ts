@@ -23,7 +23,7 @@ import {
 import { claimLinkState, claimLinkUrl, claimLinkView, createClaimLink, isClaimLinkId } from './claims.ts'
 import { nowMillis, randomId } from './clock.ts'
 import type { DbError } from './db.ts'
-import { Ledger, type LedgerError, type Outcome } from './ledger.ts'
+import { laneDecision, Ledger, type LedgerError, type Outcome } from './ledger.ts'
 import { Network, transferFeeCeiling } from './network.ts'
 import type { ConnectionProps } from './props.ts'
 import { revokeConnection } from './revoke.ts'
@@ -209,11 +209,16 @@ export const resolveRecipient = (ownerId: string, recipient: string) =>
  */
 const claimLinkPrepare = (ctx: ToolContext, input: PaymentPrepareInput, amount: bigint) =>
   Effect.gen(function* () {
-    const { connection, wallet, grant } = yield* scope(ctx, true)
+    const { connection, wallet, grant, nowMs } = yield* scope(ctx, true)
     const network = yield* Network
     const name = input.recipient_name?.trim() ?? ''
     if (name === '')
       return yield* fail('With recipient "new", give recipient_name: who the claim link is for (e.g. "Jan").')
+    // Inside what is left of the allowance the link pays from it when claimed (v2); past it the sender nods, and the
+    // link becomes a rule on their account whose key only the link carries (person-link.ts).
+    const alone =
+      laneDecision({ grant, kind: 'payment', amount, readiness: 'usdc_ready', nowMs, forceOwner: false }).lane ===
+      'autonomous'
     const created = yield* createClaimLink({
       walletId: wallet.id,
       connectionId: connection.id,
@@ -224,6 +229,7 @@ const claimLinkPrepare = (ctx: ToolContext, input: PaymentPrepareInput, amount: 
       reason: input.reason ?? null,
       amount,
       network: network.caip,
+      kind: alone ? undefined : 'person',
     }).pipe(Effect.catchTag('ClaimError', error => fail(error.message)))
     const view = yield* claimLinkView({
       link: created.link,
@@ -233,9 +239,14 @@ const claimLinkPrepare = (ctx: ToolContext, input: PaymentPrepareInput, amount: 
       nowMs: yield* nowMillis,
       fees: network.fees,
     })
+    if (created.link.kind === 'person')
+      return {
+        sentence: `${view.amount} USDC for ${name} is past what this AI app may spend on its own, so it needs the user's nod. Ask the user to open ${view.approval_url ?? ''}: approving on Nod's page creates a link they send ${name}; nothing leaves their wallet until ${name} claims it. Then poll payment_status with payment_id ${created.link.id}.`,
+        value: { ...view, outcome: 'person_link' },
+      }
     const url = claimLinkUrl(ctx.origin, created.link.id)
     return {
-      sentence: `Claim link for ${name}: ${url} (${view.amount} USDC). Nothing is paid yet: send ${name} the link; when ${name} opens it and picks where the money goes, Nod pays${view.lane === 'autonomous' ? " from this AI app's allowance" : ", after the user's nod (it is past what this AI app may spend alone)"}. Poll payment_status with payment_id ${created.link.id}.`,
+      sentence: `Claim link for ${name}: ${url} (${view.amount} USDC). Nothing is paid yet: send ${name} the link; when ${name} opens it and picks where the money goes, Nod pays from this AI app's allowance. Poll payment_status with payment_id ${created.link.id}.`,
       value: { ...view, outcome: 'claim_link' },
     }
   })
@@ -250,15 +261,17 @@ const claimLinkStatus = (ctx: ToolContext, linkId: string) =>
     const view = yield* claimLinkView({ link: state.link, intent: state.intent, grant, origin: ctx.origin, nowMs })
     const name = state.link.recipient_name
     const sentence =
-      state.intent === undefined
-        ? view.status === 'expired'
-          ? `${name} did not claim the link in time; nothing was paid.`
-          : `${name} has not opened the claim link yet: ${view.claim_url ?? ''}. Nothing is paid until then.`
-        : view.status === 'confirmed' && view.receipt !== null
-          ? `${name} claimed it: paid ${view.amount} USDC to ${view.recipient.address}. Transaction ${view.receipt.tx_hash} (${view.receipt.explorer_url}).`
-          : view.approval_url !== null
-            ? `${name} claimed it to ${view.recipient.address}; the payment needs the user's nod at ${view.approval_url}.`
-            : `${name} claimed it to ${view.recipient.address}. ${view.next_step}`
+      state.intent === undefined && state.link.kind === 'person'
+        ? view.next_step
+        : state.intent === undefined
+          ? view.status === 'expired'
+            ? `${name} did not claim the link in time; nothing was paid.`
+            : `${name} has not opened the claim link yet: ${view.claim_url ?? ''}. Nothing is paid until then.`
+          : view.status === 'confirmed' && view.receipt !== null
+            ? `${name} claimed it: paid ${view.amount} USDC to ${view.recipient.address}. Transaction ${view.receipt.tx_hash} (${view.receipt.explorer_url}).`
+            : view.approval_url !== null
+              ? `${name} claimed it to ${view.recipient.address}; the payment needs the user's nod at ${view.approval_url}.`
+              : `${name} claimed it to ${view.recipient.address}. ${view.next_step}`
     return { sentence, value: view }
   })
 

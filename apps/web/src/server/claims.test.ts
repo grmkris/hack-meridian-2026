@@ -96,27 +96,24 @@ describe('claim link v2', () => {
     expect(w.fixture.callsOf('delegatedTransfer')).toHaveLength(1)
   })
 
-  test('past what is left of the allowance: claimed to an address, the payment waits for the sender’s nod', async () => {
+  test('past what is left of the allowance it is a person link: the sender nods before anyone can claim', async () => {
     const w = await senderWorld()
     const made = await w.runtime.runPromise(linkFor(w.ctx, '7', 'jan-3'))
-    expect(made.value.lane).toBe('owner')
-    expect(made.sentence).toContain("after the user's nod")
-    const result = await w.runtime.runPromise(claimLink(made.value.payment_id, { kind: 'address', address: BOB }))
-    expect(result.intent).toMatchObject({
-      status: 'awaiting_approval',
-      lane: 'owner',
-      approval_reason: 'over_allowance',
-    })
-    const status = await w.runtime.runPromise(paymentStatus(w.ctx, made.value.payment_id))
-    expect(status.value.approval_url).toBe(`${ORIGIN}/approve/${result.intent.id}`)
-    expect(status.sentence).toContain(status.value.approval_url ?? 'missing')
+    expect(made.value).toMatchObject({ lane: 'owner', status: 'awaiting_approval', outcome: 'person_link' })
+    const approvalUrl = `${ORIGIN}/approve/link/${made.value.payment_id}`
+    expect(made.value.approval_url).toBe(approvalUrl)
+    expect(made.sentence).toContain(approvalUrl)
     const url = await w.runtime.runPromise(paymentApproveUrl(w.ctx, made.value.payment_id))
-    expect(url.value.approval_url).toBe(status.value.approval_url)
+    expect(url.value.approval_url).toBe(approvalUrl)
     const executed = await w.runtime.runPromise(paymentExecute(w.ctx, made.value.payment_id))
     expect(executed.value.status).toBe('awaiting_approval')
+    const refused = await w.runtime.runPromise(
+      Effect.flip(claimLink(made.value.payment_id, { kind: 'address', address: BOB })),
+    )
+    expect(refused._tag === 'ClaimError' ? refused.reason : refused._tag).toBe('bad_destination')
     expect(w.fixture.callsOf('delegatedTransfer')).toHaveLength(0)
     const page = await w.route('GET', `/claim/${made.value.payment_id}`)
-    expect(page.text).toContain('Waiting for the sender to approve')
+    expect(page.text).toContain('has not approved this link yet')
   })
 
   test('an address without a USDC trustline takes today’s CAP-73 path: owner lane, then the claim page', async () => {

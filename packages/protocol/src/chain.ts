@@ -81,6 +81,27 @@ export const PreparedClaim = Schema.Struct({
 })
 export type PreparedClaim = typeof PreparedClaim.Type
 
+/**
+ * A person link's payment (an allowance for a person, claims.ts): the sender's account pays `to` under the link's own
+ * rule, and the link key, which only the recipient's browser holds, signs `digest`. Plain JSON between the page's two
+ * POSTs; nothing in it is secret.
+ */
+export const PreparedLinkTransfer = Schema.Struct({
+  contractId: Schema.String,
+  ruleId: Schema.Int,
+  /** The link key: a 32-byte Ed25519 public key, base64url. */
+  signerPublicKey: Schema.String,
+  to: Schema.String,
+  amountStroops: Stroops,
+  /** base64url of the 32-byte auth digest the link key signs (the same digest an AI app's key signs). */
+  digest: Schema.String,
+  validUntilLedger: Schema.Int,
+  /** The sender's unsigned auth entry and the host function (base64 XDR). */
+  entryXdr: Schema.String,
+  func: Schema.String,
+})
+export type PreparedLinkTransfer = typeof PreparedLinkTransfer.Type
+
 /** How the sender side of a claim is authorized: the owner's passkey, or the connection key under its rule. */
 export type ClaimSenderAuth =
   | { readonly _tag: 'Owner'; readonly assertion: WebAuthnAssertion }
@@ -316,6 +337,26 @@ export interface ChainShape {
     { result: unknown; settlement: Receipt | null; quote: X402Quote | null; pull?: Receipt | null },
     ChainError
   >
+  /**
+   * A person link: `USDC.transfer(contractId → to, amount)` under rule `ruleId`, prepared for the link key (an Ed25519
+   * public key the sender's browser made; Nod never has the secret). Nothing is signed or submitted.
+   */
+  readonly prepareLinkTransfer: (
+    contractId: string,
+    ruleId: number,
+    signerPublicKey: Uint8Array,
+    to: string,
+    amountStroops: bigint,
+  ) => Effect.Effect<PreparedLinkTransfer, ChainError>
+  /**
+   * The link key's 64-byte signature over the prepared digest: checked here, put in the entry, enforce-simulated (the
+   * rule's spending limit refuses anything past the amount) and relayed; the relayer pays the fee.
+   */
+  readonly finalizeLinkTransfer: (
+    prepared: PreparedLinkTransfer,
+    signature: Uint8Array,
+    maxFeeStroops?: bigint,
+  ) => Effect.Effect<Receipt, ChainError>
   /** Pocket balance, so a pull takes only the shortfall. */
   readonly balances: (address: string) => Effect.Effect<{ usdc: bigint; xlm: bigint }, ChainError>
   readonly readiness: (address: string) => Effect.Effect<ChainReadiness, ChainError>

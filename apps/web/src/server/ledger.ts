@@ -235,6 +235,25 @@ export interface LedgerShape {
    * grant moved to another rule meanwhile. The old rule stays on the account until the owner removes it.
    */
   readonly replaceGrant: (walletId: string, input: ReplaceGrant) => Effect.Effect<SpendingGrant, LedgerError>
+  /**
+   * A person link was claimed (person-link.ts): the link key moved the amount under the link's own rule, which the
+   * owner's passkey installed. Records it as a confirmed owner-lane payment (intent, operation, receipt) with its
+   * events, once per link.
+   */
+  readonly recordLinkPayment: (walletId: string, input: LinkPayment) => Effect.Effect<PaymentIntent, LedgerError>
+}
+
+export interface LinkPayment {
+  readonly linkId: string
+  readonly scope: string
+  readonly connectionId: string | null
+  readonly requester: string
+  readonly reason: string | null
+  readonly recipientName: string
+  readonly recipientAddress: string
+  readonly amount: bigint
+  readonly network: 'stellar:testnet' | 'stellar:pubnet'
+  readonly settlement: Receipt
 }
 
 export interface ReplaceGrant {
@@ -1104,6 +1123,96 @@ const recordSweep = Effect.fnUntraced(function* (
   )
 })
 
+const recordLinkPayment = Effect.fnUntraced(function* (walletId: string, input: LinkPayment) {
+  const key = `link:${input.linkId}`
+  const existing = yield* first(
+    sql(
+      'SELECT * FROM payment_intents WHERE wallet_id = ? AND scope = ? AND idempotency_key = ?',
+      walletId,
+      input.scope,
+      key,
+    ),
+    toIntent,
+  )
+  if (existing !== undefined) return existing
+  const now = yield* nowIso
+  const id = yield* randomId('pi')
+  const operationId = yield* randomId('op')
+  const intent: PaymentIntent = {
+    id,
+    idempotency_key: key,
+    kind: 'payment',
+    wallet_id: walletId,
+    connection_id: input.connectionId,
+    grant_id: null,
+    requester: input.requester,
+    reason: input.reason,
+    contact_id: null,
+    recipient_name: input.recipientName,
+    recipient_address: input.recipientAddress,
+    recipient_readiness: 'usdc_ready',
+    resource: null,
+    asset: 'USDC',
+    network: input.network,
+    amount: input.amount,
+    fee_ceiling_xlm: 0,
+    lane: 'owner',
+    approval_reason: 'owner_only',
+    status: 'confirmed',
+    failure: null,
+    expires_at: now,
+    created_at: now,
+    updated_at: now,
+  }
+  const settlement = input.settlement
+  yield* write(
+    insert('payment_intents', {
+      ...intent,
+      scope: input.scope,
+      request_fingerprint: `link|${input.linkId}`,
+      approval_prepared: null,
+      claim_prepared: null,
+      recipient_signed_entry: null,
+    }),
+    insert('operations', {
+      id: operationId,
+      intent_id: id,
+      kind: 'claim',
+      tx_hash: settlement.tx,
+      submitted_at: now,
+      ledger: settlement.ledger,
+      status: 'confirmed',
+      raw_result: JSON.stringify({ link_id: input.linkId, feeStroops: settlement.feeStroops.toString() }),
+    }),
+    insert('receipts', {
+      id: yield* randomId('rc'),
+      operation_id: operationId,
+      intent_id: id,
+      wallet_id: walletId,
+      connection_id: input.connectionId,
+      kind: 'payment',
+      amount: input.amount,
+      asset: 'USDC',
+      fee_stroops: settlement.feeStroops,
+      fee_paid_by: 'relayer',
+      fee_payer: settlement.feePayer,
+      recipient_name: input.recipientName,
+      recipient_address: input.recipientAddress,
+      tx_hash: settlement.tx,
+      ledger: settlement.ledger,
+      confirmed_at: now,
+      explorer_url: settlement.explorer,
+      pull_tx_hash: null,
+      pull_explorer_url: null,
+      requester: input.requester,
+      lane: 'owner',
+      resource: null,
+    }),
+    ...(yield* confirmedEvents(walletId, intent, settlement, undefined, now)),
+  )
+  return yield* loadIntent(id)
+})
+
 const replaceGrant = Effect.fnUntraced(function* (_walletId: string, input: ReplaceGrant) {
   const grant = yield* loadGrant(input.grantId)
   if (grant === undefined) return yield* notFound(`no grant ${input.grantId}`)
@@ -1176,5 +1285,6 @@ export const makeLocalLedger = Effect.gen(function* () {
     recordRuleRemoved: serialized(recordRuleRemoved),
     recordSweep: serialized(recordSweep),
     replaceGrant: serialized(replaceGrant),
+    recordLinkPayment: serialized(recordLinkPayment),
   })
 })

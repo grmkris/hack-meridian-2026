@@ -44,6 +44,22 @@ const digest = (text: string): Uint8Array => {
   return out
 }
 
+/** base64url → bytes with their own ArrayBuffer (empty when unreadable). */
+const fromB64 = (text: string): Uint8Array<ArrayBuffer> => {
+  const decoded = Base64Url.decode(text)
+  return decoded._tag === 'Success' ? new Uint8Array(decoded.success) : new Uint8Array(0)
+}
+
+/** WebCrypto Ed25519 (Bun, Node, workerd and browsers): did `publicKey` (base64url) sign `digest` (base64url)? */
+const ed25519Verify = async (publicKey: string, digestB64: string, signature: Uint8Array): Promise<boolean> => {
+  try {
+    const key = await crypto.subtle.importKey('raw', fromB64(publicKey), { name: 'Ed25519' }, false, ['verify'])
+    return await crypto.subtle.verify({ name: 'Ed25519' }, key, new Uint8Array(signature), fromB64(digestB64))
+  } catch {
+    return false
+  }
+}
+
 const ClientData = Schema.fromJsonString(Schema.Struct({ challenge: Schema.String }))
 const decodeClientData = Schema.decodeUnknownOption(ClientData)
 
@@ -366,6 +382,43 @@ export const makeFixtureChain = (options: FixtureOptions = {}): FixtureChain => 
           credit(contractId, -amountStroops)
           credit(to, amountStroops)
           return Effect.succeed(receipt())
+        }),
+      ),
+    prepareLinkTransfer: (contractId, ruleId, signerPublicKey, to, amountStroops) =>
+      call('prepareLinkTransfer', [contractId, ruleId, signerPublicKey, to, amountStroops], () =>
+        Effect.sync(() => {
+          const nonce = next()
+          return {
+            contractId,
+            ruleId,
+            signerPublicKey: Base64Url.encode(signerPublicKey),
+            to,
+            amountStroops,
+            digest: Base64Url.encode(digest(`link|${contractId}|${ruleId}|${to}|${amountStroops}|${nonce}`)),
+            validUntilLedger: ledger + 120,
+            entryXdr: `fixture-link-entry-${nonce}`,
+            func: `fixture-link-func-${nonce}`,
+          }
+        }),
+      ),
+    finalizeLinkTransfer: (link, signature) =>
+      call('finalizeLinkTransfer', [link, signature], () =>
+        Effect.gen(function* () {
+          const rule = ruleOf(link.contractId, link.ruleId)
+          if (rule === undefined || rule.removed) return yield* fail('removed', 'fixture: #3000 rule removed')
+          if (rule.signer !== link.signerPublicKey)
+            return yield* fail('simulation_failed', 'fixture: the link key is not the rule signer')
+          const signed = yield* Effect.promise(() => ed25519Verify(link.signerPublicKey, link.digest, signature))
+          if (!signed) return yield* fail('bad_assertion', 'fixture: the link key did not sign this transfer')
+          if (rule.validUntilLedger < ledger) return yield* fail('expired', 'fixture: #3002 rule expired')
+          if (rule.spent + link.amountStroops > rule.limit)
+            return yield* fail('limit_exhausted', 'fixture: #3221 spending limit exhausted')
+          if (balance(link.contractId) < link.amountStroops)
+            return yield* fail('insufficient_balance', 'fixture: #10 balance too low')
+          rule.spent += link.amountStroops
+          credit(link.contractId, -link.amountStroops)
+          credit(link.to, link.amountStroops)
+          return receipt()
         }),
       ),
     createPocket: signerKeyRef =>

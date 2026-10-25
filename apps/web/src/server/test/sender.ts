@@ -34,16 +34,16 @@ export const senderWorld = async (fixture: FixtureChain = makeFixtureChain({ tru
   const runtime: AppRuntime = ManagedRuntime.make(testServices(fixture))
   runtimes.push(runtime)
   const passkey = await SoftPasskey.create('wallet.test', ORIGIN)
-  const ctx = await runtime.runPromise(
+  const { ctx, contractId } = await runtime.runPromise(
     Effect.gen(function* () {
       const chain = yield* Chain
-      const { contractId } = yield* chain.deployAccount({
+      const { contractId: deployed } = yield* chain.deployAccount({
         pubkey: passkey.publicKey65,
         credentialId: passkey.credentialId,
       })
-      yield* chain.fundNewWallet(contractId, toStroops('30'))
+      yield* chain.fundNewWallet(deployed, toStroops('30'))
       const signer = yield* chain.newSigner
-      const prepared = yield* chain.prepareInstallGrant(contractId, signer.publicKey, toStroops('5'), 86_400)
+      const prepared = yield* chain.prepareInstallGrant(deployed, signer.publicKey, toStroops('5'), 86_400)
       const installed = yield* chain.installGrant(prepared, fixtureAssertion(prepared.challenge))
       const now = '2026-10-25T12:00:00.000Z'
       yield* write(
@@ -52,7 +52,7 @@ export const senderWorld = async (fixture: FixtureChain = makeFixtureChain({ tru
           id: WALLET,
           owner_id: OWNER,
           name: 'Kristjan',
-          contract_id: contractId,
+          contract_id: deployed,
           passkey_credential_id: Base64Url.encode(passkey.credentialId),
           passkey_public_key: Base64Url.encode(passkey.publicKey65),
           network: 'stellar:testnet',
@@ -111,7 +111,7 @@ export const senderWorld = async (fixture: FixtureChain = makeFixtureChain({ tru
           signer_public_key: signer.address,
         },
       }
-      return { props, origin: ORIGIN } satisfies ToolContext
+      return { ctx: { props, origin: ORIGIN } satisfies ToolContext, contractId: deployed }
     }),
   )
   /** Jan's brand-new deposit-first wallet (what the claim page's "Create my wallet" makes), signed in. */
@@ -143,5 +143,5 @@ export const senderWorld = async (fixture: FixtureChain = makeFixtureChain({ tru
     return { status: response.status, text: await response.text() }
   }
   const token = await runtime.runPromise(createSession(OWNER))
-  return { runtime, ctx, fixture, passkey, token, newWallet, route }
+  return { runtime, ctx, contractId, fixture, passkey, token, newWallet, route }
 }

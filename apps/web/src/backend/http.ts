@@ -67,6 +67,7 @@ export const httpBackend = Layer.effect(
       addContact: contact => call(client.wallet.createContact({ payload: contact })),
       receipts: call(client.wallet.receipts()),
       depositAddress: call(client.wallet.depositAddress()),
+      links: call(client.wallet.links()),
     })
   }),
 ).pipe(Layer.provide(Http.layer))

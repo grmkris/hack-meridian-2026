@@ -4,6 +4,7 @@ import type {
   Contact,
   DepositAddressView,
   GrantView,
+  LinkView,
   NewContact,
   Overview,
   ReceiptRecord,
@@ -68,5 +69,7 @@ export class Backend extends Context.Service<
     readonly receipts: Effect.Effect<ReadonlyArray<ReceiptRecord>, BackendError>
     /** The wallet's deposit address (created on the first call, ~15 s on the real chain): a `G…` exchanges can pay. */
     readonly depositAddress: Effect.Effect<DepositAddressView, BackendError>
+    /** Person links: allowances for a person on this wallet's account, newest first (Connections lists them). */
+    readonly links: Effect.Effect<ReadonlyArray<LinkView>, BackendError>
   }
 >()('hm/Backend') {}

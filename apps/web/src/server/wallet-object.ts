@@ -42,6 +42,7 @@ const JOURNALING: ReadonlySet<LedgerOp> = new Set<LedgerOp>([
   'claimAutonomous',
   'settle',
   'revokeConnection',
+  'recordLinkPayment',
 ])
 
 export class WalletObject extends DurableObject<WalletObjectEnv> {
@@ -69,7 +70,7 @@ export class WalletObject extends DurableObject<WalletObjectEnv> {
 
   async call(op: LedgerOp, walletId: string, input: unknown): Promise<LedgerReply> {
     const ledger = await this.local()
-    const before = op === 'settle' ? await this.journalHead() : undefined
+    const before = op === 'settle' || op === 'recordLinkPayment' ? await this.journalHead() : undefined
     const reply = replyOf(await Effect.runPromiseExit(dispatch(ledger, op, walletId, input)))
     if (JOURNALING.has(op)) await this.afterJournal(walletId, before)
     return reply
@@ -235,5 +236,6 @@ export const ledgerViaObject = (ns: DurableObjectNamespace<WalletObject>) => {
     recordRuleRemoved: call('recordRuleRemoved'),
     recordSweep: call('recordSweep'),
     replaceGrant: call('replaceGrant'),
+    recordLinkPayment: call('recordLinkPayment'),
   })
 }
