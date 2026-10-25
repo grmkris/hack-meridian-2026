@@ -109,6 +109,7 @@ the relayer and treasury secrets are Worker secrets. No secret leaves the chain 
 - Own paths only. Need a change outside them (a binding, a route prefix, a shared type)? Message the owner, do not edit.
 - Commit with a pathspec: `git add <paths> && git commit -m "<stream>: <what>" -- <paths>`. Small commits. Push is coordinated
   by the orchestrator; never force-push.
+- Lockfile: CI installs with `--frozen-lockfile`. A commit that changes any `package.json` includes the regenerated root `bun.lock` in the same pathspec commit (`heavy bun install` first). Main went red once on 2026-10-25 for lack of this.
 - Gate before each commit: `bunx oxfmt --check` at the root, and `heavy bun run check` at least every hour and before saying done.
 - Testnet only. Secrets in `.env`/`.dev.vars` (gitignored) and Alchemy secrets; never in code, logs or docs.
 - Acceptance tests in `docs/SPEC.md` are the definition of done; each stream names which numbers it covers.
