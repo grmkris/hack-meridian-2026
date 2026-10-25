@@ -1,7 +1,9 @@
 /*
  * Nod's type, embedded (the card's CSP allows no font requests): Besley 700 for numbers and headlines, IBM Plex Sans
- * (variable weight) for text, IBM Plex Mono for addresses and hashes. Latin subsets from Google Fonts. Both families
- * are under the SIL Open Font License 1.1: Besley by Owen Earl (indestructible type*), IBM Plex by IBM Corp.
+ * (variable weight) for text, IBM Plex Mono for addresses and hashes. Besley is the upstream Besley-Bold.otf
+ * (github.com/indestructible-type/Besley) subset to Latin and Latin Extended-A with pyftsubset, keeping its lining
+ * figures; the Plex files are Google Fonts' Latin subsets. Both families are under the SIL Open Font License 1.1:
+ * Besley by Owen Earl (indestructible type*), IBM Plex by IBM Corp.
  */
 
 @font-face {

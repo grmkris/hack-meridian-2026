@@ -82,14 +82,29 @@ export const linkFallback = (link: LinkState, h: Builder): Html =>
       )
     : h.empty
 
-export const pollStatus = (model: Model, text: string, h: Builder): Html =>
-  h.p(
+/** Whether the chat lets the card call Nod's tools (and so watch a payment by itself). */
+export const canWatch = (model: Model): boolean =>
+  model.bridge._tag === 'Connecting' || (model.bridge._tag === 'Connected' && model.bridge.capabilities.canCallTools)
+
+/** The live status line while the card polls; a still line saying who checks when this chat lets the card call nothing. */
+export const pollStatus = (model: Model, text: string, h: Builder): Html => {
+  if (!canWatch(model)) {
+    return h.p(
+      [h.Class('nod-status')],
+      [
+        h.span([h.Class('nod-pulse nod-pulse-still'), h.AriaHidden(true)]),
+        `${text}. Ask the AI to check the payment afterwards.`,
+      ],
+    )
+  }
+  return h.p(
     [h.Class('nod-status'), h.AriaLive('polite')],
     Option.match(model.maybePollError, {
       onNone: () => [h.span([h.Class('nod-pulse'), h.AriaHidden(true)]), text],
       onSome: () => [h.span([h.Class('nod-pulse nod-pulse-still'), h.AriaHidden(true)]), `${text} (retrying)`],
     }),
   )
+}
 
 /** The AI app as the card can name it: the chat's own name, or "This AI app". */
 export const appName = (model: Model): Option.Option<string> => model.maybeAppName
@@ -108,6 +123,10 @@ export const allowanceLeft = (model: Model, remaining: string, h: Builder): Fact
     ],
   ),
 ]
+
+/** Text a person might want but not read first (a facilitator's or Stellar's own words), folded away. */
+export const details = (summary: string, text: string, h: Builder): Html =>
+  h.details([h.Class('nod-details')], [h.summary([], [summary]), h.p([], [text])])
 
 export const time = (iso: string, h: Builder): Html => h.time([h.Attribute('datetime', iso)], [dateTime(iso)])
 

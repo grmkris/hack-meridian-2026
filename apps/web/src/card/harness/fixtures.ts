@@ -208,6 +208,58 @@ const REQUEST_PAYMENT = {
   request_id: 'rq_dinner',
 }
 
+/** Worst realistic data: the longest names the forms accept, 7-decimal amounts, muxed addresses, the 280-character reason. */
+const LONG_NAME = 'Aleksandra Wiśniewska-Kowalczyk (flat 3B, Rua da Madalena)'
+const MUXED = 'MA7QYNF7SOWQ3GLR2BGMZEHXAVIRZA4KVWLTJJFC7MGXUA74P7UJUAAAAAAAAAAAAAGZFQ'
+const WORST_REASON =
+  'Reimbursing her for the shared groceries order (Pingo Doce, 23 Oct, receipt #PD-2026-10-23-004417) plus her half of the internet bill for October; she asked in the flat group chat at 21:40 and confirmed the amount twice: https://chat.example.com/flat-3b/messages/88412'
+const worstPayment = payment({
+  payment_id: 'pi_worst',
+  amount: '87.6543219',
+  recipient: { name: LONG_NAME, address: MUXED, readiness: 'usdc_ready' },
+  reason: WORST_REASON,
+  grant_remaining: '0.0000001',
+  approval_url: `${ORIGIN}/approve/pi_worst`,
+})
+const worstOverview = overview({
+  wallet: {
+    id: 'wal_w',
+    name: 'Household wallet for the Lisbon flat 3B',
+    contract_id: WALLET,
+    network: 'stellar:testnet',
+  },
+  balances: { usdc: '1284050.1234567', xlm: '0.00' },
+  grant: {
+    ...grant,
+    total: '100.00',
+    remaining: '0.0000001',
+    spent: '99.9999999',
+    valid_until: '2026-10-25T23:59:59.000Z',
+  },
+  pending_approvals: [
+    worstPayment,
+    payment({
+      payment_id: 'pi_w2',
+      amount: '100.00',
+      recipient: { name: null, address: MUXED, readiness: 'usdc_ready' },
+    }),
+    payment({
+      payment_id: 'pi_w3',
+      amount: '0.0000001',
+      recipient: { name: 'Jo', address: BOB, readiness: 'usdc_ready' },
+    }),
+  ],
+  recent_receipts: Array.from({ length: 12 }, (_, index) =>
+    receipt({
+      receipt_id: `rc_w${index}`,
+      amount: index % 2 === 0 ? '99.9999999' : '0.01',
+      recipient: index % 3 === 0 ? MUXED : BOB,
+      recipient_name: index % 3 === 0 ? null : LONG_NAME,
+    }),
+  ),
+  connection: { id: 'con_w', client_name: 'Claude Code (bartholomew’s MacBook Pro, work profile)', status: 'active' },
+})
+
 const PREPARE = { recipient: 'Bob', amount: '20', idempotency_key: 'k-bob-20' }
 const FETCH = { url: 'https://weather.x402.example/forecast?city=lisbon', max_amount: '0.50', idempotency_key: 'k-wx' }
 
@@ -431,6 +483,118 @@ export const FIXTURES: Readonly<Record<string, Fixture>> = {
     sentence: 'The wallet holds 48.50 USDC.',
     polls: [overview()],
     answers: { requests_list: [{ requests: [request(), STRANGER], grant_remaining: '3.00' }] },
+  },
+  'worst-payment-needs-nod': {
+    tool: 'payment_prepare',
+    arguments: PREPARE,
+    structured: { ...worstPayment, claim_url: `${ORIGIN}/claim/pi_worst` },
+    sentence: 'Needs the nod.',
+  },
+  'worst-payment-receipt': {
+    tool: 'payment_prepare',
+    arguments: PREPARE,
+    structured: {
+      ...worstPayment,
+      status: 'confirmed',
+      approval_url: null,
+      receipt: receipt({ amount: '87.6543219', recipient: MUXED, recipient_name: LONG_NAME, ledger: 2_147_483_647 }),
+    },
+    sentence: 'Confirmed.',
+  },
+  'worst-payment-failed': {
+    tool: 'payment_prepare',
+    arguments: PREPARE,
+    structured: {
+      ...worstPayment,
+      status: 'failed',
+      approval_url: null,
+      failure:
+        'simulation failed: HostError: Error(Contract, #10) Event log (newest first): 0: [Diagnostic Event] contract:CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA, topics:[error, Error(Contract, #10)], data:"balance is not sufficient to spend"',
+    },
+    sentence: 'Failed.',
+  },
+  'worst-wallet': { tool: 'wallet_overview', arguments: {}, structured: worstOverview, sentence: 'Worst wallet.' },
+  'worst-home': {
+    tool: 'nod_home',
+    arguments: {},
+    structured: worstOverview,
+    sentence: 'Worst wallet.',
+    polls: [worstOverview],
+    answers: {
+      requests_list: [
+        {
+          requests: [
+            request({
+              request_id: 'rq_w1',
+              amount: '99.9999999',
+              requester: { address: MUXED, contact_name: LONG_NAME, is_you: false },
+              note: 'Dzień dobry! 🎉 Zaległa część za bilety na koncert w Coliseu dos Recreios + parking + kolacja po koncercie (wszystko razem)',
+            }),
+            STRANGER,
+          ],
+          grant_remaining: '0.0000001',
+        },
+      ],
+    },
+  },
+  'worst-purchase': {
+    tool: 'paid_resource_fetch',
+    arguments: {
+      url: 'https://api.weather-forecasts.northwind-industries-holdings.example.com/v3/forecast/lisbon?days=14&units=metric&lang=pt-PT',
+      max_amount: '0.0000001',
+      idempotency_key: 'k',
+    },
+    structured: fetchResult({
+      status: 'failed',
+      payment_id: 'pi_wfail',
+      body: null,
+      receipt: null,
+      price: '0.0123456',
+      pull: { tx_hash: PULL_TX, explorer_url: `${EXPLORER}/${PULL_TX}`, amount: '1.00' },
+      facilitator_message:
+        'settle_exact_stellar: transaction simulation failed with txBadSeq after 3 attempts; the facilitator did not submit the payment and the authorization entry expired at ledger 1284400',
+      message:
+        'The seller took the authorization but the facilitator could not settle it. 1.00 USDC moved into the pocket and stays there for the next purchase.',
+    }),
+    sentence: 'Failed.',
+  },
+  'worst-mcp': {
+    tool: 'paid_mcp_call',
+    arguments: {
+      server_url: 'https://mcp.translate-and-summarise.northwind-industries-holdings.example.com/mcp',
+      tool: 'summarise_document_with_citations',
+      idempotency_key: 'k',
+    },
+    structured: mcpResult({
+      result: {
+        content: [
+          {
+            type: 'text',
+            text: 'Resumo: '.concat(
+              'O relatório trimestral indica crescimento sustentado nas receitas recorrentes. '.repeat(20),
+            ),
+          },
+        ],
+        structuredContent: {
+          citations: Array.from({ length: 8 }, (_, index) => ({
+            page: index + 1,
+            url: `https://docs.example.com/q3/${index}`,
+          })),
+        },
+      },
+    }),
+    sentence: 'Paid.',
+  },
+  'worst-request': {
+    tool: 'request_create',
+    arguments: {},
+    structured: request({
+      request_id: 'rq_w1',
+      amount: '99.9999999',
+      requester: { address: MUXED, contact_name: LONG_NAME, is_you: false },
+      note: 'Dzień dobry! 🎉 Zaległa część za bilety na koncert w Coliseu dos Recreios + parking + kolacja po koncercie (wszystko razem)',
+    }),
+    sentence: 'Request.',
   },
   'tool-error': {
     tool: 'payment_prepare',

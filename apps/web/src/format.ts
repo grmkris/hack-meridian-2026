@@ -26,9 +26,21 @@ const decodeDecimal = Schema.decodeUnknownOption(DecimalAmount)
 export const decimalStroops = (amount: string): Option.Option<bigint> =>
   Option.map(decodeDecimal(amount), decimalToStroops)
 
-/** A decimal amount from an MCP tool as the owner reads it: "20" → "20.00 USDC"; a malformed one is shown as sent. */
+const THOUSANDS = /\B(?=(\d{3})+(?!\d))/gu
+
+/** "1284050.25" → "1,284,050.25": the whole part grouped by thousands, the decimals as they are. */
+const groupThousands = (decimal: string): string => {
+  const [whole = '', fraction] = decimal.split('.')
+  const grouped = whole.replace(THOUSANDS, ',')
+  return fraction === undefined ? grouped : `${grouped}.${fraction}`
+}
+
+/** A decimal amount from an MCP tool as the owner reads it: "20" → "20.00 USDC", "1284050.5" → "1,284,050.50 USDC". */
 export const decimalUsdc = (amount: string): string =>
-  Option.match(decimalStroops(amount), { onNone: () => `${amount} USDC`, onSome: usdc })
+  Option.match(decimalStroops(amount), {
+    onNone: () => `${amount} USDC`,
+    onSome: stroops => `${groupThousands(fromStroops(stroops))} USDC`,
+  })
 
 const ADDRESS_EDGE = 4
 

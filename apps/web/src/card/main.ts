@@ -51,7 +51,7 @@ export const init: Runtime.ElementInit<Model, Message, Flags, Host> = flags => (
     surface: flags.surface,
     bridge: Bridge.Connecting(),
     maybeAppName: Option.none(),
-    appearance: { maybeTheme: Option.none(), variables: {}, isFullscreen: flags.surface === 'Home' },
+    appearance: { maybeTheme: Option.none(), variables: {}, isFullscreen: false },
     isVisible: flags.isVisible,
     maybeToolName: Option.none(),
     toolInput: {

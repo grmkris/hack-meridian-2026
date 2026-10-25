@@ -29,10 +29,24 @@ const STATES = [
   'allowance-link',
   'revoked-pending',
   'home',
+  'home-inbox',
+  'request-incoming',
+  'request-single',
+  'request-stranger',
+  'requests-list',
   'tool-error',
+  'worst-payment-needs-nod',
+  'worst-payment-receipt',
+  'worst-payment-failed',
+  'worst-wallet',
+  'worst-home',
+  'worst-purchase',
+  'worst-mcp',
+  'worst-request',
 ]
 const THEMES = ['light', 'dark'] as const
-const WIDTHS = [390, 720] as const
+/** `CARD_WIDTHS=320,390` narrows or widens the run (the worst-case pass also looks at 320 px). */
+const WIDTHS = (process.env['CARD_WIDTHS'] ?? '390,720').split(',').map(Number)
 
 const html = readFileSync(HARNESS, 'utf8')
 const server = Bun.serve({ port: 0, fetch: () => new Response(html, { headers: { 'content-type': 'text/html' } }) })

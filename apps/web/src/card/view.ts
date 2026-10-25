@@ -73,7 +73,11 @@ const activePayment = (model: Model, h: Builder): Option.Option<ReadonlyArray<Ht
 export const view = (model: Model, h: Builder): Html =>
   h.main(
     [
-      h.Class(model.surface === 'Home' || model.appearance.isFullscreen ? 'nod nod-home' : 'nod'),
+      h.Class(
+        ['nod', model.surface === 'Home' ? 'nod-home' : '', model.appearance.isFullscreen ? 'nod-fullscreen' : ''].join(
+          ' ',
+        ),
+      ),
       h.DataAttribute(
         'theme',
         Option.match(model.appearance.maybeTheme, {

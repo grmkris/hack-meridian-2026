@@ -150,10 +150,7 @@ export const walletView = (model: Model, overview: WalletOverviewOutput, h: Buil
     amount(decimalUsdc(overview.balances.usdc), h),
     h.p(
       [h.Class('nod-recipient')],
-      [
-        `In your wallet ${overview.wallet.name} · `,
-        h.code([h.Class('nod-mono')], [shortAddress(overview.wallet.contract_id)]),
-      ],
+      [`${overview.wallet.name} · `, h.code([h.Class('nod-mono')], [shortAddress(overview.wallet.contract_id)])],
     ),
     allowance(overview.connection.client_name, overview.grant, h),
     Array.isReadonlyArrayNonEmpty(pending) || isHome

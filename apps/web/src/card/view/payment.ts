@@ -12,6 +12,7 @@ import {
   allowanceLeft,
   amount,
   appName,
+  details,
   eyebrow,
   type Fact,
   facts,
@@ -131,6 +132,7 @@ const ended = (payment: PaymentView, label: string, explanation: string, h: Buil
   amount(decimalUsdc(payment.amount), h),
   recipientLine(payment.recipient.name, payment.recipient.address, h),
   lead(explanation, h),
+  payment.failure === null ? h.empty : details('What Stellar said', payment.failure, h),
 ]
 
 export const paymentBody = (model: Model, payment: PaymentView, h: Builder): ReadonlyArray<Html> =>
@@ -146,9 +148,7 @@ export const paymentBody = (model: Model, payment: PaymentView, h: Builder): Rea
     ]),
     Match.when('Claim', () => claim(model, payment, h)),
     Match.when('Receipt', () => receipt(model, payment, h)),
-    Match.when('Failed', () =>
-      ended(payment, 'Not paid', payment.failure ?? 'The payment failed. Nothing was paid.', h),
-    ),
+    Match.when('Failed', () => ended(payment, 'Not paid', 'The payment failed. Nothing was paid.', h)),
     Match.when('Expired', () => ended(payment, 'Expired', 'It expired before it was approved. Nothing was paid.', h)),
     Match.exhaustive,
   )

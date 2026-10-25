@@ -15,8 +15,8 @@ import {
   type Fact,
   facts,
   header,
-  headline,
   lead,
+  details,
   linkFallback,
   note,
   pollStatus,
@@ -37,20 +37,24 @@ const hostOf = (url: string): string => {
   }
 }
 
-/** Who sells it: the URL's host, or the MCP server's host and tool. */
-const sellerOf = (purchase: Purchase, input: ToolInput): string =>
-  purchase.kind === 'Fetch'
-    ? Option.match(input.maybeUrl, {
-        onSome: hostOf,
-        onNone: () =>
-          purchase.receipt?.resource === null || purchase.receipt === null
-            ? 'a paid resource'
-            : hostOf(purchase.receipt.resource),
-      })
-    : Option.match(Option.all([input.maybeServerUrl, input.maybeTool]), {
-        onSome: ([server, tool]) => `${tool} on ${hostOf(server)}`,
-        onNone: () => 'a paid MCP tool',
-      })
+/** Who sells it, under the price: the URL's host, or the MCP tool and its server's host. */
+const sellerLine = (purchase: Purchase, input: ToolInput, h: Builder): Html => {
+  if (purchase.kind === 'Fetch') {
+    const host = Option.match(input.maybeUrl, {
+      onSome: hostOf,
+      onNone: () =>
+        purchase.receipt === null || purchase.receipt.resource === null
+          ? 'a paid resource'
+          : hostOf(purchase.receipt.resource),
+    })
+    return h.p([h.Class('nod-recipient')], ['from ', h.strong([], [host])])
+  }
+  return Option.match(Option.all([input.maybeServerUrl, input.maybeTool]), {
+    onSome: ([server, tool]) =>
+      h.p([h.Class('nod-recipient')], [h.code([h.Class('nod-mono')], [tool]), ' on ', h.strong([], [hostOf(server)])]),
+    onNone: () => h.p([h.Class('nod-recipient')], ['a paid MCP tool']),
+  })
+}
 
 const priceFacts = (purchase: Purchase, input: ToolInput): ReadonlyArray<Fact> => {
   const price: ReadonlyArray<Fact> = purchase.price === null ? [] : [['Price', decimalUsdc(purchase.price)]]
@@ -81,21 +85,27 @@ const preview = (purchase: Purchase, h: Builder): Html =>
       ),
   })
 
-const pocketNote = (purchase: Purchase, h: Builder): Html =>
+/** A pull into the pocket that happened although the purchase did not settle. */
+const pocketFact = (purchase: Purchase, h: Builder): ReadonlyArray<Fact> =>
   purchase.pull === null
-    ? h.empty
-    : h.p(
-        [h.Class('nod-note')],
+    ? []
+    : [
         [
-          `${decimalUsdc(purchase.pull.amount)} moved into this AI app's pocket and stays there for its next purchase. `,
-          textLink(`${shortAddress(purchase.pull.tx_hash)} ↗`, purchase.pull.explorer_url, h),
+          'Into the pocket',
+          h.span(
+            [],
+            [
+              `${decimalUsdc(purchase.pull.amount)} · `,
+              textLink(`${shortAddress(purchase.pull.tx_hash)} ↗`, purchase.pull.explorer_url, h),
+            ],
+          ),
         ],
-      )
+      ]
 
-const awaiting = (model: Model, purchase: Purchase, seller: string, h: Builder): ReadonlyArray<Html> => [
+const awaiting = (model: Model, purchase: Purchase, h: Builder): ReadonlyArray<Html> => [
   eyebrow('Needs your nod', 'nod', h),
-  headline(seller, h),
   purchase.price === null ? h.empty : amount(decimalUsdc(purchase.price), h),
+  sellerLine(purchase, model.toolInput, h),
   reasonQuote(model, Option.getOrNull(model.toolInput.maybeReason), h),
   facts([...priceFacts(purchase, model.toolInput), allowanceLeft(model, purchase.grant_remaining, h)], h),
   purchase.approval_url === null
@@ -107,22 +117,16 @@ const awaiting = (model: Model, purchase: Purchase, seller: string, h: Builder):
 ]
 
 /** After the owner's nod, the payment the card has been polling. */
-const afterNod = (
-  model: Model,
-  purchase: Purchase,
-  payment: PaymentView,
-  seller: string,
-  h: Builder,
-): ReadonlyArray<Html> => {
+const afterNod = (model: Model, purchase: Purchase, payment: PaymentView, h: Builder): ReadonlyArray<Html> => {
   const phase = phaseOf(payment)
   if (phase === 'NeedsNod') {
-    return awaiting(model, purchase, seller, h)
+    return awaiting(model, purchase, h)
   }
   if (phase === 'Receipt' && payment.receipt !== null) {
     return [
       eyebrow('Bought', 'good', h),
-      headline(seller, h),
       amount(decimalUsdc(payment.amount), h),
+      sellerLine(purchase, model.toolInput, h),
       facts(receiptFacts(payment.receipt, payment.grant_remaining, h), h),
       linkFallback(model.link, h),
     ]
@@ -130,22 +134,22 @@ const afterNod = (
   if (phase === 'Failed' || phase === 'Expired') {
     return [
       eyebrow(phase === 'Expired' ? 'Expired' : 'Not bought', phase === 'Expired' ? 'quiet' : 'bad', h),
-      headline(seller, h),
+      sellerLine(purchase, model.toolInput, h),
       lead(payment.failure ?? 'It expired before it was approved. Nothing was paid.', h),
     ]
   }
   return [
     eyebrow('Approved', 'good', h),
-    headline(seller, h),
     amount(decimalUsdc(payment.amount), h),
+    sellerLine(purchase, model.toolInput, h),
     lead('You approved it with your passkey. The AI finishes the purchase next.', h),
   ]
 }
 
-const bought = (model: Model, purchase: Purchase, seller: string, h: Builder): ReadonlyArray<Html> => [
+const bought = (model: Model, purchase: Purchase, h: Builder): ReadonlyArray<Html> => [
   eyebrow(purchase.status === 'free' ? 'Free' : 'Bought', purchase.status === 'free' ? 'quiet' : 'good', h),
-  headline(seller, h),
   purchase.price === null ? h.empty : amount(decimalUsdc(purchase.price), h),
+  sellerLine(purchase, model.toolInput, h),
   facts(
     purchase.receipt === null
       ? priceFacts(purchase, model.toolInput)
@@ -156,13 +160,20 @@ const bought = (model: Model, purchase: Purchase, seller: string, h: Builder): R
   linkFallback(model.link, h),
 ]
 
-const notBought = (model: Model, purchase: Purchase, seller: string, h: Builder): ReadonlyArray<Html> => [
+const notBought = (model: Model, purchase: Purchase, h: Builder): ReadonlyArray<Html> => [
   eyebrow('Not bought', 'bad', h),
-  headline(seller, h),
+  purchase.price === null ? h.empty : amount(decimalUsdc(purchase.price), h),
+  sellerLine(purchase, model.toolInput, h),
   lead(purchase.message, h),
-  purchase.facilitator_message === null ? h.empty : note(`The seller said: ${purchase.facilitator_message}`, h),
-  facts([...priceFacts(purchase, model.toolInput), ['Allowance left', decimalUsdc(purchase.grant_remaining)]], h),
-  pocketNote(purchase, h),
+  facts(
+    [
+      ...priceFacts(purchase, model.toolInput),
+      ...pocketFact(purchase, h),
+      allowanceLeft(model, purchase.grant_remaining, h),
+    ],
+    h,
+  ),
+  purchase.facilitator_message === null ? h.empty : details('What the seller said', purchase.facilitator_message, h),
   linkFallback(model.link, h),
 ]
 
@@ -176,21 +187,20 @@ export const purchaseView = (
   maybePayment: Option.Option<PaymentView>,
   h: Builder,
 ): ReadonlyArray<Html> => {
-  const seller = sellerOf(purchase, model.toolInput)
   const network = Option.match(maybePayment, {
     onNone: () => networkOfPurchase(purchase),
     onSome: payment => payment.network,
   })
   const body = Option.match(maybePayment, {
-    onSome: payment => afterNod(model, purchase, payment, seller, h),
+    onSome: payment => afterNod(model, purchase, payment, h),
     onNone: () => {
       if (purchase.status === 'requires_approval') {
-        return awaiting(model, purchase, seller, h)
+        return awaiting(model, purchase, h)
       }
       if (purchase.status === 'paid' || purchase.status === 'free') {
-        return bought(model, purchase, seller, h)
+        return bought(model, purchase, h)
       }
-      return notBought(model, purchase, seller, h)
+      return notBought(model, purchase, h)
     },
   })
   return [header(network, h), ...body]
