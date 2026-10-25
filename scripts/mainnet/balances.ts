@@ -26,7 +26,8 @@ console.log(
 for (const role of ROLE_LIST) {
   const need = FUNDING[role]
   const s = await accountState(publicKey(role))
-  const xlmOk = s.exists && s.xlm >= BigInt(need.xlm) * 10_000_000n
+  // Fees an account paid itself (its trustline) leave it a few stroops under the table amount: allow 0.01 XLM.
+  const xlmOk = s.exists && s.xlm >= BigInt(need.xlm) * 10_000_000n - 100_000n
   const usdcOk = need.usdc === 0 || (s.usdc !== null && s.usdc >= BigInt(need.usdc) * 10_000_000n)
   const status = !s.exists
     ? 'not funded'
@@ -35,14 +36,14 @@ for (const role of ROLE_LIST) {
       : !usdcOk
         ? s.usdc === null
           ? 'needs the USDC trustline first (seed.ts --only trustlines), then USDC'
-          : 'USDC short'
+          : `waiting for ${need.usdc} USDC`
         : role === 'carol' && s.usdc !== null
           ? 'has a trustline: the claim-link beat needs none'
           : 'ok'
   if (status !== 'ok') short++
   const usdc = s.usdc === null ? 'no trustline' : Number(xlm(s.usdc)).toFixed(2)
   console.log(
-    `| ${role.padEnd(8)} | ${s.address} | ${`${s.exists ? Number(xlm(s.xlm)).toFixed(2) : '-'} / ${need.xlm}`.padEnd(15)} | ${`${usdc} / ${need.usdc}`.padEnd(16)} | ${status}`,
+    `| ${role.padEnd(8)} | ${s.address} | ${`${s.exists ? Number(xlm(s.xlm)).toFixed(4) : '-'} / ${need.xlm}`.padEnd(15)} | ${`${usdc} / ${need.usdc}`.padEnd(16)} | ${status}`,
   )
 }
 for (const [name, id] of [
