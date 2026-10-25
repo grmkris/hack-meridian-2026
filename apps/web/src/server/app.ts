@@ -46,9 +46,14 @@ import {
   receiptsOfWallet,
   replaceDestination,
 } from './store.ts'
+import { MEMO_UNSUPPORTED } from './tools.ts'
 import { apiGrantView, pendingApproval, revokeUrl } from './views.ts'
 import { visitorOf, type WalletCapReached, WalletCaps } from './wallet-caps.ts'
 import { WalletSettings, type Site } from './wallet-settings.ts'
+
+/** A contact saved with a memo would be paid without it (no payment carries one), so the site refuses it (K5). */
+const MEMO_REFUSED_FOR_CONTACT = `${MEMO_UNSUPPORTED} Save the contact without a memo only if their address needs none.`
+const hasMemo = (memo: string | undefined) => memo !== undefined && memo.trim() !== ''
 
 /** The request's own URL (the Worker hands HttpApi the web Request). */
 const requestUrl = Effect.gen(function* () {
@@ -347,6 +352,7 @@ const WalletHandlers = HttpApiBuilder.group(
             )
             if (!/^(?:[CG][A-Z2-7]{55}|M[A-Z2-7]{68})$/u.test(payload.address))
               return yield* new BadRequest({ error: 'not a Stellar address (C…, G… or M…)' })
+            if (hasMemo(payload.memo)) return yield* new BadRequest({ error: MEMO_REFUSED_FOR_CONTACT })
             return yield* createContact({
               ownerId: wallet.owner_id,
               displayName: payload.display_name.trim(),
@@ -366,6 +372,7 @@ const WalletHandlers = HttpApiBuilder.group(
               return yield* new NotFound({ error: `no contact ${params.id}` })
             if (!/^(?:[CG][A-Z2-7]{55}|M[A-Z2-7]{68})$/u.test(payload.address))
               return yield* new BadRequest({ error: 'not a Stellar address (C…, G… or M…)' })
+            if (hasMemo(payload.memo)) return yield* new BadRequest({ error: MEMO_REFUSED_FOR_CONTACT })
             const readiness = yield* chain.readiness(payload.address).pipe(
               Effect.map(r => (r === 'contract' ? ('usdc_ready' as const) : r)),
               Effect.catchTag('ChainError', () => Effect.succeed('unverified' as const)),

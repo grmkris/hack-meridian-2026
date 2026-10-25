@@ -66,6 +66,12 @@ export interface ToolResult<A> {
 }
 
 const fail = (message: string) => Effect.fail(new ToolError({ message }))
+
+/**
+ * Payments go to the address alone: no transaction Nod builds carries a memo. An exchange deposit address that needs one
+ * would lose the funds, so a memo is refused, never dropped (K5).
+ */
+export const MEMO_UNSUPPORTED = 'Nod cannot pay exchange deposit addresses that need a memo yet.'
 const storage = (error: DbError | LedgerError) =>
   new ToolError({
     message:
@@ -284,6 +290,10 @@ export const paymentPrepare = (
     const network = yield* requirePayments
     const amount = toStroops(input.amount)
     if (amount <= 0n) return yield* fail('The amount must be more than zero.')
+    if (input.memo !== undefined && input.memo.trim() !== '')
+      return yield* fail(
+        `${MEMO_UNSUPPORTED} Nothing was prepared. If this address needs no memo, prepare the payment again without one.`,
+      )
     if (input.recipient.trim().toLowerCase() === 'new' && !options.forceOwner)
       return yield* claimLinkPrepare(ctx, input, amount)
     const recipient = yield* resolveRecipient(ctx.props.owner_id, input.recipient)
