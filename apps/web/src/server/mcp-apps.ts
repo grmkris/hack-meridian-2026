@@ -6,8 +6,7 @@ import {
 } from '@modelcontextprotocol/sdk/types.js'
 
 import cardHtml from './cards/card.html?raw'
-import type { AppRuntime } from './runtime.ts'
-import type { ToolContext } from './tools.ts'
+import type { NetworkShape } from './network.ts'
 
 /**
  * MCP Apps: the `ui://` resources Nod's tools render with (cards in the chat). One sealed HTML file
@@ -34,13 +33,13 @@ interface AppView {
   readonly preferredDisplayMode: 'inline' | 'fullscreen'
 }
 
-const VIEWS: ReadonlyArray<AppView> = [
+/** What hosts read about each view names the stage's network (Stellar Testnet or Stellar Mainnet). */
+const viewsOn = (label: NetworkShape['label']): ReadonlyArray<AppView> => [
   {
     uri: CARD_URI,
     name: 'nod-card',
     title: 'Nod',
-    description:
-      "A payment, a purchase or the wallet from Nod, with the approve link when it needs the user's nod. Testnet.",
+    description: `A payment, a purchase or the wallet from Nod, with the approve link when it needs the user's nod. Stellar ${label}.`,
     view: 'card',
     displayModes: ['inline'],
     preferredDisplayMode: 'inline',
@@ -49,8 +48,7 @@ const VIEWS: ReadonlyArray<AppView> = [
     uri: HOME_URI,
     name: 'nod-home',
     title: 'Nod wallet',
-    description:
-      "The Nod wallet: its USDC balance, this AI app's allowance, payments waiting for the user's nod and recent receipts. Testnet.",
+    description: `The Nod wallet: its USDC balance, this AI app's allowance, payments waiting for the user's nod and recent receipts. Stellar ${label}.`,
     view: 'home',
     displayModes: ['inline', 'fullscreen'],
     preferredDisplayMode: 'fullscreen',
@@ -88,8 +86,8 @@ export const homeMeta = () => ({
 const htmlFor = (view: AppView): string =>
   cardHtml.replace('<head>', `<head><meta name="nod-view" content="${view.view}">`)
 
-export const listResources = () => ({
-  resources: VIEWS.map(view => ({
+export const listResources = (label: NetworkShape['label']) => ({
+  resources: viewsOn(label).map(view => ({
     uri: view.uri,
     name: view.name,
     title: view.title,
@@ -101,8 +99,8 @@ export const listResources = () => ({
 
 const INVALID_PARAMS = -32602
 
-export const readResource = async (uri: string) => {
-  const view = VIEWS.find(candidate => candidate.uri === uri)
+export const readResource = async (uri: string, label: NetworkShape['label']) => {
+  const view = viewsOn(label).find(candidate => candidate.uri === uri)
   if (view === undefined) {
     throw Object.assign(new Error(`Unknown resource ${uri}`), { code: INVALID_PARAMS })
   }
@@ -112,10 +110,8 @@ export const readResource = async (uri: string) => {
 /** The legacy lane declares resources and answers the three resource methods. */
 export const appsCapabilities = { resources: {} }
 
-export const registerApps = (server: Server, runtime: AppRuntime, ctx: ToolContext): void => {
-  void runtime
-  void ctx
-  server.setRequestHandler(ListResourcesRequestSchema, async () => listResources())
+export const registerApps = (server: Server, label: NetworkShape['label']): void => {
+  server.setRequestHandler(ListResourcesRequestSchema, async () => listResources(label))
   server.setRequestHandler(ListResourceTemplatesRequestSchema, async () => ({ resourceTemplates: [] }))
-  server.setRequestHandler(ReadResourceRequestSchema, async request => readResource(request.params.uri))
+  server.setRequestHandler(ReadResourceRequestSchema, async request => readResource(request.params.uri, label))
 }

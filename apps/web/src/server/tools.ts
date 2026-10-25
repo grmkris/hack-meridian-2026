@@ -306,7 +306,9 @@ export const paymentPrepare = (
       ),
     )
     if (readiness === 'account_missing')
-      return yield* fail(`${recipient.address} does not exist on Stellar testnet yet, so it cannot receive USDC.`)
+      return yield* fail(
+        `${recipient.address} does not exist on Stellar ${network.label} yet, so it cannot receive USDC.`,
+      )
     const newContact = yield* firstPaymentToAiContact(wallet.id, ctx.props.owner_id, recipient)
     const ledger = yield* Ledger
     const prepared = yield* ledger.prepareIntent(wallet.id, {

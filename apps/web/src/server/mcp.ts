@@ -1,3 +1,5 @@
+import { Effect } from 'effect'
+
 import { Server } from '@modelcontextprotocol/sdk/server/index.js'
 import { WebStandardStreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js'
 import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprotocol/sdk/types.js'
@@ -6,6 +8,7 @@ import { eventsCapabilities, handleEventsRequest, registerEvents } from './event
 import { appsCapabilities, listResources, readResource, registerApps } from './mcp-apps.ts'
 import { isModernRequest, type ModernDeps, serveModern } from './mcp-modern.ts'
 import { callTool, listTools, runTool } from './mcp-tools.ts'
+import { Network, type NetworkShape } from './network.ts'
 import type { AppRuntime } from './runtime.ts'
 import type { ToolContext } from './tools.ts'
 
@@ -23,8 +26,18 @@ export interface McpAuth {
   readonly expiresAt?: number
 }
 
-const INSTRUCTIONS =
-  "Nod: the user's Stellar USDC wallet with an allowance for you. Small stuff, it just pays; big stuff needs the user's nod. Payments inside the allowance go through on their own; anything bigger returns an approval_url that you must show the user verbatim, then poll payment_status. Always pass a fresh idempotency_key per intended payment and reuse it on retries. Always mention the network (testnet) when you talk about money."
+type NetworkLabel = NetworkShape['label']
+
+/** The stage's network as people read it ("Testnet" or "Mainnet"), from the runtime's Network service. */
+const networkLabel = (runtime: AppRuntime): Promise<NetworkLabel> =>
+  runtime.runPromise(
+    Effect.gen(function* () {
+      return (yield* Network).label
+    }),
+  )
+
+const instructions = (label: NetworkLabel) =>
+  `Nod: the user's Stellar USDC wallet with an allowance for you. Small stuff, it just pays; big stuff needs the user's nod. Payments inside the allowance go through on their own; anything bigger returns an approval_url that you must show the user verbatim, then poll payment_status. Always pass a fresh idempotency_key per intended payment and reuse it on retries. Always mention the network (Stellar ${label}) when you talk about money.`
 
 /** Who answers: the name hosts show, and the icon they fall back to for Nod's entrypoints (sidebar, pinned apps). */
 export const serverInfo = (origin: string) => ({
@@ -56,16 +69,23 @@ const readBody = async (request: Request): Promise<{ readonly body: unknown } | 
 }
 
 /** The protocol revisions up to 2025-11-25, through the SDK's low-level Server. */
-const serveLegacy = async (runtime: AppRuntime, request: Request, body: unknown, ctx: ToolContext, auth: McpAuth) => {
+const serveLegacy = async (
+  runtime: AppRuntime,
+  request: Request,
+  body: unknown,
+  ctx: ToolContext,
+  auth: McpAuth,
+  label: NetworkLabel,
+) => {
   const server = new Server(serverInfo(ctx.origin), {
     capabilities: { tools: {}, ...appsCapabilities, ...eventsCapabilities },
-    instructions: INSTRUCTIONS,
+    instructions: instructions(label),
   })
   server.setRequestHandler(ListToolsRequestSchema, async () => ({ tools: listTools() }))
   server.setRequestHandler(CallToolRequestSchema, async call =>
     callTool(runtime, ctx, call.params.name, call.params.arguments),
   )
-  registerApps(server, runtime, ctx)
+  registerApps(server, label)
   registerEvents(server, runtime, ctx)
   const transport = new WebStandardStreamableHTTPServerTransport({ enableJsonResponse: true })
   await server.connect(transport)
@@ -81,14 +101,14 @@ const serveLegacy = async (runtime: AppRuntime, request: Request, body: unknown,
 }
 
 /** The same tools, resources and events for the 2026-07-28 lane (mcp-modern.ts), which answers without the SDK. */
-const modernDeps = (runtime: AppRuntime, ctx: ToolContext): ModernDeps => ({
+const modernDeps = (runtime: AppRuntime, ctx: ToolContext, label: NetworkLabel): ModernDeps => ({
   listTools,
   runTool: (name, args) => runTool(runtime, ctx, name, args),
-  listResources,
-  readResource,
+  listResources: () => listResources(label),
+  readResource: uri => readResource(uri, label),
   events: (method, params) => handleEventsRequest(runtime, ctx, method, params),
   capabilities: { tools: {}, ...appsCapabilities, ...eventsCapabilities },
-  instructions: INSTRUCTIONS,
+  instructions: instructions(label),
   serverInfo: serverInfo(ctx.origin),
 })
 
@@ -97,6 +117,7 @@ export const serveMcp = async (runtime: AppRuntime, request: Request, ctx: ToolC
   if (request.method !== 'POST') return new Response('Method Not Allowed', { status: 405, headers: { Allow: 'POST' } })
   const read = await readBody(request)
   if ('error' in read) return read.error
-  if (isModernRequest(request, read.body)) return serveModern(request, read.body, modernDeps(runtime, ctx))
-  return serveLegacy(runtime, request, read.body, ctx, auth)
+  const label = await networkLabel(runtime)
+  if (isModernRequest(request, read.body)) return serveModern(request, read.body, modernDeps(runtime, ctx, label))
+  return serveLegacy(runtime, request, read.body, ctx, auth, label)
 }
