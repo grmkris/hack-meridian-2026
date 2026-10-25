@@ -6,26 +6,28 @@ window. Source for rules and rubric: `docs/research/hackathon-and-ecosystem.md`.
 
 ## Fill in from the portal (Kristjan, 15 minutes, as early as possible)
 
-| Field                              | Value                                |
-| ---------------------------------- | ------------------------------------ |
-| Demo video length limit            | UNVERIFIED (plan ≤ 3 min)            |
-| Pitch deck format                  | UNVERIFIED (plan PDF, 8–10 slides)   |
-| Submission questions (verbatim)    | UNVERIFIED                           |
-| Team members and emails registered | UNVERIFIED                           |
-| Track selection mechanics          | UNVERIFIED (both tracks are allowed) |
+| Field                              | Value                                                                          |
+| ---------------------------------- | ------------------------------------------------------------------------------ |
+| Demo video                         | hosted on YouTube or Vimeo; length limit not stated on the form (plan ≤ 3 min) |
+| Pitch deck format                  | PDF, PPTX, PPT or HTML; the portal offers a template                           |
+| Submission questions               | pasted by Kristjan; field drafts below in "Portal form, field by field" (a3)   |
+| Team members and emails registered | UNVERIFIED                                                                     |
+| Track selection                    | ONE thematic track: Stellar Composed (Genesis path is assigned)                |
 
 ## Checklist
 
-| #   | Item                                                                                                                         | Owner                        | When (UTC)                       |
-| --- | ---------------------------------------------------------------------------------------------------------------------------- | ---------------------------- | -------------------------------- |
-| 0   | Portal fields above copied into this file                                                                                    | Kristjan                     | now                              |
-| 1   | Public repo `grmkris/hack-meridian-2026` pushed; small commits keep landing on `main`                                        | foundation session, then all | today                            |
-| 2   | README: problem, how it works, specs, architecture, testnet ids, explorer links, run, judge test, prior work, AI attribution | docs agent                   | 17:00–20:00 draft, 08:00 final   |
-| 3   | Demo video: script below, screen recording with voice, upload                                                                | Kristjan + agent             | record by 07:00, upload by 09:30 |
-| 4   | Pitch deck: one slide per rubric line (below), PDF                                                                           | docs agent                   | skeleton 18:00, final 09:00      |
-| 5   | Submission answers drafted below, pasted into the form                                                                       | Kristjan                     | 10:00–10:30                      |
-| 6   | Judge-testable deployment: URL, funded testnet path, a test connection the judge can use                                     | build                        | verified 09:00                   |
-| 7   | Submit; re-check links privately                                                                                             | Kristjan                     | 11:00                            |
+| #   | Item                                                                                                                                                                                 | Owner                        | When (UTC)                       |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------- | -------------------------------- |
+| 0   | Portal fields above copied into this file                                                                                                                                            | Kristjan                     | done 14:00                       |
+| 0b  | `/llms.txt`, `/robots.txt`, `/sitemap.xml` served by the live site (an AI pre-judges before humans)                                                                                  | a3 writes, B places          | 15:00                            |
+| 0c  | README with the required headings: summary, problem, setup, installation, environment variables, demo instructions, architecture (assets, contract ids, wallets, integrations, APIs) | a3, env list from A1         | 18:00 draft, 08:00 final         |
+| 1   | Public repo `grmkris/hack-meridian-2026` pushed; small commits keep landing on `main`                                                                                                | foundation session, then all | today                            |
+| 2   | README: problem, how it works, specs, architecture, testnet ids, explorer links, run, judge test, prior work, AI attribution                                                         | docs agent                   | 17:00–20:00 draft, 08:00 final   |
+| 3   | Demo video: script below, screen recording with voice, upload                                                                                                                        | Kristjan + agent             | record by 07:00, upload by 09:30 |
+| 4   | Pitch deck: one slide per rubric line (below), PDF                                                                                                                                   | docs agent                   | skeleton 18:00, final 09:00      |
+| 5   | Submission answers drafted below, pasted into the form                                                                                                                               | Kristjan                     | 10:00–10:30                      |
+| 6   | Judge-testable deployment: URL, funded testnet path, a test connection the judge can use                                                                                             | build                        | verified 09:00                   |
+| 7   | Submit; re-check links privately                                                                                                                                                     | Kristjan                     | 11:00                            |
 
 ## Deck, demo video and words
 

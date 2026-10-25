@@ -53,7 +53,7 @@ with a stable `grant_id`; the allowance belongs to it, not to the session.
    → `requires_approval` because 4 > 2.90 remaining (not an onchain revert; the service routes it to the owner lane).
 9. Owner revokes the connection on the site; the next delegated payment is refused, and the onchain rule is gone.
 
-Unlocked extension (priority 5): "Send Carol 5 USDC" where Carol's classic `G…` account has no USDC trustline. The
+CAP-73 extension (priority 5): "Send Carol 5 USDC" where Carol's classic `G…` account has no USDC trustline. The
 wallet marks her **Trustline required**, generates an acceptance link, Carol signs the `trust` auth entry, and the
 wallet executes one atomic invocation: USDC SAC `trust(carol)` + `transfer(owner, carol, 5)`.
 
@@ -84,7 +84,7 @@ Wallet Worker  /mcp  /api  /oauth   │ sign-in · passkey · consent  │
 Stellar testnet (Soroban RPC)
    ├─ OpenZeppelin smart account (passkey admin, Ed25519 connection signers, spending-limit policy)
    ├─ USDC Stellar Asset Contract (Circle testnet USDC, 7 decimals)
-   └─ onboarding router: SAC trust + transfer in one invocation (Unlocked)
+   └─ onboarding router: SAC trust + transfer in one invocation (CAP-73)
 ```
 
 Deployed on Cloudflare via Alchemy (stages `local` and `testnet`), following the foundation the previous session
@@ -191,7 +191,7 @@ transaction, so the policy counts both paths against the same N.
 5. Repeating the same request does not pay twice.
 6. Revoking the connection blocks the next delegated payment.
 7. A receipt is returned only after confirmed settlement.
-8. (Unlocked) A `G…` recipient without a USDC trustline receives USDC in one atomic trust + transfer invocation, after
+8. (CAP-73) A `G…` recipient without a USDC trustline receives USDC in one atomic trust + transfer invocation, after
    signing the acceptance.
 9. The relayer paid every fee; the owner account holds no XLM.
 
@@ -203,9 +203,11 @@ we demo in a host we control and keep the server host-agnostic), mainnet.
 
 ## Tracks and framing
 
-- **Stellar Composed** (primary): smart account + OpenZeppelin policies + relayed fees + MCP + x402 USDC payments.
+- **Stellar Composed** (the one thematic track; the form takes exactly one, Genesis is assigned): smart account +
+  OpenZeppelin policies + relayed fees + MCP + x402 USDC payments.
   The track text literally suggests "agent wallets, OpenZeppelin spending policies, paid APIs over x402".
-- **Stellar Unlocked** (supporting): CAP-73 SAC `trust` makes recipient onboarding part of the payment itself.
+- CAP-73 SAC `trust` (recipient onboarding inside the payment) is presented as a protocol feature we use, not a
+  second track (submission form, 2026-10-25 14:00 UTC).
 - Genesis path. Submit one project; mention both tracks in the answers.
 
 Pitch: _Give your AI a spending budget you control. Pay people and services from one passkey wallet; larger payments
@@ -242,7 +244,7 @@ Show the explorer for two transactions (a delegated one and the owner-approved o
   per-connection grant lives in the OAuth grant props; the consent page is where the passkey signs the onchain rule.
 - Same source: the CAP-73 feature is a **claim link**. The recipient signs the `trust` auth entry; the sender's transfer
   and an optional 0.5 XLM reserve top-up ride in the same router call. We never promise "pay any G address silently".
-- A Genesis project may enter both tracks. Name Composed and Unlocked explicitly in the README and the answers.
+- The form takes one thematic track: Stellar Composed. Mention the CAP-73 claim link as a feature, not a track.
 - 2026-10-25 12:40 UTC, from `docs/research/x402-stellar.md`: **the demo seller runs our own facilitator.** Hosted
   facilitators (x402.org, OpenZeppelin Channels) reject OpenZeppelin smart accounts whose policy emits an event and cap
   fees below what a smart account costs, and the stock `@x402/stellar` client cannot sign as a C-address. We ship a
