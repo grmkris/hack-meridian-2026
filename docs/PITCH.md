@@ -191,18 +191,18 @@ one take per line, so any structure can use them.
 
 ## Deck (PDF, 10 slides, each headline a claim)
 
-| #   | Headline                                                    | Rubric line              |
-| --- | ----------------------------------------------------------- | ------------------------ |
-| 1   | Give your AI an allowance.                                  | title                    |
-| 2   | Apps are becoming conversations. Wallets have to follow.    | User Value & Problem 20% |
-| 3   | One number. Inside it, it pays. Past it, it asks.           | what we built            |
-| 4   | In the chat: claude.ai, ChatGPT and Goblin.                 | Product Design & UX 10%  |
-| 5   | The limit lives on your Stellar account.                    | Technical Execution 15%  |
-| 6   | Stellar building blocks, one wallet.                        | Track Alignment 20%      |
-| 7   | Four ideas behind Nod.                                      | Innovation 15%           |
-| 8   | Built in one day, live on mainnet by evening.               | Hackathon Progress 10%   |
-| 9   | Every AI app is a door.                                     | Market & Ecosystem 10%   |
-| 10  | Try it: mainnet at trynod.si, sandbox at testnet.trynod.si. | continuation             |
+| #   | Headline                                                 | Rubric line              |
+| --- | -------------------------------------------------------- | ------------------------ |
+| 1   | Give your AI an allowance.                               | title                    |
+| 2   | Apps are becoming conversations. Wallets have to follow. | User Value & Problem 20% |
+| 3   | One number. Inside it, it pays. Past it, it asks.        | what we built            |
+| 4   | In the chat: claude.ai, ChatGPT and Goblin.              | Product Design & UX 10%  |
+| 5   | The limit lives on your Stellar account.                 | Technical Execution 15%  |
+| 6   | Nine building blocks, one wallet.                        | Track Alignment 20%      |
+| 7   | Four ideas behind Nod.                                   | Innovation 15%           |
+| 8   | Built in one day, live on mainnet by evening.            | Hackathon Progress 10%   |
+| 9   | Every AI app is a door.                                  | Market & Ecosystem 10%   |
+| 10  | Three minutes, in your own Claude. (both hosts)          | continuation             |
 
 ## Open
 

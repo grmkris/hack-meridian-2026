@@ -175,6 +175,11 @@
         border: 1px solid rgb(18 22 31 / 0.2);
         color: var(--muted);
       }
+      .pill.mainnet {
+        border: 1px solid var(--intaglio);
+        background: var(--intaglio);
+        color: var(--paper);
+      }
       .pill.nod {
         background: var(--lamp);
         color: var(--ink);
@@ -260,6 +265,16 @@
       }
       .title .topbar .pill {
         background: rgb(11 21 44 / 0.85);
+      }
+      .night .pill.mainnet,
+      .title .topbar .pill.mainnet {
+        border-color: var(--starlight);
+        background: var(--starlight);
+        color: var(--night);
+      }
+      .title .live .sandbox {
+        font-size: 22px;
+        color: var(--starlight-muted);
       }
       .title .topbar .right {
         text-shadow: 0 0 12px var(--night);
@@ -482,12 +497,23 @@
         background: var(--lamp);
       }
 
+      .demo h2 {
+        font-size: 64px;
+      }
       .demo .body {
         display: grid;
-        grid-template-columns: 1.55fr 0.62fr 0.62fr;
-        grid-template-rows: 1fr auto;
-        gap: 28px 32px;
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: minmax(0, 1fr) minmax(0, 1fr);
+        gap: 22px 32px;
         min-height: 0;
+        padding-bottom: 24px;
+      }
+      .shot.host .img {
+        border: 0;
+      }
+      .shot.host img {
+        object-fit: contain;
+        object-position: center;
       }
       .shot {
         display: grid;
@@ -626,6 +652,15 @@
         font-size: 22px;
         color: var(--muted);
       }
+      .tech .proof {
+        padding: 15px 0;
+      }
+      .tech .proof:first-child {
+        padding-top: 0;
+      }
+      .tech .proof .claim {
+        font-size: 28px;
+      }
 
       .composed .body {
         display: grid;
@@ -724,14 +759,17 @@
 
       .progress .body {
         display: grid;
-        grid-template-rows: auto auto;
-        gap: 72px;
+        grid-template-rows: auto auto auto;
+        gap: 44px;
         align-content: start;
       }
       .timeline {
         display: grid;
         grid-template-columns: repeat(6, 1fr);
         position: relative;
+      }
+      .timeline.five {
+        grid-template-columns: repeat(5, 1fr);
       }
       .timeline::before {
         content: '';
@@ -746,6 +784,7 @@
       .tick {
         display: grid;
         gap: 12px;
+        align-content: start;
         padding-right: 28px;
         position: relative;
       }
@@ -778,6 +817,7 @@
         padding-top: 24px;
         display: grid;
         gap: 8px;
+        align-content: start;
       }
       .stat .big {
         font-family: var(--display);
@@ -893,33 +933,34 @@
         <section class="slide title night">
           <img class="scene" src="img/night.png" alt="" />
           <header class="topbar">
-            <span class="mark">nod</span><span class="pill testnet">Stellar testnet</span
+            <span class="mark">nod</span><span class="pill mainnet">Stellar mainnet</span
             ><span class="right">HackMeridian 2026 · Genesis · Stellar Composed</span>
           </header>
           <div class="hero">
             <h1>Give your AI an allowance.</h1>
             <p class="tag"><b>Small stuff, it just pays.</b> Big stuff needs your nod.</p>
             <div class="live">
-              <span class="pill testnet">Live on Stellar testnet</span>
-              <a href="https://testnet.trynod.si">testnet.trynod.si</a>
+              <span class="pill mainnet">Live on Stellar mainnet</span>
+              <a href="https://trynod.si">trynod.si</a>
+              <span class="sandbox">sandbox: <a href="https://testnet.trynod.si">testnet.trynod.si</a></span>
             </div>
           </div>
           <div class="twonum">
             <div class="cell">
               <span class="k">In your wallet</span>
-              <span class="v">30.00</span>
-              <span class="small">USDC · Personal · testnet</span>
+              <span class="v">9.90</span>
+              <span class="small">USDC · Personal · mainnet</span>
             </div>
             <div class="cell">
               <span class="k">Claude may spend</span>
-              <span class="v">5.00</span>
-              <div class="meter"></div>
-              <span class="small">USDC, until tomorrow 12:00 UTC</span>
+              <span class="v">2.90</span>
+              <div class="meter" style="width: 58%"></div>
+              <span class="small">of 5.00 USDC, until tomorrow 12:00 UTC</span>
             </div>
             <div class="wide">
               <div>
-                <div class="who">20.00 USDC to Bob</div>
-                <div class="small">Claude asked · "Dinner with Bob"</div>
+                <div class="who">5.00 USDC to Bob</div>
+                <div class="small">Claude asked for dinner · 2.90 left</div>
               </div>
               <span class="pill nod">Needs your nod</span>
             </div>
@@ -930,27 +971,33 @@
       <div class="frame">
         <section class="slide problem">
           <header>
-            <div class="eyebrow">The problem</div>
-            <h2>Your AI can do everything except pay safely.</h2>
+            <div class="eyebrow">Why Nod</div>
+            <h2>Apps are becoming conversations. Wallets have to follow.</h2>
           </header>
           <div class="body">
             <div class="card option">
-              <span class="x">Give it everything</span>
-              <h3>Hand over a card or a private key.</h3>
-              <p>No limit, no expiry, no way to see what it may spend. One bad prompt can empty the account.</p>
+              <span class="x">Approve every call</span>
+              <h3>The agent stops at every checkout.</h3>
+              <p>A paid API call or paying a friend back waits for you, so the AI is no longer doing the task.</p>
             </div>
             <div class="card option">
-              <span class="x">Give it nothing</span>
-              <h3>Make every payment yourself.</h3>
-              <p>The task stops at checkout. A paid API call or paying a friend back waits for you.</p>
+              <span class="x">Hand over the balance</span>
+              <h3>A card or a key gives it everything.</h3>
+              <p>No limit and no expiry, and nobody trusts an AI with the whole balance.</p>
             </div>
             <blockquote>
-              <q>There is no policy layer for x402 on Stellar today.</q>
-              <cite>Stellar developer docs, on agent payments</cite>
+              <q>One allowance per AI app, on your own Stellar account. Inside it, it pays. Past it, your passkey.</q>
+              <cite
+                >Nod's answer, in the chat where the AI already works: cards with MCP Apps, notices with MCP
+                Events</cite
+              >
             </blockquote>
           </div>
           <footer class="foot">
-            <span class="left"><span class="mark">nod</span><span class="pill testnet">Stellar testnet</span></span>
+            <span class="left"
+              ><span class="mark">nod</span><span class="pill mainnet">Stellar mainnet</span
+              ><span>"There is no policy layer for x402 on Stellar today." Stellar developer docs</span></span
+            >
             <span class="num">02</span>
           </footer>
         </section>
@@ -960,14 +1007,14 @@
         <section class="slide lanes">
           <header>
             <div class="eyebrow">The product</div>
-            <h2>One connector. Two lanes.</h2>
+            <h2>One number. Inside it, it pays. Past it, it asks.</h2>
           </header>
           <div class="body">
             <div class="card ask">
-              <span class="who">Claude asks to pay</span>
+              <span class="who">You set one number</span>
               <p>
-                Add Nod to Claude, or any MCP app, with one URL. Each AI app gets its own allowance on your Stellar
-                account.
+                Add Nod to Claude, or any MCP app, with one URL. Each AI app gets one allowance on your Stellar account:
+                5 USDC until tomorrow.
               </p>
             </div>
             <svg class="arrows" viewBox="0 0 120 600" preserveAspectRatio="none" aria-hidden="true">
@@ -977,20 +1024,24 @@
             <div class="card lane in">
               <h3>Inside the allowance, it just pays.</h3>
               <p class="how">
-                Paid APIs over x402 and contacts by name. Claude's own key signs; the account checks the limit.
+                Paid APIs over x402 and people by name. Claude's own key signs; the account checks the limit.
               </p>
-              <div class="ex"><span>0.10 · market brief</span><span>2.00 · Alice</span></div>
+              <div class="ex"><span>0.10 · market brief</span><span>2.00 · Alice → 2.90 left</span></div>
             </div>
             <div class="card lane over">
-              <h3>Over it, it needs your nod.</h3>
+              <h3>Past it, your nod. Every time.</h3>
               <p class="how">
-                Claude gets a link. You see who, how much and why, and your passkey signs that exact payment.
+                Claude hands you a link. You see who, how much and which app asked; your passkey signs that payment, any
+                amount.
               </p>
-              <div class="ex"><span>20.00 · Bob, dinner</span><span class="nod">Face ID → paid</span></div>
+              <div class="ex"><span>5.00 · Bob, dinner</span><span class="nod">passkey → paid</span></div>
             </div>
           </div>
           <footer class="foot">
-            <span class="left"><span class="mark">nod</span><span class="pill testnet">Stellar testnet</span></span>
+            <span class="left"
+              ><span class="mark">nod</span><span class="pill mainnet">Stellar mainnet</span
+              ><span>The same beats ran on mainnet in claude.ai and on testnet in the rehearsal</span></span
+            >
             <span class="num">03</span>
           </footer>
         </section>
@@ -999,45 +1050,54 @@
       <div class="frame">
         <section class="slide demo">
           <header>
-            <div class="eyebrow">Demo</div>
-            <h2>It works on Stellar testnet today.</h2>
+            <div class="eyebrow">Product design · in real hosts</div>
+            <h2>In the chat: claude.ai, ChatGPT and Goblin.</h2>
           </header>
           <div class="body">
-            <figure class="shot" style="margin: 0">
-              <div class="img">
-                <img src="img/home-crop.png" alt="Nod Home: wallet balance and what Claude may spend" />
+            <figure class="shot host" style="margin: 0">
+              <div class="img" style="background: #181818">
+                <img
+                  src="img/host-claude-card.png"
+                  alt="claude.ai showing Nod's wallet card: 5.00 USDC allowance left"
+                />
               </div>
-              <figcaption class="cap">
-                Home: what you hold, what Claude may spend, what needs your nod (demo data)
-              </figcaption>
+              <figcaption class="cap">claude.ai: Nod's wallet card, with the one number Claude may spend</figcaption>
             </figure>
-            <figure class="shot narrow" style="margin: 0">
-              <div class="img"><img src="img/consent.png" alt="Consent page setting a 5 USDC allowance" /></div>
-              <figcaption class="cap">Consent: the allowance, signed by your passkey</figcaption>
+            <figure class="shot host" style="margin: 0">
+              <div class="img" style="background: #181818">
+                <img
+                  src="img/host-claude-nod.png"
+                  alt="claude.ai: Nod wants to open a URL, the approval link for 4.00 USDC to Bob"
+                />
+              </div>
+              <figcaption class="cap">claude.ai: past the allowance, the nod is claude.ai's own URL request</figcaption>
             </figure>
-            <figure class="shot narrow" style="margin: 0">
-              <div class="img"><img src="img/approval.png" alt="Approval page for a payment that needs a nod" /></div>
-              <figcaption class="cap">Approval: recipient, amount, who asked</figcaption>
+            <figure class="shot host" style="margin: 0">
+              <div class="img" style="background: #0e0e0e">
+                <img
+                  src="img/host-chatgpt-nod.png"
+                  alt="ChatGPT showing Nod's card waiting for the nod on 6 USDC to Bob"
+                />
+              </div>
+              <figcaption class="cap">ChatGPT, developer-mode connector: the card waits for your passkey</figcaption>
             </figure>
-            <div class="beats">
-              <div class="beat">
-                <span class="amt">0.10</span><span class="what">Buys the market brief over x402</span>
+            <figure class="shot host" style="margin: 0">
+              <div class="img" style="background: #16151a">
+                <img
+                  src="img/host-goblin-event.png"
+                  alt="Goblin showing Nod's wallet card and a notice that 1 USDC arrived"
+                />
               </div>
-              <div class="beat"><span class="amt">2.00</span><span class="what">Pays Alice by name</span></div>
-              <div class="beat nod">
-                <span class="amt">20.00</span><span class="what">Bob's dinner needs your nod</span>
-              </div>
-              <div class="beat"><span class="amt">×2 → ×1</span><span class="what">Ask twice, pay once</span></div>
-              <div class="beat nod">
-                <span class="amt">5.00</span><span class="what">Carol gets USDC via a claim link</span>
-              </div>
-              <div class="beat"><span class="amt">revoke</span><span class="what">Next payment refused</span></div>
-            </div>
+              <figcaption class="cap">Goblin: the card, and Nod's notice when money arrives (MCP Events)</figcaption>
+            </figure>
           </div>
           <footer class="foot">
             <span class="left"
               ><span class="mark">nod</span><span class="pill testnet">Stellar testnet</span
-              ><span>Consent and approval pages from today's testnet rehearsal</span></span
+              ><span
+                >Host captures on testnet.trynod.si, 25 October; events in Goblin and ChatGPT, cards poll in
+                claude.ai</span
+              ></span
             >
             <span class="num">04</span>
           </footer>
@@ -1048,19 +1108,22 @@
         <section class="slide tech">
           <header>
             <div class="eyebrow">Technical execution</div>
-            <h2>The limit lives on Stellar, not on our server.</h2>
+            <h2>The limit lives on your Stellar account.</h2>
           </header>
           <div class="body">
             <div class="stack">
               <div class="card layer">
-                <b>Claude, or any MCP app</b><span>OAuth 2.1 with PKCE. A connection alone can spend nothing.</span>
+                <b>Claude, ChatGPT, Goblin, any MCP app</b
+                ><span
+                  >OAuth 2.1 with PKCE; tools, cards (MCP Apps) and events. A connection alone spends nothing.</span
+                >
               </div>
               <div class="down"></div>
               <div class="card layer">
                 <b>Nod wallet service</b
                 ><span
-                  >Cloudflare Worker. Holds only each app's key, reserves before signing, relays and pays every
-                  fee.</span
+                  >Cloudflare Worker. Holds each app's key, reserves before signing, re-simulates in enforcing mode,
+                  pays every fee.</span
                 >
               </div>
               <div class="down"></div>
@@ -1072,7 +1135,9 @@
                 </div>
               </div>
               <div class="down"></div>
-              <div class="card layer"><b>Circle USDC</b><span>Stellar Asset Contract, settled on testnet</span></div>
+              <div class="card layer">
+                <b>Circle USDC</b><span>Stellar Asset Contract, on mainnet and testnet</span>
+              </div>
             </div>
             <div class="proofs">
               <div class="proof">
@@ -1082,6 +1147,7 @@
                   href="https://stellar.expert/explorer/testnet/tx/c0f6f923936b7dc4d716454ba3e3d3f43f21ddcf353e49e3e083d054bf5f9c57"
                   >c0f6f923</a
                 >
+                <span class="note">testnet, spike S1</span>
               </div>
               <div class="proof">
                 <span class="claim">An over-limit transfer forced onchain is rejected by the account itself.</span>
@@ -1090,32 +1156,38 @@
                   href="https://stellar.expert/explorer/testnet/tx/3daf4b000cb58ad1bbef3629c13a02d44403c4b690dd51815020cbc89723b42a"
                   >3daf4b00</a
                 >
-                <span class="note">Error #3221, spending limit exceeded</span>
+                <span class="note">testnet, error #3221, spending limit exceeded</span>
               </div>
               <div class="proof">
                 <span class="claim"
-                  >Your passkey signs the exact payment. Nod cannot change the recipient or amount.</span
+                  >Past the allowance, the passkey signs the payment. The allowance is untouched.</span
                 >
                 <a
                   class="tx"
-                  href="https://stellar.expert/explorer/testnet/tx/fbfd200cc85525ee65a0a55f4b3dc338eedf37c1c8273abcc0ac7701f09e97da"
-                  >fbfd200c</a
+                  href="https://stellar.expert/explorer/public/tx/0339b8dd088b46d500de425d0afe8707ff6922186ef70070396323f2d3312e4f"
+                  >0339b8dd</a
                 >
-                <span class="note">20 USDC approved with a WebAuthn signature</span>
+                <span class="note">mainnet, 5 USDC to Bob with a WebAuthn signature</span>
               </div>
               <div class="proof">
-                <span class="claim">Ask twice, pay once. Receipts only after settlement.</span>
-                <span class="tx" style="color: var(--muted)">idempotency keys</span>
+                <span class="claim">Revoke removes the rule from the account and sweeps the pocket back.</span>
+                <a
+                  class="tx"
+                  href="https://stellar.expert/explorer/public/tx/e17e15d5efd2f43e883073873ff9d5dc0333ea9dca318cea0f38a5c7678f04c9"
+                  >e17e15d5</a
+                >
+                <span class="note">mainnet; the sweep is ab6d493d</span>
               </div>
               <div class="proof">
                 <span class="claim">Nod pays every network fee. The owner holds 0 XLM.</span>
-                <span class="tx" style="color: var(--muted)">relayer as source</span>
+                <span class="tx" style="color: var(--muted)">0.001–0.05 XLM</span>
+                <span class="note">per payment on mainnet, relayer as source</span>
               </div>
             </div>
           </div>
           <footer class="foot">
             <span class="left"
-              ><span class="mark">nod</span><span class="pill testnet">Stellar testnet</span
+              ><span class="mark">nod</span><span class="pill mainnet">Stellar mainnet</span
               ><span>Every hash links to stellar.expert</span></span
             >
             <span class="num">05</span>
@@ -1127,7 +1199,7 @@
         <section class="slide composed">
           <header>
             <div class="eyebrow">Track alignment · Stellar Composed</div>
-            <h2>Nine Stellar building blocks, one wallet.</h2>
+            <h2>Nine building blocks, one wallet.</h2>
           </header>
           <div class="body">
             <div class="grid9">
@@ -1136,10 +1208,12 @@
               <div><b>Passkeys</b><span>WebAuthn verifier on the secp256r1 host function</span></div>
               <div><b>Circle USDC</b><span>Through the Stellar Asset Contract</span></div>
               <div><b>x402 facilitators</b><span>x402.org and OpenZeppelin Channels, never our own</span></div>
-              <div><b>MCP and OAuth</b><span>A connector in Claude, any MCP app</span></div>
+              <div><b>MCP Apps and Events</b><span>Cards in the chat, notices by webhook, OAuth connector</span></div>
               <div><b>SAC trust (CAP-73)</b><span>Trustline and payment in one transaction</span></div>
-              <div><b>Sponsored reserves</b><span>Each app's payer account holds 0 XLM</span></div>
-              <div><b>Built-in DEX</b><span>The paid market brief reads the XLM/USDC book</span></div>
+              <div>
+                <b>Deposit router</b><span>SAC approve: an exchange-ready G… swept into the wallet (testnet)</span>
+              </div>
+              <div><b>Sponsored reserves</b><span>Pockets hold no XLM; relayers pay every fee</span></div>
             </div>
             <div class="quotes">
               <blockquote>
@@ -1156,7 +1230,7 @@
             </div>
           </div>
           <footer class="foot">
-            <span class="left"><span class="mark">nod</span><span class="pill testnet">Stellar testnet</span></span>
+            <span class="left"><span class="mark">nod</span><span class="pill mainnet">Stellar mainnet</span></span>
             <span class="num">06</span>
           </footer>
         </section>
@@ -1173,35 +1247,38 @@
               <span class="n">The pocket model</span>
               <h3>A smart account pays any x402 seller today.</h3>
               <p>
-                Hosted facilitators reject smart accounts. Claude's key fills its own small account under the policy,
-                then pays.
+                Hosted facilitators reject smart accounts. Claude's key fills its own small account under the policy, in
+                1 USDC steps, then pays.
               </p>
               <div class="flow">
                 <span>your account</span><i>→ policy →</i><span>pocket</span><i>→ stock x402 client →</i
-                ><span>x402.org</span>
+                ><span>facilitator</span>
               </div>
             </div>
             <div class="card idea">
-              <span class="n">Connect = allowance</span>
+              <span class="n">One number at connect</span>
               <h3>Connecting an AI app installs its allowance onchain.</h3>
-              <p>The OAuth consent page and the passkey signature are one step. One rule, expiry and revoke per app.</p>
+              <p>
+                The consent page asks one number and your passkey writes it to the account. One rule, expiry and revoke
+                per app.
+              </p>
             </div>
             <div class="card idea">
               <span class="n nod">Ask, don't reject</span>
-              <h3>An over-allowance payment becomes a passkey approval.</h3>
+              <h3>Past the allowance, a passkey approval.</h3>
               <p>
-                Most agent wallets just block it. Nod sends Claude a link, and your nod covers that exact recipient and
-                amount.
+                Most agent wallets just block it. Nod hands Claude a link, and your passkey signs that recipient and
+                amount, on Nod's page, never in the chat.
               </p>
             </div>
             <div class="card idea">
               <span class="n">Claim link</span>
               <h3>Pays people who have never held USDC.</h3>
-              <p>Carol signs once. The USDC contract's trust function and the transfer run in one invocation.</p>
+              <p>Carol accepts once. The USDC contract's trust function and the transfer run in one transaction.</p>
             </div>
           </div>
           <footer class="foot">
-            <span class="left"><span class="mark">nod</span><span class="pill testnet">Stellar testnet</span></span>
+            <span class="left"><span class="mark">nod</span><span class="pill mainnet">Stellar mainnet</span></span>
             <span class="num">07</span>
           </footer>
         </section>
@@ -1211,20 +1288,17 @@
         <section class="slide progress">
           <header>
             <div class="eyebrow">Hackathon progress · 25 October, UTC</div>
-            <h2>Built in one day, with a transaction for every claim.</h2>
+            <h2>Built in one day, live on mainnet by evening.</h2>
           </header>
           <div class="body">
-            <div class="timeline">
+            <div class="timeline five">
               <div class="tick done">
                 <span class="dot"></span><span class="t">10:55</span
                 ><span class="d">Research, pinned versions, live probes</span>
               </div>
               <div class="tick done">
-                <span class="dot"></span><span class="t">11:25</span><span class="d">Product spec, first commit</span>
-              </div>
-              <div class="tick done">
-                <span class="dot"></span><span class="t">11:25–12:20</span
-                ><span class="d">Five spikes, each claim proven on testnet</span>
+                <span class="dot"></span><span class="t">11:25</span
+                ><span class="d">Spec and five spikes, each proven on testnet</span>
               </div>
               <div class="tick done">
                 <span class="dot"></span><span class="t">12:15</span
@@ -1239,24 +1313,44 @@
                 ><span class="d">Live on testnet with a public URL</span>
               </div>
             </div>
+            <div class="timeline five">
+              <div class="tick done">
+                <span class="dot"></span><span class="t">17:30</span
+                ><span class="d">The sandbox moves to testnet.trynod.si</span>
+              </div>
+              <div class="tick done">
+                <span class="dot"></span><span class="t">18:00</span
+                ><span class="d">Live in Goblin: cards, the nod, events</span>
+              </div>
+              <div class="tick done">
+                <span class="dot"></span><span class="t">18:05</span><span class="d">Mainnet live at trynod.si</span>
+              </div>
+              <div class="tick done">
+                <span class="dot"></span><span class="t">18:45</span
+                ><span class="d">claude.ai: the card and the nod</span>
+              </div>
+              <div class="tick done">
+                <span class="dot"></span><span class="t">18:55</span
+                ><span class="d">The full flow on mainnet, in claude.ai</span>
+              </div>
+            </div>
             <div class="stats">
               <div class="stat">
-                <span class="big">130+</span><span class="lbl">commits, all on main, from 25 October</span>
+                <span class="big">270+</span><span class="lbl">commits, all on main, from 25 October</span>
               </div>
               <div class="stat">
-                <span class="big">117</span
-                ><span class="lbl">testnet transactions linked in the spikes and evidence</span>
+                <span class="big">8</span><span class="lbl">mainnet transactions in the claude.ai run</span>
               </div>
               <div class="stat">
-                <span class="big">5</span><span class="lbl">spikes that de-risked every hard part first</span>
+                <span class="big">3</span><span class="lbl">hosts drawing Nod's cards: claude.ai, ChatGPT, Goblin</span>
               </div>
               <div class="stat"><span class="big">0</span><span class="lbl">facilitators of our own</span></div>
             </div>
           </div>
           <footer class="foot">
             <span class="left"
-              ><span class="mark">nod</span><span class="pill testnet">Stellar testnet</span
-              ><span>Commit history and spike results are in the repository</span></span
+              ><span class="mark">nod</span><span class="pill mainnet">Stellar mainnet</span
+              ><span>Commit history, spikes and evidence are in the repository</span></span
             >
             <span class="num">08</span>
           </footer>
@@ -1272,7 +1366,10 @@
           <div class="body">
             <div class="point">
               <h3>Distribution through MCP</h3>
-              <p>Any MCP app can connect with one URL. Claude today, more hosts as their payment policies allow.</p>
+              <p>
+                Any MCP app connects with one URL: Claude and Goblin today, ChatGPT as a developer-mode connector. Its
+                app store bars crypto transfers for now.
+              </p>
             </div>
             <div class="point">
               <h3>Buyers for Stellar's x402 sellers</h3>
@@ -1282,23 +1379,24 @@
               </p>
             </div>
             <div class="point">
-              <h3>People first, then teams</h3>
+              <h3>Every payment can onboard someone</h3>
               <p>
-                One allowance per AI app today. Next, a company card for every agent: limits, approvals and receipts.
+                A person who has never held USDC gets a claim link; the trustline and the payment land in one
+                transaction.
               </p>
             </div>
             <div class="point ready">
-              <h3>Ready for a mainnet pilot</h3>
+              <h3>Live on mainnet</h3>
               <p>
-                Every contract Nod uses is already on mainnet with identical WASM, except our 920-byte router. A full
-                allowance lifecycle costs about 0.6 XLM at mainnet rent.
+                The full flow ran in claude.ai on the founder's own wallet, settled by OpenZeppelin Channels. A payment
+                costs Nod 0.001–0.05 XLM.
               </p>
             </div>
           </div>
           <footer class="foot">
             <span class="left"
-              ><span class="mark">nod</span><span class="pill testnet">Stellar testnet</span
-              ><span>Mainnet figures from a read-only check (docs/research/mainnet.md)</span></span
+              ><span class="mark">nod</span><span class="pill mainnet">Stellar mainnet</span
+              ><span>Hashes in evidence/mainnet/claude-run-2026-10-25.md</span></span
             >
             <span class="num">09</span>
           </footer>
@@ -1314,37 +1412,38 @@
           </header>
           <div class="body">
             <div class="urls">
-              <div class="url"><span class="k">Site</span><span class="val">testnet.trynod.si</span></div>
+              <div class="url"><span class="k">The product, on mainnet</span><span class="val">trynod.si</span></div>
               <div class="url">
-                <span class="k">Claude connector</span><span class="val">testnet.trynod.si/mcp</span>
+                <span class="k">The sandbox: 10 testnet USDC per new wallet</span
+                ><span class="val">testnet.trynod.si/mcp</span>
               </div>
               <div class="url">
                 <span class="k">No Claude? Watch a sample agent</span><span class="val">testnet.trynod.si/sample</span>
               </div>
               <div class="prompts">
-                <div>"Buy the market brief" <small>0.10 USDC, no prompt</small></div>
-                <div>"Send Alice 2 USDC" <small>2.90 left of the 5.00 allowance</small></div>
+                <div>"Buy the market brief" <small>0.10 USDC, no prompt; 4.90 left</small></div>
+                <div>"Send Alice 2 USDC" <small>paid on its own; 2.90 left</small></div>
                 <div class="nod">
                   "Pay Bob 5 USDC for dinner" <small>More than what is left, so it needs your nod</small>
                 </div>
               </div>
-              <span class="small">New wallets get 10 testnet USDC. Full steps in evidence/JUDGE-TEST-PATH.md.</span>
+              <span class="small">Full steps in evidence/JUDGE-TEST-PATH.md.</span>
             </div>
             <div class="next">
               <h3>What's next</h3>
               <ul>
-                <li>Mainnet pilot with one AI app</li>
+                <li>Deposit-first signup and exchange deposits on mainnet</li>
+                <li>A claim link that creates a Nod wallet</li>
+                <li>Contacts the AI adds, first payment by nod</li>
                 <li>Recovery passkey and shared wallets</li>
                 <li>Cash-out through a Stellar anchor</li>
-                <li>Task budgets and merchant allowlists</li>
-                <li>Agent-to-agent escrow</li>
                 <li>No pocket step once facilitators accept smart accounts</li>
               </ul>
             </div>
           </div>
           <footer class="foot">
             <span class="left"
-              ><span class="mark">nod</span><span class="pill testnet">Stellar testnet</span
+              ><span class="mark">nod</span><span class="pill mainnet">Stellar mainnet</span
               ><a class="mono" href="https://github.com/grmkris/hack-meridian-2026"
                 >github.com/grmkris/hack-meridian-2026</a
               ></span
