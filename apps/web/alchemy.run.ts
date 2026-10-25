@@ -89,6 +89,9 @@ const switchesFor = (stage: string): Record<string, string> => ({
   WALLET_TTL_LEDGERS: '',
   // The CAP-73 router: the testnet preset has S3's; pubnet has none until scripts/mainnet/router-deploy.ts (M3).
   ONBOARD_ROUTER_ID: '',
+  // The deposit router (contracts/deposit): the testnet preset has v2; pubnet has none until
+  // scripts/mainnet/deposit-router-deploy.ts, then .env.mainnet names it. 'off' disables deposit addresses.
+  DEPOSIT_ROUTER_ID: '',
   // The claim page's server-side demo signer off testnet ('' = testnet only); .env.mainnet sets it for our own Carol.
   DEMO_CLAIM_SIGNER: '',
   // Mainnet's contacts come from .env.mainnet (scripts/mainnet/seed.ts prints them); the other stages use seeds.json.
