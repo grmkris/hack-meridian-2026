@@ -13,7 +13,7 @@ import type {
  * tool result, then answers to the card's own `tools/call`), the bridge tests drive the same values.
  */
 
-export const ORIGIN = 'https://hack-meridian-testnet.kristjan-grm11775.workers.dev'
+export const ORIGIN = 'https://testnet.trynod.si'
 export const BOB = 'GD4EDKUSDEAKUCBB633HS634PMX4NE7L6IFY4WOD45RJVKLUP7XLTOTC'
 export const CAROL = 'GCAROL7Q2Y3MZ5X4K6W2N4P3R7T5V6B2C4D6F7H2J3K4L5M6N7P2Q3R4'
 export const WALLET = 'CD7SGAMIN5JLN6HOD7ENHNJDQ3C4HICTCPKINJOG2PHUNKQS7QLBYHSW'

@@ -141,7 +141,7 @@ describe('the payment card in a chat', () => {
     await vi.waitFor(() => expect(text(card.container)).toContain('Approve with your passkey'))
     buttonNamed(card.container, 'Approve with your passkey').click()
     await vi.waitFor(() =>
-      expect(card.links).toEqual(['https://hack-meridian-testnet.kristjan-grm11775.workers.dev/approve/pi_bob20']),
+      expect(card.links).toEqual(['https://testnet.trynod.si/approve/pi_bob20']),
     )
     expect(card.calls).toEqual([])
   })
@@ -294,7 +294,7 @@ describe('payment requests', () => {
     buttonNamed(card.container, 'Open the request on Nod').click()
     await vi.waitFor(() =>
       expect(card.links).toEqual([
-        'https://hack-meridian-testnet.kristjan-grm11775.workers.dev/approve/request/rq_stranger',
+        'https://testnet.trynod.si/approve/request/rq_stranger',
       ]),
     )
   })
