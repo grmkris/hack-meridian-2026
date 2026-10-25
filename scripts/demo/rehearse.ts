@@ -236,6 +236,13 @@ const ctx: Ctx = {
     )
   },
   pageText: () => owner.page.locator('body').innerText(),
+  attribute: (selector, name) =>
+    owner.page
+      .locator(selector)
+      .first()
+      .getAttribute(name, { timeout: 3_000 })
+      .then(value => value ?? undefined)
+      .catch(() => undefined),
   check: (test, ok, detail) => record(test, ok ? 'pass' : 'fail', detail),
   skip: (test, detail) => record(test, 'skip', detail),
   ref: (test, detail) => record(test, 'ref', detail),

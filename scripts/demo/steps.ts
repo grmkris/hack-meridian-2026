@@ -39,6 +39,8 @@ export interface Ctx {
   call(tool: string, args: Record<string, unknown>): Promise<ToolOutcome>
   browse(actions: ReadonlyArray<Action>): Promise<void>
   pageText(): Promise<string>
+  /** An attribute of the first element matching `selector` on the owner's page, if it is there. */
+  attribute(selector: string, name: string): Promise<string | undefined>
   check(test: number | null, ok: boolean, detail: string): void
   skip(test: number | null, detail: string): void
   ref(test: number, detail: string): void
@@ -508,6 +510,16 @@ export const STEPS: ReadonlyArray<Step> = [
         refused = executed === undefined || !executed.ok || executed.isError || statusOf(executed.data) !== 'confirmed'
       }
       ctx.check(6, refused, `next delegated payment after revoke: ${next.error ?? statusOf(next.data) ?? 'refused'}`)
+      // the revoke page links the rule-removal and pocket-sweep transactions (A1 7036c72)
+      for (const [testid, label] of [
+        ['rule-removal-tx', 'allowance removed from the account onchain'],
+        ['pocket-sweep-tx', 'pocket swept back to the wallet'],
+      ] as const) {
+        const href = await ctx.attribute(`[data-testid="${testid}"]`, 'href')
+        const hash = href === undefined ? undefined : /\/tx\/([0-9a-f]{64})/u.exec(href)?.[1]
+        if (hash !== undefined) await settled(ctx, 6, label, hash, 'relayer')
+        else ctx.note(`${testid}: not on the page`)
+      }
       const contract = ctx.vars.get('contract_id')
       const rule = ctx.vars.get('rule_id')
       if (ctx.onchain() && contract !== undefined && rule !== undefined) {
