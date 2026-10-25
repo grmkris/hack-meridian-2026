@@ -51,7 +51,7 @@ look-alikes here too. Nod's first 15 seconds must show what the others did not h
 | ------------------------------------ | ------------------------------------------------------------- |
 | SDK or contract for agent developers | a connector a person adds to Claude                           |
 | over the limit = blocked             | over the allowance = a passkey approval for the exact payment |
-| its own policy contract              | OpenZeppelin's audited account and policy, no budget contract |
+| its own policy contract              | OpenZeppelin's account and policy, no budget contract of ours |
 | its own payment path                 | stock x402 through public facilitators (the pocket model)     |
 | pays APIs                            | pays APIs and people, including people with no trustline      |
 
