@@ -13,7 +13,9 @@ The Soroban workspace. Follow the root [AGENTS.md](../AGENTS.md); read the `stel
   `src/test.rs` with `soroban_sdk::testutils`; `test_snapshots/` is generated and ignored.
 - Every state change is authorized (`require_auth` on the account that pays or owns), every storage write extends its
   TTL, failures are a `#[contracterror]` enum, and changes worth indexing publish a `#[contractevent]`.
-- Crates: `counter` (the baseline example, with bindings in `packages/counter-client`) and `onboard`, the CAP-73
+- Crates: `counter` (the baseline example, with bindings in `packages/counter-client`), `deposit` (the deposit router:
+  `register(g, c)` binds a classic deposit address to a wallet and approves the router, `sweep(g)` moves its USDC to
+  that wallet for anyone who calls it; no admin, no upgrade; `docs/spikes/s8-deposit.md`) and `onboard`, the CAP-73
   trust-and-pay router the Worker calls. `onboard` keeps no storage and delegates auth and errors to the SAC, so the
   rules above hold through the SAC. It was deployed from `spikes/s3` and is recorded by hand in
   `deployments/testnet.json`; any change to its source changes its wasm hash, so it needs a fresh deploy, a new record

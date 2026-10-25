@@ -19,6 +19,19 @@
       "deployTx": "634bcf1894f1c82e76f1674791f8449341db2fade872f680c904e729beaf3626",
       "source": "contracts/onboard",
       "evidence": "docs/spikes/s3.md"
+    },
+    "deposit": {
+      "id": "CBYNVNG4XA5EMPEVBMTMI2I6GRSCGTFE3HQDUYANTVJ5VD3E6WTNEXEL",
+      "wasmHash": "acef0d89568ac793287b3f0bc40c40b36e6ff29ad0f25ee0753e1fb3061d27bd",
+      "deployer": "GA64JNQLXMCZTNR5IKCDTHUC2HCH34FYODNEOJ7H2MK5HKE4MC62VLKM",
+      "deployedAt": "2026-10-25T18:16:00Z",
+      "uploadTx": "fd3e423b63080d0227cffaec0e47d7ff5eb1f7ec117c9506c87f5f0e888e3fd1",
+      "deployTx": "6fd031c2707eb8d48deac7ada2099a45ec2bebe26b6fff5ddf88e3f03daf1ea8",
+      "constructor": {
+        "token": "CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA"
+      },
+      "source": "contracts/deposit",
+      "evidence": "docs/spikes/s8-deposit.md"
     }
   }
 }
