@@ -1,0 +1,125 @@
+{
+  "treasury": "GB4F3NUAD2NIRNOHNB36QS7ONEPWMPVSI5IRT6NY5FMMONLGTDQ4CIU5",
+  "steps": [
+    {
+      "at": "2026-10-25T21:34:19.742Z",
+      "step": "sender browser",
+      "line": "goto https://testnet.trynod.si/authorize?response_type=code&client_id=Mb7cGOwzYmAHEHcL&code_challenge=<redacted>&code_challenge_method=S256&redirect_uri=http%3A%2F%2F127.0.0.1%3A44387%2Fcallback&state=<redacted>&scope=wallet&resource=https%3A%2F%2Ftestnet.trynod.si%2Fmcp → 200"
+    },
+    {
+      "at": "2026-10-25T21:34:19.827Z",
+      "step": "sender browser",
+      "line": "click [data-testid=\"passkey-signin\"]"
+    },
+    {
+      "at": "2026-10-25T21:34:20.316Z",
+      "step": "sender browser",
+      "line": "visible [data-testid=\"consent-allow\"], button[value=approve]"
+    },
+    {
+      "at": "2026-10-25T21:34:20.331Z",
+      "step": "sender browser",
+      "line": "fill [data-testid=\"allowance\"], input[name=allowance]"
+    },
+    {
+      "at": "2026-10-25T21:34:20.373Z",
+      "step": "sender browser",
+      "line": "click [data-testid=\"consent-allow\"], button[value=approve]"
+    },
+    {
+      "at": "2026-10-25T21:34:33.408Z",
+      "step": "sender wallet",
+      "wallet": "https://stellar.expert/explorer/testnet/contract/CBBI44B6TYAKJFLSDDYF2B4OASDEY3NQURRS67YHOKY2S27TJ2ZG24LK",
+      "usdc": "7.00"
+    },
+    {
+      "at": "2026-10-25T21:34:34.367Z",
+      "step": "sender browser",
+      "line": "goto https://testnet.trynod.si/approve/pi_781713519d56b4c2da41d2236d1910f8 → 200"
+    },
+    {
+      "at": "2026-10-25T21:34:34.438Z",
+      "step": "sender browser",
+      "line": "click [data-testid=\"approve\"], #approve"
+    },
+    {
+      "at": "2026-10-25T21:34:43.845Z",
+      "step": "sender browser",
+      "line": "visible [data-testid=\"approval-done\"]"
+    },
+    {
+      "at": "2026-10-25T21:34:43.884Z",
+      "step": "sender browser",
+      "line": "screenshot /home/kristjan/code/hack-meridian-2026/evidence/sandbox-return/2026-10-25T21-34-19-269Z/sender-returned.png"
+    },
+    {
+      "at": "2026-10-25T21:34:44.345Z",
+      "step": "sender returned",
+      "lane": "owner",
+      "status": "confirmed",
+      "usdc": "7.00",
+      "tx": "https://stellar.expert/explorer/testnet/tx/7f7e462f0f942f2a0a98298d0253efbb9b2ee832fdd0822a923c24c7e7f55d43",
+      "wallet_usdc_after": "0.00"
+    },
+    {
+      "at": "2026-10-25T21:34:44.771Z",
+      "step": "jan browser",
+      "line": "goto https://testnet.trynod.si/authorize?response_type=code&client_id=3KIpavn2FGejTKOv&code_challenge=<redacted>&code_challenge_method=S256&redirect_uri=http%3A%2F%2F127.0.0.1%3A46443%2Fcallback&state=<redacted>&scope=wallet&resource=https%3A%2F%2Ftestnet.trynod.si%2Fmcp → 200"
+    },
+    {
+      "at": "2026-10-25T21:34:44.835Z",
+      "step": "jan browser",
+      "line": "click [data-testid=\"passkey-signin\"]"
+    },
+    {
+      "at": "2026-10-25T21:34:46.138Z",
+      "step": "jan browser",
+      "line": "visible [data-testid=\"consent-allow\"], button[value=approve]"
+    },
+    {
+      "at": "2026-10-25T21:34:46.150Z",
+      "step": "jan browser",
+      "line": "fill [data-testid=\"allowance\"], input[name=allowance]"
+    },
+    {
+      "at": "2026-10-25T21:34:46.566Z",
+      "step": "jan browser",
+      "line": "click [data-testid=\"consent-allow\"], button[value=approve]"
+    },
+    {
+      "at": "2026-10-25T21:34:59.997Z",
+      "step": "jan wallet",
+      "wallet": "https://stellar.expert/explorer/testnet/contract/CCPI4O4S2A2AMOCMMG7JSEFOOUNDSL5DMUPLTJSAZFLME33QLMIK6ZXB",
+      "usdc": "6.00"
+    },
+    {
+      "at": "2026-10-25T21:35:01.034Z",
+      "step": "jan browser",
+      "line": "goto https://testnet.trynod.si/approve/pi_5c7e20bb1b57a2720a78b1bdc25f2bde → 200"
+    },
+    {
+      "at": "2026-10-25T21:35:01.103Z",
+      "step": "jan browser",
+      "line": "click [data-testid=\"approve\"], #approve"
+    },
+    {
+      "at": "2026-10-25T21:35:09.023Z",
+      "step": "jan browser",
+      "line": "visible [data-testid=\"approval-done\"]"
+    },
+    {
+      "at": "2026-10-25T21:35:09.520Z",
+      "step": "jan browser",
+      "line": "screenshot /home/kristjan/code/hack-meridian-2026/evidence/sandbox-return/2026-10-25T21-34-19-269Z/jan-returned.png"
+    },
+    {
+      "at": "2026-10-25T21:35:10.179Z",
+      "step": "jan returned",
+      "lane": "owner",
+      "status": "confirmed",
+      "usdc": "6.00",
+      "tx": "https://stellar.expert/explorer/testnet/tx/15e2af4a44e16149310f1e76121b1140de5a6d3a887177e7fa3a80053aeb6453",
+      "wallet_usdc_after": "0.00"
+    }
+  ]
+}

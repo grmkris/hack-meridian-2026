@@ -1,0 +1,126 @@
+{
+  "started_at": "2026-10-25T21:32:58.406Z",
+  "network": "stellar:testnet",
+  "treasury": "GB4F3NUAD2NIRNOHNB36QS7ONEPWMPVSI5IRT6NY5FMMONLGTDQ4CIU5",
+  "treasury_usdc_before": "23.5000000",
+  "treasury_usdc_after": "250.0000000",
+  "target": 250,
+  "mid_xlm_per_usdc": 1.1469539361502719,
+  "ceiling_xlm_per_usdc": 1.4336924201878398,
+  "stop": "target reached",
+  "liquidity": {
+    "before": {
+      "pool": {
+        "id": "4cd1f6defba237eecbc5fefe259f89ebc4b5edd49116beb5536c4034fc48d63f",
+        "xlm": 84586953.4983086,
+        "usdc": 73749215.9294758,
+        "fee_bp": "30"
+      },
+      "asks": [
+        {
+          "price": 4.04,
+          "amount": 2.5
+        },
+        {
+          "price": 5,
+          "amount": 10
+        },
+        {
+          "price": 9.2592593,
+          "amount": 71176.6941713
+        },
+        {
+          "price": 9.2638912,
+          "amount": 5.3973
+        },
+        {
+          "price": 10,
+          "amount": 30
+        },
+        {
+          "price": 10.0785116,
+          "amount": 3.96884
+        },
+        {
+          "price": 10.6777944,
+          "amount": 3.746092
+        },
+        {
+          "price": 11,
+          "amount": 21.6
+        },
+        {
+          "price": 11.3236048,
+          "amount": 3.532444
+        },
+        {
+          "price": 12.0181618,
+          "amount": 3.328296
+        },
+        {
+          "price": 12.7627532,
+          "amount": 3.13412
+        },
+        {
+          "price": 13.5572448,
+          "amount": 2.950452
+        },
+        {
+          "price": 14.3992006,
+          "amount": 2.777932
+        },
+        {
+          "price": 20,
+          "amount": 10
+        },
+        {
+          "price": 1000,
+          "amount": 0.01
+        },
+        {
+          "price": 40000,
+          "amount": 0.0025
+        }
+      ]
+    },
+    "after": {
+      "pool": {
+        "id": "4cd1f6defba237eecbc5fefe259f89ebc4b5edd49116beb5536c4034fc48d63f",
+        "xlm": 84588214.0658765,
+        "usdc": 73748120.1860963,
+        "fee_bp": "30"
+      }
+    }
+  },
+  "buys": [
+    {
+      "account": "GCCTKL4IEKY27UWHEYOUFQ26OSO24BUX4SRA4GZPUFW4OCYL3XLWIT3J",
+      "usdc": "100.0000000",
+      "xlm_quoted": "115.0406712",
+      "price": "1.1504",
+      "tx": "7450077014e7739cf742fe284f00a1e120f55a517b7e20256340fbda3a408d42"
+    },
+    {
+      "account": "GCCTKL4IEKY27UWHEYOUFQ26OSO24BUX4SRA4GZPUFW4OCYL3XLWIT3J",
+      "usdc": "100.0000000",
+      "xlm_quoted": "115.0406712",
+      "price": "1.1504",
+      "tx": "efa77cbcfe4b1d430de14c185fb81a8e633ef9cbcf22534d57c35a07c6751c1a"
+    },
+    {
+      "account": "GCCTKL4IEKY27UWHEYOUFQ26OSO24BUX4SRA4GZPUFW4OCYL3XLWIT3J",
+      "usdc": "26.5000000",
+      "xlm_quoted": "30.4858303",
+      "price": "1.1504",
+      "tx": "a7aba1a81870fda67bc47cf24d51330bd201a60d98aa623d8d29031b8e75ac75"
+    }
+  ],
+  "merges": [
+    {
+      "account": "GCCTKL4IEKY27UWHEYOUFQ26OSO24BUX4SRA4GZPUFW4OCYL3XLWIT3J",
+      "xlm": "9739.4324021",
+      "into": "GBCALSA3XQAWW24AXGFWJIGNUCDBCMUPPWC5XHMZ22VY4HMX6XCFYWBR",
+      "tx": "5d691dbcd2aa879ac2c8ff3a08d8dc324aa0a917b305a83e6f95ba8137c9423d"
+    }
+  ]
+}
