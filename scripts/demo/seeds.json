@@ -1,0 +1,79 @@
+{
+  "network": "stellar:testnet",
+  "updated_at": "2026-10-25T12:31:04.274Z",
+  "usdc": {
+    "sac": "CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA",
+    "issuer": "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+  },
+  "seller": {
+    "url": "https://hm26-seller.kristjan-grm11775.workers.dev",
+    "pay_to": "GAINGRVWOM5BGQI6GQ7P2OIWTUS65H3PHTEHX365CVDB3NWHC3WVTDNI",
+    "price": "0.10 USDC"
+  },
+  "contacts": {
+    "Alice": {
+      "address": "CCHECHASMG7C4QOPTD5EBSWF632JJRUZS6VABC6ADFCKPHGJH4T3SO4Q",
+      "expected_readiness": "usdc_ready (contract)"
+    },
+    "Bob": {
+      "address": "GACQCAQZSAUAZIXAGUTCQX76CWZBQQK4Y75YT5NZONNAWCXMO2BJNGIY",
+      "expected_readiness": "usdc_ready"
+    },
+    "Carol": {
+      "address": "GALY5TMIFUVMUO626Y66WWXOXZM6FJQVJA7ROBO2PCTFWGYBJYUQUUAK",
+      "expected_readiness": "trustline_required"
+    }
+  },
+  "accounts": {
+    "relayer": {
+      "address": "GBGNYETYEEWM5RIRE6KWUUZKD3X4DBZZ72M2LHQJNUGYO3D6ZYADBPT6",
+      "kind": "classic",
+      "note": "tx source + fee payer (RELAYER_SECRET)"
+    },
+    "treasury": {
+      "address": "GB4F3NUAD2NIRNOHNB36QS7ONEPWMPVSI5IRT6NY5FMMONLGTDQ4CIU5",
+      "kind": "classic",
+      "note": "auto-funds new wallets (TREASURY_SECRET)"
+    },
+    "seller": {
+      "address": "GAINGRVWOM5BGQI6GQ7P2OIWTUS65H3PHTEHX365CVDB3NWHC3WVTDNI",
+      "kind": "classic",
+      "note": "apps/seller payTo"
+    },
+    "buyer": {
+      "address": "GC6ZISRB5FHJVSQEG35CF3ROL6E6MCYLB2MVEJ35RKXQ6CG4FAGMTJLN",
+      "kind": "classic",
+      "note": "pays the seller directly"
+    },
+    "bob": {
+      "address": "GACQCAQZSAUAZIXAGUTCQX76CWZBQQK4Y75YT5NZONNAWCXMO2BJNGIY",
+      "kind": "classic",
+      "note": "USDC ready"
+    },
+    "carol": {
+      "address": "GALY5TMIFUVMUO626Y66WWXOXZM6FJQVJA7ROBO2PCTFWGYBJYUQUUAK",
+      "kind": "classic",
+      "note": "no USDC trustline (claim link)"
+    },
+    "alice": {
+      "address": "CCHECHASMG7C4QOPTD5EBSWF632JJRUZS6VABC6ADFCKPHGJH4T3SO4Q",
+      "kind": "smart_account",
+      "note": "smart account, Ed25519 owner"
+    },
+    "alice_owner": {
+      "address": "GAOKHTCUQBKIF3J5QG47TEJQLXADISGNU4HSUEOMN7L5ST4TWECLMTYH",
+      "kind": "classic",
+      "note": "Alice's Ed25519 owner key (rule 0); never funded"
+    }
+  },
+  "explorer": {
+    "relayer": "https://stellar.expert/explorer/testnet/account/GBGNYETYEEWM5RIRE6KWUUZKD3X4DBZZ72M2LHQJNUGYO3D6ZYADBPT6",
+    "treasury": "https://stellar.expert/explorer/testnet/account/GB4F3NUAD2NIRNOHNB36QS7ONEPWMPVSI5IRT6NY5FMMONLGTDQ4CIU5",
+    "seller": "https://stellar.expert/explorer/testnet/account/GAINGRVWOM5BGQI6GQ7P2OIWTUS65H3PHTEHX365CVDB3NWHC3WVTDNI",
+    "buyer": "https://stellar.expert/explorer/testnet/account/GC6ZISRB5FHJVSQEG35CF3ROL6E6MCYLB2MVEJ35RKXQ6CG4FAGMTJLN",
+    "bob": "https://stellar.expert/explorer/testnet/account/GACQCAQZSAUAZIXAGUTCQX76CWZBQQK4Y75YT5NZONNAWCXMO2BJNGIY",
+    "carol": "https://stellar.expert/explorer/testnet/account/GALY5TMIFUVMUO626Y66WWXOXZM6FJQVJA7ROBO2PCTFWGYBJYUQUUAK",
+    "alice": "https://stellar.expert/explorer/testnet/contract/CCHECHASMG7C4QOPTD5EBSWF632JJRUZS6VABC6ADFCKPHGJH4T3SO4Q",
+    "alice_owner": "https://stellar.expert/explorer/testnet/account/GAOKHTCUQBKIF3J5QG47TEJQLXADISGNU4HSUEOMN7L5ST4TWECLMTYH"
+  }
+}
