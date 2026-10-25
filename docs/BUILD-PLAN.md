@@ -180,3 +180,14 @@ raised to 100 XLM first pull / 40 XLM later and redeployed; the Contacts page wa
 - Stream C's agent hit an Opus rate limit; its work is committed; the rehearsal run resumes it or uses a smaller model.
 - 16:00 UTC decision: the optional "run a sample agent" page for judges without Claude (A1 server-side runner against a
   service-owned demo wallet, rate-limited; B page). In only if the testnet rehearsal is green and rate limits allow.
+
+## Deployed-stage rehearsal (15:04 UTC, release 19e1c13, `evidence/demo/2026-10-25T15-04-38-091Z/`)
+
+7 of 9 acceptance tests pass on the public URL (2, 4, 5, 6, 8, 9; 3 by reference). Tests 1 and 7 failed on one cause
+outside the wallet: at rent factor 219 an x402 settlement costs ~63k stroops, above x402.org's fee cap, so the seller's
+facilitator refused (`invalid_exact_stellar_payload_fee_exceeds_maximum`). Seller fix `447c713`: OpenZeppelin Channels
+first, fall back to the next facilitator when one refuses only on its own fee cap; verified settlement `ae4c60b2…`.
+A confirming full run follows. Hashes: Alice 2 USDC `42c8aa3b…` (28.8 XLM fee, relayer), Bob 20 USDC via passkey
+`2577fefc…`, Carol claim `9e2f5c16…`, rule removal `95c909b0…`, sweep `1975a39d…`. `scripts/demo/topup.ts` tops up a
+wallet from the treasury (for the recording wallet). Service follow-ups: include the pull hash on failed purchases;
+expose deploy and install hashes.
