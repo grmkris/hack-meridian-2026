@@ -31,3 +31,24 @@ CCS4FHIH… as in Goblin (a second AI app on it).
 Found and fixed: when claude.ai ends the URL request before the user comes back (here while approving in another
 tab), the lane returned an error, so Claude showed "Failed" and no card. Since the fix a declined/cancelled request
 returns the plain result: the card keeps waiting for the nod and the model still gets the link.
+
+## ChatGPT (18:55–19:13 UTC, testnet at c54a331)
+
+Plugin "nod (testnet)" added in ChatGPT → Plugins → Add custom MCP server (https://testnet.trynod.si/mcp, OAuth) →
+Create as a plugin. ChatGPT signs in with its published identity (CIMD, `https://chatgpt.com/oauth/client.json`) and speaks
+protocol 2026-07-28 (`openai-mcp/1.0.0`): at connect it calls `server/discover`, `tools/list` and `events/list`, then reads
+both `ui://` resources. Same wallet CCS4FHIH… (allowance 5.00 until 26 Oct 12:00 UTC). The chat-history sidebar is
+cropped out of the screenshots.
+
+| # | What | Onchain |
+|---|---|---|
+| chatgpt-01 | "Open plugin" opens Nod home (`nod_home`, the global entrypoint) as a full-page app, with ChatGPT's Work chat over it | — |
+| chatgpt-02 | "Show my wallet": the wallet card inline; ChatGPT draws its own summary under it | — |
+| chatgpt-03 | 0.50 USDC to Alice inside the allowance, after ChatGPT's "Allow once": paid alone, the card shows the receipt (allowance 4.50 left) | [3d676e73…](https://stellar.expert/explorer/testnet/tx/3d676e73a2c144ed4071dd086517474df0bb40a2afd918334ea8417c695d1e62) |
+| chatgpt-04 | 6 USDC to Bob with 4.50 left: the card says "Needs your nod" (full address, the AI's reason marked unchecked, Approve with your passkey) | — |
+| chatgpt-05 | approved with the passkey on Nod's page; the card polls `payment_status` and flips to the receipt; the allowance stays at 4.50 | [88973525…](https://stellar.expert/explorer/testnet/tx/8897352589059b4d53a17df1c4d038506c9f6b863c2379fc143dac460ba77eb2) (ledger 5386359) |
+| chatgpt-06 | in a regular chat, "Tell me when someone sends me money on Nod" makes ChatGPT's own hourly Scheduled task (it polls the tools; no `events/subscribe`) | — |
+| chatgpt-07 | in the Work chat, the same ask subscribes to `payment.received` by webhook (`connectors.api.openai.com`, verification challenge passed, 1 h lease). A 1 USDC treasury transfer is journaled by the chain watcher and delivered within 4 s; ChatGPT's task wakes and writes "You received 1.00 USDC … Sender GB4F…CIU5" with the Stellar Expert link | [c85e7693…](https://stellar.expert/explorer/testnet/tx/c85e7693d96237bb642a96a2a03c0e5415db39ae50ff87604bcc89d64eaaba95) |
+
+Host notes: ChatGPT did not send `elicitation.url` in its client capabilities, so an over-allowance payment comes back as
+the card's nod link (no MRTR URL request as in Goblin and claude.ai). It marks the card "CSP off" in developer mode.
