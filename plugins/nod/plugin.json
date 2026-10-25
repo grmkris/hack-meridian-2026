@@ -4,7 +4,7 @@
   "version": "0.1.0",
   "description": "A Stellar USDC wallet with an allowance for your AI: small payments go through on their own, anything bigger waits for your nod (your passkey).",
   "author": { "name": "Kristjan Grm", "url": "https://github.com/grmkris" },
-  "homepage": "https://hack-meridian-testnet.kristjan-grm11775.workers.dev",
+  "homepage": "https://testnet.trynod.si",
   "repository": "https://github.com/grmkris/hack-meridian-2026",
   "license": "MIT",
   "keywords": ["stellar", "usdc", "wallet", "payments", "x402", "passkey", "allowance"],
@@ -24,7 +24,7 @@
           "Tell me here when someone sends me money"
         ],
         "brandColor": "#0b152c",
-        "websiteURL": "https://hack-meridian-testnet.kristjan-grm11775.workers.dev",
+        "websiteURL": "https://testnet.trynod.si",
         "composerIcon": "./assets/icon.svg",
         "logo": "./assets/logo.svg"
       }

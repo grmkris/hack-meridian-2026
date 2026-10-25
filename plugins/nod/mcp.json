@@ -3,7 +3,7 @@
   "mcpServers": {
     "nod": {
       "type": "streamable-http",
-      "url": "https://hack-meridian-testnet.kristjan-grm11775.workers.dev/mcp",
+      "url": "https://testnet.trynod.si/mcp",
       "extensions": {
         "com.openai": {
           "auth": { "type": "oauth", "client": { "mode": "dcr" } }
