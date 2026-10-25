@@ -151,12 +151,6 @@ const usable = (grant: SpendingGrant | undefined, nowMs: number): grant is Spend
   grant.spent === 0n &&
   grant.reserved === 0n
 
-/**
- * W1's nod line (stored by migration 0006) is being removed from the server: until it is, the sample's line sits at the
- * allowance so it never decides a lane. A spread, so this compiles with or without the field.
- */
-const lineAtAllowance = (total: bigint) => ({ nod_above: total })
-
 /** The consent page's grant ceremony, with the demo passkey: K, rule install, pocket, connection. */
 const installAllowance = (owner: DemoOwner, wallet: Wallet, say: Say) =>
   Effect.gen(function* () {
@@ -169,7 +163,8 @@ const installAllowance = (owner: DemoOwner, wallet: Wallet, say: Say) =>
       Effect.mapError(() => setupError('could not store the prepared install')),
     )
     const pendingId = yield* createPendingGrant({
-      ...lineAtAllowance(total),
+      // Migration 0006's column carries the allowance (one number since 1b04511); the lane rule never reads it.
+      nod_above: total,
       owner_id: wallet.owner_id,
       wallet_id: wallet.id,
       signer_public_key: signer.address,
