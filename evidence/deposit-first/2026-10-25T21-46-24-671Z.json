@@ -1,0 +1,74 @@
+{
+  "base": "https://trynod.si",
+  "steps": [
+    {
+      "at": "2026-10-25T21:44:40.881Z",
+      "step": "health",
+      "stage": "mainnet",
+      "release": "1cd71c784653d841bd88477f7aa352df8f890410",
+      "network": "pubnet",
+      "relayer": "GBVYA2V4SMVPXFRPVB5FEFCADW7RXFIACR2HBLN2WP3RHAZKL267YG5X"
+    },
+    {
+      "at": "2026-10-25T21:44:41.292Z",
+      "step": "relayer before",
+      "xlm": "101.0859572",
+      "num_sponsoring": 0,
+      "subentries": 0
+    },
+    {
+      "at": "2026-10-25T21:44:42.269Z",
+      "step": "signup",
+      "ms": 262,
+      "wallet_id": "wal_bf77899105c7cd60a401c15fe017e837",
+      "contract_id": "CB6XJAEINONQ4DEPIFHRIVUJWJV5KI2GMPJWVDTBAZHY7HCKPL66JBCF",
+      "deploy_tx": "",
+      "fund_tx": ""
+    },
+    {
+      "at": "2026-10-25T21:44:42.681Z",
+      "step": "overview after signup",
+      "account_status": "awaiting_deposit",
+      "usdc": "0",
+      "contract_onchain": false
+    },
+    {
+      "at": "2026-10-25T21:45:01.472Z",
+      "step": "deposit address",
+      "ms": 18791,
+      "address": "GAST6OXAFVB5Q3CYCB5LGZQEKDLVY2WGBQDKWK2KJYWLKETWZJ52IEYZ",
+      "recipient": "CB6XJAEINONQ4DEPIFHRIVUJWJV5KI2GMPJWVDTBAZHY7HCKPL66JBCF",
+      "expires_at": "2027-04-23T21:36:30.524Z",
+      "create_tx": "https://stellar.expert/explorer/public/tx/6e219d7b833fe97329f9aeeb9f85815f9d5506cec3f694468f163f3763f4f10a",
+      "register_tx": "https://stellar.expert/explorer/public/tx/7b689101ede0be8b9cb9654ace1b7d1d2c4f18a4bb0f758ea6223c4efa76c360",
+      "lock_tx": "https://stellar.expert/explorer/public/tx/5e1312027e1beb7d860d017aa635269ec3f169195728e35a9936b125ad316ddf"
+    },
+    {
+      "at": "2026-10-25T21:45:01.640Z",
+      "step": "relayer after the deposit address, before any USDC",
+      "xlm": "101.0859172",
+      "num_sponsoring": 3,
+      "subentries": 0,
+      "xlm_spent": "0.0000400",
+      "sponsoring_added": 3,
+      "contract_onchain": false
+    },
+    {
+      "at": "2026-10-25T21:45:01.640Z",
+      "step": "waiting for a deposit",
+      "address": "GAST6OXAFVB5Q3CYCB5LGZQEKDLVY2WGBQDKWK2KJYWLKETWZJ52IEYZ"
+    },
+    {
+      "at": "2026-10-25T21:46:24.671Z",
+      "step": "activated",
+      "ms_after_payment": 82971,
+      "account_status": "active",
+      "usdc": "10000000",
+      "deploy_tx": "https://stellar.expert/explorer/public/tx/57b97375c2f1cb8dbfbe122afa9a709c585e536b831b329e6236ef540284796f",
+      "sweep_tx": "https://stellar.expert/explorer/public/tx/7c57d530372b32fe07aac7ea9220380ff52ce54a329518ff838179357329d7af",
+      "swept_total": "10000000",
+      "contract": "https://stellar.expert/explorer/public/contract/CB6XJAEINONQ4DEPIFHRIVUJWJV5KI2GMPJWVDTBAZHY7HCKPL66JBCF",
+      "contract_onchain": true
+    }
+  ]
+}
