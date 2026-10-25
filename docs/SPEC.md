@@ -17,10 +17,10 @@ asset and amount.
 
 ## The product is the two lanes
 
-| Lane           | Who signs                                  | What it may do                                                                | Enforced by                                                                        |
-| -------------- | ------------------------------------------ | ----------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
-| **Autonomous** | a dedicated Ed25519 key per MCP connection | transfer USDC (people or x402 sellers) up to the grant's total, until expiry  | onchain: OpenZeppelin context rule + spending-limit policy + `valid_until`; offchain: intent reservation |
-| **Owner**      | the owner's passkey (secp256r1 / WebAuthn) | any payment; create, renew, revoke grants; admin of the account              | onchain: the account's `__check_auth` verifies the passkey over the exact auth payload |
+| Lane           | Who signs                                  | What it may do                                                               | Enforced by                                                                                              |
+| -------------- | ------------------------------------------ | ---------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| **Autonomous** | a dedicated Ed25519 key per MCP connection | transfer USDC (people or x402 sellers) up to the grant's total, until expiry | onchain: OpenZeppelin context rule + spending-limit policy + `valid_until`; offchain: intent reservation |
+| **Owner**      | the owner's passkey (secp256r1 / WebAuthn) | any payment; create, renew, revoke grants; admin of the account              | onchain: the account's `__check_auth` verifies the passkey over the exact auth payload                   |
 
 Everything else (Stellar, Soroban, MCP, x402, OAuth) is plumbing in service of that distinction. The wallet balance
 and the connection's allowance are always shown as two different numbers: a wallet can hold 500 USDC while ChatGPT may
@@ -94,34 +94,34 @@ pinned: Effect 4.0.5, Foldkit 0.169.x, Alchemy 2.0.0-beta.83 exactly, TypeScript
 
 ## MCP tool surface (small on purpose)
 
-| Tool                      | Kind  | Semantics                                                                                                          |
-| ------------------------- | ----- | ------------------------------------------------------------------------------------------------------------------ |
-| `wallet_overview`         | read  | balances, grant remaining/expiry, pending approvals, recent receipts                                                |
+| Tool                      | Kind  | Semantics                                                                                                                                 |
+| ------------------------- | ----- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| `wallet_overview`         | read  | balances, grant remaining/expiry, pending approvals, recent receipts                                                                      |
 | `contacts_search`         | read  | name → contact with destinations, each with readiness: `usdc_ready`, `trustline_required`, `account_missing`, `unverified`, `paid_before` |
-| `payment_prepare`         | write | resolve recipient + amount + asset → frozen `payment_intent` with a quote: lane (`autonomous`/`owner`), fee ceiling, expiry |
-| `payment_execute`         | write | execute an existing intent in the autonomous lane; refuses if the lane is `owner`, the grant is exhausted, expired or revoked |
-| `payment_approve_url`     | read  | approval link for an intent that needs the owner                                                                   |
-| `payment_status`          | read  | state machine + receipt once settled; never triggers a payment                                                     |
-| `paid_resource_fetch`     | write | GET a URL; on 402 build a Stellar payment within the grant (or return `requires_approval`), retry, return content + receipt |
-| `paid_mcp_call`           | write | same for a downstream MCP tool over the x402 MCP transport (stretch)                                                |
-| `connection_grant_create` | write | returns an owner URL to create/renew a grant (never grants itself)                                                  |
-| `connection_grant_revoke` | write | disables the service grant immediately; schedules onchain rule removal                                             |
+| `payment_prepare`         | write | resolve recipient + amount + asset → frozen `payment_intent` with a quote: lane (`autonomous`/`owner`), fee ceiling, expiry               |
+| `payment_execute`         | write | execute an existing intent in the autonomous lane; refuses if the lane is `owner`, the grant is exhausted, expired or revoked             |
+| `payment_approve_url`     | read  | approval link for an intent that needs the owner                                                                                          |
+| `payment_status`          | read  | state machine + receipt once settled; never triggers a payment                                                                            |
+| `paid_resource_fetch`     | write | GET a URL; on 402 build a Stellar payment within the grant (or return `requires_approval`), retry, return content + receipt               |
+| `paid_mcp_call`           | write | same for a downstream MCP tool over the x402 MCP transport (stretch)                                                                      |
+| `connection_grant_create` | write | returns an owner URL to create/renew a grant (never grants itself)                                                                        |
+| `connection_grant_revoke` | write | disables the service grant immediately; schedules onchain rule removal                                                                    |
 
 Rules: every write references a frozen intent; no tool accepts a raw transaction or an agent-supplied `approved: true`;
 every tool call carries an idempotency key; results include `grant_remaining` so the host can show it.
 
 ## Data model
 
-| Entity                | Key fields                                                                                                          |
-| --------------------- | ------------------------------------------------------------------------------------------------------------------- |
-| `wallet`              | id, owner_id, contract_id (C…), passkey credential id + public key, network, created_at                             |
-| `connection`          | id, owner_id, wallet_id, oauth client id + name, status (`active`/`revoked`), created_at                              |
-| `spending_grant`      | id, connection_id, signer public key, encrypted private key ref, asset, total, spent, reserved, valid_until, onchain rule id, status |
-| `contact`             | id, owner_id, display name, aliases, destinations[] {address, network, memo?, readiness, verified_at, last_paid_at} |
+| Entity                | Key fields                                                                                                                                             |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `wallet`              | id, owner_id, contract_id (C…), passkey credential id + public key, network, created_at                                                                |
+| `connection`          | id, owner_id, wallet_id, oauth client id + name, status (`active`/`revoked`), created_at                                                               |
+| `spending_grant`      | id, connection_id, signer public key, encrypted private key ref, asset, total, spent, reserved, valid_until, onchain rule id, status                   |
+| `contact`             | id, owner_id, display name, aliases, destinations[] {address, network, memo?, readiness, verified_at, last_paid_at}                                    |
 | `payment_intent`      | id, idempotency_key, wallet_id, connection_id?, recipient destination, asset, amount (7-dp integer), fee ceiling, lane, status, expires_at, created_at |
-| `payment_reservation` | intent_id, grant_id, amount, state (`held`/`consumed`/`released`)                                                   |
-| `operation`           | intent_id, tx hash, submitted_at, ledger, status (`prepared`/`submitted`/`confirmed`/`failed`/`unknown`), raw result |
-| `receipt`             | operation_id, amount, fee, recipient, confirmed ledger/time, explorer URL, requester, lane                          |
+| `payment_reservation` | intent_id, grant_id, amount, state (`held`/`consumed`/`released`)                                                                                      |
+| `operation`           | intent_id, tx hash, submitted_at, ledger, status (`prepared`/`submitted`/`confirmed`/`failed`/`unknown`), raw result                                   |
+| `receipt`             | operation_id, amount, fee, recipient, confirmed ledger/time, explorer URL, requester, lane                                                             |
 
 Intent state machine: `prepared → (autonomous) reserved → submitted → confirmed | failed`; `prepared → (owner)
 awaiting_approval → approved → submitted → confirmed | failed`; any state `→ expired` before submission. Exact retries
@@ -191,8 +191,8 @@ we demo in a host we control and keep the server host-agnostic), mainnet.
 - **Stellar Unlocked** (supporting): CAP-73 SAC `trust` makes recipient onboarding part of the payment itself.
 - Genesis path. Submit one project; mention both tracks in the answers.
 
-Pitch: *Give your AI a spending budget you control. Pay people and services from one passkey wallet; larger payments
-come back to you for approval.*
+Pitch: _Give your AI a spending budget you control. Pay people and services from one passkey wallet; larger payments
+come back to you for approval._
 
 Demo video (≤ 3 min, screen recording with voice): the nine steps above, then the trustline onboarding, then revoke.
 Show the explorer for two transactions (a delegated one and the owner-approved one).

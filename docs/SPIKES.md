@@ -16,15 +16,15 @@ About 24 hours remain. Five things could change the architecture, and none has b
 
 Plan:
 
-| UTC           | What                                                                                           |
-| ------------- | ---------------------------------------------------------------------------------------------- |
-| 11:30–12:15   | this document, research pins land, owner decides host/name                                      |
-| 12:15–16:00   | S0–S4 in parallel (Opus agents), each time-boxed; S5 starts when S1 and S2 report               |
-| 16:00–17:00   | step back: read `docs/spikes/*.md`, lock the architecture, write the build plan                 |
-| 17:00–04:00   | build the product in parallel streams (contracts+signer, Worker+intents, site, seller, e2e)     |
-| 04:00–08:00   | end-to-end rehearsal of the nine demo steps on testnet; fix; screenshots                        |
-| 08:00–11:00   | demo video, pitch deck, README, submission answers                                              |
-| 11:00–11:45   | submit; buffer                                                                                 |
+| UTC         | What                                                                                        |
+| ----------- | ------------------------------------------------------------------------------------------- |
+| 11:30–12:15 | this document, research pins land, owner decides host/name                                  |
+| 12:15–16:00 | S0–S4 in parallel (Opus agents), each time-boxed; S5 starts when S1 and S2 report           |
+| 16:00–17:00 | step back: read `docs/spikes/*.md`, lock the architecture, write the build plan             |
+| 17:00–04:00 | build the product in parallel streams (contracts+signer, Worker+intents, site, seller, e2e) |
+| 04:00–08:00 | end-to-end rehearsal of the nine demo steps on testnet; fix; screenshots                    |
+| 08:00–11:00 | demo video, pitch deck, README, submission answers                                          |
+| 11:00–11:45 | submit; buffer                                                                              |
 
 ## Rules for every spike agent
 
@@ -35,6 +35,11 @@ Plan:
 - **Rust builds share a target dir**: `export CARGO_TARGET_DIR=/srv/cache/hm26-target/<id>` (the home volume is 90% full).
   Run builds and test suites through `heavy` (exit 75 = busy, retry). Never pipe `heavy`.
 - **Pins**: use the versions in `docs/research/*.md`. If a pin is wrong, say so in the results and pick the version that works.
+  Note from the foundation session: its generated Soroban bindings (`packages/counter-client`) pin `@stellar/stellar-sdk`
+  **16.4.1** because stellar-cli 28.1 generates for 16; the Kit or x402 packages may want 17.x. Spikes use their own
+  `spikes/<id>/package.json` (not a workspace member) and report which SDK version worked, so the build picks one.
+- **Proven already**: stellar-cli 28.1.0 + soroban-sdk 29.0.1 build, deploy and invoke on protocol-29 testnet (counter
+  contract `CAKTREEYOPERBZGP4FHTUZP4WRCMTM5X4WSC3UVTBNG3DEL2LGUC4ON2`). Do not re-prove the toolchain.
 - **Time box is real.** When it runs out, write the results doc with what passed, what failed, and the best next step.
   A partial result with evidence beats a late success.
 - **Evidence or it did not happen**: every onchain claim has a transaction hash and a `stellar.expert` testnet link; every
