@@ -12,7 +12,6 @@ import {
   SELLER_VARS,
   THIRD_PARTY_SELLER,
   USDC_SAC,
-  explorerAddress,
 } from './lib/env.ts'
 import { at, parseJson, str } from './lib/json.ts'
 import { daysLeft, ledgerTime, readShared } from './lib/ttl.ts'
@@ -188,23 +187,35 @@ await probe('service /api/health', async () => {
 })
 
 // ---------------------------------------------------------------- funds
-const relayer = str(at(seeds, 'accounts.relayer.address'))
-const treasury = str(at(seeds, 'accounts.treasury.address'))
-await probe('relayer XLM (≥ 500)', async () => {
-  if (relayer === undefined) return { level: 'red', detail: 'no relayer in seeds.json' }
-  const response = await get(`${HORIZON_URL}/accounts/${relayer}`)
-  const account: unknown = await response.json().catch(() => undefined)
-  const b = await classicBalances(relayer)
-  const xlm = Number(b?.xlm ?? '0')
-  const sponsoring = Number(at(account, 'num_sponsoring') ?? 0)
-  const spare = xlm - 500
-  return {
-    level: xlm >= 500 ? 'ok' : 'red',
-    detail: `${xlm.toFixed(1)} XLM, ${sponsoring} sponsored entries (${(sponsoring * 0.5).toFixed(1)} XLM locked); ≈ ${Math.max(0, Math.floor(spare / 50))} connection-days at 50 XLM/day above the 500 floor. ${explorerAddress(relayer)}`,
-  }
-})
+const health: unknown = await get(`${base}/api/health`)
+  .then(response => (response.ok ? response.json() : undefined))
+  .catch(() => undefined)
+const healthRelayers = at(health, 'chain.relayers')
+const relayers = Array.isArray(healthRelayers)
+  ? healthRelayers.map(r => str(at(r, 'address'))).filter(a => a !== undefined)
+  : []
+if (relayers.length === 0) {
+  const seeded = str(at(seeds, 'accounts.relayer.address'))
+  if (seeded !== undefined) relayers.push(seeded)
+}
+const treasury = str(at(health, 'chain.treasury.address')) ?? str(at(seeds, 'accounts.treasury.address'))
+if (relayers.length === 0)
+  rows.push({ check: 'relayer XLM (≥ 500)', level: 'red', detail: 'no relayer from /api/health or seeds.json', ms: 0 })
+for (const relayer of relayers)
+  await probe(`relayer ${relayer.slice(0, 6)}… XLM (≥ 500)`, async () => {
+    const response = await get(`${HORIZON_URL}/accounts/${relayer}`)
+    const account: unknown = await response.json().catch(() => undefined)
+    const b = await classicBalances(relayer)
+    const xlm = Number(b?.xlm ?? '0')
+    const sponsoring = Number(at(account, 'num_sponsoring') ?? 0)
+    const spare = xlm - 500
+    return {
+      level: xlm >= 500 ? 'ok' : 'red',
+      detail: `${xlm.toFixed(1)} XLM, ${sponsoring} sponsored entries (${(sponsoring * 0.5).toFixed(1)} XLM locked); ≈ ${Math.max(0, Math.floor(spare / 50))} connection-days at 50 XLM/day above the 500 floor`,
+    }
+  })
 await probe('treasury USDC (≥ 50)', async () => {
-  if (treasury === undefined) return { level: 'red', detail: 'no treasury in seeds.json' }
+  if (treasury === undefined) return { level: 'red', detail: 'no treasury from /api/health or seeds.json' }
   const b = await classicBalances(treasury)
   const usdc = Number(b?.usdc ?? '0')
   return {

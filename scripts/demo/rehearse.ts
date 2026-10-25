@@ -61,7 +61,17 @@ const password =
     ? /^DEV_PASSWORD=(.+)$/mu.exec(readFileSync(target.passwordFile, 'utf8'))?.[1]?.trim()
     : undefined
 const seeds: unknown = existsSync(SEEDS_FILE) ? parseJson(readFileSync(SEEDS_FILE, 'utf8')) : undefined
-const relayer = str(at(seeds, 'accounts.relayer.address'))
+/** The service names its fee payers in /api/health (chain.relayers); seeds.json's relayer is the fallback. */
+const health: unknown = await fetch(`${target.base}/api/health`, { signal: AbortSignal.timeout(10_000) })
+  .then(response => (response.ok ? response.json() : undefined))
+  .catch(() => undefined)
+const healthRelayers = at(health, 'chain.relayers')
+const relayers = [
+  ...(Array.isArray(healthRelayers) ? healthRelayers.map(r => str(at(r, 'address'))) : []),
+  str(at(seeds, 'accounts.relayer.address')),
+].filter(address => address !== undefined)
+/** Any funded account works as the source of read-only simulations. */
+const relayer = relayers[0]
 /** The OpenZeppelin spending-limit policy the service installs (testnet: docs/spikes/s1.md); pubnet: SPENDING_LIMIT_POLICY. */
 const POLICY =
   process.env['SPENDING_LIMIT_POLICY'] ??
@@ -243,13 +253,13 @@ const ctx: Ctx = {
     else if (feePayer === 'relayer')
       record(
         9,
-        relayer !== undefined && facts.feeAccount === relayer ? 'pass' : 'fail',
-        `${label}: fee ${facts.feeCharged} stroops paid by ${facts.feeAccount.slice(0, 6)}… (relayer ${relayer?.slice(0, 6) ?? '?'}…)`,
+        relayers.includes(facts.feeAccount) ? 'pass' : 'fail',
+        `${label}: fee ${facts.feeCharged} stroops paid by ${facts.feeAccount.slice(0, 6)}… (Nod's relayers: ${relayers.map(r => `${r.slice(0, 6)}…`).join(', ')})`,
       )
     else if (feePayer === 'facilitator')
       record(
         9,
-        facts.feeAccount !== relayer && !facts.feeAccount.startsWith('C') ? 'pass' : 'fail',
+        !relayers.includes(facts.feeAccount) && !facts.feeAccount.startsWith('C') ? 'pass' : 'fail',
         `${label}: fee ${facts.feeCharged} stroops paid by the facilitator ${facts.feeAccount.slice(0, 6)}…`,
       )
     return facts
@@ -443,7 +453,7 @@ const run = {
   base: target.base,
   mcp: mcpUrl.href,
   seller: SELLER_URL,
-  relayer,
+  relayers,
   started_at: startedAt.toISOString(),
   finished_at: new Date().toISOString(),
   oauth: { client_id: provider.client?.client_id ?? null, redirect: callback.redirect },
