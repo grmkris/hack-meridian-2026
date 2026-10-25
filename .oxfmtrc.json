@@ -1,0 +1,26 @@
+{
+  "$schema": "./node_modules/oxfmt/configuration_schema.json",
+  "semi": false,
+  "singleQuote": true,
+  "arrowParens": "avoid",
+  "trailingComma": "all",
+  "printWidth": 120,
+  "sortImports": {
+    "ignoreCase": false,
+    "customGroups": [{ "groupName": "scoped", "elementNamePattern": ["@*", "@*/**"] }],
+    "groups": [["builtin", "external"], "scoped", ["parent", "sibling", "index"], "unknown"]
+  },
+  "sortPackageJson": false,
+  "ignorePatterns": [
+    "node_modules",
+    "dist",
+    "repos",
+    "contracts/target",
+    "contracts/**/test_snapshots",
+    "packages/counter-client",
+    ".agents/skills",
+    ".claude/skills",
+    "bun.lock",
+    "*.tsbuildinfo"
+  ]
+}

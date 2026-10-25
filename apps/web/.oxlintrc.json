@@ -1,0 +1,13 @@
+{
+  "$schema": "../../node_modules/oxlint/configuration_schema.json",
+  "extends": ["../../.oxlintrc.json", "./node_modules/@foldkit/oxlint-plugin/recommended.json"],
+  "rules": {
+    "typescript/consistent-type-assertions": ["error", { "assertionStyle": "never" }]
+  },
+  "overrides": [
+    {
+      "files": ["**/*.test.ts", "**/server/**/*.ts", "src/worker.ts"],
+      "rules": { "typescript/consistent-type-assertions": "off" }
+    }
+  ]
+}

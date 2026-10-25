@@ -1,0 +1,30 @@
+{
+  "name": "@hm/web",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build"
+  },
+  "dependencies": {
+    "@effect/platform-browser": "4.0.5",
+    "@foldkit/ui": "0.169.0",
+    "@hm/api": "workspace:*",
+    "@hm/counter-client": "workspace:*",
+    "effect": "4.0.5",
+    "foldkit": "0.169.0"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "5.20261016.1",
+    "@foldkit/devtools": "0.169.0",
+    "@foldkit/devtools-mcp": "0.25.0",
+    "@foldkit/oxlint-plugin": "0.15.3",
+    "@foldkit/vite-plugin": "0.28.0",
+    "@tailwindcss/vite": "4.3.3",
+    "happy-dom": "20.14.5",
+    "tailwindcss": "4.3.3",
+    "vite": "8.3.5",
+    "vitest": "5.0.5"
+  }
+}

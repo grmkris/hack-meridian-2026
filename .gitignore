@@ -1,0 +1,30 @@
+node_modules/
+dist/
+# The generated contract bindings are imported compiled (scripts/contract.ts bindings)
+!packages/counter-client/dist/
+coverage/
+*.tsbuildinfo
+.DS_Store
+
+# Alchemy and workerd state, local secrets and receipts
+.alchemy/
+.wrangler/
+.local/
+.env
+.env.*
+!.env.example
+.dev.vars*
+
+# Rust build output
+contracts/target/
+
+# Vendored read-only references (Foldkit source, see apps/web/FOLDKIT.md)
+repos/
+
+# Claude Code worktrees
+.claude/worktrees/
+contracts/**/test_snapshots/
+
+# Spike scratch: builds go to CARGO_TARGET_DIR=/srv/cache/hm26-target/<id>, keys stay in spikes/<id>/.env
+spikes/**/target/
+spikes/**/.env

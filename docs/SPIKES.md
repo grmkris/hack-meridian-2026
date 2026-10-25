@@ -195,3 +195,16 @@ Read the five results docs and answer, in `docs/BUILD-PLAN.md`:
 4. Which host the video uses; which OAuth implementation; what the consent page must show.
 5. The build streams, each with an owner agent, its paths, its acceptance test numbers from `docs/SPEC.md`, and the
    integration order. Then build.
+
+## Submission work is 5–6 hours, not 3 h 45 (update 12:30 UTC)
+
+From `docs/research/hackathon-and-ecosystem.md` §(a): README with specs and testnet ids (60–90 min), demo video
+(90–120 min), deck (60–90 min), answers (30 min), judge-testable deployment check (30 min), submit and re-check (20 min).
+Changes to the plan:
+
+- **Kristjan, now (15 min):** sign in to app.hackmeridian.com, open the submission form, and paste the exact questions,
+  the video length limit and the deck format into `docs/SUBMISSION.md`. Every "UNVERIFIED" in the checklist depends on it.
+- The README product sections, the deck skeleton and the video script are written **during the build**, from 17:00 UTC,
+  by a dedicated docs agent working from `docs/SPEC.md` and the spike results. Video recording starts by 07:00 UTC.
+- Judging weighs "Hackathon Progress" (10%) on commit history during the event, so small commits keep landing on `main`
+  and the public repo is pushed today.

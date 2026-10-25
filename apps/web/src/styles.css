@@ -1,0 +1,9 @@
+@import 'tailwindcss';
+
+@layer base {
+  html {
+    color-scheme: light;
+    background-color: var(--color-zinc-50);
+    -webkit-text-size-adjust: 100%;
+  }
+}

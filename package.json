@@ -1,0 +1,63 @@
+{
+  "name": "hack-meridian-2026",
+  "version": "0.1.0",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "packageManager": "bun@1.4.2",
+  "workspaces": {
+    "packages": [
+      "apps/*",
+      "packages/*"
+    ]
+  },
+  "scripts": {
+    "dev": "bun scripts/stage.ts dev",
+    "build": "bun run --cwd apps/web build",
+    "plan:testnet": "bun scripts/stage.ts plan:testnet",
+    "deploy:testnet": "bun scripts/stage.ts deploy:testnet",
+    "destroy:testnet": "bun scripts/stage.ts destroy:testnet",
+    "smoke:local": "bun scripts/smoke.ts local",
+    "smoke:testnet": "bun scripts/smoke.ts testnet",
+    "shots": "bun scripts/shots.ts",
+    "fmt": "oxfmt --write",
+    "fmt:check": "oxfmt --check",
+    "lint": "oxlint --type-aware --deny-warnings",
+    "typecheck": "bun scripts/typecheck.ts",
+    "test": "vitest run",
+    "contracts:build": "cd contracts && stellar contract build",
+    "contracts:test": "cargo test --manifest-path contracts/Cargo.toml",
+    "contracts:lint": "cargo fmt --manifest-path contracts/Cargo.toml --check && cargo clippy --manifest-path contracts/Cargo.toml --all-targets -- -D warnings",
+    "contracts:bindings": "bun scripts/contract.ts bindings",
+    "contracts:deploy": "bun scripts/contract.ts deploy",
+    "agents:sync": "repoagents",
+    "agents:check": "repoagents check",
+    "check": "bun run fmt:check && bun run agents:check && bun run lint && bun run typecheck && bun run test && bun run contracts:lint && bun run contracts:test && bun run build"
+  },
+  "devDependencies": {
+    "@effect/platform-bun": "4.0.5",
+    "@effect/vitest": "4.0.5",
+    "@types/bun": "1.4.2",
+    "@types/node": "24.13.6",
+    "@yielded/effect-tsrs": "0.2.0",
+    "alchemy": "2.0.0-beta.83",
+    "effect": "4.0.5",
+    "oxfmt": "0.74.0",
+    "oxlint": "1.89.0",
+    "oxlint-tsgolint": "7.0.2004",
+    "playwright-core": "1.64.1",
+    "repoagents": "1.1.0",
+    "typescript": "7.0.2",
+    "vite": "8.3.5",
+    "vitest": "5.0.5"
+  },
+  "overrides": {
+    "effect": "4.0.5",
+    "@effect/platform-browser": "4.0.5",
+    "@effect/platform-node": "4.0.5",
+    "@effect/platform-node-shared": "4.0.5",
+    "@effect/platform-bun": "4.0.5",
+    "@effect/vitest": "4.0.5",
+    "vite": "8.3.5"
+  }
+}

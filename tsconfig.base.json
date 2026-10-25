@@ -1,0 +1,110 @@
+{
+  "compilerOptions": {
+    "target": "ES2023",
+    "lib": ["ES2023"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "verbatimModuleSyntax": true,
+    "strict": true,
+    "exactOptionalPropertyTypes": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "noFallthroughCasesInSwitch": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "types": [],
+    // Effect's language-service diagnostics, which `bun run typecheck` (scripts/typecheck.ts, effect-tsrs) reports
+    // beside the TypeScript errors. Errors and warnings fail the gate; messages and suggestions show in editors only.
+    // Severities follow goblin and vrials. Override globs are relative to this file and end in a file pattern.
+    "plugins": [
+      {
+        "name": "@effect/language-service",
+        "diagnosticSeverity": {
+          // Structural: Effects that are dropped, untyped or wired wrong.
+          "missingEffectServiceDependency": "error",
+          "leakingRequirements": "error",
+          "unknownInEffectCatch": "error",
+          "tryCatchInEffectGen": "error",
+          "globalErrorInEffectFailure": "error",
+          "globalErrorInEffectCatch": "error",
+          "schemaSyncInEffect": "error",
+          "outdatedApi": "error",
+          "duplicatePackage": "error",
+          "effectFnIife": "error",
+          "effectGenUsesAdapter": "error",
+          "effectInFailure": "error",
+          "effectInVoidSuccess": "error",
+          "genericEffectServices": "error",
+          "layerMergeAllWithDependencies": "error",
+          "lazyPromiseInEffectSync": "error",
+          "multipleEffectProvide": "error",
+          "obsoleteMatchImport": "error",
+          "obsoleteSchemaImport": "error",
+          "promiseInEffectSuccess": "error",
+          "scopeInLayerEffect": "error",
+          "runEffectInsideEffect": "error",
+          // Errors are tagged classes, and a handler on an Effect that cannot fail is dead code.
+          "extendsNativeError": "error",
+          "catchUnfailableEffect": "error",
+          // Off: Effect 4.0 marks its HTTP and HttpApi modules unstable, and the typed API is built on them. The exact
+          // version pinned in package.json is the stability boundary; a bump runs every gate.
+          "unstableApiUsage": "off",
+          // Global APIs inside Effect programs: use HttpClient, Clock, Effect.log, Effect.sleep, Random and Config.
+          "globalFetchInEffect": "error",
+          "globalDateInEffect": "error",
+          "globalConsoleInEffect": "error",
+          "globalTimersInEffect": "error",
+          "globalRandomInEffect": "error",
+          "cryptoRandomUUIDInEffect": "error",
+          "processEnv": "error",
+          "processEnvInEffect": "error",
+          "nodeBuiltinImport": "error"
+        },
+        "overrides": [
+          {
+            // Tests drive real HTTP, wait on real time and read fixtures from disk.
+            "include": ["**/test/**/*", "**/*.test.ts", "**/fixtures/**/*"],
+            "options": {
+              "diagnosticSeverity": {
+                "globalFetch": "off",
+                "globalFetchInEffect": "off",
+                "globalTimers": "off",
+                "globalTimersInEffect": "off",
+                "globalDate": "off",
+                "globalDateInEffect": "off",
+                "processEnv": "off",
+                "processEnvInEffect": "off",
+                "nodeBuiltinImport": "off"
+              }
+            }
+          },
+          {
+            // Build configs and the Alchemy stack run on the host at build and deploy time.
+            "include": ["**/vite.config.ts", "**/vitest*.config.ts", "**/alchemy.run.ts"],
+            "options": { "diagnosticSeverity": { "processEnv": "off", "nodeBuiltinImport": "off" } }
+          },
+          {
+            // Operator scripts: stdout and files are their interface; they read the clock, sleep and call HTTP.
+            "include": ["scripts/**/*"],
+            "options": {
+              "diagnosticSeverity": {
+                "globalConsole": "off",
+                "globalConsoleInEffect": "off",
+                "globalDate": "off",
+                "globalFetch": "off",
+                "globalTimers": "off",
+                "nodeBuiltinImport": "off",
+                "processEnv": "off",
+                "processEnvInEffect": "off"
+              }
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

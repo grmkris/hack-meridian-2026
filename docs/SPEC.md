@@ -214,3 +214,15 @@ Show the explorer for two transactions (a delegated one and the owner-approved o
    pending research in `docs/research/hackathon-and-ecosystem.md`.
 3. Foldkit for the wallet site, as the previous session planned, or the plainest thing that renders four pages.
 4. Attempt CCTP top-up only if S1–S4 are green by 16:00 UTC.
+
+## Decisions log
+
+- 2026-10-25 12:30 UTC, from `docs/research/hackathon-and-ecosystem.md`: **demo host is Claude** (claude.ai custom
+  connector or Claude Desktop; Claude Code as backup). It accepts a static client id, CIMD or DCR, renders MCP Apps, and
+  has no money-transfer prohibition. **Goblin is the fallback we control.** ChatGPT appears only as a cameo, if at all:
+  its policy prohibits "Execution of money transfers, crypto transfers, or investment trades".
+- Same source: OAuth is `@cloudflare/workers-oauth-provider` 1.2.4, laid out like Stellar's Raven server. The
+  per-connection grant lives in the OAuth grant props; the consent page is where the passkey signs the onchain rule.
+- Same source: the CAP-73 feature is a **claim link**. The recipient signs the `trust` auth entry; the sender's transfer
+  and an optional 0.5 XLM reserve top-up ride in the same router call. We never promise "pay any G address silently".
+- A Genesis project may enter both tracks. Name Composed and Unlocked explicitly in the README and the answers.
