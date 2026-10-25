@@ -85,16 +85,6 @@ const sentenceOf = (result: CallToolResult) => {
   return first !== undefined && first.type === 'text' ? first.text : 'Approve this payment with your passkey on Nod.'
 }
 
-const declinedResult = (url: string): CallToolResult => ({
-  isError: true,
-  content: [
-    {
-      type: 'text',
-      text: `The user did not approve the payment. It still waits for their nod at ${url} until it expires.`,
-    },
-  ],
-})
-
 type Answer = { readonly result: Record<string, unknown> } | { readonly error: ProtocolErrorShape }
 
 /** tools/call, with the nod as a URL elicitation when the client can show one. */
@@ -109,8 +99,9 @@ const callTool = async (deps: ModernDeps, params: Record<string, unknown>, meta:
     if (requestState !== paymentId)
       return { error: { code: -32602, message: 'requestState does not belong to this call' } }
     const action = objectOr(objectOr(params['inputResponses'])['approval'])['action']
-    if (pending !== undefined && (action === 'decline' || action === 'cancel'))
-      return { result: { ...declinedResult(pending.url) } }
+    // Declined, cancelled or timed out in the host: the plain result, not an error, so the card still shows the payment
+    // waiting for the nod (and keeps polling) and the model still gets the sentence with the link.
+    if (pending !== undefined && (action === 'decline' || action === 'cancel')) return { result: { ...ran.result } }
   }
   const elicitation = objectOr(objectOr(meta[CLIENT_CAPABILITIES_KEY])['elicitation'])
   if (pending === undefined || !Predicate.isObject(elicitation['url'])) return { result: { ...ran.result } }

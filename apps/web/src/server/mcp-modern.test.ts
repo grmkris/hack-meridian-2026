@@ -187,15 +187,14 @@ describe('the nod as a URL elicitation (MRTR)', () => {
     expect(calls).toEqual(['payment_prepare', 'payment_prepare', 'payment_prepare'])
   })
 
-  test('a declined nod is a tool error with the link; a foreign requestState is -32602', async () => {
+  test('a declined or cancelled nod is the plain result (the card still waits), not an error; a foreign requestState is -32602', async () => {
     const { deps } = world()
-    const declined = await call(
-      deps,
-      { requestState: 'pi_1', inputResponses: { approval: { action: 'decline' } } },
-      url,
-    )
-    expect(declined['isError']).toBe(true)
-    expect(JSON.stringify(declined['content'])).toContain(APPROVE)
+    for (const action of ['decline', 'cancel']) {
+      const answered = await call(deps, { requestState: 'pi_1', inputResponses: { approval: { action } } }, url)
+      expect(answered['isError']).toBeUndefined()
+      expect(answered['resultType']).toBe('complete')
+      expect(answered['structuredContent']).toMatchObject({ status: 'awaiting_approval', approval_url: APPROVE })
+    }
     const response = await serveModern(
       new Request(`${ORIGIN}/mcp`, { method: 'POST' }),
       {
