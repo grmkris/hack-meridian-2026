@@ -68,3 +68,15 @@ The SHA must have passed on testnet: `heavy bun run check`, the automated rehear
 3. Fund the addresses from the M2 table when it arrives (~50 XLM, ~30 USDC).
 4. Have an invite code ready (the agent generates one into `.env.mainnet`; I send it to you privately).
 5. Create your mainnet wallet through the Claude connector on trynod.si and run the small flow with me.
+
+## Decisions 17:30 UTC
+
+- Domain config landed (`1bf2930`, `docs/DOMAIN.md`): custom hostnames per stage, the alias host 301/308-redirects to the
+  canonical origin once `ORIGIN` is set, token verified able to attach domains. The .si registry already lists Cloudflare's
+  nameservers; the zone activates when the registry publishes (a watch re-triggers the activation check every 15 min until
+  20:00 UTC). Cloudflare attaches a custom domain only to an active zone, so no cutover before activation.
+- **Relying-party ids are per stage**: testnet `testnet.trynod.si`, mainnet `trynod.si`, so the browser never offers testnet
+  passkeys on mainnet. The cutover edits the two non-secret lines in both copies of `apps/web/.env.testnet` to
+  `ORIGIN=https://testnet.trynod.si` and `RP_ID=testnet.trynod.si` (not deleting them), then deploys.
+- After the cutover, wallets and Claude connectors made on workers.dev stop working (redirects drop bearer tokens):
+  Kristjan re-adds the connector at `https://testnet.trynod.si/mcp` before recording.
