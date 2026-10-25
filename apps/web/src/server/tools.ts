@@ -720,7 +720,8 @@ export const connectionGrantRevoke = (ctx: ToolContext, key: string) =>
       status: 'revoked' as const,
       onchain: removed ? ('removed' as const) : ('pending_owner' as const),
       approval_url: removed ? null : url,
-      sweep_tx: null,
+      sweep_tx: grant?.sweep_tx ?? null,
+      removal_tx: grant?.remove_tx ?? null,
       message: removed
         ? 'Revoked: Nod stopped paying for this AI app and its allowance is gone from the Stellar account.'
         : `Revoked: Nod stops paying for this AI app now. The user removes the allowance from their Stellar account with their passkey at ${url}.`,

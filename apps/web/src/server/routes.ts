@@ -36,7 +36,7 @@ import { b64urlDecode } from './webauthn.ts'
 const chrome = Effect.gen(function* () {
   const id = yield* randomId('n')
   const network = yield* Network
-  return { nonce: id.slice(2), network: network.label }
+  return { nonce: id.slice(2), network: network.label, explorerBase: network.explorerBase }
 })
 /** Owner auth for ≈ 400 ledgers (≈ 33 min): the approval page's validity. */
 const OWNER_AUTH_LEDGERS = 400
@@ -318,7 +318,7 @@ const revokePost = (runtime: AppRuntime, request: Request, connectionId: string)
       const grant = yield* grantOfConnection(connectionId)
       if (grant === undefined || grant.wallet_id !== wallet.id)
         return yield* new OwnerError({ kind: 'bad_request', message: `no connection ${connectionId} in this wallet` })
-      if (grant.rule_status === 'removed') return { rule_status: 'removed' }
+      if (grant.rule_status === 'removed') return { rule_status: 'removed', tx: grant.remove_tx ?? null }
       const stored = yield* toolResult('revoke', connectionId)
       const prepared = yield* decodePrepared(stored?.result ?? null)
       const assertion = yield* checkAssertion(site, wallet, yield* readAssertion(request), prepared.challenge)
@@ -326,7 +326,12 @@ const revokePost = (runtime: AppRuntime, request: Request, connectionId: string)
       const after = yield* Ledger.use(ledger =>
         ledger.recordRuleRemoved(wallet.id, { grantId: grant.id, tx: removed.tx }),
       )
-      return { rule_status: after.rule_status, tx: removed.tx }
+      const network = yield* Network
+      return {
+        rule_status: after.rule_status,
+        tx: removed.tx,
+        explorer_url: `${network.explorerBase}/tx/${removed.tx}`,
+      }
     }),
   )
 

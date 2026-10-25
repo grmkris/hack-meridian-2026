@@ -39,7 +39,7 @@ export interface ProviderEnv {
 const chrome = Effect.gen(function* () {
   const id = yield* randomId('n')
   const network = yield* Network
-  return { nonce: id.slice(2), network: network.label }
+  return { nonce: id.slice(2), network: network.label, explorerBase: network.explorerBase }
 })
 
 /** A workers-oauth-provider call that threw (AuthorizationError, CimdFetchError, …), kept for the error page. */

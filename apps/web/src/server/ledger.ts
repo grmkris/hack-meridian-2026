@@ -735,7 +735,11 @@ const recordRuleRemoved = Effect.fnUntraced(function* (
   const now = yield* nowIso
   const id = yield* randomId('op')
   yield* write(
-    sql("UPDATE spending_grants SET rule_status = 'removed', status = 'revoked' WHERE id = ?", input.grantId),
+    sql(
+      "UPDATE spending_grants SET rule_status = 'removed', status = 'revoked', remove_tx = ? WHERE id = ?",
+      input.tx,
+      input.grantId,
+    ),
     insert('operations', {
       id,
       intent_id: null,
@@ -767,7 +771,7 @@ const recordSweep = Effect.fnUntraced(function* (
       status: 'confirmed',
       raw_result: JSON.stringify({ grant_id: input.grantId, feeStroops: input.receipt.feeStroops.toString() }),
     }),
-    sql("UPDATE spending_grants SET pocket_balance = '0' WHERE id = ?", input.grantId),
+    sql("UPDATE spending_grants SET pocket_balance = '0', sweep_tx = ? WHERE id = ?", input.receipt.tx, input.grantId),
   )
 })
 

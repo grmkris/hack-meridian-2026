@@ -94,6 +94,10 @@ export const SpendingGrant = Schema.Struct({
   first_payment_done: Schema.Boolean,
   status: GrantStatus,
   install_tx: Schema.String,
+  /** The transaction that removed the rule (revoke proof), once removed. */
+  remove_tx: Schema.optionalKey(Schema.NullOr(Schema.String)),
+  /** The transaction that swept the pocket back to the smart account on revoke. */
+  sweep_tx: Schema.optionalKey(Schema.NullOr(Schema.String)),
   created_at: IsoTime,
 })
 export type SpendingGrant = typeof SpendingGrant.Type

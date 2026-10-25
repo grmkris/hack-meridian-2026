@@ -136,6 +136,10 @@ export const GrantView = Schema.Struct({
   grant_status: Schema.NullOr(Schema.Literals(['active', 'revoked', 'expired'])),
   rule_status: Schema.NullOr(Schema.Literals(['installed', 'removal_pending', 'removed'])),
   rule_id: Schema.NullOr(Schema.Int),
+  /** Proof links (tx hashes; build `<explorer_base>/tx/<hash>`): the allowance installed, removed, pocket swept. */
+  install_tx: Schema.optionalKey(Schema.NullOr(Schema.String)),
+  remove_tx: Schema.optionalKey(Schema.NullOr(Schema.String)),
+  sweep_tx: Schema.optionalKey(Schema.NullOr(Schema.String)),
   created_at: Schema.String,
   revoked_at: Schema.NullOr(Schema.String),
 })

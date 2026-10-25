@@ -61,7 +61,12 @@ export interface Page {
 export interface Chrome {
   readonly nonce: string
   readonly network: 'Testnet' | 'Mainnet'
+  /** e.g. https://stellar.expert/explorer/testnet */
+  readonly explorerBase: string
 }
+
+const txLink = (c: Chrome, hash: string, testid: string) =>
+  `<a href="${escape(`${c.explorerBase}/tx/${hash}`)}" rel="noreferrer" data-testid="${testid}"><code>${escape(hash)}</code></a>`
 
 const page = (title: string, c: Chrome, body: string, script = '', data?: unknown) =>
   `<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="no-referrer"><title>${escape(title)} · Nod</title>${STYLE}<body><p class="brand"><span class="mark">nod</span> · <span class="net">Stellar ${escape(c.network)}</span></p>${body}${data === undefined ? '' : jsonBlock('ctx', data)}${script === '' ? '' : `<script nonce="${c.nonce}">${PASSKEY_JS}${script}</script>`}</body></html>`
@@ -252,7 +257,7 @@ export const revokePage = (
     c,
     `<h1${removed ? ' data-testid="revoked"' : ''}>${removed ? `${escape(input.clientName)} is revoked` : `Revoke ${escape(input.clientName)}?`}</h1>
 <div class="card"><dl><dt>AI app</dt><dd>${escape(input.clientName)} <span class="muted">${escape(input.connectionStatus)}</span></dd>
-${input.grant === undefined ? '' : `<dt>Allowance</dt><dd>${escape(usdc(input.grant.total))}, spent ${escape(usdc(input.grant.spent))}</dd><dt>On Stellar</dt><dd>${input.grant.rule_status === 'removed' ? 'removed from your account' : input.grant.rule_status === 'removal_pending' ? 'still on your account until your passkey removes it' : 'on your account'}</dd><dt>Unspent</dt><dd>${escape(usdc(input.grant.pocket_balance))} <span class="muted">goes back to your wallet</span></dd>`}</dl></div>
+${input.grant === undefined ? '' : `<dt>Allowance</dt><dd>${escape(usdc(input.grant.total))}, spent ${escape(usdc(input.grant.spent))}</dd><dt>On Stellar</dt><dd>${input.grant.rule_status === 'removed' ? 'removed from your account' : input.grant.rule_status === 'removal_pending' ? 'still on your account until your passkey removes it' : 'on your account'}${input.grant.remove_tx === null || input.grant.remove_tx === undefined ? '' : `<br>${txLink(c, input.grant.remove_tx, 'rule-removal-tx')}`}</dd>${input.grant.sweep_tx === null || input.grant.sweep_tx === undefined ? '' : `<dt>Swept back</dt><dd>${txLink(c, input.grant.sweep_tx, 'pocket-sweep-tx')}</dd>`}<dt>Unspent</dt><dd>${escape(usdc(input.grant.pocket_balance))} <span class="muted">goes back to your wallet</span></dd>`}</dl></div>
 ${removed ? '' : input.signedIn === undefined ? `<div class="card"><p>Sign in with the wallet's passkey.</p><p class="row"><button class="primary" id="signin">Sign in with passkey</button></p></div>` : `<p>Nod stops paying for this AI app at once. Your passkey then removes the allowance from your Stellar account.</p><p class="row"><button class="primary" id="revoke" data-testid="revoke" data-connection="${escape(input.connectionId)}">Revoke with passkey</button></p>`}
 <p id="status" class="muted" role="status"></p>`,
     removed

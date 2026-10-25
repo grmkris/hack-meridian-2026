@@ -34,6 +34,9 @@ export const apiGrantView = (connection: Connection, grant: SpendingGrant | unde
   grant_status: grant?.status ?? null,
   rule_status: grant?.rule_status ?? null,
   rule_id: grant?.rule_id ?? null,
+  install_tx: grant?.install_tx ?? null,
+  remove_tx: grant?.remove_tx ?? null,
+  sweep_tx: grant?.sweep_tx ?? null,
   created_at: connection.created_at,
   revoked_at: connection.revoked_at,
 })

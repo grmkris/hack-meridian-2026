@@ -229,6 +229,8 @@ export const ConnectionGrantRevokeOutput = Schema.Struct({
   onchain: Schema.Literals(['removed', 'pending_owner']),
   approval_url: Schema.NullOr(Schema.String),
   sweep_tx: Schema.NullOr(Schema.String),
+  /** The rule-removal transaction once the owner removed it (stellar.expert link in removal_explorer_url). */
+  removal_tx: Schema.optionalKey(Schema.NullOr(Schema.String)),
   message: Schema.String,
   grant_remaining: Schema.String,
 })

@@ -3,6 +3,7 @@ import { Effect, Layer } from 'effect'
 import { Db, type SqlEngine, type SqlValue } from '../db.ts'
 import wallet from '../migrations/0001_wallet.sql?raw'
 import pocketBalance from '../migrations/0002_pocket_balance.sql?raw'
+import grantTxs from '../migrations/0003_grant_txs.sql?raw'
 
 /** The subset of node:sqlite's DatabaseSync the tests use. */
 interface SqliteDatabase {
@@ -27,7 +28,7 @@ export const sqliteEngine = async (): Promise<SqlEngine & { readonly database: S
   // oxlint-disable-next-line typescript/no-unsafe-type-assertion
   const { DatabaseSync } = (await import(/* @vite-ignore */ specifier)) as SqliteModule
   const database = new DatabaseSync(':memory:')
-  for (const migration of [wallet, pocketBalance]) database.exec(migration)
+  for (const migration of [wallet, pocketBalance, grantTxs]) database.exec(migration)
   return {
     database,
     all: async statement => database.prepare(statement.sql).all(...statement.params),
