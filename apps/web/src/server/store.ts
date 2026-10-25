@@ -3,6 +3,9 @@ import { Effect } from 'effect'
 import type { Connection, Contact, PaymentIntent, ReceiptRecord, SpendingGrant, Wallet } from '@hm/protocol'
 
 import { isoIn, nowIso, randomId, randomToken, sha256Hex } from './clock.ts'
+import { allowanceChanged } from './events/emit.ts'
+import { EventsHost } from './events/host.ts'
+import { journalStatement } from './events/journal.ts'
 import {
   first,
   insert,
@@ -194,6 +197,9 @@ export const createConnection = (input: {
 }) =>
   Effect.gen(function* () {
     const now = yield* nowIso
+    const network = yield* first(sql('SELECT network FROM wallets WHERE id = ?', input.walletId), row =>
+      Effect.succeed(String(row['network'])),
+    )
     yield* write(
       insert('connections', {
         id: input.connectionId,
@@ -229,7 +235,21 @@ export const createConnection = (input: {
         created_at: now,
       }),
       sql('DELETE FROM pending_grants WHERE id = ?', input.pending.id),
+      journalStatement(
+        allowanceChanged({
+          walletId: input.walletId,
+          network: network ?? 'stellar:testnet',
+          connectionId: input.connectionId,
+          grantId: input.grantId,
+          change: 'installed',
+          allowance: input.pending.total,
+          remaining: input.pending.total,
+          validUntil: input.pending.valid_until,
+          occurredAt: now,
+        }),
+      ),
     )
+    yield* EventsHost.use(host => host.poke(input.walletId))
   })
 
 /** The OAuth grant id is known only after completeAuthorization; it is recorded right after. */

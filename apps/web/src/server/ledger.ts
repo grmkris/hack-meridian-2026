@@ -15,7 +15,10 @@ import {
 } from '@hm/protocol'
 
 import { isoIn, millisOf, nowIso, nowMillis, randomId } from './clock.ts'
-import { Db, DbError } from './db.ts'
+import { Db, DbError, type SqlStatement } from './db.ts'
+import { allowanceChanged, approvalNeeded, paymentReceived, paymentSettled } from './events/emit.ts'
+import { journalStatement } from './events/journal.ts'
+import { terminateConnectionStatement } from './events/store.ts'
 import { first, insert, sql, toGrant, toIntent, toReservation, write } from './rows.ts'
 
 /**
@@ -306,6 +309,117 @@ const reserveAndClaim = (
     ],
   }))
 
+// MCP Events: journal rows appended to the batches below, so an event exists exactly when its state change does.
+
+/** approval.needed for an intent that now waits for the owner (events/emit.ts). */
+const approvalEvent = (
+  walletId: string,
+  intent: {
+    readonly id: string
+    readonly kind: IntentKind
+    readonly network: string
+    readonly amount: bigint
+    readonly recipient_address: string
+    readonly recipient_name: string | null
+  },
+  expiresAt: string,
+  now: string,
+) =>
+  journalStatement(
+    approvalNeeded({
+      walletId,
+      network: intent.network,
+      paymentId: intent.id,
+      purchase: intent.kind !== 'payment',
+      amount: intent.amount,
+      to: { address: intent.recipient_address, contact_name: intent.recipient_name },
+      expiresAt,
+      occurredAt: now,
+    }),
+  )
+
+/** The owner's saved name for `address`, if any. */
+const contactNameOf = (ownerId: string, address: string) =>
+  first(
+    sql(
+      `SELECT c.display_name AS name FROM contacts c JOIN contact_destinations d ON d.contact_id = c.id
+         WHERE c.owner_id = ? AND d.address = ? ORDER BY c.created_at LIMIT 1`,
+      ownerId,
+      address,
+    ),
+    row => Effect.succeed(String(row['name'])),
+  ).pipe(Effect.map(name => name ?? null))
+
+/**
+ * The events of a confirmed payment, read before its batch: payment.settled for this wallet; payment.received for
+ * the recipient when it is another Nod wallet (named as that owner saved the payer, never by this wallet's name);
+ * allowance.changed once the grant has less than a fifth left.
+ */
+const confirmedEvents = Effect.fnUntraced(function* (
+  walletId: string,
+  intent: PaymentIntent,
+  settlement: Receipt,
+  grantAfter: SpendingGrant | undefined,
+  now: string,
+) {
+  const statements: Array<SqlStatement> = [
+    journalStatement(
+      paymentSettled({
+        walletId,
+        network: intent.network,
+        paymentId: intent.id,
+        status: 'confirmed',
+        amount: intent.amount,
+        to: { address: intent.recipient_address, contact_name: intent.recipient_name },
+        tx: settlement.tx,
+        explorer: settlement.explorer,
+        occurredAt: now,
+      }),
+    ),
+  ]
+  if (intent.kind === 'payment') {
+    const payer = yield* first(sql('SELECT contract_id FROM wallets WHERE id = ?', walletId), row =>
+      Effect.succeed(String(row['contract_id'])),
+    )
+    const recipient = yield* first(
+      sql('SELECT id, owner_id, network FROM wallets WHERE contract_id = ?', intent.recipient_address),
+      row =>
+        Effect.succeed({ id: String(row['id']), ownerId: String(row['owner_id']), network: String(row['network']) }),
+    )
+    if (payer !== undefined && recipient !== undefined)
+      statements.push(
+        journalStatement(
+          paymentReceived({
+            walletId: recipient.id,
+            network: recipient.network,
+            amount: intent.amount,
+            from: { address: payer, contact_name: yield* contactNameOf(recipient.ownerId, payer) },
+            tx: settlement.tx,
+            explorer: settlement.explorer,
+            occurredAt: now,
+          }),
+        ),
+      )
+  }
+  if (grantAfter !== undefined && grantAfter.total > 0n && remainingOf(grantAfter) * 5n < grantAfter.total)
+    statements.push(
+      journalStatement(
+        allowanceChanged({
+          walletId,
+          network: intent.network,
+          connectionId: grantAfter.connection_id,
+          grantId: grantAfter.id,
+          change: 'low',
+          allowance: grantAfter.total,
+          remaining: remainingOf(grantAfter),
+          validUntil: grantAfter.valid_until,
+          occurredAt: now,
+        }),
+      ),
+    )
+  return statements
+})
+
 const prepareIntent = Effect.fnUntraced(function* (walletId: string, input: NewIntent) {
   const existing = yield* first(
     sql(
@@ -383,7 +497,20 @@ const prepareIntent = Effect.fnUntraced(function* (walletId: string, input: NewI
     updated_at: now,
   }
   const claimed = claim ? yield* reserveAndClaim({ id, amount: input.amount }, grant, input.operationKind, now) : null
-  yield* write(insert('payment_intents', row), ...(claimed?.statements ?? []))
+  yield* write(
+    insert('payment_intents', row),
+    ...(claimed?.statements ?? []),
+    ...(status === 'awaiting_approval'
+      ? [
+          approvalEvent(
+            walletId,
+            { ...row, kind: input.kind, recipient_name: input.recipientName },
+            row.expires_at,
+            now,
+          ),
+        ]
+      : []),
+  )
   return {
     intent: yield* loadIntent(id),
     grant: yield* loadGrant(input.grantId),
@@ -418,15 +545,17 @@ const claimAutonomous = Effect.fnUntraced(function* (
   })
   if (lane === 'owner' || grant === undefined) {
     // The grant changed since prepare (spent elsewhere, revoked, expired): the owner decides now.
+    const expiresAt = yield* isoIn(INTENT_TTL_MS)
     yield* write(
       setIntentStatus(intent.id, {
         status: 'awaiting_approval',
         lane: 'owner',
         failure: 'the allowance no longer covers this payment',
-        expiresAt: yield* isoIn(INTENT_TTL_MS),
+        expiresAt,
         feeCeiling: FEE_CEILING_OWNER_PAYMENT_XLM,
         now,
       }),
+      approvalEvent(intent.wallet_id, intent, expiresAt, now),
     )
     return { _tag: 'NotClaimed' as const, intent: yield* loadIntent(intent.id), why: 'rerouted' as const }
   }
@@ -584,6 +713,20 @@ const settle = Effect.fnUntraced(function* (
   if (outcome._tag === 'Confirmed') {
     const settlement = outcome.settlement
     const receiptId = yield* randomId('rc')
+    const events = yield* confirmedEvents(
+      walletId,
+      intent,
+      settlement,
+      grant === undefined
+        ? undefined
+        : {
+            ...grant,
+            spent: grant.spent + pulled,
+            reserved: grant.reserved - held,
+            pocket_balance: grant.pocket_balance + pocketDelta,
+          },
+      now,
+    )
     yield* write(
       ...counters,
       ...release,
@@ -630,6 +773,7 @@ const settle = Effect.fnUntraced(function* (
               intent.recipient_address,
             ),
           ]),
+      ...events,
     )
     return yield* loadIntent(intent.id)
   }
@@ -646,6 +790,7 @@ const settle = Effect.fnUntraced(function* (
           ),
         ]
       : []
+  const ownerExpiry = intent.lane === 'owner' ? intent.expires_at : yield* isoIn(INTENT_TTL_MS)
   yield* write(
     ...counters,
     ...release,
@@ -661,11 +806,26 @@ const settle = Effect.fnUntraced(function* (
           status: 'awaiting_approval',
           lane: 'owner',
           failure: `${outcome.kind}: ${outcome.message}`,
-          expiresAt: intent.lane === 'owner' ? intent.expires_at : yield* isoIn(INTENT_TTL_MS),
+          expiresAt: ownerExpiry,
           feeCeiling: FEE_CEILING_OWNER_PAYMENT_XLM,
           now,
         })
       : setIntentStatus(intent.id, { status: 'failed', failure: `${outcome.kind}: ${outcome.message}`, now }),
+    toOwner
+      ? approvalEvent(walletId, intent, ownerExpiry, now)
+      : journalStatement(
+          paymentSettled({
+            walletId,
+            network: intent.network,
+            paymentId: intent.id,
+            status: 'failed',
+            amount: intent.amount,
+            to: { address: intent.recipient_address, contact_name: intent.recipient_name },
+            tx: null,
+            explorer: null,
+            occurredAt: now,
+          }),
+        ),
   )
   return yield* loadIntent(intent.id)
 })
@@ -781,9 +941,13 @@ const claimApproved = Effect.fnUntraced(function* (_walletId: string, input: { r
   return { _tag: 'Claimed' as const, intent: yield* loadIntent(intent.id), grant: undefined, operationId }
 })
 
-const revokeConnection = Effect.fnUntraced(function* (_walletId: string, input: { readonly connectionId: string }) {
+const revokeConnection = Effect.fnUntraced(function* (walletId: string, input: { readonly connectionId: string }) {
   const now = yield* nowIso
   const grant = yield* loadGrantOfConnection(input.connectionId)
+  const network = yield* first(sql('SELECT network FROM wallets WHERE id = ?', walletId), row =>
+    Effect.succeed(String(row['network'])),
+  )
+  const nowMs = yield* nowMillis
   yield* write(
     sql(
       "UPDATE connections SET status = 'revoked', revoked_at = COALESCE(revoked_at, ?) WHERE id = ?",
@@ -804,7 +968,21 @@ const revokeConnection = Effect.fnUntraced(function* (_walletId: string, input: 
             now,
             grant.id,
           ),
+          journalStatement(
+            allowanceChanged({
+              walletId,
+              network: network ?? 'stellar:testnet',
+              connectionId: input.connectionId,
+              grantId: grant.id,
+              change: 'revoked',
+              allowance: grant.total,
+              remaining: 0n,
+              validUntil: grant.valid_until,
+              occurredAt: now,
+            }),
+          ),
         ]),
+    terminateConnectionStatement(input.connectionId, nowMs),
   )
   return yield* loadGrantOfConnection(input.connectionId)
 })
