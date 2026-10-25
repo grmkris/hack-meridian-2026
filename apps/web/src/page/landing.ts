@@ -339,7 +339,7 @@ const footerView = <Message>(h: HtmlBuilder<Message>): Html =>
       h.p(
         [h.Class('max-w-2xl text-sm text-pretty text-muted')],
         [
-          'Built at HackMeridian 2026 for Stellar Composed and Stellar Unlocked. Stellar testnet only. ',
+          'Built at HackMeridian 2026 for the Stellar Composed track. Stellar testnet only. ',
           h.a([h.Href(REPOSITORY_URL), h.Target('_blank'), h.Rel('noreferrer'), h.Class(LINK)], ['Source on GitHub']),
         ],
       ),
