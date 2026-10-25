@@ -9,7 +9,14 @@ import {
   type OAuthResourceContext,
 } from '@cloudflare/workers-oauth-provider'
 import { Assertion } from '@hm/api'
-import { Chain, fromStroops, PreparedOwnerAuth, toStroops } from '@hm/protocol'
+import {
+  Chain,
+  DEFAULT_NOD_ABOVE_STROOPS,
+  fromStroops,
+  MIN_NOD_ABOVE_STROOPS,
+  PreparedOwnerAuth,
+  toStroops,
+} from '@hm/protocol'
 
 import { isoIn, nowIso, nowMillis, randomId } from './clock.ts'
 import { serveMcp } from './mcp.ts'
@@ -68,7 +75,19 @@ const GrantRequest = Schema.Struct({
   handle: Schema.String,
   allowance: Schema.String,
   lifetime_seconds: Schema.Int,
+  /** The nod line ("Ask me for a nod above … USDC"); absent = 1.00, or the allowance when that is smaller. */
+  nod_above_usdc: Schema.optionalKey(Schema.String),
 })
+
+/** The nod line from the consent form, in stroops: 0.01 at least, the allowance at most. */
+export const nodLineOf = (input: string | undefined, total: bigint): bigint | undefined => {
+  if (input === undefined || input.trim() === '')
+    return DEFAULT_NOD_ABOVE_STROOPS < total ? DEFAULT_NOD_ABOVE_STROOPS : total
+  const text = input.trim()
+  if (!ALLOWANCE.test(text)) return undefined
+  const line = toStroops(text)
+  return line < MIN_NOD_ABOVE_STROOPS || line > total ? undefined : line
+}
 
 /** POST /oauth/grant/prepare: K, its rule install prepared for the owner's passkey (nothing onchain yet). */
 export const prepareGrant = (runtime: AppRuntime, request: Request) =>
@@ -95,9 +114,15 @@ export const prepareGrant = (runtime: AppRuntime, request: Request) =>
           message: `Nod caps an allowance at ${fromStroops(network.caps.maxGrantStroops)} USDC on ${network.label}.`,
         })
       const lifetime = Math.min(Math.max(input.lifetime_seconds, 300), MAX_LIFETIME_S)
+      const total = toStroops(input.allowance)
+      const nodAbove = nodLineOf(input.nod_above_usdc, total)
+      if (nodAbove === undefined)
+        return yield* new OwnerError({
+          kind: 'bad_request',
+          message: `the nod line must be a USDC amount from ${fromStroops(MIN_NOD_ABOVE_STROOPS)} up to the allowance (${fromStroops(total)})`,
+        })
       const chain = yield* Chain
       const signer = yield* chain.newSigner
-      const total = toStroops(input.allowance)
       const prepared = yield* chain.prepareInstallGrant(wallet.contract_id, signer.publicKey, total, lifetime)
       const encoded = yield* Schema.encodeEffect(PreparedOwnerAuth)(prepared).pipe(
         Effect.mapError(() => new OwnerError({ kind: 'unavailable', message: 'could not store the prepared install' })),
@@ -108,6 +133,7 @@ export const prepareGrant = (runtime: AppRuntime, request: Request) =>
         signer_public_key: signer.address,
         signer_key_ref: signer.signerKeyRef,
         total,
+        nod_above: nodAbove,
         valid_until: yield* isoIn(lifetime * 1000),
         lifetime_seconds: lifetime,
         prepared: JSON.stringify(encoded),

@@ -67,6 +67,8 @@ const feeOf = (receipt: ReceiptView | null): string | null =>
 
 /** Idempotency keys are per run: a repeat inside the run hits the same intent, the next run starts fresh. */
 const keyOf = (runId: string, name: string) => `sample-${runId}-${name}`
+/** The sample allowance's nod line as the agent sees it ("1.00"). */
+const nodLine = fromStroops(toStroops(SAMPLE_AMOUNTS.nodAbove))
 
 export const sampleProgram = (runtime: AppRuntime, input: SampleInput, report: (run: SampleRun) => Promise<void>) =>
   Effect.gen(function* () {
@@ -277,7 +279,7 @@ export const sampleProgram = (runtime: AppRuntime, input: SampleInput, report: (
       }),
     )
 
-    // 4. dinner: above what is left of the allowance → needs your nod
+    // 4. dinner: at or above the nod line (and above what is left) → needs your nod
     const dinner = {
       recipient: 'Bob',
       amount: SAMPLE_AMOUNTS.dinner,
@@ -300,7 +302,7 @@ export const sampleProgram = (runtime: AppRuntime, input: SampleInput, report: (
             fee: null,
             detail:
               asked.success.status === 'awaiting_approval'
-                ? `More than the ${asked.success.grant_remaining} USDC left of the allowance, so it needs your nod. The agent gets an approval link, not an error, and nothing moves yet.`
+                ? `${asked.success.approval_reason === 'above_nod_line' ? `At or above the ${nodLine} USDC nod line` : `More than the ${asked.success.grant_remaining} USDC left of the allowance`}, so it needs your nod. The agent gets an approval link, not an error, and nothing moves yet.`
                 : asked.success.next_step,
             links:
               asked.success.approval_url === null ? [] : [{ label: 'approval page', url: asked.success.approval_url }],
@@ -360,18 +362,18 @@ export const sampleProgram = (runtime: AppRuntime, input: SampleInput, report: (
       }),
     )
 
-    // 7. 4 USDC with 2.90 left: needs your nod, left unapproved
+    // 7. 2 USDC with 4.40 left: at or above the nod line, needs your nod, left unapproved
     yield* step(
       '7',
-      `It asks for ${SAMPLE_AMOUNTS.tooMuch} USDC more for Alice`,
+      `It asks for ${SAMPLE_AMOUNTS.aboveLine} USDC more for Alice`,
       'payment_prepare',
       Effect.map(
         asToolError(
           paymentPrepare(ctx, {
             recipient: 'Alice',
-            amount: SAMPLE_AMOUNTS.tooMuch,
-            reason: 'sample: more than what is left',
-            idempotency_key: keyOf(input.id, 'too-much'),
+            amount: SAMPLE_AMOUNTS.aboveLine,
+            reason: 'sample: at or above the nod line',
+            idempotency_key: keyOf(input.id, 'above-line'),
           }),
         ),
         ({ value }): Outcome => ({
@@ -380,7 +382,7 @@ export const sampleProgram = (runtime: AppRuntime, input: SampleInput, report: (
           fee: null,
           detail:
             value.status === 'awaiting_approval'
-              ? `${value.amount} is more than the ${value.grant_remaining} left, so it comes back to the owner instead of failing on Stellar. The sample leaves this one unapproved; it expires in 30 minutes.`
+              ? `${value.amount} is ${value.approval_reason === 'above_nod_line' ? `at or above the ${nodLine} USDC nod line, with ${value.grant_remaining} left` : `more than the ${value.grant_remaining} left`}, so it comes back to the owner instead of paying alone. The sample leaves this one unapproved; it expires in 30 minutes.`
               : value.next_step,
           links: value.approval_url === null ? [] : [{ label: 'approval page', url: value.approval_url }],
         }),

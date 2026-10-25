@@ -4,19 +4,20 @@
  */
 
 /**
- * The judge path's amounts, smaller than the video's (docs/SPEC.md) so a run costs the treasury about 8 USDC: the
- * allowance, the x402 price, Alice, the dinner (above the 2.90 left, so it needs the nod), the ask above what is left,
- * Carol through the claim link.
+ * The demo beats (docs/SPEC.md, decisions 2026-10-25 17:10 UTC), the same as the judge path: the allowance and its nod
+ * line, the x402 price and Alice (below the line: alone), the dinner (at or above the line: needs the nod), the ask at
+ * or above the line with plenty left, Carol through the claim link.
  */
 export const SAMPLE_AMOUNTS = {
   allowance: '5',
+  nodAbove: '1',
   brief: '0.10',
-  alice: '2',
+  alice: '0.50',
   dinner: '5',
-  tooMuch: '4',
+  aboveLine: '2',
   carol: '1',
-  /** At most 1.00 (pocket pull) + 2 + 5 + 1; the pocket's 0.90 comes back on revoke. */
-  runSpend: '9',
+  /** At most 1.00 (pocket pull) + 0.50 + 5 + 1; the pocket's 0.90 comes back on revoke. */
+  runSpend: '7.50',
   /** The treasury tops the demo wallet up to this before a run. */
   walletFloor: '15',
 } as const

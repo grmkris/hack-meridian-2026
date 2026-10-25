@@ -1,6 +1,7 @@
 import { Effect, Ref, Schema } from 'effect'
 
 import {
+  type ApprovalReason,
   Chain,
   ChainError,
   type ChainReadiness,
@@ -97,6 +98,12 @@ export const scope = (ctx: ToolContext, write: boolean) =>
 
 const toReadiness = (readiness: ChainReadiness): Readiness => (readiness === 'contract' ? 'usdc_ready' : readiness)
 
+/** Why an amount needs the user's nod, for the sentence: the nod line they set, or the allowance. */
+const aboveWhat = (reason: ApprovalReason | null | undefined, grant: SpendingGrant | undefined) =>
+  reason === 'above_nod_line' && grant !== undefined
+    ? `at or above the ${fromStroops(grant.nod_above)} USDC line the user set for paying on its own`
+    : 'above what this AI app may spend on its own'
+
 // 1. wallet_overview
 
 export const walletOverview = (ctx: ToolContext) =>
@@ -112,7 +119,7 @@ export const walletOverview = (ctx: ToolContext) =>
     const receipts = yield* receiptsOfWallet(wallet.id, 5, connection.id)
     const remaining = grantRemaining(grant, nowMs)
     return {
-      sentence: `Nod wallet ${wallet.name} (Stellar ${network.label}) holds ${balances.usdc} USDC. This AI app may still spend ${remaining} USDC on its own${grant === undefined ? '' : ` until ${grant.valid_until}`}; anything bigger needs the user's nod.`,
+      sentence: `Nod wallet ${wallet.name} (Stellar ${network.label}) holds ${balances.usdc} USDC. This AI app may still spend ${remaining} USDC on its own${grant === undefined ? '' : ` until ${grant.valid_until}, in payments below ${fromStroops(grant.nod_above)} USDC`}; ${grant === undefined ? 'anything bigger' : `a payment of ${fromStroops(grant.nod_above)} USDC or more, or anything bigger,`} needs the user's nod.`,
       value: {
         network: network.caip,
         explorer_base: network.explorerBase,
@@ -253,7 +260,7 @@ export const paymentPrepare = (
     return {
       sentence:
         view.approval_url !== null
-          ? `This payment of ${view.amount} USDC to ${recipient.name ?? recipient.address} is above what this AI app may spend on its own, so it needs the user's nod. Ask the user to open ${view.approval_url} and approve it with their passkey, then call payment_status with payment_id ${view.payment_id}.${view.claim_url === null ? '' : ` ${recipient.name ?? 'The recipient'} has no USDC trustline yet: they accept at ${view.claim_url}.`}`
+          ? `This payment of ${view.amount} USDC to ${recipient.name ?? recipient.address} is ${aboveWhat(view.approval_reason, prepared.grant)}, so it needs the user's nod. Ask the user to open ${view.approval_url} and approve it with their passkey, then call payment_status with payment_id ${view.payment_id}.${view.claim_url === null ? '' : ` ${recipient.name ?? 'The recipient'} has no USDC trustline yet: they accept at ${view.claim_url}.`}`
           : view.next_step,
       value: { ...view, outcome: status === 'prepared' ? 'ready_to_execute' : status },
     }
@@ -523,6 +530,7 @@ const existingPaid = (ctx: ToolContext, intentId: string, grant: SpendingGrant |
       price: fromStroops(intent.amount),
       receipt: view.receipt,
       approval_url: view.approval_url,
+      approval_reason: view.approval_reason ?? null,
       message:
         view.status === 'confirmed'
           ? 'Already paid with this idempotency key; nothing was paid again. The content was returned by the first call.'
@@ -643,6 +651,7 @@ const paid = <Body>(
       const intent = yield* intentById(after.intentId)
       const view =
         intent === undefined ? undefined : paymentView(intent, undefined, fresh, ctx.origin, yield* nowMillis)
+      const reason = view?.approval_reason ?? 'over_allowance'
       return {
         body: null,
         status: 'requires_approval' as const,
@@ -650,7 +659,8 @@ const paid = <Body>(
         price: after.quote === null ? null : fromStroops(after.quote.amountStroops),
         receipt: null,
         approval_url: view?.approval_url ?? null,
-        message: `The price is more than this AI app's allowance has left, so it needs the user's nod. Nothing was paid. Ask the user to open ${view?.approval_url ?? 'Nod'} and approve it with their passkey, then call this tool again with the same idempotency key.`,
+        approval_reason: reason,
+        message: `${reason === 'above_nod_line' ? `The price is ${aboveWhat(reason, fresh)}` : "The price is more than this AI app's allowance has left"}, so it needs the user's nod. Nothing was paid. Ask the user to open ${view?.approval_url ?? 'Nod'} and approve it with their passkey, then call this tool again with the same idempotency key.`,
         grant_remaining: grantRemaining(fresh, yield* nowMillis),
       }
     }
@@ -705,6 +715,7 @@ export const paidResourceFetch = (ctx: ToolContext, input: PaidResourceFetchInpu
         price: outcome.price,
         receipt: outcome.receipt,
         approval_url: outcome.approval_url,
+        approval_reason: 'approval_reason' in outcome ? outcome.approval_reason : null,
         message: outcome.message,
         pull: 'pull' in outcome ? outcome.pull : null,
         facilitator_message: 'facilitator_message' in outcome ? outcome.facilitator_message : null,
@@ -745,6 +756,7 @@ export const paidMcpCall = (ctx: ToolContext, input: PaidMcpCallInput) =>
         price: outcome.price,
         receipt: outcome.receipt,
         approval_url: outcome.approval_url,
+        approval_reason: 'approval_reason' in outcome ? outcome.approval_reason : null,
         message: outcome.message,
         pull: 'pull' in outcome ? outcome.pull : null,
         facilitator_message: 'facilitator_message' in outcome ? outcome.facilitator_message : null,
@@ -763,7 +775,7 @@ export const connectionGrantCreate = (ctx: ToolContext, key: string) =>
       url,
       grant: grant === undefined ? null : toolGrantView(grant, nowMs),
       message:
-        'This tool never grants anything itself. The user raises or renews the allowance by reconnecting this AI app to Nod: the consent page asks for an amount and an expiry, and their passkey signs it.',
+        'This tool never grants anything itself. The user raises or renews the allowance by reconnecting this AI app to Nod: the consent page asks for an amount, an expiry and the line from which a payment needs their nod, and their passkey signs it.',
       grant_remaining: grantRemaining(grant, nowMs),
     }
     yield* saveToolResult(ctx.props.connection_id, key, 'connection_grant_create', JSON.stringify(value))

@@ -1,6 +1,7 @@
 import { Context, Effect, Schema, Semaphore } from 'effect'
 
 import {
+  type ApprovalReason,
   type ChainErrorKind,
   FEE_CEILING_FIRST_PAYMENT_XLM,
   FEE_CEILING_LATER_PAYMENT_XLM,
@@ -57,26 +58,28 @@ export const effectiveStatus = (intent: PaymentIntent, nowMs: number): PaymentIn
     : intent.status
 
 /**
- * The lane rule (docs/SPEC.md): autonomous only inside a live grant, for a ready recipient, within what is left. A
- * direct payment comes from the smart account under the rule, so only the policy's free amount counts; an x402
- * purchase is paid from the pocket, so its float counts too.
+ * The lane rule (docs/SPEC.md): autonomous only inside a live grant, for a ready recipient, below the grant's nod line
+ * and within what is left. A direct payment comes from the smart account under the rule, so only the policy's free
+ * amount counts; an x402 purchase is paid from the pocket, so its float counts too. The owner lane carries its reason.
  */
-export const laneFor = (input: {
+const owner = (reason: ApprovalReason) => ({ lane: 'owner' as const, reason })
+
+export const laneDecision = (input: {
   readonly grant: SpendingGrant | undefined
   readonly kind: IntentKind
   readonly amount: bigint
   readonly readiness: Readiness
   readonly nowMs: number
   readonly forceOwner: boolean
-}): Lane =>
-  !input.forceOwner &&
-  input.grant !== undefined &&
-  grantLive(input.grant, input.nowMs) &&
-  input.amount > 0n &&
-  input.amount <= (input.kind === 'payment' ? policyFreeOf(input.grant) : remainingOf(input.grant)) &&
-  input.readiness === 'usdc_ready'
-    ? 'autonomous'
-    : 'owner'
+}): { readonly lane: Lane; readonly reason: ApprovalReason | null } => {
+  if (input.forceOwner || input.amount <= 0n) return owner('owner_only')
+  if (input.grant === undefined || !grantLive(input.grant, input.nowMs)) return owner('no_allowance')
+  if (input.readiness !== 'usdc_ready') return owner('recipient_not_ready')
+  if (input.amount >= input.grant.nod_above) return owner('above_nod_line')
+  if (input.amount > (input.kind === 'payment' ? policyFreeOf(input.grant) : remainingOf(input.grant)))
+    return owner('over_allowance')
+  return { lane: 'autonomous', reason: null }
+}
 
 /** XLM fee ceilings for an intent, from the network preset (defaults: the protocol's testnet numbers). */
 export interface FeeCeilings {
@@ -260,6 +263,7 @@ const setIntentStatus = (
   fields: {
     status: PaymentIntent['status']
     lane?: Lane
+    approvalReason?: ApprovalReason
     failure?: string | null
     expiresAt?: string
     feeCeiling?: number
@@ -267,10 +271,12 @@ const setIntentStatus = (
   },
 ) =>
   sql(
-    `UPDATE payment_intents SET status = ?, lane = COALESCE(?, lane), failure = ?, expires_at = COALESCE(?, expires_at),
-       fee_ceiling_xlm = COALESCE(?, fee_ceiling_xlm), updated_at = ? WHERE id = ?`,
+    `UPDATE payment_intents SET status = ?, lane = COALESCE(?, lane), approval_reason = COALESCE(?, approval_reason),
+       failure = ?, expires_at = COALESCE(?, expires_at), fee_ceiling_xlm = COALESCE(?, fee_ceiling_xlm), updated_at = ?
+       WHERE id = ?`,
     fields.status,
     fields.lane ?? null,
+    fields.approvalReason ?? null,
     fields.failure ?? null,
     fields.expiresAt ?? null,
     fields.feeCeiling ?? null,
@@ -491,7 +497,7 @@ const prepareIntent = Effect.fnUntraced(function* (walletId: string, input: NewI
   const grant = yield* loadGrant(input.grantId)
   const nowMs = yield* nowMillis
   const now = yield* nowIso
-  const lane = laneFor({
+  const { lane, reason: approvalReason } = laneDecision({
     grant,
     kind: input.kind,
     amount: input.amount,
@@ -523,6 +529,7 @@ const prepareIntent = Effect.fnUntraced(function* (walletId: string, input: NewI
     amount: input.amount,
     fee_ceiling_xlm: feeCeilingFor(lane, grant, input.feeCeilings),
     lane,
+    approval_reason: approvalReason,
     status,
     failure: null,
     approval_prepared: null,
@@ -571,7 +578,7 @@ const claimAutonomous = Effect.fnUntraced(function* (
   }
   if (intent.lane === 'owner') return { _tag: 'NotClaimed' as const, intent, why: 'owner_lane' as const }
   const grant = yield* loadGrant(intent.grant_id)
-  const lane = laneFor({
+  const { lane, reason } = laneDecision({
     grant,
     kind: intent.kind,
     amount: intent.amount,
@@ -586,6 +593,7 @@ const claimAutonomous = Effect.fnUntraced(function* (
       setIntentStatus(intent.id, {
         status: 'awaiting_approval',
         lane: 'owner',
+        approvalReason: reason ?? 'no_allowance',
         failure: 'the allowance no longer covers this payment',
         expiresAt,
         feeCeiling: FEE_CEILING_OWNER_PAYMENT_XLM,

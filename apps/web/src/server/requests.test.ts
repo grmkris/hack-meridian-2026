@@ -64,6 +64,8 @@ const owner = (name: string) =>
         signer_key_ref: signer.signerKeyRef,
         asset: 'USDC',
         total: toStroops('5'),
+        // The nod line at the allowance: these tests are about requests, not the line (W1).
+        nod_above: toStroops('5'),
         spent: 0n,
         reserved: 0n,
         valid_until: '2099-01-01T00:00:00.000Z',

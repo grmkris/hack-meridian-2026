@@ -35,5 +35,13 @@ export const FEE_CEILING_FIRST_PAYMENT_XLM = 20
 export const FEE_CEILING_LATER_PAYMENT_XLM = 3
 export const FEE_CEILING_OWNER_PAYMENT_XLM = 3
 
+/**
+ * The nod line (docs/SPEC.md, decisions 2026-10-25 17:10 UTC): inside the allowance, an amount below it goes alone; at or
+ * above it the AI app asks for the owner's nod. Per allowance, set on the consent page: default 1.00, at least 0.01, at
+ * most the allowance.
+ */
+export const DEFAULT_NOD_ABOVE_STROOPS = 10_000_000n
+export const MIN_NOD_ABOVE_STROOPS = 100_000n
+
 /** x402 pulls take at least this much into the pocket (S5 chunk policy), so a run of small purchases pulls once. */
 export const POCKET_CHUNK_STROOPS = 10_000_000n

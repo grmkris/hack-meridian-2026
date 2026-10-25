@@ -9,10 +9,14 @@ export const BOB = 'GBOBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
 export const ALICE = 'CALICEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
 export const SIGNER = 'GSIGNERAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAB'
 
-/** An owner with one wallet, one connection and its grant (5 USDC, valid for a day from the seed time). */
+/**
+ * An owner with one wallet, one connection and its grant (5 USDC, valid for a day from the seed time). The nod line
+ * defaults to the grant's total, so tests of the allowance itself are not routed by the line (W1 tests set it).
+ */
 export const seedWallet = (
   options: {
     readonly total?: bigint
+    readonly nodAbove?: bigint
     readonly connectionId?: string
     readonly grantId?: string
     readonly ruleId?: number
@@ -37,6 +41,7 @@ export const seedWallet = (
 export const seedConnection = (
   options: {
     readonly total?: bigint
+    readonly nodAbove?: bigint
     readonly connectionId?: string
     readonly grantId?: string
     readonly ruleId?: number
@@ -69,6 +74,7 @@ export const seedConnection = (
       reserved: 0n,
       valid_until: '2099-01-01T00:00:00.000Z',
       valid_until_ledger: 9_999_999,
+      nod_above: options.nodAbove ?? options.total ?? 50_000_000n,
       rule_id: options.ruleId ?? 1,
       rule_status: 'installed',
       pocket_address: SIGNER,

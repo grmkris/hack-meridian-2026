@@ -138,6 +138,8 @@ export const GrantView = Schema.Struct({
   pocket_balance: Schema.String,
   remaining: Schema.String,
   valid_until: Schema.NullOr(Schema.String),
+  /** The nod line, decimal USDC ("1.00"): inside the allowance, a payment at or above it needs the owner's nod. */
+  nod_above_usdc: Schema.optionalKey(Schema.NullOr(Schema.String)),
   grant_status: Schema.NullOr(Schema.Literals(['active', 'revoked', 'expired'])),
   rule_status: Schema.NullOr(Schema.Literals(['installed', 'removal_pending', 'removed'])),
   rule_id: Schema.NullOr(Schema.Int),

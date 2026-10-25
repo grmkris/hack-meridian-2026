@@ -1,6 +1,6 @@
 import { Schema } from 'effect'
 
-import { Asset, IntentStatus, IsoTime, Lane, Network, Readiness } from './entities.ts'
+import { ApprovalReason, Asset, IntentStatus, IsoTime, Lane, Network, Readiness } from './entities.ts'
 import { DecimalAmount } from './money.ts'
 
 /**
@@ -29,6 +29,8 @@ export const GrantView = Schema.Struct({
   /** total − spent − reserved + pocket_balance: what the connection can still spend. */
   remaining: Schema.String,
   valid_until: IsoTime,
+  /** The nod line, decimal USDC: inside the allowance, a payment at or above it needs the user's nod. */
+  nod_above_usdc: Schema.optionalKey(Schema.String),
   status: Schema.Literals(['active', 'revoked', 'expired']),
   rule_id: Schema.Int,
   /** The transaction that installed the allowance on the smart account (and, after a revoke, removed it). */
@@ -64,6 +66,8 @@ export const PaymentView = Schema.Struct({
   kind: Schema.Literals(['payment', 'x402_fetch', 'x402_mcp']),
   status: IntentStatus,
   lane: Lane,
+  /** Why it needs the user's nod (owner lane only), e.g. `above_nod_line` or `over_allowance`. */
+  approval_reason: Schema.optionalKey(Schema.NullOr(ApprovalReason)),
   amount: Schema.String,
   asset: Asset,
   network: Network,
@@ -201,6 +205,8 @@ export const PaidResourceFetchOutput = Schema.Struct({
   price: Schema.NullOr(Schema.String),
   receipt: Schema.NullOr(ReceiptView),
   approval_url: Schema.NullOr(Schema.String),
+  /** With `requires_approval`: why it needs the user's nod. */
+  approval_reason: Schema.optionalKey(Schema.NullOr(ApprovalReason)),
   message: Schema.String,
   /** Set when a pull happened but the purchase failed; the USDC stays in the pocket for the next purchase. */
   pull: Schema.optionalKey(Schema.NullOr(PocketPull)),
@@ -227,6 +233,7 @@ export const PaidMcpCallOutput = Schema.Struct({
   price: Schema.NullOr(Schema.String),
   receipt: Schema.NullOr(ReceiptView),
   approval_url: Schema.NullOr(Schema.String),
+  approval_reason: Schema.optionalKey(Schema.NullOr(ApprovalReason)),
   message: Schema.String,
   pull: Schema.optionalKey(Schema.NullOr(PocketPull)),
   facilitator_message: Schema.optionalKey(Schema.NullOr(Schema.String)),
@@ -238,6 +245,10 @@ export type PaidMcpCallOutput = typeof PaidMcpCallOutput.Type
 export const ConnectionGrantCreateInput = Schema.Struct({
   amount: Schema.optionalKey(DecimalAmount),
   valid_for_hours: Schema.optionalKey(Schema.Int.check(Schema.isGreaterThan(0))),
+  nod_above_usdc: Schema.optionalKey(DecimalAmount).annotate({
+    description:
+      "The nod line to suggest: payments at or above it need the user's nod (default 1.00, at most the allowance)",
+  }),
   idempotency_key: IdempotencyKey,
 })
 export const ConnectionGrantCreateOutput = Schema.Struct({

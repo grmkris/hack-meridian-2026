@@ -271,6 +271,10 @@ const connectionCard = (connection: GrantView, revoke: Revoke, h: HtmlBuilder<Me
                   onNone: () => 'No expiry set',
                   onSome: until => (isActive ? `Until ${dateTime(until)}` : `Was valid until ${dateTime(until)}`),
                 }),
+                ...Option.match(Option.fromNullishOr(connection.nod_above_usdc), {
+                  onNone: () => [],
+                  onSome: line => [`nods above ${line} USDC`],
+                }),
                 ruleLabel(connection),
                 ...Option.match(Option.fromNullishOr(connection.revoked_at), {
                   onNone: () => [],

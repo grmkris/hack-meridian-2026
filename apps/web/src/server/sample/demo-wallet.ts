@@ -141,13 +141,14 @@ export const syncContacts = (ownerId: string) =>
     }
   })
 
-/** A fresh, unspent 5 USDC allowance that lives past this run. */
+/** A fresh, unspent 5 USDC allowance with the 1.00 nod line that lives past this run. */
 const usable = (grant: SpendingGrant | undefined, nowMs: number): grant is SpendingGrant =>
   grant !== undefined &&
   grant.status === 'active' &&
   grant.rule_status === 'installed' &&
   Date.parse(grant.valid_until) > nowMs + 30 * 60 * 1000 &&
   grant.total === toStroops(SAMPLE_AMOUNTS.allowance) &&
+  grant.nod_above === toStroops(SAMPLE_AMOUNTS.nodAbove) &&
   grant.spent === 0n &&
   grant.reserved === 0n
 
@@ -168,6 +169,7 @@ const installAllowance = (owner: DemoOwner, wallet: Wallet, say: Say) =>
       signer_public_key: signer.address,
       signer_key_ref: signer.signerKeyRef,
       total,
+      nod_above: toStroops(SAMPLE_AMOUNTS.nodAbove),
       valid_until: yield* isoIn(ALLOWANCE_LIFETIME_S * 1000),
       lifetime_seconds: ALLOWANCE_LIFETIME_S,
       prepared: JSON.stringify(encoded),
@@ -214,7 +216,7 @@ const installAllowance = (owner: DemoOwner, wallet: Wallet, say: Say) =>
       state: 'ok',
       amount: `${fromStroops(total)} USDC allowance`,
       fee: 'Nod paid the network fee',
-      detail: `The rule (id ${installed.ruleId}) lives on the Stellar account: the agent's own key may move at most ${fromStroops(total)} USDC until it expires. Anything bigger needs the owner's nod.${pocket === null ? '' : ' The agent also gets a pocket account for x402 purchases.'}`,
+      detail: `The rule (id ${installed.ruleId}) lives on the Stellar account: the agent's own key may move at most ${fromStroops(total)} USDC until it expires. Below ${fromStroops(pending.nod_above)} USDC it pays alone; ${fromStroops(pending.nod_above)} USDC or more, or anything past the allowance, needs the owner's nod.${pocket === null ? '' : ' The agent also gets a pocket account for x402 purchases.'}`,
       links: [
         { label: 'allowance installed', url: `${network.explorerBase}/tx/${installed.tx}` },
         ...(pocket === null ? [] : [{ label: 'pocket created', url: `${network.explorerBase}/tx/${pocket.tx}` }]),

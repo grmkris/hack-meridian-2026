@@ -140,6 +140,8 @@ export interface PendingGrant {
   readonly signer_public_key: string
   readonly signer_key_ref: string
   readonly total: bigint
+  /** The nod line the owner set on the consent page (stroops). */
+  readonly nod_above: bigint
   readonly valid_until: string
   readonly lifetime_seconds: number
   readonly prepared: string
@@ -171,6 +173,7 @@ export const pendingGrant = (id: string, ownerId: string) =>
           signer_public_key: String(row['signer_public_key']),
           signer_key_ref: String(row['signer_key_ref']),
           total: BigInt(String(row['total'])),
+          nod_above: BigInt(String(row['nod_above'])),
           valid_until: String(row['valid_until']),
           lifetime_seconds: Number(row['lifetime_seconds']),
           prepared: String(row['prepared']),
@@ -225,6 +228,7 @@ export const createConnection = (input: {
         reserved: 0n,
         valid_until: input.pending.valid_until,
         valid_until_ledger: input.validUntilLedger,
+        nod_above: input.pending.nod_above,
         rule_id: input.ruleId,
         rule_status: 'installed',
         pocket_address: input.pocketAddress,

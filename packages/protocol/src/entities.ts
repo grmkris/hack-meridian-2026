@@ -86,6 +86,8 @@ export const SpendingGrant = Schema.Struct({
   reserved: Stroops,
   valid_until: IsoTime,
   valid_until_ledger: Schema.Int,
+  /** The nod line: inside the allowance, an amount at or above it needs the owner's nod (the service enforces it). */
+  nod_above: Stroops,
   /** ContextRule.id returned by add_context_rule. Ids are monotonic and never reused. */
   rule_id: Schema.Int,
   rule_status: RuleStatus,
@@ -132,6 +134,20 @@ export const Lane = Schema.Literals(['autonomous', 'owner'])
 export type Lane = typeof Lane.Type
 
 /**
+ * Why an intent takes the owner lane: the request forced it (`owner_only`), no live allowance (`no_allowance`), the
+ * recipient cannot take USDC yet (`recipient_not_ready`), the amount is at or above the allowance's nod line
+ * (`above_nod_line`), or more than the allowance has left (`over_allowance`). Checked in that order.
+ */
+export const ApprovalReason = Schema.Literals([
+  'owner_only',
+  'no_allowance',
+  'recipient_not_ready',
+  'above_nod_line',
+  'over_allowance',
+])
+export type ApprovalReason = typeof ApprovalReason.Type
+
+/**
  * prepared → (autonomous) reserved → submitted → confirmed | failed;
  * prepared → (owner) awaiting_approval → approved → submitted → confirmed | failed;
  * any state before submission → expired.
@@ -174,6 +190,8 @@ export const PaymentIntent = Schema.Struct({
   amount: Stroops,
   fee_ceiling_xlm: Schema.Finite,
   lane: Lane,
+  /** Set when the lane is `owner` (NULL for intents stored before W1). */
+  approval_reason: Schema.optionalKey(Schema.NullOr(ApprovalReason)),
   status: IntentStatus,
   failure: Schema.NullOr(Schema.String),
   expires_at: IsoTime,
