@@ -1,0 +1,58 @@
+{
+  "network": "stellar:pubnet",
+  "updated_at": "2026-10-25T17:56:20.337Z",
+  "usdc": {
+    "sac": "CCW67TSZV3SSS2HXMBQ5JFGCKJNXKZM7UQUWUZPUTHXSTZLEO7SJMI75",
+    "issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"
+  },
+  "seller": {
+    "url": "https://hm26-seller-mainnet.kristjan-grm11775.workers.dev",
+    "pay_to": "GAJ6XSMEBPLATVHRQVQK5QTL7GYGGYGHC2IFNIQZBMRNIYWHVFOAM47G",
+    "price": "0.10 USDC"
+  },
+  "contacts": {
+    "Alice": {
+      "address": "CAH553ZKAWKPOK3XGF6AVW2BBN5LOBZC46TFDLY65SHUOMM56YKZX4XV",
+      "expected_readiness": "usdc_ready (contract)"
+    },
+    "Bob": {
+      "address": "GAVERRBSX7HTUN6EHQIBLAF7ZAYFY7QMGFKDSLPT53XIVT4WMYCBV2VO",
+      "expected_readiness": "usdc_ready"
+    },
+    "Carol": {
+      "address": "GCMSW7DAWCWJP42MF553ZRH233LZTXHOTQVQRL5AMYKVLSQYZFHO5ZJG",
+      "expected_readiness": "trustline_required"
+    }
+  },
+  "accounts": {
+    "relayerA": {
+      "address": "GBVYA2V4SMVPXFRPVB5FEFCADW7RXFIACR2HBLN2WP3RHAZKL267YG5X",
+      "explorer": "https://stellar.expert/explorer/public/account/GBVYA2V4SMVPXFRPVB5FEFCADW7RXFIACR2HBLN2WP3RHAZKL267YG5X"
+    },
+    "relayerB": {
+      "address": "GDMYACRM646Z4QIUPIAQZ2W3HSKAO2LESWCME73RSCCETSQKSL6HCAGP",
+      "explorer": "https://stellar.expert/explorer/public/account/GDMYACRM646Z4QIUPIAQZ2W3HSKAO2LESWCME73RSCCETSQKSL6HCAGP"
+    },
+    "treasury": {
+      "address": "GBJOFDKUKPHIPG34NEMVINELO36TS3QVVLNTXRO3SRUPEK5CPMYBVSPI",
+      "explorer": "https://stellar.expert/explorer/public/account/GBJOFDKUKPHIPG34NEMVINELO36TS3QVVLNTXRO3SRUPEK5CPMYBVSPI"
+    },
+    "seller": {
+      "address": "GAJ6XSMEBPLATVHRQVQK5QTL7GYGGYGHC2IFNIQZBMRNIYWHVFOAM47G",
+      "explorer": "https://stellar.expert/explorer/public/account/GAJ6XSMEBPLATVHRQVQK5QTL7GYGGYGHC2IFNIQZBMRNIYWHVFOAM47G"
+    },
+    "bob": {
+      "address": "GAVERRBSX7HTUN6EHQIBLAF7ZAYFY7QMGFKDSLPT53XIVT4WMYCBV2VO",
+      "explorer": "https://stellar.expert/explorer/public/account/GAVERRBSX7HTUN6EHQIBLAF7ZAYFY7QMGFKDSLPT53XIVT4WMYCBV2VO"
+    },
+    "carol": {
+      "address": "GCMSW7DAWCWJP42MF553ZRH233LZTXHOTQVQRL5AMYKVLSQYZFHO5ZJG",
+      "explorer": "https://stellar.expert/explorer/public/account/GCMSW7DAWCWJP42MF553ZRH233LZTXHOTQVQRL5AMYKVLSQYZFHO5ZJG"
+    },
+    "alice": {
+      "address": "CAH553ZKAWKPOK3XGF6AVW2BBN5LOBZC46TFDLY65SHUOMM56YKZX4XV",
+      "explorer": "https://stellar.expert/explorer/public/contract/CAH553ZKAWKPOK3XGF6AVW2BBN5LOBZC46TFDLY65SHUOMM56YKZX4XV",
+      "note": "smart account; rule 0 = relayer A's Ed25519 key"
+    }
+  }
+}
