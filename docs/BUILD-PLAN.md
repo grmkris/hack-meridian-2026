@@ -1,6 +1,6 @@
 # Build plan: stellarmcpwallet
 
-Status: architecture locked 2026-10-25 13:30 UTC after spikes S1–S4 passed (S5 integration running). Deadline Mon 26 Oct
+Status: architecture locked 2026-10-25 12:10 UTC after spikes S1–S4 passed (S5 integration running). Deadline Mon 26 Oct
 12:00 UTC. Product: `docs/SPEC.md`. Evidence: `docs/spikes/s1.md`, `s2.md`, `s3.md`, `s4.md`. Every number and id below
 comes from those docs.
 
@@ -93,7 +93,7 @@ the relayer and treasury secrets are Worker secrets. No secret leaves the chain 
 
 | UTC         | Milestone                                                                                                                                           |
 | ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 13:30–15:30 | A1: provider + `/mcp` + D1 + DO with fixture chain; A2: `Chain` on testnet with live tests; B: pages on fixtures; C: seller deployed, seeds funded. |
+| 12:15–15:30 | A1: provider + `/mcp` + D1 + DO with fixture chain; A2: `Chain` on testnet with live tests; B: pages on fixtures; C: seller deployed, seeds funded. |
 | 15:30–18:00 | A1 ↔ A2 wired on the `local` stage; consent installs a real rule; `wallet_overview` reads chain; tools 1–6 live. S5's chunk policy applied.         |
 | 18:00–21:00 | `deploy:testnet`; Claude Code connects to the testnet URL; steps 1–9 pass once by hand; D starts README and deck from evidence.                     |
 | 21:00–00:00 | claim link (step 10), revoke sweep, receipts UI, error states, phone layout; `scripts/demo/rehearse.ts` green against testnet.                      |
