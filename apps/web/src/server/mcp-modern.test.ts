@@ -43,6 +43,7 @@ const world = () => {
     },
     capabilities: { tools: {}, resources: {} },
     instructions: 'Nod.',
+    serverInfo: { name: 'Nod', version: '0.1.0' },
   }
   return { deps, calls, approve: () => (approved = true) }
 }

@@ -21,7 +21,6 @@ export const MODERN_VERSION = '2026-07-28'
 const VERSION_KEY = 'io.modelcontextprotocol/protocolVersion'
 const CLIENT_CAPABILITIES_KEY = 'io.modelcontextprotocol/clientCapabilities'
 const SERVER_INFO_KEY = 'io.modelcontextprotocol/serverInfo'
-const SERVER_INFO = { name: 'Nod', version: '0.1.0' }
 
 /** What the lane serves; mcp.ts passes the same tools, resources and events the legacy lane registers. */
 export interface ModernDeps {
@@ -32,6 +31,8 @@ export interface ModernDeps {
   readonly events: (method: string, params: unknown) => Promise<Record<string, unknown>>
   readonly capabilities: Record<string, unknown>
   readonly instructions: string
+  /** Who answers, in every result's `_meta` (2026-07-28 has no initialize to carry it). */
+  readonly serverInfo: Record<string, unknown>
 }
 
 /** A protocol error for the JSON-RPC `error` member: thrown by deps (events, resources) and by this lane. */
@@ -198,7 +199,7 @@ export const serveModern = async (request: Request, body: unknown, deps: ModernD
     return json({
       jsonrpc: '2.0',
       id,
-      result: { ...answered.result, resultType, _meta: { [SERVER_INFO_KEY]: SERVER_INFO } },
+      result: { ...answered.result, resultType, _meta: { [SERVER_INFO_KEY]: deps.serverInfo } },
     })
   } catch (error) {
     const known = asProtocolError(error)

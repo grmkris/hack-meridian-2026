@@ -2,9 +2,10 @@ import { Server } from '@modelcontextprotocol/sdk/server/index.js'
 import { WebStandardStreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js'
 import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprotocol/sdk/types.js'
 
-import { eventsCapabilities, registerEvents } from './events/rpc.ts'
-import { appsCapabilities, registerApps } from './mcp-apps.ts'
-import { callTool, listTools } from './mcp-tools.ts'
+import { eventsCapabilities, handleEventsRequest, registerEvents } from './events/rpc.ts'
+import { appsCapabilities, listResources, readResource, registerApps } from './mcp-apps.ts'
+import { isModernRequest, type ModernDeps, serveModern } from './mcp-modern.ts'
+import { callTool, listTools, runTool } from './mcp-tools.ts'
 import type { AppRuntime } from './runtime.ts'
 import type { ToolContext } from './tools.ts'
 
@@ -79,10 +80,23 @@ const serveLegacy = async (runtime: AppRuntime, request: Request, body: unknown,
   })
 }
 
-/** Serve one MCP POST for a connection. */
+/** The same tools, resources and events for the 2026-07-28 lane (mcp-modern.ts), which answers without the SDK. */
+const modernDeps = (runtime: AppRuntime, ctx: ToolContext): ModernDeps => ({
+  listTools,
+  runTool: (name, args) => runTool(runtime, ctx, name, args),
+  listResources,
+  readResource,
+  events: (method, params) => handleEventsRequest(runtime, ctx, method, params),
+  capabilities: { tools: {}, ...appsCapabilities, ...eventsCapabilities },
+  instructions: INSTRUCTIONS,
+  serverInfo: serverInfo(ctx.origin),
+})
+
+/** Serve one MCP POST for a connection: 2026-07-28 messages on their own lane, everything else through the SDK. */
 export const serveMcp = async (runtime: AppRuntime, request: Request, ctx: ToolContext, auth: McpAuth) => {
   if (request.method !== 'POST') return new Response('Method Not Allowed', { status: 405, headers: { Allow: 'POST' } })
   const read = await readBody(request)
   if ('error' in read) return read.error
+  if (isModernRequest(request, read.body)) return serveModern(request, read.body, modernDeps(runtime, ctx))
   return serveLegacy(runtime, request, read.body, ctx, auth)
 }
