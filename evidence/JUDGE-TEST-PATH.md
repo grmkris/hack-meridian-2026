@@ -40,24 +40,26 @@ Code"), and where access is sent (`claude.ai`, or `localhost` for Claude Code).
 1. **Create a passkey wallet** on that page. Nod deploys your OpenZeppelin smart account (and pays the network fee) and
    sends it **10 testnet USDC**. The deployed passkey check created
    [this funded wallet](https://stellar.expert/explorer/testnet/contract/CCDOHIGFC4Y2EYZWA66HULNXUI3PX3OD3WX27OKGPEHLRR3LDR3OBZG4).
-2. Read the allowance: "Allow **Claude** to spend up to **5 USDC** total from **Personal** until **tomorrow 12:00**.
-   Larger payments need your passkey." Press **Allow**; your passkey signs the allowance onto your Stellar account.
+2. Read the allowance: "Allow **Claude** to spend up to **5 USDC** total … until **tomorrow 12:00 UTC**", and next to
+   it "Ask me for a nod above **1.00** USDC" (keep 1.00: smaller payments go alone, 1 USDC or more needs your nod).
+   Press **Allow**; your passkey signs the allowance onto your Stellar account.
 3. You are back in Claude, connected. In a new chat, enable the Nod tools.
 
 ## 2. The nine steps (type these prompts)
 
-Amounts fit the 10 USDC the wallet starts with (the recorded demo uses a 30 USDC wallet and a 20 USDC dinner; same
-steps). The two numbers to watch in every answer: **wallet balance** and **remaining allowance**.
+Amounts fit the 10 USDC the wallet starts with (the recorded demo uses a 30 USDC wallet; same steps and amounts). The
+two numbers to watch in every answer: **wallet balance** and **remaining allowance**; the third rule is the **nod
+line**: below 1.00 USDC the AI app pays alone, at or above it asks you.
 
 | #   | Prompt                                                                                        | What you should see                                                                                                                                                                                                                                                                                                             |
 | --- | --------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 3   | "Show my Nod wallet overview."                                                                | `wallet_overview`: balance **10 USDC**, allowance **5.00** remaining, expiry tomorrow 12:00, no pending approvals                                                                                                                                                                                                               |
 | 4 | "Buy the market brief at https://hm26-seller.kristjan-grm11775.workers.dev/api/market-brief." | `paid_resource_fetch`: the brief (XLM/USDC on the testnet DEX) and a receipt with **two** explorer links: Nod moves 1.00 USDC from your wallet into this AI app's pocket, then the pocket pays the seller 0.10 through a public facilitator. Allowance **4.90**; the 0.90 left in the pocket pays for the next purchase and comes back to you on revoke. No prompt |
-| 5   | "Send Alice 2 USDC."                                                                          | `payment_prepare` → `payment_execute`: confirmed receipt, explorer link, allowance **2.90**. Nod pays the network fee, not you                                                                                                                                                                                                  |
-| 6   | "Pay Bob 5 USDC for dinner."                                                                  | it **needs your nod** (5 > 2.90 left; `awaiting_approval`) and Claude shows an **approval link**. Nothing is paid yet                                                                                                                                                                                                           |
-| 7   | Open the link                                                                                 | Bob's name **and** address `GACQCAQZ…NGIY`, **5 USDC**, testnet, fee ceiling, "requested by Claude", the agent's reason marked as its claim. Approve with your passkey. Then ask Claude "is it paid?" → `payment_status` **confirmed** with a receipt; allowance still **2.90** (payments you approve do not use the allowance) |
+| 5   | "Send Alice 0.50 USDC."                                                                       | below the nod line, so no prompt: `payment_prepare` → `payment_execute`, confirmed receipt, explorer link, allowance **4.40**. Nod pays the network fee, not you                                                                                                                                                                |
+| 6   | "Pay Bob 5 USDC for dinner."                                                                  | it **needs your nod** (5 is at or above the 1.00 line; `awaiting_approval`, `approval_reason: above_nod_line`) and Claude shows an **approval link**. Nothing is paid yet                                                                                                                                                        |
+| 7   | Open the link                                                                                 | Bob's name **and** address `GACQCAQZ…NGIY`, **5 USDC**, testnet, fee ceiling, "requested by Claude", the agent's reason marked as its claim. Approve with your passkey. Then ask Claude "is it paid?" → `payment_status` **confirmed** with a receipt; allowance still **4.40** (payments you approve do not use the allowance) |
 | 8   | "Retry that same dinner payment using the same idempotency key; do not create a new payment." | the **same** payment id and receipt; no second payment (Bob's balance on the explorer moves once). Repeating only the wording does not guarantee that the AI app reuses the key                                                                                                                                                    |
-| 8b  | "Send Alice 4 USDC."                                                                          | it **needs your nod**: 4 > 2.90 left. Nod asks you instead of signing; nothing reaches the chain. Leave it unapproved                                                                                                                                                                                                           |
+| 8b  | "Send Alice 2 USDC."                                                                          | it **needs your nod**: 2 fits the 4.40 left but is at or above the 1.00 line (`above_nod_line`). Nod asks you instead of signing; nothing reaches the chain. Leave it unapproved                                                                                                                                                 |
 | 10 | "Send Carol 1 USDC." (CAP-73 claim link) | Carol shows as **Trustline required**, so it **needs your nod**: approve with your passkey, then open the **claim link** as Carol and press **Accept with the demo wallet** (testnet: the server holds the demo Carol key). One transaction creates her USDC trustline and pays her; the receipt links to it |
 | 9 | Wallet site → **Connections** → **Revoke** Claude (confirm), then **Remove rule** with your passkey; ask Claude "Send Alice 0.50 USDC." | the site marks Claude revoked, removes the allowance from your account onchain, and sweeps the pocket's 0.90 back to your wallet; Claude's next call is refused (it is asked to reconnect) |
 
@@ -118,7 +120,8 @@ Run from the repository root on the build box.
    `bun scripts/demo/seed.ts --only TREASURY --treasury 300`.
 4. Carol must be `trustline_required`: the rehearsal returns her USDC and removes her trustline at the end; check with
    `bun scripts/demo/seed.ts --table` (Carol's USDC column reads "no trustline").
-5. `bun scripts/demo/rehearse.ts --target testnet` (tops its new wallet up to 30 USDC; dinner 20, Carol 5) → steps
+5. `bun scripts/demo/rehearse.ts --target testnet` (tops its new wallet up to 30 USDC; nod line 1, Alice 0.50, dinner 5,
+   2 at the line, Carol 1) → steps
    s1–s11 green, acceptance 1, 2, 4–9 PASS, 3 REF. Paste the new
    hashes into section 3.
 6. Open this page in a private window and follow section 1 with a fresh passkey.

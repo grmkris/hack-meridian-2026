@@ -230,7 +230,13 @@ const ctx: Ctx = {
     await perform(
       owner.page,
       actions,
-      { ...Object.fromEntries(vars), base: target.base, allowance: target.allowance, password },
+      {
+        ...Object.fromEntries(vars),
+        base: target.base,
+        allowance: target.allowance,
+        nod_above: target.nodAbove ?? '1',
+        password,
+      },
       name => owner.shot(name),
       line => browserLog.push(`${current} ${line}`),
     )
@@ -443,9 +449,9 @@ const acceptance = Object.fromEntries(
 )
 const TITLES: Record<number, string> = {
   1: '0.10 x402 purchase settles and comes out of the allowance',
-  2: 'above the allowance left → needs your nod, never signed by the AI app',
+  2: 'at or above the nod line (or above the allowance left) → needs your nod, never signed by the AI app',
   3: 'forced over-limit transfer rejected onchain',
-  4: 'the 20 USDC dinner needs your nod (passkey); it binds recipient + amount',
+  4: 'the 5 USDC dinner needs your nod (passkey); it binds recipient + amount',
   5: 'repeating the same request does not pay twice',
   6: 'revoking the AI app blocks its next payment',
   7: 'receipt only after confirmed settlement',

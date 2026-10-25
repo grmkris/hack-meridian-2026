@@ -13,6 +13,8 @@ export interface Target {
   readonly mcpPath: string
   readonly clientName: string
   readonly allowance: string
+  /** The nod line set on the consent page (W1): below it the AI app pays alone, at or above it asks. */
+  readonly nodAbove?: string
   /** What this server can do; steps that need a missing feature are skipped, not failed. */
   readonly features: ReadonlySet<'onchain' | 'x402' | 'autonomous' | 'claim' | 'fund'>
   /** Owner sign-in for the S4 stub (a shared dev password read from a gitignored file; never printed). */
@@ -74,6 +76,7 @@ const service = (name: string, base: string): Target => ({
   mcpPath: '/mcp',
   clientName: `hm26 rehearse (${name})`,
   allowance: '5',
+  nodAbove: '1',
   features: new Set(['onchain', 'x402', 'autonomous', 'claim', 'fund']),
   fundTo: 30,
   recipients: { alice: 'Alice', bob: 'Bob', carol: 'Carol' },
@@ -88,6 +91,7 @@ const service = (name: string, base: string): Target => ({
       value: '{{allowance}}',
       optional: true,
     },
+    { do: 'fill', selector: '[data-testid="nod-above"]', value: '{{nod_above}}', optional: true },
     { do: 'shot', name: 'consent' },
     { do: 'click', selector: '[data-testid="consent-allow"], button[value=approve]', timeoutMs: 120_000 },
   ],
