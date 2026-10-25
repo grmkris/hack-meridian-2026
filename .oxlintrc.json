@@ -26,6 +26,7 @@
     "**/node_modules/",
     "**/dist/",
     "repos/",
+    "spikes/",
     "contracts/target/",
     "packages/counter-client/",
     ".agents/",
