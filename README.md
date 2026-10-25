@@ -252,6 +252,40 @@ Expected results for every step: [evidence/JUDGE-TEST-PATH.md](evidence/JUDGE-TE
 tool handlers Claude calls over MCP, on Nod's own demo wallet (held by a software passkey on the service), with a live
 log of amounts, nods, fees and stellar.expert links. It shows Nod working; it is not your wallet.
 
+## Known limits and what's next
+
+Each temporary part, with its exit. The decisions log in [docs/SPEC.md](docs/SPEC.md) holds the reasons.
+
+- **The pocket.** Hosted x402 facilitators do not take a smart-account payer yet
+  ([x402#3158](https://github.com/x402-foundation/x402/issues/3158)) or the spending-limit policy's extra event
+  ([#3352](https://github.com/x402-foundation/x402/issues/3352)), so each AI app's key also owns a small pocket account
+  filled under the same policy in 1 USDC steps. Exit: when [PR #3860](https://github.com/x402-foundation/x402/pull/3860)
+  and [PR #3399](https://github.com/x402-foundation/x402/pull/3399) land, the account pays sellers directly and the
+  pocket goes; until then the plan is to pull exactly what a purchase needs.
+- **The demo claim signer.** The claim page can accept a payment on behalf of Nod's own demo contacts (Carol), and only
+  for them; every other recipient signs for themselves.
+- **The deposit address's approval lasts about 180 days.** A Stellar Asset Contract allowance cannot outlive the
+  network's maximum entry lifetime and cannot be renewed, so Nod shows the expiry and rotates to a fresh deposit
+  address before it ends ([docs/spikes/s8-deposit.md](docs/spikes/s8-deposit.md)).
+- **Notifications reach you live only where the host subscribes.** Goblin and ChatGPT's Work chats take MCP Events by
+  webhook; claude.ai and Claude Code do not implement them, so Nod's cards poll there.
+- **No recovery, by design for now.** A passkey owns the account. A second passkey, a guardian and wallets two people
+  own come next.
+- **Nod is the only relayer and MCP endpoint.** Nod's relayers submit every transaction and pay its fee, and the
+  connector is Nod's Worker. If Nod is down, AI apps cannot pay through it and the approval pages do not load. That is
+  a liveness dependency, not custody: the money stays on your own account, under rules only your passkey changes.
+- **The link that is an allowance for one person** is proven on testnet and deployed on mainnet; we call it live on
+  mainnet once a mainnet run is recorded.
+- **Top-ups from another chain** have run as real quotes; a funded top-up is next. Sending out to other chains through
+  1Click comes after: its Stellar deposit takes a numeric memo, which a contract account can pay as a muxed `M…`
+  address.
+- **From our own code audit**, still to do: a watcher that settles payments whose outcome is unknown, instead of leaving
+  them waiting; destroying an AI app's key after revoke once the sweep is confirmed; an expiry job that sweeps pockets
+  and removes the rules of expired allowances. The account build (`1b5f4534…`) predates OpenZeppelin's 0.7.3 release;
+  the advisory fixed there concerns Delegated signers, which Nod never uses, and moving to the current release is
+  planned.
+- **Also next:** links and AI-added contacts on mainnet, cash-out to a bank through a Stellar anchor.
+
 ## Architecture
 
 ```
