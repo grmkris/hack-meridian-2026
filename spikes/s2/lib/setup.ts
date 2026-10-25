@@ -2,7 +2,7 @@
  * One-time testnet setup for S2 (idempotent). Keys go to spikes/s2/.env; only public keys are printed.
  *   PAYER        classic G payer, USDC trustline, USDC bought on the testnet SDEX (Circle's testnet USDC)
  *   PAYTO        seller's payTo G, USDC trustline
- *   FACILITATOR  XLM-only G that signs and pays fees for the in-process facilitator
+ *   RELAYER      XLM-only G: sponsors pocket reserves (client/pocket.ts)
  *
  *   bun lib/setup.ts            # create/fund what is missing, print balances
  *   bun lib/setup.ts --buy 5    # buy 5 more USDC into PAYER
@@ -39,7 +39,7 @@ async function usdcLine(kp: Keypair) {
   return a.balances.find((b) => "asset_code" in b && b.asset_code === "USDC" && b.asset_issuer === USDC_ISSUER);
 }
 
-const names = ["PAYER", "PAYTO", "FACILITATOR"] as const;
+const names = ["PAYER", "PAYTO", "RELAYER"] as const;
 const keys = Object.fromEntries(names.map((n) => [n, key(n)])) as Record<(typeof names)[number], Keypair>;
 for (const n of names) await friendbot(keys[n]);
 for (const n of ["PAYER", "PAYTO"] as const) {

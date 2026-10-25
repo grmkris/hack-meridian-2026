@@ -4,7 +4,6 @@
  *   bun client/pay.ts [url]                      # pay once (default: our seller /paid/quote)
  *   bun client/pay.ts [url] --id pay_xxx         # attach a payment-identifier (dedup step)
  *   bun client/pay.ts [url] --cap '$0.05'        # spend control; the $0.10 route must be refused before signing
- *   bun client/pay.ts [url] --scheme ours        # use spikes/s2/scheme (our SchemeNetworkClient, G signer)
  *
  * Prints status, body, the decoded PAYMENT-RESPONSE (settle response), tx hash, explorer link and fee charged.
  * The raw PAYMENT-SIGNATURE header is written to .logs/last-payment-signature.txt for the replay test.
@@ -17,8 +16,6 @@ import { createEd25519Signer } from "@x402/stellar";
 import { ExactStellarScheme } from "@x402/stellar/exact/client";
 import { NETWORK, RPC_URL, SELLER_URL, secret } from "../lib/env";
 import { txFacts } from "../lib/tx";
-import { SmartAccountExactStellarScheme, ed25519SignatureScVal } from "../scheme";
-import { Keypair } from "@stellar/stellar-sdk";
 
 const args = process.argv.slice(2);
 const flag = (n: string) => {
@@ -28,22 +25,12 @@ const flag = (n: string) => {
 const url = args.find((a) => a.startsWith("http")) ?? `${SELLER_URL}/paid/quote`;
 const paymentId = args.includes("--new-id") ? generatePaymentId() : flag("--id");
 const cap = flag("--cap");
-const which = flag("--scheme") ?? "stock";
 const LOGS = join(import.meta.dir, "..", ".logs");
 mkdirSync(LOGS, { recursive: true });
 
-export function buildClient(opts: { cap?: string; paymentId?: string; scheme?: string } = {}) {
-  const payerSecret = secret("PAYER");
-  const scheme =
-    opts.scheme === "ours"
-      ? (() => {
-          const kp = Keypair.fromSecret(payerSecret);
-          return new SmartAccountExactStellarScheme(
-            { address: kp.publicKey(), signPayload: async (payloadHash) => ed25519SignatureScVal(kp, payloadHash) },
-            { url: RPC_URL },
-          );
-        })()
-      : new ExactStellarScheme(createEd25519Signer(payerSecret, NETWORK), { url: RPC_URL });
+/** Stock @x402/stellar client for a G payer (default: PAYER from .env), with spend cap and payment-id hooks. */
+export function buildClient(opts: { cap?: string; paymentId?: string; payerSecret?: string } = {}) {
+  const scheme = new ExactStellarScheme(createEd25519Signer(opts.payerSecret ?? secret("PAYER"), NETWORK), { url: RPC_URL });
   const client = new x402Client().register("stellar:*", scheme);
   if (opts.cap) client.setSpendControls({ maxAmountPerPayment: opts.cap });
   let signed = 0;
@@ -63,7 +50,7 @@ export function buildClient(opts: { cap?: string; paymentId?: string; scheme?: s
 }
 
 if (import.meta.main) {
-  const { client, signedCount } = buildClient({ cap, paymentId, scheme: which });
+  const { client, signedCount } = buildClient({ cap, paymentId });
   let sentHeader: string | undefined;
   const recordingFetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
     const req = new Request(input as RequestInfo, init);
@@ -77,7 +64,7 @@ if (import.meta.main) {
     const res = await pay(url, { method: "GET" });
     const ms = (performance.now() - t0).toFixed(0);
     const body = await res.text();
-    console.log(`[client] ${res.status} in ${ms} ms (scheme=${which}, signatures created=${signedCount()}) cache=${res.headers.get("x-s2-cache") ?? "-"}`);
+    console.log(`[client] ${res.status} in ${ms} ms (signatures created=${signedCount()}) cache=${res.headers.get("x-s2-cache") ?? "-"}`);
     console.log(`[client] body: ${body.slice(0, 400)}`);
     if (sentHeader) {
       writeFileSync(join(LOGS, "last-payment-signature.txt"), sentHeader);

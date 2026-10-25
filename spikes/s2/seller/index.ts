@@ -1,8 +1,8 @@
 /**
  * S2 seller: Hono on Bun, one route priced $0.10 on stellar:testnet (x402 v2, @x402/hono 2.28.0).
  *
- *   bun seller/index.ts                    # hosted facilitator https://www.x402.org/facilitator
- *   FACILITATOR=local bun seller/index.ts  # in-process facilitator (facilitator/local.ts)
+ *   bun seller/index.ts                                   # https://www.x402.org/facilitator (no key)
+ *   FACILITATOR=oz SELLER_PORT=4024 bun seller/index.ts   # OpenZeppelin Channels testnet (key in .env)
  *
  * GET /paid/quote declares the payment-identifier extension. Dedup is ours (the middleware does not cache):
  * an outer middleware decodes the PAYMENT-SIGNATURE header, and if the id was already settled for the same
@@ -10,8 +10,6 @@
  * without calling the facilitator; same id with a different fingerprint → 409.
  */
 import { Hono } from "hono";
-import type { FacilitatorClient } from "@x402/core/server";
-import { HTTPFacilitatorClient } from "@x402/core/server";
 import { decodePaymentSignatureHeader } from "@x402/core/http";
 import {
   PAYMENT_IDENTIFIER,
@@ -21,29 +19,14 @@ import {
 } from "@x402/extensions/payment-identifier";
 import { paymentMiddleware, x402ResourceServer } from "@x402/hono";
 import { ExactStellarScheme } from "@x402/stellar/exact/server";
-import { HOSTED_FACILITATOR, NETWORK, SELLER_PORT, pub } from "../lib/env";
-import { localFacilitator } from "../facilitator/local";
+import { NETWORK, SELLER_PORT, pub } from "../lib/env";
+import { facilitatorClient, facilitatorFromEnv } from "../lib/facilitators";
 
 const PAY_TO = process.env.STELLAR_PAY_TO ?? pub("PAYTO");
 const PRICE = process.env.PRICE ?? "$0.10";
-const MODE = process.env.FACILITATOR === "local" ? "local" : "hosted";
+const MODE = facilitatorFromEnv();
 
-function hosted(): FacilitatorClient {
-  const inner = new HTTPFacilitatorClient({ url: HOSTED_FACILITATOR });
-  const t = async <T>(label: string, p: Promise<T>): Promise<T> => {
-    const t0 = performance.now();
-    const r = await p;
-    console.log(`[facilitator:x402.org] ${label} ${(performance.now() - t0).toFixed(0)} ms ${JSON.stringify(r)}`);
-    return r;
-  };
-  return {
-    verify: (p, r) => t("verify", inner.verify(p, r)),
-    settle: (p, r) => t("settle", inner.settle(p, r)),
-    getSupported: () => t("supported", inner.getSupported()),
-  } as FacilitatorClient;
-}
-
-export const resourceServer = new x402ResourceServer(MODE === "local" ? localFacilitator() : hosted())
+export const resourceServer = new x402ResourceServer(facilitatorClient(MODE))
   .register(NETWORK, new ExactStellarScheme())
   .registerExtension(paymentIdentifierResourceServerExtension);
 

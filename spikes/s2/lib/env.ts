@@ -12,6 +12,7 @@ export const HORIZON_URL = "https://horizon-testnet.stellar.org";
 export const USDC_SAC = "CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA";
 export const USDC_ISSUER = "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5";
 export const HOSTED_FACILITATOR = "https://www.x402.org/facilitator";
+export const OZ_FACILITATOR = "https://channels.openzeppelin.com/x402/testnet";
 export const SELLER_PORT = Number(process.env.SELLER_PORT ?? 4021);
 export const SELLER_URL = process.env.SELLER_URL ?? `http://127.0.0.1:${SELLER_PORT}`;
 export const MCP_PORT = Number(process.env.MCP_PORT ?? 4022);

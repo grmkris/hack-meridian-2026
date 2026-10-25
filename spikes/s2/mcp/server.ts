@@ -3,24 +3,20 @@
  * one tool `paid_quote` wrapped by @x402/mcp 2.28.0 `createPaymentWrapper`, priced $0.10 on stellar:testnet,
  * plus a free `ping`.
  *
- *   bun mcp/server.ts                    # hosted facilitator (x402.org)
- *   FACILITATOR=local bun mcp/server.ts  # in-process facilitator
+ *   bun mcp/server.ts                    # x402.org facilitator
+ *   FACILITATOR=oz bun mcp/server.ts     # OpenZeppelin Channels testnet
  */
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { WebStandardStreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js";
-import type { FacilitatorClient } from "@x402/core/server";
-import { HTTPFacilitatorClient } from "@x402/core/server";
 import { createPaymentWrapper, x402ResourceServer } from "@x402/mcp";
 import { ExactStellarScheme } from "@x402/stellar/exact/server";
 import { z } from "zod";
-import { HOSTED_FACILITATOR, MCP_PORT, NETWORK, pub } from "../lib/env";
-import { localFacilitator } from "../facilitator/local";
+import { MCP_PORT, NETWORK, pub } from "../lib/env";
+import { facilitatorClient, facilitatorFromEnv } from "../lib/facilitators";
 
 const PAY_TO = process.env.STELLAR_PAY_TO ?? pub("PAYTO");
-const MODE = process.env.FACILITATOR === "local" ? "local" : "hosted";
-const fac: FacilitatorClient = MODE === "local" ? localFacilitator() : new HTTPFacilitatorClient({ url: HOSTED_FACILITATOR });
-
-const rs = new x402ResourceServer(fac).register(NETWORK, new ExactStellarScheme());
+const MODE = facilitatorFromEnv();
+const rs = new x402ResourceServer(facilitatorClient(MODE)).register(NETWORK, new ExactStellarScheme());
 await rs.initialize();
 const accepts = await rs.buildPaymentRequirements({ scheme: "exact", network: NETWORK, payTo: PAY_TO, price: "$0.10", maxTimeoutSeconds: 60 });
 console.log(`[mcp-seller] ${MODE} facilitator; accepts ${JSON.stringify(accepts)}`);

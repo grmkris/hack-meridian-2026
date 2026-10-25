@@ -4,7 +4,7 @@
  * Every JSON-RPC body on the wire is logged, so `params._meta["x402/payment"]` and `result._meta["x402/payment-response"]`
  * are captured verbatim into .logs/mcp-wire.json.
  *
- *   bun mcp/client.ts [--allowance 0.25] [--scheme ours]
+ *   bun mcp/client.ts [--allowance 0.25]
  */
 import { writeFileSync } from "node:fs";
 import { join } from "node:path";
@@ -33,7 +33,7 @@ const loggingFetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
   return res;
 }) as typeof fetch;
 
-const { client: x402 } = buildClient({ scheme: flag("--scheme") });
+const { client: x402 } = buildClient();
 const mcp = new Client({ name: "s2-mcp-payer", version: "0.0.0" });
 const paying = wrapMCPClientWithPayment(mcp, x402, {
   autoPayment: true,
