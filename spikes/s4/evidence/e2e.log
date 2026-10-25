@@ -1,0 +1,150 @@
+
+== negative: /mcp without a token, with a bogus token
+  +1.04s  raw     POST   401  https://hm26-s4-mcp.kristjan-grm11775.workers.dev/mcp  (no Authorization header)
+   ✓ 401 without token
+   ✓ WWW-Authenticate names resource_metadata
+  +1.27s  raw     POST   401  https://hm26-s4-mcp.kristjan-grm11775.workers.dev/mcp  (bogus bearer)
+   ✓ 401 with a bogus token
+
+== connect (goblin CLI (s4 e2e)): SDK does discovery + DCR, then asks for authorization
+  +1.48s  sdk     POST   401  https://hm26-s4-mcp.kristjan-grm11775.workers.dev/mcp  (initialize www-authenticate: Bearer realm="OAuth", resource_metadata="https://hm26-s4-mcp.kristjan-grm11775.workers.dev/.well-known/oauth-protected-resource/mcp", scope="wallet")
+  +1.66s  sdk     GET    200  https://hm26-s4-mcp.kristjan-grm11775.workers.dev/.well-known/oauth-protected-resource/mcp
+  +1.69s  sdk     GET    200  https://hm26-s4-mcp.kristjan-grm11775.workers.dev/.well-known/oauth-authorization-server
+  +1.76s  sdk     POST   201  https://hm26-s4-mcp.kristjan-grm11775.workers.dev/oauth/register
+   ✓ first connect throws UnauthorizedError
+   ✓ DCR issued client_id 4reKckej7HqyTEOZ
+   ✓ SDK produced an authorization URL
+
+== consent page (goblin CLI (s4 e2e), allowance 5.00): wrong password first (negative), then Allow
+  +2.51s  browser GET    200  https://hm26-s4-mcp.kristjan-grm11775.workers.dev/authorize?response_type=code&client_id=4reKckej7HqyTEOZ&code_challenge=<redacted>&code_challenge_method=S256&redirect_uri=http%3A%2F%2F127.0.0.1%3A45309%2Fcallback&state=<redacted>&scope=wallet+offline_access&prompt=consent&resource=https%3A%2F%2Fhm26-s4-mcp.kristjan-grm11775.workers.dev%2Fmcp
+   ✓ consent shows the client name
+   ✓ consent shows the redirect host
+   ✓ consent warns about a loopback redirect
+  +3.48s  browser POST   401  https://hm26-s4-mcp.kristjan-grm11775.workers.dev/authorize
+   ✓ wrong password refused
+  +3.88s  browser GET    200  https://hm26-s4-mcp.kristjan-grm11775.workers.dev/authorize?response_type=code&client_id=4reKckej7HqyTEOZ&code_challenge=<redacted>&code_challenge_method=S256&redirect_uri=http%3A%2F%2F127.0.0.1%3A45309%2Fcallback&state=<redacted>&scope=wallet+offline_access&prompt=consent&resource=https%3A%2F%2Fhm26-s4-mcp.kristjan-grm11775.workers.dev%2Fmcp
+  +4.23s  browser POST   302  https://hm26-s4-mcp.kristjan-grm11775.workers.dev/authorize
+  +4.24s  browser GET    200  http://127.0.0.1:45309/callback?code=<redacted>&state=<redacted>&iss=https%3A%2F%2Fhm26-s4-mcp.kristjan-grm11775.workers.dev
+   ✓ callback state matches
+   ✓ callback carries a code
+   ✓ callback carries iss=https://hm26-s4-mcp.kristjan-grm11775.workers.dev (RFC 9207)
+
+== finishAuth (goblin CLI (s4 e2e)): code + PKCE verifier → tokens
+  +4.45s  sdk     POST   200  https://hm26-s4-mcp.kristjan-grm11775.workers.dev/oauth/token
+   ✓ access token issued
+   ✓ refresh token issued
+
+== connect #2 with tokens: initialize, tools/list
+  +4.66s  sdk     POST   200  https://hm26-s4-mcp.kristjan-grm11775.workers.dev/mcp  (initialize)
+  +4.88s  sdk     POST   202  https://hm26-s4-mcp.kristjan-grm11775.workers.dev/mcp  (notifications/initialized)
+  +5.05s  sdk     POST   200  https://hm26-s4-mcp.kristjan-grm11775.workers.dev/mcp  (tools/list)
+   ✓ tools/list → wallet_overview, payment_prepare, payment_status
+
+== wallet_overview
+  +5.08s  sdk     GET    405  https://hm26-s4-mcp.kristjan-grm11775.workers.dev/mcp
+  +5.85s  sdk     POST   200  https://hm26-s4-mcp.kristjan-grm11775.workers.dev/mcp  (tools/call wallet_overview)
+   ✓ balance 50.00 USDC
+   ✓ allowance 5.00 remaining (from consent)
+
+== payment_prepare 100 USDC to Bob (owner lane), twice with the same idempotency key
+  +5.95s  sdk     POST   200  https://hm26-s4-mcp.kristjan-grm11775.workers.dev/mcp  (tools/call payment_prepare)
+   ✓ status requires_approval
+   ✓ approval_url https://hm26-s4-mcp.kristjan-grm11775.workers.dev/approve/pi_a6b9db3c544fd95fc303a21b
+  +6.16s  sdk     POST   200  https://hm26-s4-mcp.kristjan-grm11775.workers.dev/mcp  (tools/call payment_prepare)
+   ✓ same idempotency key → same payment_id
+
+== payment_status before approval; preview the approval page (no side effect)
+  +6.22s  sdk     POST   200  https://hm26-s4-mcp.kristjan-grm11775.workers.dev/mcp  (tools/call payment_status)
+   ✓ awaiting_approval
+  +6.53s  browser GET    200  https://hm26-s4-mcp.kristjan-grm11775.workers.dev/approve/pi_a6b9db3c544fd95fc303a21b
+   ✓ approval page shows amount and recipient
+   ✓ approval page shows the requesting connection
+  +6.76s  sdk     POST   200  https://hm26-s4-mcp.kristjan-grm11775.workers.dev/mcp  (tools/call payment_status)
+   ✓ still awaiting_approval after opening the page
+
+== approve: wrong password (negative), then Approve
+  +7.05s  browser POST   401  https://hm26-s4-mcp.kristjan-grm11775.workers.dev/approve/pi_a6b9db3c544fd95fc303a21b
+   ✓ wrong password refused on approval
+  +7.17s  sdk     POST   200  https://hm26-s4-mcp.kristjan-grm11775.workers.dev/mcp  (tools/call payment_status)
+   ✓ still awaiting_approval after a wrong password
+  +7.35s  browser POST   200  https://hm26-s4-mcp.kristjan-grm11775.workers.dev/approve/pi_a6b9db3c544fd95fc303a21b
+
+== poll payment_status → confirmed
+  +7.53s  sdk     POST   200  https://hm26-s4-mcp.kristjan-grm11775.workers.dev/mcp  (tools/call payment_status)
+  +8.35s  sdk     POST   200  https://hm26-s4-mcp.kristjan-grm11775.workers.dev/mcp  (tools/call payment_status)
+  +9.32s  sdk     POST   200  https://hm26-s4-mcp.kristjan-grm11775.workers.dev/mcp  (tools/call payment_status)
+ +10.27s  sdk     POST   200  https://hm26-s4-mcp.kristjan-grm11775.workers.dev/mcp  (tools/call payment_status)
+   ✓ confirmed after 4 polls (submitted → submitted → submitted → confirmed)
+
+== refresh token: new access token, same connection (props survive refresh)
+ +10.44s  raw     POST   200  https://hm26-s4-mcp.kristjan-grm11775.workers.dev/oauth/token  (refresh_token grant)
+   ✓ refresh → 200
+   ✓ new access token differs
+ +10.48s  sdk     POST   200  https://hm26-s4-mcp.kristjan-grm11775.workers.dev/mcp  (initialize)
+ +10.52s  sdk     POST   202  https://hm26-s4-mcp.kristjan-grm11775.workers.dev/mcp  (notifications/initialized)
+ +10.56s  sdk     GET    405  https://hm26-s4-mcp.kristjan-grm11775.workers.dev/mcp
+ +10.57s  sdk     POST   200  https://hm26-s4-mcp.kristjan-grm11775.workers.dev/mcp  (tools/call wallet_overview)
+   ✓ same connection_id 3d19b0cc-ed79-4186-aa83-4884865eb6f8 after refresh
+ +10.79s  raw     POST   200  https://hm26-s4-mcp.kristjan-grm11775.workers.dev/mcp  (old access token after refresh)
+
+== revoke (RFC 7009) the access token → /mcp refuses it
+ +11.02s  raw     POST   200  https://hm26-s4-mcp.kristjan-grm11775.workers.dev/oauth/token  (revocation)
+   ✓ revocation → 200
+ +11.06s  raw     POST   401  https://hm26-s4-mcp.kristjan-grm11775.workers.dev/mcp  (revoked access token)
+   ✓ revoked token → 401
+
+== second connection (another DCR client): own connection_id and allowance, cannot see the first one’s payment
+
+== connect (Claude-like client (s4 e2e)): SDK does discovery + DCR, then asks for authorization
+ +11.07s  sdk     POST   401  https://hm26-s4-mcp.kristjan-grm11775.workers.dev/mcp  (initialize www-authenticate: Bearer realm="OAuth", resource_metadata="https://hm26-s4-mcp.kristjan-grm11775.workers.dev/.well-known/oauth-protected-resource/mcp", scope="wallet")
+ +11.08s  sdk     GET    200  https://hm26-s4-mcp.kristjan-grm11775.workers.dev/.well-known/oauth-protected-resource/mcp
+ +11.10s  sdk     GET    200  https://hm26-s4-mcp.kristjan-grm11775.workers.dev/.well-known/oauth-authorization-server
+ +11.30s  sdk     POST   201  https://hm26-s4-mcp.kristjan-grm11775.workers.dev/oauth/register
+   ✓ first connect throws UnauthorizedError
+   ✓ DCR issued client_id 6GcWwyL_0CV2c1eq
+   ✓ SDK produced an authorization URL
+
+== consent page (Claude-like client (s4 e2e), allowance 2.50)
+ +11.56s  browser GET    200  https://hm26-s4-mcp.kristjan-grm11775.workers.dev/authorize?response_type=code&client_id=6GcWwyL_0CV2c1eq&code_challenge=<redacted>&code_challenge_method=S256&redirect_uri=http%3A%2F%2F127.0.0.1%3A45309%2Fcallback&state=<redacted>&scope=wallet+offline_access&prompt=consent&resource=https%3A%2F%2Fhm26-s4-mcp.kristjan-grm11775.workers.dev%2Fmcp
+   ✓ consent shows the client name
+   ✓ consent shows the redirect host
+   ✓ consent warns about a loopback redirect
+ +12.09s  browser POST   302  https://hm26-s4-mcp.kristjan-grm11775.workers.dev/authorize
+ +12.09s  browser GET    200  http://127.0.0.1:45309/callback?code=<redacted>&state=<redacted>&iss=https%3A%2F%2Fhm26-s4-mcp.kristjan-grm11775.workers.dev
+   ✓ callback state matches
+   ✓ callback carries a code
+   ✓ callback carries iss=https://hm26-s4-mcp.kristjan-grm11775.workers.dev (RFC 9207)
+
+== finishAuth (Claude-like client (s4 e2e)): code + PKCE verifier → tokens
+ +12.25s  sdk     POST   200  https://hm26-s4-mcp.kristjan-grm11775.workers.dev/oauth/token
+   ✓ access token issued
+   ✓ refresh token issued
+ +12.29s  sdk     POST   200  https://hm26-s4-mcp.kristjan-grm11775.workers.dev/mcp  (initialize)
+ +12.34s  sdk     POST   202  https://hm26-s4-mcp.kristjan-grm11775.workers.dev/mcp  (notifications/initialized)
+ +12.38s  sdk     GET    405  https://hm26-s4-mcp.kristjan-grm11775.workers.dev/mcp
+ +12.51s  sdk     POST   200  https://hm26-s4-mcp.kristjan-grm11775.workers.dev/mcp  (tools/call wallet_overview)
+   ✓ B has its own connection_id
+   ✓ B allowance 2.50 (its own consent)
+ +12.56s  sdk     POST   200  https://hm26-s4-mcp.kristjan-grm11775.workers.dev/mcp  (tools/call payment_status)
+   ✓ B cannot read A’s payment (isError)
+
+== negative: replay B’s authorization code → 400 and the grant is revoked
+ +12.73s  raw     POST   400  https://hm26-s4-mcp.kristjan-grm11775.workers.dev/oauth/token  (code replay)
+   ✓ replayed code refused
+ +12.77s  raw     POST   401  https://hm26-s4-mcp.kristjan-grm11775.workers.dev/mcp  (B access token after code replay)
+   ✓ B’s access token revoked by the replay (RFC 6749 §4.1.2)
+ +12.83s  raw     POST   400  https://hm26-s4-mcp.kristjan-grm11775.workers.dev/oauth/token  (B refresh after code replay)
+   ✓ B’s refresh token dead too
+
+== negative: wrong PKCE verifier (third client)
+ +12.85s  sdk     POST   401  https://hm26-s4-mcp.kristjan-grm11775.workers.dev/mcp  (initialize www-authenticate: Bearer realm="OAuth", resource_metadata="https://hm26-s4-mcp.kristjan-grm11775.workers.dev/.well-known/oauth-protected-resource/mcp", scope="wallet")
+ +12.86s  sdk     GET    200  https://hm26-s4-mcp.kristjan-grm11775.workers.dev/.well-known/oauth-protected-resource/mcp
+ +12.87s  sdk     GET    200  https://hm26-s4-mcp.kristjan-grm11775.workers.dev/.well-known/oauth-authorization-server
+ +12.94s  sdk     POST   201  https://hm26-s4-mcp.kristjan-grm11775.workers.dev/oauth/register
+ +13.19s  browser GET    200  https://hm26-s4-mcp.kristjan-grm11775.workers.dev/authorize?response_type=code&client_id=K85pRqn-KW2wqKjG&code_challenge=<redacted>&code_challenge_method=S256&redirect_uri=http%3A%2F%2F127.0.0.1%3A45309%2Fcallback&state=<redacted>&scope=wallet+offline_access&prompt=consent&resource=https%3A%2F%2Fhm26-s4-mcp.kristjan-grm11775.workers.dev%2Fmcp
+ +13.70s  browser POST   302  https://hm26-s4-mcp.kristjan-grm11775.workers.dev/authorize
+ +13.70s  browser GET    200  http://127.0.0.1:45309/callback?code=<redacted>&state=<redacted>&iss=https%3A%2F%2Fhm26-s4-mcp.kristjan-grm11775.workers.dev
+ +13.80s  raw     POST   400  https://hm26-s4-mcp.kristjan-grm11775.workers.dev/oauth/token  (wrong code_verifier)
+   ✓ wrong PKCE verifier refused
+
+PASS

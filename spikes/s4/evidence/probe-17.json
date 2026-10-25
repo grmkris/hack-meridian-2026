@@ -1,0 +1,20 @@
+{
+  "sdk": "@stellar/stellar-sdk 17.3.0",
+  "network_passphrase": "Test SDF Network ; September 2015",
+  "source": "GDBOAYMJLWEQRYTLLPBB4LSKDYPQNU2DOHDKDCW6IMN47RGLKONQ6DRK",
+  "destination": "GCKIGL7LYVL7KRIG4U72S3P7YTZKOE5FZ5BUS4WXVJEIH4RO4WDN4PER",
+  "tx_hash": "5f9175f5e07b50e8b10722879993342ec43461de2cf32fd59a01216c81fe4e5c",
+  "hash_type": "Uint8Array",
+  "signature_verifies": true,
+  "envelope_xdr": "AAAAAgAAAADC4GGJXYkI4mtbwh4uSh4fBtNDccahit5DG8/Ey1ObDwAAAGQAAAAAAAAAAQAAAAEAAAAAAAAAAAAAAABq3eu5AAAAAAAAAAEAAAAAAAAAAQAAAACUgy/rxVf1RQblP6lt/8TypxOlz0NJcteqSIPyLuWG3gAAAAAAAAAAAJiWgAAAAAAAAAABy1ObDwAAAEDNaUclwF+MN7IqAjSesVLeJL8HxFIudj+3cZYGT0YuykfxEwuPNfzoWXoj6cmUjCr8Jczfib2HxdpfHnTizTIL",
+  "build_sign_ms": 674,
+  "soroban_rpc": {
+    "url": "https://soroban-testnet.stellar.org",
+    "latestLedger": {
+      "id": "bb4e05d5704cc57593a30c2d99b47ed2973d7192ff5c4898f4f78585ab959626",
+      "sequence": 5380962,
+      "protocolVersion": 29
+    },
+    "ms": 674
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "hm26-s4-mcp",
+  "account_id": "bceaeae4788dce3493514fde194b4a7e",
+  "main": "src/worker.ts",
+  "compatibility_date": "2026-10-01",
+  // global_fetch_strictly_public: required by workers-oauth-provider to fetch Client ID Metadata Documents (CIMD).
+  "compatibility_flags": ["global_fetch_strictly_public"],
+  "workers_dev": true,
+  "observability": { "enabled": true },
+  // No kv_namespaces: the deploy token lacks Workers KV permission, so OAUTH_KV is a shim over the OAuthStore DO.
+  "durable_objects": {
+    "bindings": [
+      { "name": "PAYMENTS", "class_name": "Payments" },
+      { "name": "OAUTH_STORE", "class_name": "OAuthStore" }
+    ]
+  },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["Payments", "OAuthStore"] }]
+}

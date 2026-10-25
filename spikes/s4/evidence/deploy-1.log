@@ -1,0 +1,15 @@
+
+ ⛅️ wrangler 4.151.0 (update available 4.152.0)
+───────────────────────────────────────────────
+Total Upload: 3349.01 KiB / gzip: 542.82 KiB
+Worker Startup Time: 86 ms
+Your Worker has access to the following bindings:
+Binding                            Resource                  
+env.PAYMENTS (Payments)            Durable Object            
+env.OAUTH_STORE (OAuthStore)       Durable Object            
+env.DEV_PASSWORD ("(hidden)")      Environment Variable      
+
+Uploaded hm26-s4-mcp (6.56 sec)
+Deployed hm26-s4-mcp triggers (2.02 sec)
+  https://hm26-s4-mcp.kristjan-grm11775.workers.dev
+Current Version ID: 09fc3cba-5a6c-49f6-96ed-39e2d30c4e4d
