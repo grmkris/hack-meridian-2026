@@ -43,9 +43,12 @@ export const SELLER_URL = (
     ? 'https://hm26-seller-mainnet.kristjan-grm11775.workers.dev'
     : 'https://hm26-seller.kristjan-grm11775.workers.dev')
 ).replace(/\/$/u, '')
-/** x402.org is testnet-only; a pubnet facilitator comes from FACILITATOR_URL / OZ_FACILITATOR_URL. */
+/** x402.org is testnet-only; pubnet settles through OpenZeppelin Channels (docs/research/mainnet.md). */
 export const FACILITATORS: Readonly<Record<'x402org' | 'oz', string | undefined>> = PUBNET
-  ? { x402org: process.env['FACILITATOR_URL'], oz: process.env['OZ_FACILITATOR_URL'] }
+  ? {
+      x402org: process.env['FACILITATOR_URL'],
+      oz: process.env['OZ_FACILITATOR_URL'] ?? 'https://channels.openzeppelin.com/x402',
+    }
   : { x402org: 'https://www.x402.org/facilitator', oz: 'https://channels.openzeppelin.com/x402/testnet' }
 
 export const EXPLORER = (
@@ -54,6 +57,11 @@ export const EXPLORER = (
 export const explorerTx = (hash: string) => `${EXPLORER}/tx/${hash}`
 export const explorerAddress = (address: string) =>
   `${EXPLORER}/${address.startsWith('C') ? 'contract' : 'account'}/${address}`
+
+/** The seller's secrets file per network (OZ_FACILITATOR_KEY). */
+export const SELLER_VARS = join(ROOT, 'apps/seller', PUBNET ? '.dev.vars.mainnet' : '.dev.vars')
+/** A third-party x402 seller on this network: Stellar's own demo (0.01 USDC). */
+export const THIRD_PARTY_SELLER = `https://stellar.org/x402-demo/api/protected/${PUBNET ? 'mainnet' : 'testnet'}`
 
 /** Throws before any pubnet transaction unless Kristjan gave the go (`HM26_MAINNET_GO=yes`). */
 export function assertMayTransact(what: string) {

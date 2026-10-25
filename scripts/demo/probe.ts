@@ -7,9 +7,10 @@ import {
   FACILITATORS,
   HORIZON_URL,
   NETWORK,
-  ROOT,
   SEEDS_FILE,
   SELLER_URL,
+  SELLER_VARS,
+  THIRD_PARTY_SELLER,
   USDC_SAC,
   explorerAddress,
 } from './lib/env.ts'
@@ -64,10 +65,10 @@ const toolNames = (body: unknown): Array<string> => {
   const tools = at(body, 'result.tools')
   return Array.isArray(tools) ? tools.map(t => str(at(t, 'name'))).filter(n => n !== undefined) : []
 }
-const ozKey = () => {
-  const file = join(ROOT, 'apps/seller/.dev.vars')
-  return existsSync(file) ? /^OZ_FACILITATOR_KEY=(.+)$/mu.exec(readFileSync(file, 'utf8'))?.[1]?.trim() : undefined
-}
+const ozKey = () =>
+  existsSync(SELLER_VARS)
+    ? /^OZ_FACILITATOR_KEY=(.+)$/mu.exec(readFileSync(SELLER_VARS, 'utf8'))?.[1]?.trim()
+    : undefined
 
 // ---------------------------------------------------------------- facilitators
 for (const [name, url] of Object.entries(FACILITATORS)) {
@@ -75,7 +76,7 @@ for (const [name, url] of Object.entries(FACILITATORS)) {
     if (url === undefined) return { level: 'warn', detail: `no ${name} facilitator on ${NETWORK}` }
     const key = name === 'oz' ? ozKey() : undefined
     if (name === 'oz' && key === undefined)
-      return { level: 'warn', detail: 'no OZ_FACILITATOR_KEY in apps/seller/.dev.vars' }
+      return { level: 'warn', detail: `no OZ_FACILITATOR_KEY in ${SELLER_VARS.replace(/^.*\/apps\//u, 'apps/')}` }
     const response = await get(
       `${url}/supported`,
       key === undefined ? {} : { headers: { authorization: `Bearer ${key}` } },
@@ -110,6 +111,16 @@ await probe('seller /mcp tools/list', async () => {
   return {
     level: names.includes('market_brief') ? 'ok' : 'red',
     detail: `${response.status}, tools: ${names.join(', ') || '-'}`,
+  }
+})
+
+await probe('third-party seller (stellar.org x402 demo) → 402', async () => {
+  const response = await get(THIRD_PARTY_SELLER)
+  const header = response.headers.get('payment-required')
+  const option = header === null ? undefined : decodePaymentRequiredHeader(header).accepts[0]
+  return {
+    level: response.status === 402 && option?.network === NETWORK ? 'ok' : 'warn',
+    detail: `${response.status}, ${option?.amount ?? '?'} of ${option?.asset.slice(0, 6) ?? '?'}… on ${option?.network ?? '?'}`,
   }
 })
 
@@ -233,7 +244,7 @@ for (const r of rows)
 const red = rows.filter(r => r.level === 'red').length
 console.log(`\n${red === 0 ? 'all green' : `${red} red`} (${rows.filter(r => r.level === 'warn').length} warn)`)
 if (args.includes('--save')) {
-  const dir = join(ROOT, 'evidence/probe')
+  const dir = join(import.meta.dir, '../../evidence/probe')
   mkdirSync(dir, { recursive: true })
   const file = join(dir, `${new Date().toISOString().replace(/[:.]/gu, '-')}.json`)
   writeFileSync(

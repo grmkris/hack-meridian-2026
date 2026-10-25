@@ -120,7 +120,10 @@ const fetchFn = recordingFetch(wire, t0)
 let client: Awaited<ReturnType<typeof connect>> | undefined
 let tools = new Set<string>()
 const vars = new Map<string, string>()
-const onchain = target.features.has('onchain')
+let fixture: string | undefined
+const onchain = () => target.features.has('onchain') && fixture === undefined
+const recipients = new Map<string, string>(Object.entries(target.recipients))
+const seedContact = (name: string) => str(at(seeds, `contacts.${name}.address`))
 
 const outcome = (result: unknown): ToolOutcome => {
   const content = at(result, 'content')
@@ -137,6 +140,16 @@ const ctx: Ctx = {
   relayer,
   vars,
   tools: () => tools,
+  onchain,
+  markFixture: reason => {
+    fixture = reason
+    record(null, 'skip', `onchain checks off: ${reason}`)
+  },
+  to: who => recipients.get(who) ?? who,
+  setRecipient: (who, value) => {
+    recipients.set(who, value)
+  },
+  seedAddress: who => seedContact(who.charAt(0).toUpperCase() + who.slice(1)),
   connect: async () => {
     const authUrl = await startAuthorization(mcpUrl, provider, fetchFn)
     record(
@@ -204,13 +217,13 @@ const ctx: Ctx = {
     }
   },
   browse: async (actions: ReadonlyArray<Action>) => {
-    const lines = await perform(
+    await perform(
       owner.page,
       actions,
       { ...Object.fromEntries(vars), base: target.base, allowance: target.allowance, password },
       name => owner.shot(name),
+      line => browserLog.push(`${current} ${line}`),
     )
-    for (const line of lines) browserLog.push(`${current} ${line}`)
   },
   pageText: () => owner.page.locator('body').innerText(),
   check: (test, ok, detail) => record(test, ok ? 'pass' : 'fail', detail),
@@ -241,9 +254,10 @@ const ctx: Ctx = {
       )
     return facts
   },
-  usdcOf: async address => (onchain && relayer !== undefined ? (await sacBalances(relayer, address)).usdc : undefined),
-  xlmOf: async address => (onchain && relayer !== undefined ? (await sacBalances(relayer, address)).xlm : undefined),
-  trustline: async address => (onchain ? (await classicBalances(address))?.trustline : undefined),
+  usdcOf: async address =>
+    onchain() && relayer !== undefined ? (await sacBalances(relayer, address)).usdc : undefined,
+  xlmOf: async address => (onchain() && relayer !== undefined ? (await sacBalances(relayer, address)).xlm : undefined),
+  trustline: async address => (onchain() ? (await classicBalances(address))?.trustline : undefined),
   fundWallet: async (contractId, toUsdc) => {
     if (relayer === undefined || !hasKey('TREASURY')) {
       notes.push('no TREASURY in scripts/demo/.env: wallet not topped up')
@@ -352,7 +366,7 @@ for (const step of STEPS) {
 }
 
 // ---------------------------------------------------------------- recycle: Bob's and Carol's USDC back to the treasury
-if (onchain && !args.includes('--no-recycle') && hasKey('TREASURY')) {
+if (onchain() && !args.includes('--no-recycle') && hasKey('TREASURY')) {
   current = 'recycle'
   const treasury = key('TREASURY', false).publicKey()
   for (const role of ['BOB', 'CAROL'] as const) {
@@ -409,7 +423,7 @@ const TITLES: Record<number, string> = {
   1: '0.10 x402 purchase settles and comes out of the allowance',
   2: 'above the allowance left → needs your nod, never signed by the AI app',
   3: 'forced over-limit transfer rejected onchain',
-  4: '100 USDC needs your nod (passkey); it binds recipient + amount',
+  4: 'the 20 USDC dinner needs your nod (passkey); it binds recipient + amount',
   5: 'repeating the same request does not pay twice',
   6: 'revoking the AI app blocks its next payment',
   7: 'receipt only after confirmed settlement',
@@ -420,6 +434,7 @@ const run = {
   run_id: runId,
   target: target.name,
   network: NETWORK,
+  fixture_chain: fixture ?? null,
   base: target.base,
   mcp: mcpUrl.href,
   seller: SELLER_URL,

@@ -22,8 +22,8 @@ interface Preset {
 /**
  * Per-network presets, chosen by `STELLAR_NETWORK` (default testnet). Testnet is what hm26-seller runs (proven in
  * docs/spikes/s2.md). Pubnet is prepared, not deployed: its USDC SAC is the address `@x402/stellar` 2.28.0 ships
- * (`USDC_PUBNET_ADDRESS`), to be checked against docs/research/mainnet.md; x402.org is testnet-only, so a pubnet
- * deployment names its facilitator with `FACILITATOR_URL` (and `OZ_FACILITATOR_URL` + key for the fallback).
+ * (`USDC_PUBNET_ADDRESS`), confirmed by docs/research/mainnet.md; x402.org is testnet-only, so pubnet settles through
+ * OpenZeppelin Channels (`https://channels.openzeppelin.com/x402`, Bearer key) unless `FACILITATOR_URL` adds another.
  */
 export const PRESETS: Readonly<Record<StellarNetwork, Preset>> = {
   testnet: {
@@ -42,7 +42,7 @@ export const PRESETS: Readonly<Record<StellarNetwork, Preset>> = {
     usdcSac: 'CCW67TSZV3SSS2HXMBQ5JFGCKJNXKZM7UQUWUZPUTHXSTZLEO7SJMI75',
     usdcIssuer: 'GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN',
     horizon: 'https://horizon.stellar.org',
-    facilitators: { x402org: undefined, oz: undefined },
+    facilitators: { x402org: undefined, oz: 'https://channels.openzeppelin.com/x402' },
     explorer: 'https://stellar.expert/explorer/public',
   },
 }

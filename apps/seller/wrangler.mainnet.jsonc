@@ -13,13 +13,11 @@
     "STELLAR_NETWORK": "pubnet",
     // a mainnet G with a USDC trustline (Circle issuer GA5ZSEJY…KZVN); placeholder fails validation on purpose
     "PAY_TO": "SET_MAINNET_PAYTO_G_ACCOUNT",
-    // USDC SAC: the preset is @x402/stellar 2.28.0's USDC_PUBNET_ADDRESS CCW67TSZ…MI75; override here if the research differs
-    // "USDC_SAC": "C…",
-    // x402.org is testnet-only: the primary mainnet facilitator URL comes from docs/research/mainnet.md
-    "FACILITATOR_URL": "SET_MAINNET_FACILITATOR_URL",
-    // OpenZeppelin Channels mainnet as fallback, with OZ_FACILITATOR_KEY in .dev.vars.mainnet
-    // "OZ_FACILITATOR_URL": "https://…",
-    "FACILITATOR": "x402org",
+    // USDC SAC: the preset CCW67TSZ…MI75 (docs/research/mainnet.md and @x402/stellar 2.28.0 agree)
+    // x402.org has no pubnet: OpenZeppelin Channels is the facilitator, key OZ_FACILITATOR_KEY in .dev.vars.mainnet
+    // (bun scripts/demo/oz-key.ts --network pubnet; never printed)
+    "OZ_FACILITATOR_URL": "https://channels.openzeppelin.com/x402",
+    "FACILITATOR": "oz",
   },
   "durable_objects": { "bindings": [{ "name": "PAYMENT_IDS", "class_name": "PaymentIds" }] },
   "migrations": [{ "tag": "v1", "new_sqlite_classes": ["PaymentIds"] }],

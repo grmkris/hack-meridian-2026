@@ -1,3 +1,4 @@
+import { Stellar } from '../../apps/seller/demo-deps.ts'
 import type { Action } from './lib/actions.ts'
 import type { TxFacts } from './lib/chain.ts'
 import { pick, str } from './lib/json.ts'
@@ -18,6 +19,7 @@ export interface ToolOutcome {
 
 export type Feature = Target['features'] extends ReadonlySet<infer F> ? F : never
 export type CheckStatus = 'pass' | 'fail' | 'skip' | 'ref'
+export type Who = 'alice' | 'bob' | 'carol'
 
 export interface Ctx {
   readonly target: Target
@@ -26,6 +28,13 @@ export interface Ctx {
   readonly relayer: string | undefined
   readonly vars: Map<string, string>
   tools(): ReadonlySet<string>
+  /** Onchain checks apply (the target has a chain and the wallet is not a fixture). */
+  onchain(): boolean
+  markFixture(reason: string): void
+  /** What to pass as `payment_prepare.recipient` for a contact: its name, or its address when the wallet lacks it. */
+  to(who: Who): string
+  setRecipient(who: Who, value: string): void
+  seedAddress(who: Who): string | undefined
   connect(): Promise<void>
   call(tool: string, args: Record<string, unknown>): Promise<ToolOutcome>
   browse(actions: ReadonlyArray<Action>): Promise<void>
@@ -62,7 +71,8 @@ export const statusOf = (data: unknown) => str(pick(data, 'status'))
 export const laneOf = (data: unknown) => str(pick(data, 'lane'))
 export const approvalUrl = (data: unknown) => str(pick(data, 'approval_url', 'claim_url'))
 export const receiptTx = (data: unknown) => str(pick(data, 'receipt.tx_hash', 'receipt.transaction'))
-export const isAddress = (value: string) => /^[GC][A-Z2-7]{55}$/u.test(value)
+export const isAddress = (value: string) =>
+  Stellar.StrKey.isValidEd25519PublicKey(value) || Stellar.StrKey.isValidContract(value)
 const needsOwner = (data: unknown) =>
   laneOf(data) === 'owner' || ['requires_approval', 'awaiting_approval'].includes(statusOf(data) ?? '')
 
@@ -72,6 +82,10 @@ export const toStroops = (decimal: string | undefined) => {
   return BigInt(whole) * 10_000_000n + BigInt(fraction.padEnd(7, '0').slice(0, 7))
 }
 const usdcString = (s: bigint) => `${s / 10_000_000n}.${(s % 10_000_000n).toString().padStart(7, '0')}`
+
+/** Kristjan's demo amounts (same on testnet and mainnet): allowance 5, x402 0.10, Alice 2, Bob 20, 4 over, Carol 5. */
+const DINNER = '20'
+const CAROL = '5'
 
 const key = (ctx: Ctx, name: string) => `rh-${ctx.runId}-${name}`
 const need = (ctx: Ctx, name: string) => {
@@ -97,6 +111,17 @@ function allowanceMoved(
     test,
     a - b === delta,
     `${what}: allowance ${before} → ${after} (expected ${delta === 0n ? 'unchanged' : usdcString(-delta) + ' less'})`,
+  )
+}
+
+/** A receipt's transaction landed (fee payer checked by ctx.tx); skipped on a fixture chain. */
+async function settled(ctx: Ctx, test: number, label: string, hash: string, payer: 'relayer' | 'facilitator') {
+  if (!ctx.onchain()) return ctx.skip(test, `${label}: fixture chain, ${hash.slice(0, 8)}… is not on a ledger`)
+  const facts = await ctx.tx(label, hash, payer)
+  ctx.check(
+    test,
+    facts?.successful === true,
+    `${label}: ${hash.slice(0, 8)}… ${facts?.successful === true ? 'successful onchain' : 'not found onchain'}`,
   )
 }
 
@@ -148,16 +173,34 @@ export const STEPS: ReadonlyArray<Step> = [
       const contract = str(pick(overview.data, 'wallet.contract_id'))
       if (contract !== undefined && contract.startsWith('C') && isAddress(contract))
         ctx.vars.set('contract_id', contract)
+      else if (contract !== undefined)
+        ctx.markFixture(`wallet ${contract.slice(0, 12)}… is not a contract id (fixture chain)`)
       const rule = str(pick(overview.data, 'grant.rule_id'))
       if (rule !== undefined) ctx.vars.set('rule_id', rule)
-      if (ctx.target.features.has('onchain') && contract !== undefined && rule !== undefined)
+      if (ctx.onchain() && contract !== undefined && rule !== undefined)
         ctx.check(
           null,
           (await ctx.ruleLive(contract, Number(rule))) === true,
           `rule ${rule} live onchain on ${contract.slice(0, 6)}…`,
         )
-      if (ctx.target.features.has('fund') && contract !== undefined && ctx.target.fundTo !== undefined)
+      if (ctx.onchain() && ctx.target.features.has('fund') && contract !== undefined && ctx.target.fundTo !== undefined)
         await ctx.fundWallet(contract, ctx.target.fundTo)
+      if (ctx.tools().has('contacts_search'))
+        for (const who of ['alice', 'bob', 'carol'] as const) {
+          const name = ctx.to(who)
+          const found = await ctx.call('contacts_search', { query: name })
+          const contacts = pick(found.data, 'contacts')
+          const saved =
+            Array.isArray(contacts) &&
+            contacts.some(c => (str(pick(c, 'name')) ?? '').toLowerCase() === name.toLowerCase())
+          const address = ctx.seedAddress(who)
+          ctx.check(
+            null,
+            saved,
+            `contact ${name} ${saved ? 'saved in the new wallet' : `missing; paying ${address ?? '?'} directly`}`,
+          )
+          if (!saved && address !== undefined) ctx.setRecipient(who, address)
+        }
     },
   },
   {
@@ -196,20 +239,14 @@ export const STEPS: ReadonlyArray<Step> = [
         statusOf(out.data) === 'paid',
         `status ${statusOf(out.data)}, http ${str(pick(out.data, 'http_status'))}`,
       )
-      ctx.check(1, (str(pick(out.data, 'body')) ?? '').includes('market brief'), 'body is the seller’s market brief')
+      if (ctx.onchain())
+        ctx.check(1, (str(pick(out.data, 'body')) ?? '').includes('market brief'), 'body is the seller’s market brief')
+      else ctx.skip(1, 'fixture chain: the body is the fixture’s, not the seller’s')
       const settlement = receiptTx(out.data)
       const pull = str(pick(out.data, 'receipt.pull_tx_hash'))
       if (settlement === undefined) ctx.check(7, false, 'no receipt')
-      else {
-        const facts = await ctx.tx('x402 settlement', settlement, 'facilitator')
-        ctx.check(
-          7,
-          facts?.successful === true,
-          `receipt only after settlement: ${settlement.slice(0, 8)}… ${facts?.successful === true ? 'successful onchain' : 'not found'}`,
-        )
-        ctx.check(1, facts?.successful === true, 'the 0.10 settled onchain')
-      }
-      if (pull !== undefined) await ctx.tx('x402 pocket pull', pull, 'relayer')
+      else await settled(ctx, 1, 'x402 settlement (receipt only after it landed)', settlement, 'facilitator')
+      if (pull !== undefined) await settled(ctx, 7, 'x402 pull from the wallet into the pocket', pull, 'relayer')
       const after = remaining(out.data)
       allowanceMoved(ctx, 1, before, after, -1_000_000n, 'x402 purchase consumed the grant')
       if (after !== undefined) ctx.vars.set('remaining', after)
@@ -223,7 +260,7 @@ export const STEPS: ReadonlyArray<Step> = [
     run: async ctx => {
       const before = need(ctx, 'remaining')
       const prepared = await ctx.call('payment_prepare', {
-        recipient: ctx.target.recipients.alice,
+        recipient: ctx.to('alice'),
         amount: '2',
         reason: 'demo: pay a saved contact',
         idempotency_key: key(ctx, 'alice-2'),
@@ -241,10 +278,7 @@ export const STEPS: ReadonlyArray<Step> = [
         statusOf(done) === 'confirmed' && tx !== undefined,
         `payment_status ${statusOf(done)} with receipt ${tx?.slice(0, 8)}`,
       )
-      if (tx !== undefined) {
-        const facts = await ctx.tx('delegated payment to Alice', tx, 'relayer')
-        ctx.check(7, facts?.successful === true, 'receipt tx successful onchain')
-      }
+      if (tx !== undefined) await settled(ctx, 7, 'payment to Alice inside the allowance', tx, 'relayer')
       await credited(ctx, 7, alice, aliceBefore, 20_000_000n, 'Alice received 2')
       const after = remaining(done)
       allowanceMoved(ctx, 7, before, after, -20_000_000n, 'delegated payment consumed the grant')
@@ -253,14 +287,14 @@ export const STEPS: ReadonlyArray<Step> = [
   },
   {
     id: 's6',
-    title: 'Ask for 100 USDC to Bob for dinner → needs your nod (approval link)',
+    title: 'Ask for 20 USDC to Bob for dinner → needs your nod (approval link)',
     tests: [4, 7],
     needs: [],
     run: async ctx => {
       const before = ctx.vars.get('remaining')
       const args = {
-        recipient: ctx.target.recipients.bob,
-        amount: '100',
+        recipient: ctx.to('bob'),
+        amount: DINNER,
         reason: 'dinner',
         idempotency_key: key(ctx, 'dinner'),
       }
@@ -303,15 +337,18 @@ export const STEPS: ReadonlyArray<Step> = [
     run: async ctx => {
       const id = need(ctx, 'dinner_id')
       const bob = ctx.vars.get('bob')
-      const bobBefore = bob !== undefined && ctx.target.features.has('onchain') ? await ctx.usdcOf(bob) : undefined
+      const bobBefore = bob !== undefined && ctx.onchain() ? await ctx.usdcOf(bob) : undefined
       const opened = await ctx.call('payment_status', { payment_id: id })
       await ctx.browse(ctx.target.approve)
       const page = await ctx.pageText()
-      const shown = ctx.target.recipients.bob.split(' ')[0] ?? 'Bob'
+      const asked = ctx.to('bob')
+      const name = isAddress(asked) ? undefined : (asked.split(' ')[0] ?? asked)
       ctx.check(
         4,
-        page.includes('100') && page.includes(shown) && (bob === undefined || page.includes(bob)),
-        `approval page shows ${shown}${bob !== undefined ? ` (${bob.slice(0, 6)}…)` : ''} and 100 USDC`,
+        page.includes(DINNER) &&
+          (name === undefined || page.includes(name)) &&
+          (bob === undefined || page.includes(bob)),
+        `approval page shows ${name ?? ''}${bob !== undefined ? ` (${bob.slice(0, 6)}…)` : ''} and ${DINNER} USDC`,
       )
       ctx.check(
         7,
@@ -326,11 +363,9 @@ export const STEPS: ReadonlyArray<Step> = [
         `payment_status ${statusOf(done)}, receipt ${tx?.slice(0, 8)}`,
       )
       ctx.vars.set('dinner_receipt', tx ?? '')
-      if (ctx.target.features.has('onchain') && tx !== undefined) {
-        const facts = await ctx.tx('owner-approved payment to Bob', tx, 'relayer')
-        ctx.check(7, facts?.successful === true, 'receipt tx successful onchain')
-        await credited(ctx, 4, bob, bobBefore, 1_000_000_000n, 'Bob received exactly 100')
-      } else ctx.skip(7, 'stub: receipts are fake, nothing onchain to check')
+      if (tx !== undefined) await settled(ctx, 7, 'payment to Bob approved with the passkey', tx, 'relayer')
+      if (ctx.onchain())
+        await credited(ctx, 4, bob, bobBefore, toStroops(DINNER) ?? 0n, `Bob received exactly ${DINNER}`)
       const before = ctx.vars.get('remaining')
       if (before !== undefined)
         allowanceMoved(ctx, 4, before, remaining(done), 0n, 'owner lane did not consume the grant')
@@ -343,10 +378,10 @@ export const STEPS: ReadonlyArray<Step> = [
     needs: [],
     run: async ctx => {
       const bob = ctx.vars.get('bob')
-      const bobBefore = bob !== undefined && ctx.target.features.has('onchain') ? await ctx.usdcOf(bob) : undefined
+      const bobBefore = bob !== undefined && ctx.onchain() ? await ctx.usdcOf(bob) : undefined
       const again = await ctx.call('payment_prepare', {
-        recipient: ctx.target.recipients.bob,
-        amount: '100',
+        recipient: ctx.to('bob'),
+        amount: DINNER,
         reason: 'dinner',
         idempotency_key: key(ctx, 'dinner'),
       })
@@ -372,7 +407,7 @@ export const STEPS: ReadonlyArray<Step> = [
     run: async ctx => {
       const before = ctx.vars.get('remaining')
       const out = await ctx.call('payment_prepare', {
-        recipient: ctx.target.recipients.alice,
+        recipient: ctx.to('alice'),
         amount: '4',
         reason: 'more than the allowance left',
         idempotency_key: key(ctx, 'alice-4'),
@@ -401,32 +436,35 @@ export const STEPS: ReadonlyArray<Step> = [
   },
   {
     id: 's10',
-    title: 'Send Carol 10 USDC: trustline required → claim link → trust + transfer in one transaction',
+    title: 'Send Carol 5 USDC: trustline required → your nod → claim link → trust + transfer in one transaction',
     tests: [8, 9],
     needs: ['claim'],
     run: async ctx => {
       const prepared = await ctx.call('payment_prepare', {
-        recipient: ctx.target.recipients.carol,
-        amount: '10',
+        recipient: ctx.to('carol'),
+        amount: CAROL,
         reason: 'claim-link demo',
-        idempotency_key: key(ctx, 'carol-10'),
+        idempotency_key: key(ctx, 'carol'),
       })
       const carol = str(pick(prepared.data, 'recipient.address'))
       const readiness = str(pick(prepared.data, 'recipient.readiness'))
       ctx.check(8, readiness === 'trustline_required', `Carol readiness ${readiness}`)
-      if (carol !== undefined)
+      if (carol !== undefined && ctx.onchain())
         ctx.check(8, (await ctx.trustline(carol)) === false, `${carol.slice(0, 6)}… has no USDC trustline before`)
       const id = paymentId(prepared.data)
-      const url = str(pick(prepared.data, 'claim_url', 'approval_url'))
-      if (id === undefined || url === undefined) throw new Error('no payment_id / claim link')
-      ctx.vars.set('claim_url', url)
-      ctx.vars.set('approval_url', url)
-      await ctx.browse(ctx.target.claim)
-      const mid = await ctx.call('payment_status', { payment_id: id })
-      if (statusOf(mid.data) === 'awaiting_approval' && approvalUrl(mid.data) !== undefined) {
-        ctx.vars.set('approval_url', approvalUrl(mid.data) ?? url)
+      if (id === undefined) throw new Error('payment_prepare returned no payment_id')
+      // The owner nods first (claim links open once the payment is approved), then Carol accepts on the claim page.
+      const approval = str(pick(prepared.data, 'approval_url'))
+      if (needsOwner(prepared.data) && approval !== undefined) {
+        ctx.vars.set('approval_url', approval)
         await ctx.browse(ctx.target.approve)
       }
+      const claimUrl =
+        str(pick(prepared.data, 'claim_url')) ??
+        str(pick((await ctx.call('payment_status', { payment_id: id })).data, 'claim_url')) ??
+        `${ctx.target.base}/claim/${id}`
+      ctx.vars.set('claim_url', claimUrl)
+      await ctx.browse(ctx.target.claim)
       const done = await ctx.waitConfirmed(id, 120_000)
       const tx = receiptTx(done)
       ctx.check(
@@ -434,10 +472,10 @@ export const STEPS: ReadonlyArray<Step> = [
         statusOf(done) === 'confirmed' && tx !== undefined,
         `payment_status ${statusOf(done)}, receipt ${tx?.slice(0, 8)}`,
       )
-      if (tx !== undefined) await ctx.tx('claim: trust + transfer', tx, 'relayer')
-      if (carol !== undefined) {
+      if (tx !== undefined) await settled(ctx, 8, 'claim: trustline + payment in one transaction', tx, 'relayer')
+      if (carol !== undefined && ctx.onchain()) {
         ctx.check(8, (await ctx.trustline(carol)) === true, 'Carol now has the trustline')
-        ctx.check(8, (await ctx.usdcOf(carol)) === 100_000_000n, 'Carol holds 10 USDC')
+        ctx.check(8, (await ctx.usdcOf(carol)) === toStroops(CAROL), `Carol holds ${CAROL} USDC`)
         ctx.vars.set('carol', carol)
       }
     },
@@ -451,7 +489,7 @@ export const STEPS: ReadonlyArray<Step> = [
       need(ctx, 'connection_id')
       await ctx.browse(ctx.target.revoke)
       const next = await ctx.call('payment_prepare', {
-        recipient: ctx.target.recipients.alice,
+        recipient: ctx.to('alice'),
         amount: '0.01',
         reason: 'after revoke',
         idempotency_key: key(ctx, 'after-revoke'),
@@ -468,7 +506,7 @@ export const STEPS: ReadonlyArray<Step> = [
       ctx.check(6, refused, `next delegated payment after revoke: ${next.error ?? statusOf(next.data) ?? 'refused'}`)
       const contract = ctx.vars.get('contract_id')
       const rule = ctx.vars.get('rule_id')
-      if (ctx.target.features.has('onchain') && contract !== undefined && rule !== undefined) {
+      if (ctx.onchain() && contract !== undefined && rule !== undefined) {
         let live = await ctx.ruleLive(contract, Number(rule))
         for (let i = 0; i < 12 && live === true; i++) {
           await new Promise(resolve => setTimeout(resolve, 5_000))
@@ -489,8 +527,7 @@ export const STEPS: ReadonlyArray<Step> = [
         'forced over-limit transfer signed by the connection key: rejected onchain #3221 in S1 (3daf4b00…, docs/spikes/s1.md) and refused at enforce simulation in S5; not reachable through MCP by design',
       )
       const contract = ctx.vars.get('contract_id')
-      if (contract === undefined || !ctx.target.features.has('onchain'))
-        return ctx.skip(9, 'no onchain wallet on this target')
+      if (contract === undefined || !ctx.onchain()) return ctx.skip(9, 'no onchain wallet on this target')
       const xlm = await ctx.xlmOf(contract)
       ctx.check(
         9,
