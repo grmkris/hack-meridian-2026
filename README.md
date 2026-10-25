@@ -55,10 +55,12 @@ anything past it.
 - **Past it, your nod.** A payment above what is left is never signed with the app's key. It becomes a link that shows
   the recipient's name and address, the amount and which app asked; your passkey signs that payment on Nod's page,
   whatever the amount. Payments you approve do not use the allowance.
-- **Cards and notifications in the chat.** Nod serves MCP Apps cards (`ui://nod/card/v1`, `ui://nod/home/v1`): the
-  wallet, a payment waiting for your nod that turns into its receipt, Nod home. It publishes MCP Events
-  (`payment.received`, `payment.settled`, `approval.needed`, `allowance.changed`, `request.received`, `request.answered`) by webhook or poll. It speaks MCP over OAuth 2.1 on two lanes, the
-  2025 protocol and 2026-07-28, where the nod is a native URL request.
+- **Cards and notifications in the chat.** Nod serves 23 MCP tools and MCP Apps cards (`ui://nod/card/v1`,
+  `ui://nod/home/v1`): the wallet, a payment waiting for your nod that turns into its receipt, a top-up on its way, Nod
+  home. It publishes ten MCP Events by webhook or poll: `payment.received`, `payment.settled`, `approval.needed`,
+  `allowance.changed`, `request.received`, `request.answered`, and `topup.pending`, `topup.detected`, `topup.arrived`,
+  `topup.expired`. It speaks MCP over OAuth 2.1 on two lanes, the 2025 protocol and 2026-07-28, where the nod is a
+  native URL request.
 - **Paid APIs through the open standard.** x402 sellers are paid through public facilitators (x402.org, OpenZeppelin
   Channels), including Stellar's own x402 demo endpoint on mainnet. Hosted x402 facilitators do not take smart-account
   payers yet, so each AI app's key also owns a small pocket account, filled from your wallet under the same policy in 1
@@ -73,6 +75,14 @@ anything past it.
   Nod deploys the account. Every wallet can get a deposit address under Home → Add money. The sandbox still gives
   ordinary signups 10 testnet USDC so you can start at once. On mainnet a stranger-style signup was funded this way with
   a classic 1 USDC payment, no memo (proof below). Design: [docs/spikes/s8-deposit.md](docs/spikes/s8-deposit.md).
+- **Top up from any chain, live on mainnet.** Add money → From another chain, or ask Claude (`wallet_topup_quote`,
+  `wallet_topup_status`): NEAR Intents' 1Click swaps what you send from Base, Solana, Ethereum, Arbitrum or Polygon and
+  pays USDC to your deposit address, and Nod sweeps it into your wallet. 1Click has no testnet, so this runs on mainnet
+  only. Proof so far: dry-run quotes through Nod's own client against the hosted API, 5 USDC on Base → 4.98 USDC on
+  Stellar in about 50 seconds
+  ([`evidence/topup/dry-quote-2026-10-25T22-07-19-789Z.json`](evidence/topup/dry-quote-2026-10-25T22-07-19-789Z.json));
+  a funded top-up follows. The two tools were appended after the first 21, which are byte-identical
+  ([`evidence/topup/tools-list-diff.txt`](evidence/topup/tools-list-diff.txt)).
 - **Pay someone who is not on Stellar, live on testnet.** Claude makes a claim link for a name. The person opens it,
   creates a wallet with a passkey (no XLM, no trustline) or signs in, and the USDC lands there. Inside the allowance
   the link pays from it when claimed.
@@ -117,6 +127,12 @@ Freighter. Earlier the same evening: the first mainnet x402 settlement through O
 ([`129fbe27`](https://stellar.expert/explorer/public/tx/129fbe27c635b86b6ca1f69ccaba1e5d3eae235b58344bd1d877b97aef28d383))
 and the trust-and-pay router's deploy
 ([`eaaf4d5f`](https://stellar.expert/explorer/public/tx/eaaf4d5f5acc58cb6a422c8066bd29b4366703fda9b7ad73bc103b4a8e6870ed)).
+
+Other Stellar x402 sellers, checked the same evening (`evidence/mainnet/claude-run-2026-10-25.md`):
+
+- Stellar's own x402 demo endpoint is the one third-party seller we found settling on mainnet today, and we paid it.
+- Nulucre's pubnet price names the testnet USDC contract, so a mainnet payment to it cannot settle.
+- StellarSight's discovery index holds example entries.
 
 ## Proof on testnet
 
@@ -197,7 +213,7 @@ claude.ai.
 **Judges: use the sandbox at testnet.trynod.si.** Everything runs on Stellar testnet with testnet USDC, and new wallets
 receive 10 testnet USDC. You need Claude (claude.ai, Claude Desktop or Claude Code) and a device that can create a
 passkey. The same steps work on mainnet at trynod.si with your own USDC: fund it from any exchange or wallet through
-Home → Add money.
+Home → Add money, or from another chain under Add money → From another chain (mainnet only).
 
 1. **Connect.** In claude.ai: Settings → Connectors → Add custom connector, name `Nod`, URL
    `https://testnet.trynod.si/mcp`, leave the OAuth client fields empty, then Connect. In Claude Code:
@@ -247,7 +263,8 @@ Nod Worker on Cloudflare      /mcp · /authorize · /approve/:id · /claim/:id �
    ├─ D1: wallets, allowances, contacts, payments, receipts, events, deposit addresses
    ├─ Durable Object per wallet: reservations, idempotency, one submit at a time, chain watcher, deposit sweeps
    ├─ signer boundary: relayer keys, per-app keys encrypted with AES-GCM
-   └─ x402 client ──▶ x402.org or OpenZeppelin Channels (public facilitators)
+   ├─ x402 client ──▶ x402.org or OpenZeppelin Channels (public facilitators)
+   └─ 1Click client ──▶ NEAR Intents (top-ups from other chains to the deposit address; mainnet)
    │  Soroban RPC
    ▼
 Stellar mainnet (trynod.si) and testnet (testnet.trynod.si)

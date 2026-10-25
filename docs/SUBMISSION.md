@@ -19,7 +19,7 @@ Nod
 
 Small stuff, it just pays. Big stuff needs your nod. A Stellar wallet inside your AI, with one allowance you set.
 
-### Description (Markdown, ≤ 8000 characters; this one: 7737)
+### Description (Markdown, ≤ 8000 characters; this one: 7837)
 
 **Apps are turning into conversations and agents, so wallets have to follow them into the chat.** Nod is a Stellar
 wallet that lives inside the AI you already use: one connector URL in Claude, Goblin, Claude Code or any MCP app, and in
@@ -36,7 +36,7 @@ included. Someone who has never held USDC gets a claim link, and their trustline
 transaction.
 
 - **Live on Stellar mainnet:** https://trynod.si, the product: open to anyone, USDC only, funded from any exchange or
-  wallet through your deposit address. Connector `https://trynod.si/mcp`.
+  wallet through your deposit address, or from another chain. Connector `https://trynod.si/mcp`.
 - **Judges' sandbox on testnet:** https://testnet.trynod.si. New wallets get 10 testnet USDC, and `/sample` runs a
   sample agent. Connector `https://testnet.trynod.si/mcp`.
 
@@ -66,9 +66,11 @@ trustline and paid in one transaction, a revoke that removed the rule and swept 
 - **Revoke.** Nod stops signing at once and sweeps the pocket back; one passkey tap removes the allowance from your
   account.
 - **Cards and notifications.** Nod's cards and the nod run live in Goblin, claude.ai and ChatGPT; notifications (MCP
-  Events) arrive in Goblin and ChatGPT, and claude.ai's cards poll.
+  Events) arrive in Goblin and ChatGPT's Work chats, and claude.ai's cards poll.
 - **Sign up with a deposit, on mainnet.** Start with nothing onchain and a `G…` address any exchange or wallet can pay,
   no memo; it is swept into your wallet and the account deploys ([`7c57d530`](https://stellar.expert/explorer/public/tx/7c57d530372b32fe07aac7ea9220380ff52ce54a329518ff838179357329d7af)).
+- **Top up from any chain, on mainnet.** Add money → From another chain, or ask Claude: NEAR Intents' 1Click pays
+  USDC to your deposit address. Dry-run quotes so far: 5 USDC on Base → 4.98 on Stellar in about 50 s.
 
 Live on testnet:
 
@@ -109,9 +111,7 @@ https://testnet.trynod.si/sample runs a sample agent on Nod's own demo wallet, w
 
 #### Built at HackMeridian
 
-Spikes proved each risky part on testnet first, then the product: a Cloudflare Worker (Effect, OAuth 2.1, MCP with
-cards and events), a Foldkit site, a Stellar chain package. Mainnet went live the same evening. Every commit is on
-`main` from 25 October.
+Spikes first, then the product; mainnet the same evening. Every commit is on `main` from 25 October.
 
 ### Problem solved
 
@@ -139,8 +139,10 @@ notifications, and a person who has never held USDC can be paid through a claim 
   two-signer trustline call needs a non-root recording simulation first; passkey signatures cover the auth digest, so an
   approval cannot be redirected.
 - **Exchanges cannot pay a contract account.** A Nod wallet is a `C…` address. Our deposit router binds a sponsored
-  `G…` deposit address to one wallet so that anyone can sweep what arrives into it and nowhere else. It is proven on
-  testnet; installing a rule on the account would have needed the owner's passkey, so the bound lives in the router.
+  `G…` deposit address to one wallet so that anyone can sweep what arrives into it and nowhere else. Installing a rule
+  on the account would have needed the owner's passkey, so the bound lives in the router. Proven on mainnet: a
+  stranger-style signup funded by a 1 USDC payment, swept and deployed in 83 seconds. The same address is what NEAR
+  Intents' 1Click pays when you top up from another chain.
 - **Testnet storage rent spiked during the day**, from about 47× normal to over 200×, and one pocket pull cost 91 XLM in
   fees. We size fee ceilings from the enforcing simulation and pull in 1 USDC steps; because we integrated two public
   facilitators, the seller moved to OpenZeppelin Channels when x402.org's fee cap fell below the settlement cost. On
@@ -154,6 +156,8 @@ notifications, and a person who has never held USDC can be paid through a claim 
 
 - **Mainnet for what runs on testnet tonight.** Links that create a wallet for someone with nothing (and act as an
   allowance for that one person), and contacts the AI adds.
+- **A funded top-up from another chain** (quotes run today), then **sending out** to other chains through 1Click with a
+  muxed address, since its Stellar deposit takes a numeric memo.
 - **Recovery and shared wallets.** A second passkey or a guardian, and wallets two people own.
 - **Cash-out** to a bank through a Stellar anchor.
 - **No pocket step** once x402 facilitators accept smart-account payers.
@@ -176,7 +180,7 @@ YouTube (unlisted) link, uploaded by Kristjan after recording.
 
 Rust, Soroban, soroban-sdk, Stellar SDK, stellar-cli, OpenZeppelin Stellar contracts, Stellar Asset Contract, USDC,
 x402, OpenZeppelin Channels, WebAuthn passkeys, Model Context Protocol, MCP Apps, MCP Events, OAuth 2.1, TypeScript,
-Effect, Foldkit, Cloudflare Workers, Durable Objects, D1, Alchemy, Bun, Vite, Tailwind CSS
+Effect, Foldkit, Cloudflare Workers, Durable Objects, D1, Alchemy, Bun, NEAR Intents, Tailwind CSS
 
 ### Prior work disclosure
 
