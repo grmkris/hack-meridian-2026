@@ -109,7 +109,7 @@ transactions appear on the receipt.
 #### Try it in three minutes
 
 Add `https://hack-meridian-testnet.kristjan-grm11775.workers.dev/mcp` as a custom connector in Claude, create a passkey wallet on the page that opens, approve the 5 USDC
-allowance, then ask: "Buy the market brief", "Send Alice 2 USDC", "Pay Bob 20 USDC for dinner". Full steps:
+allowance, then ask: "Buy the market brief", "Send Alice 2 USDC", "Pay Bob 5 USDC for dinner" (more than the 2.90 left, so it needs your passkey). Full steps:
 `evidence/JUDGE-TEST-PATH.md` in the repository.
 
 #### Built at HackMeridian

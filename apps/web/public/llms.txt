@@ -8,7 +8,7 @@ Built at HackMeridian 2026 (Lisbon, 25–26 October 2026), Genesis builder track
 
 - Site: https://hack-meridian-testnet.kristjan-grm11775.workers.dev/
 - Claude connector (Settings → Connectors → Add custom connector): https://hack-meridian-testnet.kristjan-grm11775.workers.dev/mcp
-- Steps: add the connector, create a passkey wallet on the page that opens (new wallets get 10 testnet USDC), approve the 5 USDC allowance, then ask Claude "Buy the market brief", "Send Alice 2 USDC" and "Pay Bob 20 USDC for dinner". The last one needs your passkey.
+- Steps: add the connector, create a passkey wallet on the page that opens (new wallets get 10 testnet USDC), approve the 5 USDC allowance, then ask Claude "Buy the market brief", "Send Alice 2 USDC" and "Pay Bob 5 USDC for dinner". The last one is more than the 2.90 left, so it needs your passkey.
 - Full judge test path: https://github.com/grmkris/hack-meridian-2026/blob/main/evidence/JUDGE-TEST-PATH.md
 
 ## How it works
