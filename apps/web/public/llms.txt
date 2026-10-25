@@ -29,7 +29,7 @@ Built at HackMeridian 2026 (Lisbon, 25–26 October 2026), Genesis builder track
 - WebAuthn (secp256r1) verifier: CC7EKIHQP3TN4CARQDND6CEOY2UXLWWC2X5GHTD5NLAT7BG5GPZIOM3F
 - Ed25519 verifier: CAAVTMCBXEIBPR64EAASKFXERVPYFZA2JYP5A3BG6PESWEFUJX5IHKN4
 - Circle USDC, Stellar Asset Contract: CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA
-- Trust-and-pay router (CAP-73 SAC trust + transfer): CCLFB4I4CNGWHHL53UO33CSWKKXJBANMDGOGL43J7RBT7SWK2H2BPGN4 (source: contracts/onboard; `stellar contract build` reproduces the deployed WASM, sha256 39c97734…)
+- Trust-and-pay router (CAP-73 SAC trust + transfer): CCLFB4I4CNGWHHL53UO33CSWKKXJBANMDGOGL43J7RBT7SWK2H2BPGN4 (source: contracts/onboard; `stellar contract build` with stellar-cli 28.1.0 and rustc 1.98.1 reproduces the deployed WASM, sha256 39c97734…)
 - Relayer pool (fee payers on the testnet stage, listed at /api/health): GBCALSA3XQAWW24AXGFWJIGNUCDBCMUPPWC5XHMZ22VY4HMX6XCFYWBR, GAWYWVMHLTRN6N7DXKV3XYCLAFPCPPUXPDFC7J5KL3LNKO26YNJSYE4I
 - x402 network: stellar:testnet; facilitators: x402.org and OpenZeppelin Channels
 - Demo x402 seller (0.10 USDC market brief from the Stellar DEX order book): https://hm26-seller.kristjan-grm11775.workers.dev/api/market-brief

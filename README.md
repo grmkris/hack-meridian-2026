@@ -129,8 +129,8 @@ How Stellar is used:
 | x402 on `stellar:testnet`                    | paid APIs through x402.org and OpenZeppelin Channels         |                                                                                                                                                                                                                                                           |
 | Built-in DEX                                 | the demo seller's market brief reads the XLM/USDC order book |                                                                                                                                                                                                                                                           |
 
-The router is our one contract. `stellar contract build` in `contracts/` reproduces the deployed WASM byte for byte
-(sha256 `39c97734…`, 920 bytes), so [`CCLFB4I4…PGN4`](https://stellar.expert/explorer/testnet/contract/CCLFB4I4CNGWHHL53UO33CSWKKXJBANMDGOGL43J7RBT7SWK2H2BPGN4) is provably this source
+The router is our one product contract. `stellar contract build` in `contracts/` (stellar-cli 28.1.0, rustc 1.98.1,
+`wasm32v1-none`, the workspace release profile) reproduces the deployed WASM byte for byte (sha256 `39c97734…`, 920 bytes), so [`CCLFB4I4…PGN4`](https://stellar.expert/explorer/testnet/contract/CCLFB4I4CNGWHHL53UO33CSWKKXJBANMDGOGL43J7RBT7SWK2H2BPGN4) is provably this source
 ([deploy transaction](https://stellar.expert/explorer/testnet/tx/634bcf1894f1c82e76f1674791f8449341db2fade872f680c904e729beaf3626); record in
 [`contracts/deployments/testnet.json`](contracts/deployments/testnet.json)).
 
