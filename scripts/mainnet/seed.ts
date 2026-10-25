@@ -32,6 +32,7 @@ import {
  *
  *   bun scripts/mainnet/seed.ts --network pubnet --dry-run
  *   HM26_MAINNET_GO=yes bun scripts/mainnet/seed.ts --network pubnet [--only trustlines,alice,contacts] [--write-env]
+ *     --roles treasury,bob   limit the trustlines step to these accounts (default treasury, seller, bob)
  *
  * trustlines  USDC `changeTrust` (each account its own source and fee payer; 0.5 XLM reserve) for the treasury (run
  *             right after its XLM lands, before Kristjan sends USDC), the seller payTo (before M4) and Bob (usdc_ready)
@@ -50,6 +51,10 @@ const only = flag('--only')?.split(',')
 const wants = (step: 'trustlines' | 'alice' | 'contacts') => only === undefined || only.includes(step)
 
 const TRUSTLINE_ROLES: ReadonlyArray<Role> = ['treasury', 'seller', 'bob']
+const rolesArg = flag('--roles')?.split(',')
+const trustRoles = TRUSTLINE_ROLES.filter(role => rolesArg === undefined || rolesArg.includes(role))
+if (rolesArg !== undefined && rolesArg.some(role => !TRUSTLINE_ROLES.some(known => known === role)))
+  throw new Error(`--roles takes ${TRUSTLINE_ROLES.join(', ')}`)
 const RESERVE = 5_000_000n
 const CAROL_MIN = 15_000_000n
 
@@ -64,7 +69,7 @@ const state = (role: Role) => {
 const alice = aliceId()
 const aliceThere = await contractExists(alice)
 
-const needTrust = wants('trustlines') ? TRUSTLINE_ROLES.filter(role => state(role).usdc === null) : []
+const needTrust = wants('trustlines') ? trustRoles.filter(role => state(role).usdc === null) : []
 const spends: Array<Spend> = [
   ...needTrust.map(role => ({ what: `${role} USDC trustline (0.5 XLM reserve + fee)`, payer: role, xlm: 0.501 })),
   ...(wants('alice') && !aliceThere
