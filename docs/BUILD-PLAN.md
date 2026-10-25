@@ -145,3 +145,17 @@ testnet either way.
   database; its Alchemy state is copied into the worktree so the plan updates rather than recreates. URL:
   https://hack-meridian-testnet.kristjan-grm11775.workers.dev (MCP at `/mcp`).
 - Open: owner approval of an over-allowance x402 purchase followed by the agent's retry; rent factor rising (47 → 96 today).
+
+## First real-chain rehearsal (13:38 UTC, local stage at c3f7b12, `evidence/demo/2026-10-25T13-38-30-890Z/`)
+
+| Acceptance test                                  | Result             | Evidence                                                                                                                           |
+| ------------------------------------------------ | ------------------ | ---------------------------------------------------------------------------------------------------------------------------------- |
+| 1 x402 purchase consumes the allowance           | PASS               | pull `646d95c9…` (40.7 XLM, relayer), settlement `1c680612…` (fee paid by x402.org); 5.00 → 4.90                                   |
+| 2 over-allowance routed to the owner             | PASS               | 4 USDC needed the nod; execute refused                                                                                             |
+| 3 forced over-limit rejected onchain             | REF                | S1 `3daf4b00…`                                                                                                                     |
+| 4 passkey approval bound to recipient and amount | PASS               | dinner to Bob `8f9e79cb…`, 20 USDC exactly, allowance unchanged                                                                    |
+| 5 repeat does not pay twice                      | PASS               | same payment id and receipt, Bob's balance unchanged                                                                               |
+| 6 revoke blocks the next payment                 | PASS               | Unauthorized after revoke; rule removed (read from chain)                                                                          |
+| 7 receipt only after settlement                  | FAIL (fee ceiling) | 2 USDC to Alice refused: enforce simulation needed 15.3 XLM vs the 6 XLM later-payment ceiling at rent factor 96; ceiling → 25 XLM |
+| 8 trustline + payment in one transaction         | PASS               | Carol `8457e9cb…`                                                                                                                  |
+| 9 relayer pays every fee, wallet holds no XLM    | PASS               |                                                                                                                                    |
