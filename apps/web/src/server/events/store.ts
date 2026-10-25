@@ -38,6 +38,8 @@ export interface SubscriptionRow {
   readonly lastError: string | null
   readonly verifiedAt: number | null
   readonly expiresAt: number
+  /** False once the connection is revoked (read with the subscription, for the driver). */
+  readonly connectionActive: boolean
 }
 
 const parseObject = (text: unknown): Schema.JsonObject => {
@@ -83,6 +85,7 @@ const toSubscription = (row: Record<string, unknown>): SubscriptionRow => ({
   lastError: stringOr(row['last_error'], null),
   verifiedAt: numberOr(row['verified_at'], null),
   expiresAt: numberOr(row['expires_at'], 0),
+  connectionActive: row['connection_status'] === undefined || row['connection_status'] === 'active',
 })
 
 const all = (statement: ReturnType<typeof sql>) => Db.use(db => db.all(statement))
@@ -168,8 +171,9 @@ export const subscriptionsToDrive = (walletId: string) =>
   Effect.map(
     all(
       sql(
-        `SELECT * FROM event_subscriptions WHERE wallet_id = ? AND state IN ('active', 'terminating')
-           ORDER BY created_at, id LIMIT 64`,
+        `SELECT s.*, COALESCE(c.status, 'revoked') AS connection_status FROM event_subscriptions s
+           LEFT JOIN connections c ON c.id = s.connection_id
+           WHERE s.wallet_id = ? AND s.state IN ('active', 'terminating') ORDER BY s.created_at, s.id LIMIT 64`,
         walletId,
       ),
     ),
@@ -336,6 +340,8 @@ export const recordFailure = (
   id: string,
   revision: number,
   input: {
+    /** Rows before the failing one that did not match: passed, so the retry starts at the failing one. */
+    readonly cursor: number
     readonly attempts: number
     readonly nextAttemptAt: number
     readonly failedSince: number
@@ -346,8 +352,10 @@ export const recordFailure = (
   Db.use(db =>
     db.batch([
       sql(
-        `UPDATE event_subscriptions SET attempts = ?, next_attempt_at = ?, failed_since = ?, last_error = ?, updated_at = ?
+        `UPDATE event_subscriptions SET cursor = MAX(cursor, ?), attempts = ?, next_attempt_at = ?, failed_since = ?,
+           last_error = ?, updated_at = ?
            WHERE id = ? AND revision = ? AND state = 'active'`,
+        input.cursor,
         input.attempts,
         input.nextAttemptAt,
         input.failedSince,
@@ -369,4 +377,34 @@ export const setTerminated = (id: string, reason: string, nowMs: number) =>
         id,
       ),
     ]),
+  )
+
+/** What the watcher needs of a wallet: its address, owner and network, and its pockets (sweeps are not income). */
+export const walletForWatch = (walletId: string) =>
+  Effect.gen(function* () {
+    const wallet = (yield* all(sql('SELECT contract_id, owner_id, network FROM wallets WHERE id = ?', walletId)))[0]
+    if (wallet === undefined) return undefined
+    const pockets = yield* all(
+      sql('SELECT pocket_address FROM spending_grants WHERE wallet_id = ? AND pocket_address IS NOT NULL', walletId),
+    )
+    return {
+      contractId: stringOr(wallet['contract_id'], ''),
+      ownerId: stringOr(wallet['owner_id'], ''),
+      network: stringOr(wallet['network'], 'stellar:testnet'),
+      pockets: pockets.map(row => row['pocket_address']).filter(Predicate.isString),
+    }
+  })
+
+/** The owner's saved name for `address`, if any. */
+export const contactNameOf = (ownerId: string, address: string) =>
+  Effect.map(
+    all(
+      sql(
+        `SELECT c.display_name AS name FROM contacts c JOIN contact_destinations d ON d.contact_id = c.id
+           WHERE c.owner_id = ? AND d.address = ? ORDER BY c.created_at LIMIT 1`,
+        ownerId,
+        address,
+      ),
+    ),
+    rows => stringOr(rows[0]?.['name'], null),
   )

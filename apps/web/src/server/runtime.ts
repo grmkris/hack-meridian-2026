@@ -1,10 +1,11 @@
-import { ConfigProvider, Layer, ManagedRuntime } from 'effect'
+import { ConfigProvider, Effect, Layer, ManagedRuntime, Option, Redacted } from 'effect'
 
 import { Chain, makeFixtureChain } from '@hm/protocol'
 import { stellarLayer } from '@hm/stellar'
 
 import { Counter } from './counter.ts'
 import { Db, d1Engine } from './db.ts'
+import { EventsHost } from './events/host.ts'
 import type { Ledger } from './ledger.ts'
 import { Network } from './network.ts'
 import { type GrantHelpers, OAuthGrants } from './oauth-grants.ts'
@@ -51,6 +52,21 @@ const chainLayer = (env: WorkerEnv) => {
   return Layer.merge(fixture, Network.fixture.pipe(Layer.provide(config)))
 }
 
+/**
+ * MCP Events from the Worker: wake a wallet's object to deliver what was just journaled (never fails; its alarm
+ * delivers anyway), and the vault key webhook secrets are sealed with.
+ */
+const eventsHost = (env: WorkerEnv) => {
+  const vaultKey = stringBindings(env)['VAULT_KEY']
+  return Layer.succeed(EventsHost, {
+    poke: walletId =>
+      Effect.tryPromise(() => env.WALLET_OBJECT.getByName(walletId).poke(walletId)).pipe(
+        Effect.catch(error => Effect.logWarning('events poke failed', walletId, String(error))),
+      ),
+    vaultKey: vaultKey === undefined || vaultKey === '' ? Option.none() : Option.some(Redacted.make(vaultKey)),
+  })
+}
+
 export const appLayer = (env: WorkerEnv, helpers: GrantHelpers) =>
   Layer.mergeAll(
     Counter.layer,
@@ -59,6 +75,7 @@ export const appLayer = (env: WorkerEnv, helpers: GrantHelpers) =>
     ledgerViaObject(env.WALLET_OBJECT),
     chainLayer(env),
     OAuthGrants.fromHelpers(helpers),
+    eventsHost(env),
   ).pipe(Layer.provideMerge(Settings.fromBindings(env)))
 
 export const makeRuntime = (env: WorkerEnv, helpers: GrantHelpers): AppRuntime =>

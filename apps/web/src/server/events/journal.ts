@@ -3,6 +3,8 @@ import { Schema } from 'effect'
 import { sql, type SqlStatement } from '../db.ts'
 import type { EventName } from './catalog.ts'
 import { McpEventError } from './errors.ts'
+import type { EventOccurrence } from './schemas.ts'
+import type { JournalRow } from './store.ts'
 
 /**
  * The event journal: one row per event, appended in the same D1 batch as the state change it reports. `seq` is the
@@ -42,3 +44,20 @@ export const decodeEventCursor = (cursor: string, head: number): number => {
     throw new McpEventError({ reason: 'invalid_params', data: { field: 'cursor' } })
   return seq
 }
+
+/** A path of Nod's own (`/approve/…`) on this origin; absolute links stay. */
+export const resolveEventUrl = (data: Schema.JsonObject, origin: string): Schema.JsonObject => {
+  const url = data['url']
+  if (typeof url !== 'string' || !url.startsWith('/')) return data
+  return Object.fromEntries(
+    Object.entries(data).map(([key, value]) => [key, key === 'url' ? `${origin}${url}` : value]),
+  )
+}
+
+export const occurrenceOf = (row: JournalRow, origin: string): EventOccurrence => ({
+  eventId: row.eventId,
+  name: row.name,
+  timestamp: row.occurredAt,
+  data: resolveEventUrl(row.data, origin),
+  cursor: eventCursor(row.seq),
+})

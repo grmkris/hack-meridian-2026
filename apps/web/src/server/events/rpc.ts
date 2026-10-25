@@ -11,12 +11,11 @@ import { EVENT_DESCRIPTORS, eventArguments, eventDefinition, matchesArguments } 
 import { eventChallengeMatches, postEventWebhook } from './delivery.ts'
 import { eventProtocolError, McpEventError } from './errors.ts'
 import { EventsHost } from './host.ts'
-import { decodeEventCursor, eventCursor } from './journal.ts'
+import { decodeEventCursor, eventCursor, occurrenceOf } from './journal.ts'
 import { canonicalEventJson, eventCallbackUrl, eventSecret, eventSubscriptionId, eventTtlMs } from './policy.ts'
 import {
   EVENT_LIMITS,
   EventListParams,
-  type EventOccurrence,
   EventPollParams,
   EventSubscribeParams,
   EventUnsubscribeParams,
@@ -61,23 +60,6 @@ const principal = Effect.fnUntraced(function* (ctx: ToolContext) {
   if (connection?.status !== 'active' || connection.walletId !== ctx.props.wallet_id)
     return yield* new McpEventError({ reason: 'forbidden', data: { reason: 'connection revoked' } })
   return { connectionId: ctx.props.connection_id, walletId: ctx.props.wallet_id }
-})
-
-/** A path of Nod's own (`/approve/…`) on this origin; absolute links stay. */
-export const resolveEventUrl = (data: Schema.JsonObject, origin: string): Schema.JsonObject => {
-  const url = data['url']
-  if (typeof url !== 'string' || !url.startsWith('/')) return data
-  return Object.fromEntries(
-    Object.entries(data).map(([key, value]) => [key, key === 'url' ? `${origin}${url}` : value]),
-  )
-}
-
-export const occurrenceOf = (row: JournalRow, origin: string): EventOccurrence => ({
-  eventId: row.eventId,
-  name: row.name,
-  timestamp: row.occurredAt,
-  data: resolveEventUrl(row.data, origin),
-  cursor: eventCursor(row.seq),
 })
 
 /** Rows scanned per page before matching arguments. */
