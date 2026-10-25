@@ -130,7 +130,7 @@ Delegated signer to the account. Funding Kristjan provides: ~50 XLM and 25–115
 rehearsal green, one real 0.10 USDC settlement through OZ Channels on mainnet, caps tested, accounts funded. Judges stay on
 testnet either way.
 
-## Integration status (13:55 UTC)
+## Integration status (13:37 UTC)
 
 - All streams have committed: A1 service (OAuth + passkey consent, ten tools, D1, WalletObject, owner pages, claim flow,
   Nod copy, network presets, caps, kill switch, invite codes), A2 `@hm/stellar` (full live testnet run incl. the claim with
