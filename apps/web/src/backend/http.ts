@@ -1,12 +1,14 @@
-import { Effect, Layer, Match, Predicate } from 'effect'
+import { Effect, Layer, Match, Option, Predicate } from 'effect'
 import { HttpApiClient } from 'effect/http-api'
 import { Http } from 'foldkit'
 
 import { Api } from '@hm/api'
 
-import { Backend, BackendFailed, type BackendError, SignedOut } from './backend'
+import { Backend, BackendFailed, type BackendError, InviteRequired, SignedOut } from './backend'
 
 const UNREACHABLE = 'Nod did not answer. Check your connection and try again.'
+/** The Worker's 400 sentence when this network needs an invite code to create a wallet. */
+const INVITE_REQUIRED = 'invite_required'
 const UNREADABLE = 'Nod answered in a way this page cannot read. Reload it.'
 
 const sentenceOf = (error: object): string =>
@@ -16,7 +18,10 @@ const toBackendError = (error: { readonly _tag: string }): BackendError =>
   Match.value(error._tag).pipe(
     Match.withReturnType<BackendError>(),
     Match.when('Unauthorized', () => new SignedOut()),
-    Match.whenOr('BadRequest', 'NotFound', 'Unavailable', () => new BackendFailed({ error: sentenceOf(error) })),
+    Match.when('BadRequest', () =>
+      sentenceOf(error) === INVITE_REQUIRED ? new InviteRequired() : new BackendFailed({ error: sentenceOf(error) }),
+    ),
+    Match.whenOr('NotFound', 'Unavailable', () => new BackendFailed({ error: sentenceOf(error) })),
     Match.when('SchemaError', () => new BackendFailed({ error: UNREADABLE })),
     Match.orElse(() => new BackendFailed({ error: UNREACHABLE })),
   )
@@ -30,7 +35,15 @@ export const httpBackend = Layer.effect(
     const client = yield* HttpApiClient.make(Api)
     return Backend.of({
       session: call(Effect.map(client.session.current(), reply => reply.wallet)),
-      registrationOptions: name => call(client.session.registrationOptions({ payload: { name } })),
+      registrationOptions: (name, maybeInviteCode) =>
+        call(
+          client.session.registrationOptions({
+            payload: Option.match(maybeInviteCode, {
+              onNone: () => ({ name }),
+              onSome: inviteCode => ({ name, invite_code: inviteCode }),
+            }),
+          }),
+        ),
       createWallet: registration =>
         call(Effect.map(client.session.createWallet({ payload: registration }), reply => reply.wallet)),
       assertionOptions: call(client.session.assertionOptions()),

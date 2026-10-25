@@ -5,7 +5,18 @@ import { describe, expect, test } from 'vitest'
 
 import { Problem } from '../problem'
 import { fixture } from './fixtures'
-import { Ceremony, Copy, CopyConnectorUrl, CreateWallet, Message, OutMessage, SignIn, init, update } from './welcome'
+import {
+  Ceremony,
+  Copy,
+  CopyConnectorUrl,
+  CreateWallet,
+  InviteField,
+  Message,
+  OutMessage,
+  SignIn,
+  init,
+  update,
+} from './welcome'
 
 const CONNECTOR = 'https://wallet.test/mcp'
 
@@ -16,7 +27,7 @@ describe('Welcome', () => {
       given(init(Option.none(), CONNECTOR).model),
       message(Message.UpdatedWalletName({ value: '  Travel ' })),
       message(Message.SubmittedCreateWallet()),
-      Command.expectExact(CreateWallet({ name: 'Travel' })),
+      Command.expectExact(CreateWallet({ name: 'Travel', maybeInviteCode: Option.none() })),
       Command.resolve(CreateWallet, Message.SucceededCreateWallet({ wallet: fixture.wallet })),
       expectOutMessage(OutMessage.StartedSession({ wallet: fixture.wallet })),
     )
@@ -32,13 +43,33 @@ describe('Welcome', () => {
     )
   })
 
+  test('when the network needs an invite, the field appears and the code goes with the next attempt', () => {
+    story(
+      update,
+      given(init(Option.none(), CONNECTOR).model),
+      message(Message.SubmittedCreateWallet()),
+      Command.resolve(CreateWallet, Message.RequiredInviteCode()),
+      model(nextModel => {
+        expect(nextModel.inviteField).toEqual(InviteField.Shown())
+        expect(nextModel.ceremony).toEqual(Ceremony.Idle())
+      }),
+      message(Message.SubmittedCreateWallet()),
+      Command.expectNone(),
+      message(Message.UpdatedInviteCode({ value: '  MERIDIAN-26 ' })),
+      message(Message.SubmittedCreateWallet()),
+      Command.expectExact(CreateWallet({ name: 'Personal', maybeInviteCode: Option.some('MERIDIAN-26') })),
+      Command.resolve(CreateWallet, Message.SucceededCreateWallet({ wallet: fixture.wallet })),
+      expectOutMessage(OutMessage.StartedSession({ wallet: fixture.wallet })),
+    )
+  })
+
   test('an empty name falls back to Personal', () => {
     story(
       update,
       given(init(Option.none(), CONNECTOR).model),
       message(Message.UpdatedWalletName({ value: '   ' })),
       message(Message.SubmittedCreateWallet()),
-      Command.expectExact(CreateWallet({ name: 'Personal' })),
+      Command.expectExact(CreateWallet({ name: 'Personal', maybeInviteCode: Option.none() })),
       Command.resolve(CreateWallet, Message.FailedCreateWallet({ problem: Problem.Failed({ error: 'Dismissed.' }) })),
       model(nextModel => {
         expect(nextModel.ceremony).toEqual(Ceremony.Failed({ error: 'Dismissed.' }))

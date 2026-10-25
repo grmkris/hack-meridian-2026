@@ -27,8 +27,16 @@ export const Copy = defineTaggedUnion({
 })
 export type Copy = typeof Copy.Type
 
+export const InviteField = defineTaggedUnion({
+  Hidden: {},
+  Shown: {},
+})
+export type InviteField = typeof InviteField.Type
+
 export const Model = Schema.Struct({
   walletName: Schema.String,
+  inviteCode: Schema.String,
+  inviteField: InviteField,
   ceremony: Ceremony,
   connectorUrl: Schema.String,
   copy: Copy,
@@ -48,6 +56,8 @@ export const Message = defineMessageUnion({
   ClickedAddToClaude: {},
   CompletedCopyConnectorUrl: {},
   FailedCopyConnectorUrl: {},
+  UpdatedInviteCode: { value: Schema.String },
+  RequiredInviteCode: {},
 })
 export type Message = typeof Message.Type
 
@@ -66,6 +76,8 @@ export const init = (
     walletName: DEFAULT_WALLET_NAME,
     connectorUrl,
     copy: Copy.Idle(),
+    inviteCode: '',
+    inviteField: InviteField.Hidden(),
     ceremony: Option.match(maybeError, {
       onNone: () => Ceremony.Idle(),
       onSome: error => Ceremony.Failed({ error }),
@@ -82,17 +94,25 @@ const problemMessage = (problem: Problem): string =>
   })
 
 export const CreateWallet = Command.define('CreateWallet', {
-  args: { name: Schema.String },
-  messages: [Message.SucceededCreateWallet, Message.FailedCreateWallet],
-  execute: ({ name }) =>
+  args: { name: Schema.String, maybeInviteCode: Schema.Option(Schema.String) },
+  messages: [Message.SucceededCreateWallet, Message.FailedCreateWallet, Message.RequiredInviteCode],
+  execute: ({ name, maybeInviteCode }) =>
     Effect.gen(function* () {
       const backend = yield* Backend
       const passkey = yield* Passkey
-      const options = yield* backend.registrationOptions(name)
+      const options = yield* backend.registrationOptions(name, maybeInviteCode)
       const created = yield* passkey.create(options)
-      const wallet = yield* backend.createWallet({ name, ...created })
+      const wallet = yield* backend.createWallet(
+        Option.match(maybeInviteCode, {
+          onNone: () => ({ name, ...created }),
+          onSome: inviteCode => ({ name, ...created, invite_code: inviteCode }),
+        }),
+      )
       return Message.SucceededCreateWallet({ wallet })
-    }).pipe(recoverProblem(problem => Message.FailedCreateWallet({ problem }))),
+    }).pipe(
+      Effect.catchTag('InviteRequired', () => Effect.succeed(Message.RequiredInviteCode())),
+      recoverProblem(problem => Message.FailedCreateWallet({ problem })),
+    ),
 })
 
 export const SignIn = Command.define('SignIn', {
@@ -129,6 +149,15 @@ const isBusy = (ceremony: Ceremony): boolean =>
     Failed: () => false,
   })
 
+const inviteCodeOf = (model: Model): Option.Option<string> =>
+  InviteField.match(model.inviteField, {
+    Hidden: () => Option.none(),
+    Shown: () => Option.liftPredicate(String.trim(model.inviteCode), String.isNonEmpty),
+  })
+
+const hasInviteIfShown = (model: Model): boolean =>
+  InviteField.match(model.inviteField, { Hidden: () => true, Shown: () => Option.isSome(inviteCodeOf(model)) })
+
 const walletNameOf = (model: Model): string => {
   const trimmed = String.trim(model.walletName)
   return String.isEmpty(trimmed) ? DEFAULT_WALLET_NAME : trimmed
@@ -138,14 +167,18 @@ export const update = (model: Model, message: Message) =>
   Message.match<UpdateReturn>(message, {
     UpdatedWalletName: ({ value }) => ({ model: modifyFields(model, { walletName: () => value }) }),
     SubmittedCreateWallet: () => {
-      if (isBusy(model.ceremony)) {
+      if (isBusy(model.ceremony) || !hasInviteIfShown(model)) {
         return { model }
       }
       return {
         model: modifyFields(model, { ceremony: () => Ceremony.CreatingWallet() }),
-        commands: [CreateWallet({ name: walletNameOf(model) })],
+        commands: [CreateWallet({ name: walletNameOf(model), maybeInviteCode: inviteCodeOf(model) })],
       }
     },
+    UpdatedInviteCode: ({ value }) => ({ model: modifyFields(model, { inviteCode: () => value }) }),
+    RequiredInviteCode: () => ({
+      model: modifyFields(model, { inviteField: () => InviteField.Shown(), ceremony: () => Ceremony.Idle() }),
+    }),
     ClickedSignIn: () => {
       if (isBusy(model.ceremony)) {
         return { model }
@@ -185,6 +218,30 @@ const ceremonyNotice = (ceremony: Ceremony, h: HtmlBuilder<Message>): ReadonlyAr
     Failed: ({ error }) => [errorRow(error, h)],
   })
 
+const inviteFieldView = (model: Model, h: HtmlBuilder<Message>): ReadonlyArray<Html> =>
+  InviteField.match<ReadonlyArray<Html>>(model.inviteField, {
+    Hidden: () => [],
+    Shown: () => [
+      h.label([h.For('invite-code'), h.Class('text-sm font-medium text-ink')], ['Invite code']),
+      h.input([
+        h.Id('invite-code'),
+        h.Type('text'),
+        h.Value(model.inviteCode),
+        h.Autocomplete('off'),
+        h.Spellcheck(false),
+        h.Required(true),
+        h.AriaDescribedBy('invite-code-hint'),
+        h.DataAttribute('testid', 'invite-code'),
+        h.Class(`${INPUT} font-mono`),
+        h.OnInput(value => Message.UpdatedInviteCode({ value })),
+      ]),
+      h.p(
+        [h.Id('invite-code-hint'), h.Role('status'), h.Class('text-sm text-muted')],
+        ['Nod on this network is invite-only for now. Enter your invite code, then create your wallet.'],
+      ),
+    ],
+  })
+
 export const walletFormView = (model: Model, h: HtmlBuilder<Message>): Html =>
   h.div(
     [h.Class('flex w-full max-w-md flex-col gap-4 rounded-3xl border border-line bg-paper p-6 shadow-sm')],
@@ -203,10 +260,11 @@ export const walletFormView = (model: Model, h: HtmlBuilder<Message>): Html =>
             h.Class(INPUT),
             h.OnInput(value => Message.UpdatedWalletName({ value })),
           ]),
+          ...inviteFieldView(model, h),
           h.button(
             [
               h.Type('submit'),
-              h.Disabled(isBusy(model.ceremony)),
+              h.Disabled(isBusy(model.ceremony) || !hasInviteIfShown(model)),
               h.DataAttribute('testid', 'create-wallet'),
               h.Class(BUTTON_PRIMARY),
             ],

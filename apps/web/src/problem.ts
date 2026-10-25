@@ -14,6 +14,7 @@ export const toProblem = (error: BackendError | PasskeyFailed): Problem =>
     Match.tagsExhaustive({
       SignedOut: () => Problem.SignedOut(),
       BackendFailed: ({ error: sentence }) => Problem.Failed({ error: sentence }),
+      InviteRequired: () => Problem.Failed({ error: 'Creating a wallet here needs an invite code.' }),
       PasskeyFailed: ({ error: sentence }) => Problem.Failed({ error: sentence }),
     }),
   )

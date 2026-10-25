@@ -223,7 +223,7 @@ export const fixtureBackend = (options: { readonly signedIn: boolean }) =>
       }))
       return {
         session: whenSignedIn(() => wallet),
-        registrationOptions: name =>
+        registrationOptions: (name, _maybeInviteCode) =>
           Effect.succeed({
             challenge: 'Zml4dHVyZS1yZWdpc3RyYXRpb24',
             rp_id: 'localhost',
