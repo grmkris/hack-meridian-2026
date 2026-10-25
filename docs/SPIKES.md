@@ -50,28 +50,33 @@ Plan:
   Reusable code (paths, what each exports) · Open risks.
 - Reply to the orchestrator with ≤ 25 lines: verdict per claim and the one thing the build must know.
 
-## S0 · Foundation (not a spike, runs in parallel) — 3 h
+## S0 · Foundation — DONE by the concurrent foundation session (pushed 12:50 UTC)
 
-**Owned by the concurrent foundation session** (the Claude session started this morning in this repo; at 12:24 CET it was
-writing `apps/web` with Foldkit, `packages/api`, `packages/counter-client`, `scripts/contract.ts` and `scripts/typecheck.ts`).
-**Do not start a second S0.** Spike agents must not touch `apps/`, `packages/`, `scripts/`, `contracts/` or the root
-configs; those are that session's live edits. When it finishes, its layout replaces the deliverables list below.
+Public repo: https://github.com/grmkris/hack-meridian-2026. Commits `2b791bc` (contract), `33a975b` (foundation files,
+mislabelled as docs), `a48a457` (Alchemy stack + gates), `3994286` (scripts), `f9dd922` (agents/skills/MCP), `fe390ef`
+(README/LICENSE/CI).
 
-Deliverables (as planned; reconcile with what the foundation session actually produced):
+Layout the build goes on top of:
 
-- `apps/web`: Foldkit SPA (pages: Home, Approvals, Contacts, Connections, placeholders) + `src/worker.ts` with an Effect
-  HTTP API on `/api/health` and an MCP server on `/mcp` exposing `wallet_overview` returning fixture data.
-  `apps/web/alchemy.run.ts` with stages `local` and `testnet` (workers.dev), D1 + one Durable Object binding declared.
-- `packages/protocol`: Effect Schema types for the entities and tool inputs/outputs in `docs/SPEC.md`.
-- `scripts/stage.ts`, `scripts/smoke.ts`, `scripts/typecheck.ts`, `scripts/contract.ts` as `package.json` already references.
-- `.mcp.json` with `stellar-raven` and `cloudflare`; vendored Stellar skills (files only; no hooks, no permission edits).
-- Prove: `heavy bun run check` passes; `bun run dev` serves the SPA and `/mcp` answers `tools/list`; `@stellar/stellar-sdk`
-  16.4.1 imports and builds a transaction inside workerd (local stage), with any polyfill noted.
+- `apps/web`: Foldkit SPA in `src/main.ts`; Worker in `src/worker.ts` + `src/server/{app,settings,counter}.ts`;
+  `alchemy.run.ts` with stages `local` and `testnet`, local state only, dev port 18960, `assets.runWorkerFirst ['/api/*']`
+  (add `/mcp` and `/.well-known/*` there when the MCP server lands).
+- `packages/api`: the Effect HttpApi contract. `packages/counter-client`: generated bindings on `@stellar/stellar-sdk`
+  16.4.1, compiled to `dist`.
+- `contracts/counter`: soroban-sdk 29.0.1, deployed `CAKTREEYOPERBZGP4FHTUZP4WRCMTM5X4WSC3UVTBNG3DEL2LGUC4ON2`.
+- `scripts/{stage,smoke,shots,typecheck,contract}.ts`. `.mcp.json`: stellar-raven, cloudflare, rat-stack, mysi,
+  foldkit-devtools. 28 vendored skills incl. `stellar-{smart-contracts,dapp,assets,data,standards,agentic-payments}`.
 
-Pins: Effect 4.0.5, Foldkit 0.169.x (0.168 proven in swarmm), Alchemy **2.0.0-beta.83 exactly** (shared Cloudflare state
-store), TypeScript 7.0.2, Bun 1.4.2. Copy conventions from `~/code/swarmm` (Foldkit hosting wrapper, `FOLDKIT.md`),
-`~/code/vrials` (single Worker handling `/api` + `/mcp`, `deployments/<chain>.json`), `~/code/myapps` (Effect `Config`
-for settings, Alchemy drift fixes). Do not deploy to `testnet` yet; local stage only.
+Verified green: `heavy bun run check` (oxfmt, repoagents, type-aware oxlint + Foldkit plugin, effect-tsrs over 5 projects,
+15 vitest, clippy, 4 cargo tests, vite build); `bun run dev` on :18960; `smoke:local` 5/5; phone + desktop shots.
+`/api/counter` reads the testnet contract from inside workerd with stellar-sdk 16.4.1 and no polyfill.
+
+Not done by design: no testnet Worker deploy yet (`bun run deploy:testnet` is ready and reads the token from
+`secrets.env`); no `/mcp`, D1, Durable Object or `packages/protocol`. Each is a build-phase addition.
+
+Gotchas for build agents: workerd in alchemy beta.83 accepts compatibility dates ≤ 2026-10-09; `nodejs_compat` is the
+default, do not list it; `spikes/` is excluded from lint and fmt but `docs/` is not; CI runs `bun run check` on every push
+to `main`, so docs must stay oxfmt-clean; `AGENTS.md` carries the pathspec commit rule.
 
 ## S1 · Smart account authority model — 4 h (highest risk)
 
