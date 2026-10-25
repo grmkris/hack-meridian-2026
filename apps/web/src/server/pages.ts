@@ -251,7 +251,7 @@ const UTC_TIME = new Intl.DateTimeFormat('en-GB', {
 })
 
 /** "2026-10-25T18:26:12.290Z" → "Sun 25 Oct, 18:26 UTC"; anything unparsable as it came. */
-const utcTime = (iso: string) => {
+export const utcTime = (iso: string) => {
   const ms = Date.parse(iso)
   return Number.isNaN(ms) ? iso : `${UTC_TIME.format(ms)} UTC`
 }
