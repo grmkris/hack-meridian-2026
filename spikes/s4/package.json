@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "wrangler dev",
     "deploy": "wrangler deploy",
-    "e2e": "bun client/e2e.ts"
+    "e2e": "bun client/e2e.ts",
+    "typecheck": "wrangler types --include-runtime >/dev/null && ../../node_modules/.bin/tsc -p tsconfig.json"
   },
   "dependencies": {
     "@cloudflare/workers-oauth-provider": "1.2.4",

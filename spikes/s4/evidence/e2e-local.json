@@ -1,0 +1,823 @@
+{
+  "base": "http://localhost:8799",
+  "at": "2026-10-25T11:56:40.217Z",
+  "results": {
+    "negative_bogus_www_authenticate": "Bearer realm=\"OAuth\", resource_metadata=\"http://localhost:8799/.well-known/oauth-protected-resource/mcp\", error=\"invalid_token\", scope=\"wallet\"",
+    "authorization_url_params:goblin CLI (s4 e2e)": {
+      "response_type": "code",
+      "client_id": "PdeRGOdebhIRWnS9",
+      "code_challenge": "<redacted>",
+      "code_challenge_method": "S256",
+      "redirect_uri": "http://127.0.0.1:43477/callback",
+      "state": "<redacted>",
+      "scope": "wallet offline_access",
+      "prompt": "consent",
+      "resource": "http://localhost:8799/mcp"
+    },
+    "token_response": {
+      "token_type": "bearer",
+      "expires_in": 3600,
+      "scope": "wallet offline_access"
+    },
+    "tools": [
+      "wallet_overview",
+      "payment_prepare",
+      "payment_status"
+    ],
+    "wallet_overview": {
+      "wallet": {
+        "id": "wal_personal",
+        "name": "Personal",
+        "network": "stellar:testnet",
+        "contract_id": "C…(fixture)"
+      },
+      "balance": {
+        "asset": "USDC",
+        "amount": "50.00"
+      },
+      "allowance": {
+        "grant_id": "gr_e3c66179",
+        "asset": "USDC",
+        "total": "5.00",
+        "spent": "0.00",
+        "remaining": "5.00",
+        "valid_until": "2026-10-26T12:00:00.000Z",
+        "status": "active"
+      },
+      "pending_approvals": 0,
+      "connection": {
+        "id": "e3c66179-1fd3-46f3-9d2c-cdd6f6326a7c",
+        "client_name": "goblin CLI (s4 e2e)"
+      }
+    },
+    "payment_prepare": {
+      "payment_id": "pi_aad0cdabb6e704b3e19e1b57",
+      "status": "requires_approval",
+      "amount": "100",
+      "asset": "USDC",
+      "recipient": "Bob GBOBDEMO…",
+      "network": "stellar:testnet",
+      "lane": "owner",
+      "expires_at": "2026-10-25T12:26:33.299Z",
+      "approval_url": "http://localhost:8799/approve/pi_aad0cdabb6e704b3e19e1b57",
+      "grant_remaining": "5.00"
+    },
+    "payment_prepare_text": "This payment of 100 USDC to Bob GBOBDEMO… needs the wallet owner's approval. Ask the user to open http://localhost:8799/approve/pi_aad0cdabb6e704b3e19e1b57 and approve it, then call payment_status with payment_id pi_aad0cdabb6e704b3e19e1b57.",
+    "payment_status_polls": [
+      "submitted",
+      "submitted",
+      "submitted",
+      "confirmed"
+    ],
+    "payment_status_final": {
+      "payment_id": "pi_aad0cdabb6e704b3e19e1b57",
+      "status": "confirmed",
+      "amount": "100",
+      "asset": "USDC",
+      "recipient": "Bob GBOBDEMO…",
+      "network": "stellar:testnet",
+      "lane": "owner",
+      "expires_at": "2026-10-25T12:26:33.299Z",
+      "receipt": {
+        "tx_hash": "4d1f4beaa365a205649ebf5c85e8dea68bfd80b6cedc9328cdaa78df353b38a7",
+        "ledger": 0,
+        "explorer_url": "https://stellar.expert/explorer/testnet/tx/4d1f4beaa365a205649ebf5c85e8dea68bfd80b6cedc9328cdaa78df353b38a7",
+        "confirmed_at": "2026-10-25T11:56:36.308Z",
+        "lane": "owner",
+        "note": "FAKE receipt (spike S4): no transaction was submitted"
+      },
+      "grant_remaining": "5.00"
+    },
+    "old_access_token_after_refresh": 200,
+    "refresh_after_access_token_revocation": 200,
+    "authorization_url_params:Claude-like client (s4 e2e)": {
+      "response_type": "code",
+      "client_id": "6eTrgxbTpDrT1sPh",
+      "code_challenge": "<redacted>",
+      "code_challenge_method": "S256",
+      "redirect_uri": "http://127.0.0.1:43477/callback",
+      "state": "<redacted>",
+      "scope": "wallet offline_access",
+      "prompt": "consent",
+      "resource": "http://localhost:8799/mcp"
+    },
+    "wallet_overview_b": {
+      "wallet": {
+        "id": "wal_personal",
+        "name": "Personal",
+        "network": "stellar:testnet",
+        "contract_id": "C…(fixture)"
+      },
+      "balance": {
+        "asset": "USDC",
+        "amount": "50.00"
+      },
+      "allowance": {
+        "grant_id": "gr_3fd9785a",
+        "asset": "USDC",
+        "total": "2.50",
+        "spent": "0.00",
+        "remaining": "2.50",
+        "valid_until": "2026-10-26T12:00:00.000Z",
+        "status": "active"
+      },
+      "pending_approvals": 0,
+      "connection": {
+        "id": "3fd9785a-035d-4a28-b1cf-184b158006d2",
+        "client_name": "Claude-like client (s4 e2e)"
+      }
+    },
+    "code_replay": {
+      "status": 400,
+      "body": {
+        "error": "invalid_grant",
+        "error_description": "Authorization code already used"
+      }
+    },
+    "wrong_verifier": {
+      "status": 400,
+      "body": {
+        "error": "invalid_grant",
+        "error_description": "Invalid PKCE code_verifier"
+      }
+    },
+    "authorization_url_params:Revoke target (s4 e2e)": {
+      "response_type": "code",
+      "client_id": "5vq5fIC4KOAmQwWB",
+      "code_challenge": "<redacted>",
+      "code_challenge_method": "S256",
+      "redirect_uri": "http://127.0.0.1:43477/callback",
+      "state": "<redacted>",
+      "scope": "wallet offline_access",
+      "prompt": "consent",
+      "resource": "http://localhost:8799/mcp"
+    },
+    "verdict": "PASS"
+  },
+  "requests": [
+    {
+      "t": "+0.19s",
+      "step": "negative: /mcp without a token, with a bogus token",
+      "via": "raw",
+      "method": "POST",
+      "url": "http://localhost:8799/mcp",
+      "status": 401,
+      "note": "no Authorization header"
+    },
+    {
+      "t": "+0.24s",
+      "step": "negative: /mcp without a token, with a bogus token",
+      "via": "raw",
+      "method": "POST",
+      "url": "http://localhost:8799/mcp",
+      "status": 401,
+      "note": "bogus bearer"
+    },
+    {
+      "t": "+0.28s",
+      "step": "connect (goblin CLI (s4 e2e)): SDK does discovery + DCR, then asks for authorization",
+      "via": "sdk",
+      "method": "POST",
+      "url": "http://localhost:8799/mcp",
+      "status": 401,
+      "note": "initialize www-authenticate: Bearer realm=\"OAuth\", resource_metadata=\"http://localhost:8799/.well-known/oauth-protected-resource/mcp\", scope=\"wallet\""
+    },
+    {
+      "t": "+0.29s",
+      "step": "connect (goblin CLI (s4 e2e)): SDK does discovery + DCR, then asks for authorization",
+      "via": "sdk",
+      "method": "GET",
+      "url": "http://localhost:8799/.well-known/oauth-protected-resource/mcp",
+      "status": 200
+    },
+    {
+      "t": "+0.33s",
+      "step": "connect (goblin CLI (s4 e2e)): SDK does discovery + DCR, then asks for authorization",
+      "via": "sdk",
+      "method": "GET",
+      "url": "http://localhost:8799/.well-known/oauth-authorization-server",
+      "status": 200
+    },
+    {
+      "t": "+0.35s",
+      "step": "connect (goblin CLI (s4 e2e)): SDK does discovery + DCR, then asks for authorization",
+      "via": "sdk",
+      "method": "POST",
+      "url": "http://localhost:8799/oauth/register",
+      "status": 201
+    },
+    {
+      "t": "+0.43s",
+      "step": "consent page (goblin CLI (s4 e2e), allowance 5.00): wrong password first (negative), then Allow",
+      "via": "browser",
+      "method": "GET",
+      "url": "http://localhost:8799/authorize?response_type=code&client_id=PdeRGOdebhIRWnS9&code_challenge=<redacted>&code_challenge_method=S256&redirect_uri=http%3A%2F%2F127.0.0.1%3A43477%2Fcallback&state=<redacted>&scope=wallet+offline_access&prompt=consent&resource=http%3A%2F%2Flocalhost%3A8799%2Fmcp",
+      "status": 200
+    },
+    {
+      "t": "+0.75s",
+      "step": "consent page (goblin CLI (s4 e2e), allowance 5.00): wrong password first (negative), then Allow",
+      "via": "browser",
+      "method": "POST",
+      "url": "http://localhost:8799/authorize",
+      "status": 401
+    },
+    {
+      "t": "+0.85s",
+      "step": "consent page (goblin CLI (s4 e2e), allowance 5.00): wrong password first (negative), then Allow",
+      "via": "browser",
+      "method": "GET",
+      "url": "http://localhost:8799/authorize?response_type=code&client_id=PdeRGOdebhIRWnS9&code_challenge=<redacted>&code_challenge_method=S256&redirect_uri=http%3A%2F%2F127.0.0.1%3A43477%2Fcallback&state=<redacted>&scope=wallet+offline_access&prompt=consent&resource=http%3A%2F%2Flocalhost%3A8799%2Fmcp",
+      "status": 200
+    },
+    {
+      "t": "+1.08s",
+      "step": "consent page (goblin CLI (s4 e2e), allowance 5.00): wrong password first (negative), then Allow",
+      "via": "browser",
+      "method": "POST",
+      "url": "http://localhost:8799/authorize",
+      "status": 302
+    },
+    {
+      "t": "+1.09s",
+      "step": "consent page (goblin CLI (s4 e2e), allowance 5.00): wrong password first (negative), then Allow",
+      "via": "browser",
+      "method": "GET",
+      "url": "http://127.0.0.1:43477/callback?code=<redacted>&state=<redacted>&iss=http%3A%2F%2Flocalhost%3A8799",
+      "status": 200
+    },
+    {
+      "t": "+1.15s",
+      "step": "finishAuth (goblin CLI (s4 e2e)): code + PKCE verifier → tokens",
+      "via": "sdk",
+      "method": "POST",
+      "url": "http://localhost:8799/oauth/token",
+      "status": 200
+    },
+    {
+      "t": "+1.19s",
+      "step": "connect #2 with tokens: initialize, tools/list",
+      "via": "sdk",
+      "method": "POST",
+      "url": "http://localhost:8799/mcp",
+      "status": 200,
+      "note": "initialize"
+    },
+    {
+      "t": "+1.22s",
+      "step": "connect #2 with tokens: initialize, tools/list",
+      "via": "sdk",
+      "method": "POST",
+      "url": "http://localhost:8799/mcp",
+      "status": 202,
+      "note": "notifications/initialized"
+    },
+    {
+      "t": "+1.23s",
+      "step": "connect #2 with tokens: initialize, tools/list",
+      "via": "sdk",
+      "method": "GET",
+      "url": "http://localhost:8799/mcp",
+      "status": 405
+    },
+    {
+      "t": "+1.26s",
+      "step": "connect #2 with tokens: initialize, tools/list",
+      "via": "sdk",
+      "method": "POST",
+      "url": "http://localhost:8799/mcp",
+      "status": 200,
+      "note": "tools/list"
+    },
+    {
+      "t": "+1.30s",
+      "step": "wallet_overview",
+      "via": "sdk",
+      "method": "POST",
+      "url": "http://localhost:8799/mcp",
+      "status": 200,
+      "note": "tools/call wallet_overview"
+    },
+    {
+      "t": "+1.33s",
+      "step": "payment_prepare 100 USDC to Bob (owner lane), twice with the same idempotency key",
+      "via": "sdk",
+      "method": "POST",
+      "url": "http://localhost:8799/mcp",
+      "status": 200,
+      "note": "tools/call payment_prepare"
+    },
+    {
+      "t": "+1.35s",
+      "step": "payment_prepare 100 USDC to Bob (owner lane), twice with the same idempotency key",
+      "via": "sdk",
+      "method": "POST",
+      "url": "http://localhost:8799/mcp",
+      "status": 200,
+      "note": "tools/call payment_prepare"
+    },
+    {
+      "t": "+1.38s",
+      "step": "payment_status before approval; preview the approval page (no side effect)",
+      "via": "sdk",
+      "method": "POST",
+      "url": "http://localhost:8799/mcp",
+      "status": 200,
+      "note": "tools/call payment_status"
+    },
+    {
+      "t": "+1.49s",
+      "step": "payment_status before approval; preview the approval page (no side effect)",
+      "via": "browser",
+      "method": "GET",
+      "url": "http://localhost:8799/approve/pi_aad0cdabb6e704b3e19e1b57",
+      "status": 200
+    },
+    {
+      "t": "+1.70s",
+      "step": "payment_status before approval; preview the approval page (no side effect)",
+      "via": "sdk",
+      "method": "POST",
+      "url": "http://localhost:8799/mcp",
+      "status": 200,
+      "note": "tools/call payment_status"
+    },
+    {
+      "t": "+1.90s",
+      "step": "approve: wrong password (negative), then Approve",
+      "via": "browser",
+      "method": "POST",
+      "url": "http://localhost:8799/approve/pi_aad0cdabb6e704b3e19e1b57",
+      "status": 401
+    },
+    {
+      "t": "+2.12s",
+      "step": "approve: wrong password (negative), then Approve",
+      "via": "sdk",
+      "method": "POST",
+      "url": "http://localhost:8799/mcp",
+      "status": 200,
+      "note": "tools/call payment_status"
+    },
+    {
+      "t": "+2.35s",
+      "step": "approve: wrong password (negative), then Approve",
+      "via": "browser",
+      "method": "POST",
+      "url": "http://localhost:8799/approve/pi_aad0cdabb6e704b3e19e1b57",
+      "status": 200
+    },
+    {
+      "t": "+2.57s",
+      "step": "poll payment_status → confirmed",
+      "via": "sdk",
+      "method": "POST",
+      "url": "http://localhost:8799/mcp",
+      "status": 200,
+      "note": "tools/call payment_status"
+    },
+    {
+      "t": "+3.35s",
+      "step": "poll payment_status → confirmed",
+      "via": "sdk",
+      "method": "POST",
+      "url": "http://localhost:8799/mcp",
+      "status": 200,
+      "note": "tools/call payment_status"
+    },
+    {
+      "t": "+4.11s",
+      "step": "poll payment_status → confirmed",
+      "via": "sdk",
+      "method": "POST",
+      "url": "http://localhost:8799/mcp",
+      "status": 200,
+      "note": "tools/call payment_status"
+    },
+    {
+      "t": "+4.96s",
+      "step": "poll payment_status → confirmed",
+      "via": "sdk",
+      "method": "POST",
+      "url": "http://localhost:8799/mcp",
+      "status": 200,
+      "note": "tools/call payment_status"
+    },
+    {
+      "t": "+5.05s",
+      "step": "refresh token: new access token, same connection (props survive refresh)",
+      "via": "raw",
+      "method": "POST",
+      "url": "http://localhost:8799/oauth/token",
+      "status": 200,
+      "note": "refresh_token grant"
+    },
+    {
+      "t": "+5.15s",
+      "step": "refresh token: new access token, same connection (props survive refresh)",
+      "via": "sdk",
+      "method": "POST",
+      "url": "http://localhost:8799/mcp",
+      "status": 200,
+      "note": "initialize"
+    },
+    {
+      "t": "+5.26s",
+      "step": "refresh token: new access token, same connection (props survive refresh)",
+      "via": "sdk",
+      "method": "POST",
+      "url": "http://localhost:8799/mcp",
+      "status": 202,
+      "note": "notifications/initialized"
+    },
+    {
+      "t": "+5.31s",
+      "step": "refresh token: new access token, same connection (props survive refresh)",
+      "via": "sdk",
+      "method": "GET",
+      "url": "http://localhost:8799/mcp",
+      "status": 405
+    },
+    {
+      "t": "+5.35s",
+      "step": "refresh token: new access token, same connection (props survive refresh)",
+      "via": "sdk",
+      "method": "POST",
+      "url": "http://localhost:8799/mcp",
+      "status": 200,
+      "note": "tools/call wallet_overview"
+    },
+    {
+      "t": "+5.42s",
+      "step": "refresh token: new access token, same connection (props survive refresh)",
+      "via": "raw",
+      "method": "POST",
+      "url": "http://localhost:8799/mcp",
+      "status": 200,
+      "note": "old access token after refresh"
+    },
+    {
+      "t": "+5.55s",
+      "step": "revoke (RFC 7009) the access token → /mcp refuses it",
+      "via": "raw",
+      "method": "POST",
+      "url": "http://localhost:8799/oauth/token",
+      "status": 200,
+      "note": "revocation"
+    },
+    {
+      "t": "+5.61s",
+      "step": "revoke (RFC 7009) the access token → /mcp refuses it",
+      "via": "raw",
+      "method": "POST",
+      "url": "http://localhost:8799/mcp",
+      "status": 401,
+      "note": "revoked access token"
+    },
+    {
+      "t": "+5.69s",
+      "step": "after RFC 7009 on the access token: does its refresh token still work?",
+      "via": "raw",
+      "method": "POST",
+      "url": "http://localhost:8799/oauth/token",
+      "status": 200,
+      "note": "refresh after the access token was revoked"
+    },
+    {
+      "t": "+5.72s",
+      "step": "connect (Claude-like client (s4 e2e)): SDK does discovery + DCR, then asks for authorization",
+      "via": "sdk",
+      "method": "POST",
+      "url": "http://localhost:8799/mcp",
+      "status": 401,
+      "note": "initialize www-authenticate: Bearer realm=\"OAuth\", resource_metadata=\"http://localhost:8799/.well-known/oauth-protected-resource/mcp\", scope=\"wallet\""
+    },
+    {
+      "t": "+5.75s",
+      "step": "connect (Claude-like client (s4 e2e)): SDK does discovery + DCR, then asks for authorization",
+      "via": "sdk",
+      "method": "GET",
+      "url": "http://localhost:8799/.well-known/oauth-protected-resource/mcp",
+      "status": 200
+    },
+    {
+      "t": "+5.79s",
+      "step": "connect (Claude-like client (s4 e2e)): SDK does discovery + DCR, then asks for authorization",
+      "via": "sdk",
+      "method": "GET",
+      "url": "http://localhost:8799/.well-known/oauth-authorization-server",
+      "status": 200
+    },
+    {
+      "t": "+5.83s",
+      "step": "connect (Claude-like client (s4 e2e)): SDK does discovery + DCR, then asks for authorization",
+      "via": "sdk",
+      "method": "POST",
+      "url": "http://localhost:8799/oauth/register",
+      "status": 201
+    },
+    {
+      "t": "+5.91s",
+      "step": "consent page (Claude-like client (s4 e2e), allowance 2.50)",
+      "via": "browser",
+      "method": "GET",
+      "url": "http://localhost:8799/authorize?response_type=code&client_id=6eTrgxbTpDrT1sPh&code_challenge=<redacted>&code_challenge_method=S256&redirect_uri=http%3A%2F%2F127.0.0.1%3A43477%2Fcallback&state=<redacted>&scope=wallet+offline_access&prompt=consent&resource=http%3A%2F%2Flocalhost%3A8799%2Fmcp",
+      "status": 200
+    },
+    {
+      "t": "+6.24s",
+      "step": "consent page (Claude-like client (s4 e2e), allowance 2.50)",
+      "via": "browser",
+      "method": "POST",
+      "url": "http://localhost:8799/authorize",
+      "status": 302
+    },
+    {
+      "t": "+6.25s",
+      "step": "consent page (Claude-like client (s4 e2e), allowance 2.50)",
+      "via": "browser",
+      "method": "GET",
+      "url": "http://127.0.0.1:43477/callback?code=<redacted>&state=<redacted>&iss=http%3A%2F%2Flocalhost%3A8799",
+      "status": 200
+    },
+    {
+      "t": "+6.35s",
+      "step": "finishAuth (Claude-like client (s4 e2e)): code + PKCE verifier → tokens",
+      "via": "sdk",
+      "method": "POST",
+      "url": "http://localhost:8799/oauth/token",
+      "status": 200
+    },
+    {
+      "t": "+6.42s",
+      "step": "finishAuth (Claude-like client (s4 e2e)): code + PKCE verifier → tokens",
+      "via": "sdk",
+      "method": "POST",
+      "url": "http://localhost:8799/mcp",
+      "status": 200,
+      "note": "initialize"
+    },
+    {
+      "t": "+6.49s",
+      "step": "finishAuth (Claude-like client (s4 e2e)): code + PKCE verifier → tokens",
+      "via": "sdk",
+      "method": "POST",
+      "url": "http://localhost:8799/mcp",
+      "status": 202,
+      "note": "notifications/initialized"
+    },
+    {
+      "t": "+6.50s",
+      "step": "finishAuth (Claude-like client (s4 e2e)): code + PKCE verifier → tokens",
+      "via": "sdk",
+      "method": "GET",
+      "url": "http://localhost:8799/mcp",
+      "status": 405
+    },
+    {
+      "t": "+6.52s",
+      "step": "finishAuth (Claude-like client (s4 e2e)): code + PKCE verifier → tokens",
+      "via": "sdk",
+      "method": "POST",
+      "url": "http://localhost:8799/mcp",
+      "status": 200,
+      "note": "tools/call wallet_overview"
+    },
+    {
+      "t": "+6.56s",
+      "step": "finishAuth (Claude-like client (s4 e2e)): code + PKCE verifier → tokens",
+      "via": "sdk",
+      "method": "POST",
+      "url": "http://localhost:8799/mcp",
+      "status": 200,
+      "note": "tools/call payment_status"
+    },
+    {
+      "t": "+6.60s",
+      "step": "negative: replay B’s authorization code → 400 and the grant is revoked",
+      "via": "raw",
+      "method": "POST",
+      "url": "http://localhost:8799/oauth/token",
+      "status": 400,
+      "note": "code replay"
+    },
+    {
+      "t": "+6.62s",
+      "step": "negative: replay B’s authorization code → 400 and the grant is revoked",
+      "via": "raw",
+      "method": "POST",
+      "url": "http://localhost:8799/mcp",
+      "status": 401,
+      "note": "B access token after code replay"
+    },
+    {
+      "t": "+6.64s",
+      "step": "negative: replay B’s authorization code → 400 and the grant is revoked",
+      "via": "raw",
+      "method": "POST",
+      "url": "http://localhost:8799/oauth/token",
+      "status": 400,
+      "note": "B refresh after code replay"
+    },
+    {
+      "t": "+6.66s",
+      "step": "negative: wrong PKCE verifier (third client)",
+      "via": "sdk",
+      "method": "POST",
+      "url": "http://localhost:8799/mcp",
+      "status": 401,
+      "note": "initialize www-authenticate: Bearer realm=\"OAuth\", resource_metadata=\"http://localhost:8799/.well-known/oauth-protected-resource/mcp\", scope=\"wallet\""
+    },
+    {
+      "t": "+6.67s",
+      "step": "negative: wrong PKCE verifier (third client)",
+      "via": "sdk",
+      "method": "GET",
+      "url": "http://localhost:8799/.well-known/oauth-protected-resource/mcp",
+      "status": 200
+    },
+    {
+      "t": "+6.68s",
+      "step": "negative: wrong PKCE verifier (third client)",
+      "via": "sdk",
+      "method": "GET",
+      "url": "http://localhost:8799/.well-known/oauth-authorization-server",
+      "status": 200
+    },
+    {
+      "t": "+6.71s",
+      "step": "negative: wrong PKCE verifier (third client)",
+      "via": "sdk",
+      "method": "POST",
+      "url": "http://localhost:8799/oauth/register",
+      "status": 201
+    },
+    {
+      "t": "+6.79s",
+      "step": "negative: wrong PKCE verifier (third client)",
+      "via": "browser",
+      "method": "GET",
+      "url": "http://localhost:8799/authorize?response_type=code&client_id=AdGPkZwi1zYqUAFw&code_challenge=<redacted>&code_challenge_method=S256&redirect_uri=http%3A%2F%2F127.0.0.1%3A43477%2Fcallback&state=<redacted>&scope=wallet+offline_access&prompt=consent&resource=http%3A%2F%2Flocalhost%3A8799%2Fmcp",
+      "status": 200
+    },
+    {
+      "t": "+7.19s",
+      "step": "negative: wrong PKCE verifier (third client)",
+      "via": "browser",
+      "method": "POST",
+      "url": "http://localhost:8799/authorize",
+      "status": 302
+    },
+    {
+      "t": "+7.19s",
+      "step": "negative: wrong PKCE verifier (third client)",
+      "via": "browser",
+      "method": "GET",
+      "url": "http://127.0.0.1:43477/callback?code=<redacted>&state=<redacted>&iss=http%3A%2F%2Flocalhost%3A8799",
+      "status": 200
+    },
+    {
+      "t": "+7.32s",
+      "step": "negative: wrong PKCE verifier (third client)",
+      "via": "raw",
+      "method": "POST",
+      "url": "http://localhost:8799/oauth/token",
+      "status": 400,
+      "note": "wrong code_verifier"
+    },
+    {
+      "t": "+7.36s",
+      "step": "connect (Revoke target (s4 e2e)): SDK does discovery + DCR, then asks for authorization",
+      "via": "sdk",
+      "method": "POST",
+      "url": "http://localhost:8799/mcp",
+      "status": 401,
+      "note": "initialize www-authenticate: Bearer realm=\"OAuth\", resource_metadata=\"http://localhost:8799/.well-known/oauth-protected-resource/mcp\", scope=\"wallet\""
+    },
+    {
+      "t": "+7.40s",
+      "step": "connect (Revoke target (s4 e2e)): SDK does discovery + DCR, then asks for authorization",
+      "via": "sdk",
+      "method": "GET",
+      "url": "http://localhost:8799/.well-known/oauth-protected-resource/mcp",
+      "status": 200
+    },
+    {
+      "t": "+7.41s",
+      "step": "connect (Revoke target (s4 e2e)): SDK does discovery + DCR, then asks for authorization",
+      "via": "sdk",
+      "method": "GET",
+      "url": "http://localhost:8799/.well-known/oauth-authorization-server",
+      "status": 200
+    },
+    {
+      "t": "+7.46s",
+      "step": "connect (Revoke target (s4 e2e)): SDK does discovery + DCR, then asks for authorization",
+      "via": "sdk",
+      "method": "POST",
+      "url": "http://localhost:8799/oauth/register",
+      "status": 201
+    },
+    {
+      "t": "+7.52s",
+      "step": "consent page (Revoke target (s4 e2e), allowance 1.00)",
+      "via": "browser",
+      "method": "GET",
+      "url": "http://localhost:8799/authorize?response_type=code&client_id=5vq5fIC4KOAmQwWB&code_challenge=<redacted>&code_challenge_method=S256&redirect_uri=http%3A%2F%2F127.0.0.1%3A43477%2Fcallback&state=<redacted>&scope=wallet+offline_access&prompt=consent&resource=http%3A%2F%2Flocalhost%3A8799%2Fmcp",
+      "status": 200
+    },
+    {
+      "t": "+7.77s",
+      "step": "consent page (Revoke target (s4 e2e), allowance 1.00)",
+      "via": "browser",
+      "method": "POST",
+      "url": "http://localhost:8799/authorize",
+      "status": 302
+    },
+    {
+      "t": "+7.77s",
+      "step": "consent page (Revoke target (s4 e2e), allowance 1.00)",
+      "via": "browser",
+      "method": "GET",
+      "url": "http://127.0.0.1:43477/callback?code=<redacted>&state=<redacted>&iss=http%3A%2F%2Flocalhost%3A8799",
+      "status": 200
+    },
+    {
+      "t": "+7.83s",
+      "step": "finishAuth (Revoke target (s4 e2e)): code + PKCE verifier → tokens",
+      "via": "sdk",
+      "method": "POST",
+      "url": "http://localhost:8799/oauth/token",
+      "status": 200
+    },
+    {
+      "t": "+7.85s",
+      "step": "finishAuth (Revoke target (s4 e2e)): code + PKCE verifier → tokens",
+      "via": "sdk",
+      "method": "POST",
+      "url": "http://localhost:8799/mcp",
+      "status": 200,
+      "note": "initialize"
+    },
+    {
+      "t": "+7.87s",
+      "step": "finishAuth (Revoke target (s4 e2e)): code + PKCE verifier → tokens",
+      "via": "sdk",
+      "method": "POST",
+      "url": "http://localhost:8799/mcp",
+      "status": 202,
+      "note": "notifications/initialized"
+    },
+    {
+      "t": "+7.87s",
+      "step": "finishAuth (Revoke target (s4 e2e)): code + PKCE verifier → tokens",
+      "via": "sdk",
+      "method": "GET",
+      "url": "http://localhost:8799/mcp",
+      "status": 405
+    },
+    {
+      "t": "+7.89s",
+      "step": "finishAuth (Revoke target (s4 e2e)): code + PKCE verifier → tokens",
+      "via": "sdk",
+      "method": "POST",
+      "url": "http://localhost:8799/mcp",
+      "status": 200,
+      "note": "tools/call wallet_overview"
+    },
+    {
+      "t": "+7.91s",
+      "step": "finishAuth (Revoke target (s4 e2e)): code + PKCE verifier → tokens",
+      "via": "browser",
+      "method": "GET",
+      "url": "http://localhost:8799/connections",
+      "status": 200
+    },
+    {
+      "t": "+8.11s",
+      "step": "finishAuth (Revoke target (s4 e2e)): code + PKCE verifier → tokens",
+      "via": "browser",
+      "method": "POST",
+      "url": "http://localhost:8799/connections/revoke",
+      "status": 200
+    },
+    {
+      "t": "+8.23s",
+      "step": "finishAuth (Revoke target (s4 e2e)): code + PKCE verifier → tokens",
+      "via": "raw",
+      "method": "POST",
+      "url": "http://localhost:8799/mcp",
+      "status": 401,
+      "note": "D access token after owner revoke"
+    },
+    {
+      "t": "+8.24s",
+      "step": "finishAuth (Revoke target (s4 e2e)): code + PKCE verifier → tokens",
+      "via": "raw",
+      "method": "POST",
+      "url": "http://localhost:8799/oauth/token",
+      "status": 400,
+      "note": "D refresh after owner revoke"
+    }
+  ]
+}

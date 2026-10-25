@@ -5,3 +5,4 @@ node_modules/
 .env.*
 evidence/*.json.tmp
 dist/
+worker-configuration.d.ts

@@ -1,14 +1,14 @@
 {
   "base": "https://hm26-s4-mcp.kristjan-grm11775.workers.dev",
-  "at": "2026-10-25T11:53:01.860Z",
+  "at": "2026-10-25T11:57:13.098Z",
   "results": {
     "negative_bogus_www_authenticate": "Bearer realm=\"OAuth\", resource_metadata=\"https://hm26-s4-mcp.kristjan-grm11775.workers.dev/.well-known/oauth-protected-resource/mcp\", error=\"invalid_token\", scope=\"wallet\"",
     "authorization_url_params:goblin CLI (s4 e2e)": {
       "response_type": "code",
-      "client_id": "D4luDZ7aZPc-A2B_",
+      "client_id": "Ho3m6RebJXGv0yvq",
       "code_challenge": "<redacted>",
       "code_challenge_method": "S256",
-      "redirect_uri": "http://127.0.0.1:37697/callback",
+      "redirect_uri": "http://127.0.0.1:37031/callback",
       "state": "<redacted>",
       "scope": "wallet offline_access",
       "prompt": "consent",
@@ -36,7 +36,7 @@
         "amount": "50.00"
       },
       "allowance": {
-        "grant_id": "gr_38f4efd7",
+        "grant_id": "gr_4274b3fa",
         "asset": "USDC",
         "total": "5.00",
         "spent": "0.00",
@@ -46,42 +46,42 @@
       },
       "pending_approvals": 0,
       "connection": {
-        "id": "38f4efd7-de76-490c-9f05-f8a2893d1bed",
+        "id": "4274b3fa-c708-42f6-98f8-c97dc70ad29b",
         "client_name": "goblin CLI (s4 e2e)"
       }
     },
     "payment_prepare": {
-      "payment_id": "pi_cd439315ff08f8d1127ac31c",
+      "payment_id": "pi_b64f06e3a2c30400ed9c85a1",
       "status": "requires_approval",
       "amount": "100",
       "asset": "USDC",
       "recipient": "Bob GBOBDEMO…",
       "network": "stellar:testnet",
       "lane": "owner",
-      "expires_at": "2026-10-25T12:22:51.960Z",
-      "approval_url": "https://hm26-s4-mcp.kristjan-grm11775.workers.dev/approve/pi_cd439315ff08f8d1127ac31c",
+      "expires_at": "2026-10-25T12:27:04.483Z",
+      "approval_url": "https://hm26-s4-mcp.kristjan-grm11775.workers.dev/approve/pi_b64f06e3a2c30400ed9c85a1",
       "grant_remaining": "5.00"
     },
-    "payment_prepare_text": "This payment of 100 USDC to Bob GBOBDEMO… needs the wallet owner's approval. Ask the user to open https://hm26-s4-mcp.kristjan-grm11775.workers.dev/approve/pi_cd439315ff08f8d1127ac31c and approve it, then call payment_status with payment_id pi_cd439315ff08f8d1127ac31c.",
+    "payment_prepare_text": "This payment of 100 USDC to Bob GBOBDEMO… needs the wallet owner's approval. Ask the user to open https://hm26-s4-mcp.kristjan-grm11775.workers.dev/approve/pi_b64f06e3a2c30400ed9c85a1 and approve it, then call payment_status with payment_id pi_b64f06e3a2c30400ed9c85a1.",
     "payment_status_polls": [
       "submitted",
       "submitted",
       "confirmed"
     ],
     "payment_status_final": {
-      "payment_id": "pi_cd439315ff08f8d1127ac31c",
+      "payment_id": "pi_b64f06e3a2c30400ed9c85a1",
       "status": "confirmed",
       "amount": "100",
       "asset": "USDC",
       "recipient": "Bob GBOBDEMO…",
       "network": "stellar:testnet",
       "lane": "owner",
-      "expires_at": "2026-10-25T12:22:51.960Z",
+      "expires_at": "2026-10-25T12:27:04.483Z",
       "receipt": {
-        "tx_hash": "ce4cb10497914c1caf4a42b43f1e958c236df0689265ae9507031aacb1be0875",
+        "tx_hash": "516d8f16ea9e4ef367cb4a95344350f69469e50f76204cf02519f5f4864e2533",
         "ledger": 0,
-        "explorer_url": "https://stellar.expert/explorer/testnet/tx/ce4cb10497914c1caf4a42b43f1e958c236df0689265ae9507031aacb1be0875",
-        "confirmed_at": "2026-10-25T11:52:55.460Z",
+        "explorer_url": "https://stellar.expert/explorer/testnet/tx/516d8f16ea9e4ef367cb4a95344350f69469e50f76204cf02519f5f4864e2533",
+        "confirmed_at": "2026-10-25T11:57:07.585Z",
         "lane": "owner",
         "note": "FAKE receipt (spike S4): no transaction was submitted"
       },
@@ -91,10 +91,10 @@
     "refresh_after_access_token_revocation": 200,
     "authorization_url_params:Claude-like client (s4 e2e)": {
       "response_type": "code",
-      "client_id": "k760obLrq8HCD_Lw",
+      "client_id": "UhALnmJUofHvtI6-",
       "code_challenge": "<redacted>",
       "code_challenge_method": "S256",
-      "redirect_uri": "http://127.0.0.1:37697/callback",
+      "redirect_uri": "http://127.0.0.1:37031/callback",
       "state": "<redacted>",
       "scope": "wallet offline_access",
       "prompt": "consent",
@@ -112,7 +112,7 @@
         "amount": "50.00"
       },
       "allowance": {
-        "grant_id": "gr_62ef9c43",
+        "grant_id": "gr_3110aa43",
         "asset": "USDC",
         "total": "2.50",
         "spent": "0.00",
@@ -122,7 +122,7 @@
       },
       "pending_approvals": 0,
       "connection": {
-        "id": "62ef9c43-7a83-4e1d-9f98-ad2a28dafaa6",
+        "id": "3110aa43-cf3d-4e8a-b87d-8317ffe2d9b7",
         "client_name": "Claude-like client (s4 e2e)"
       }
     },
@@ -142,10 +142,10 @@
     },
     "authorization_url_params:Revoke target (s4 e2e)": {
       "response_type": "code",
-      "client_id": "5lG9_MEwWZ9TZsDQ",
+      "client_id": "PQG3g2H8AufQ_4bz",
       "code_challenge": "<redacted>",
       "code_challenge_method": "S256",
-      "redirect_uri": "http://127.0.0.1:37697/callback",
+      "redirect_uri": "http://127.0.0.1:37031/callback",
       "state": "<redacted>",
       "scope": "wallet offline_access",
       "prompt": "consent",
@@ -155,7 +155,7 @@
   },
   "requests": [
     {
-      "t": "+0.76s",
+      "t": "+0.55s",
       "step": "negative: /mcp without a token, with a bogus token",
       "via": "raw",
       "method": "POST",
@@ -164,7 +164,7 @@
       "note": "no Authorization header"
     },
     {
-      "t": "+1.23s",
+      "t": "+0.73s",
       "step": "negative: /mcp without a token, with a bogus token",
       "via": "raw",
       "method": "POST",
@@ -173,7 +173,7 @@
       "note": "bogus bearer"
     },
     {
-      "t": "+1.45s",
+      "t": "+0.76s",
       "step": "connect (goblin CLI (s4 e2e)): SDK does discovery + DCR, then asks for authorization",
       "via": "sdk",
       "method": "POST",
@@ -182,7 +182,7 @@
       "note": "initialize www-authenticate: Bearer realm=\"OAuth\", resource_metadata=\"https://hm26-s4-mcp.kristjan-grm11775.workers.dev/.well-known/oauth-protected-resource/mcp\", scope=\"wallet\""
     },
     {
-      "t": "+1.46s",
+      "t": "+1.12s",
       "step": "connect (goblin CLI (s4 e2e)): SDK does discovery + DCR, then asks for authorization",
       "via": "sdk",
       "method": "GET",
@@ -190,7 +190,7 @@
       "status": 200
     },
     {
-      "t": "+1.63s",
+      "t": "+1.14s",
       "step": "connect (goblin CLI (s4 e2e)): SDK does discovery + DCR, then asks for authorization",
       "via": "sdk",
       "method": "GET",
@@ -198,7 +198,7 @@
       "status": 200
     },
     {
-      "t": "+1.69s",
+      "t": "+1.20s",
       "step": "connect (goblin CLI (s4 e2e)): SDK does discovery + DCR, then asks for authorization",
       "via": "sdk",
       "method": "POST",
@@ -206,15 +206,15 @@
       "status": 201
     },
     {
-      "t": "+2.55s",
+      "t": "+1.53s",
       "step": "consent page (goblin CLI (s4 e2e), allowance 5.00): wrong password first (negative), then Allow",
       "via": "browser",
       "method": "GET",
-      "url": "https://hm26-s4-mcp.kristjan-grm11775.workers.dev/authorize?response_type=code&client_id=D4luDZ7aZPc-A2B_&code_challenge=<redacted>&code_challenge_method=S256&redirect_uri=http%3A%2F%2F127.0.0.1%3A37697%2Fcallback&state=<redacted>&scope=wallet+offline_access&prompt=consent&resource=https%3A%2F%2Fhm26-s4-mcp.kristjan-grm11775.workers.dev%2Fmcp",
+      "url": "https://hm26-s4-mcp.kristjan-grm11775.workers.dev/authorize?response_type=code&client_id=Ho3m6RebJXGv0yvq&code_challenge=<redacted>&code_challenge_method=S256&redirect_uri=http%3A%2F%2F127.0.0.1%3A37031%2Fcallback&state=<redacted>&scope=wallet+offline_access&prompt=consent&resource=https%3A%2F%2Fhm26-s4-mcp.kristjan-grm11775.workers.dev%2Fmcp",
       "status": 200
     },
     {
-      "t": "+3.25s",
+      "t": "+2.00s",
       "step": "consent page (goblin CLI (s4 e2e), allowance 5.00): wrong password first (negative), then Allow",
       "via": "browser",
       "method": "POST",
@@ -222,15 +222,15 @@
       "status": 401
     },
     {
-      "t": "+3.52s",
+      "t": "+2.56s",
       "step": "consent page (goblin CLI (s4 e2e), allowance 5.00): wrong password first (negative), then Allow",
       "via": "browser",
       "method": "GET",
-      "url": "https://hm26-s4-mcp.kristjan-grm11775.workers.dev/authorize?response_type=code&client_id=D4luDZ7aZPc-A2B_&code_challenge=<redacted>&code_challenge_method=S256&redirect_uri=http%3A%2F%2F127.0.0.1%3A37697%2Fcallback&state=<redacted>&scope=wallet+offline_access&prompt=consent&resource=https%3A%2F%2Fhm26-s4-mcp.kristjan-grm11775.workers.dev%2Fmcp",
+      "url": "https://hm26-s4-mcp.kristjan-grm11775.workers.dev/authorize?response_type=code&client_id=Ho3m6RebJXGv0yvq&code_challenge=<redacted>&code_challenge_method=S256&redirect_uri=http%3A%2F%2F127.0.0.1%3A37031%2Fcallback&state=<redacted>&scope=wallet+offline_access&prompt=consent&resource=https%3A%2F%2Fhm26-s4-mcp.kristjan-grm11775.workers.dev%2Fmcp",
       "status": 200
     },
     {
-      "t": "+3.92s",
+      "t": "+3.07s",
       "step": "consent page (goblin CLI (s4 e2e), allowance 5.00): wrong password first (negative), then Allow",
       "via": "browser",
       "method": "POST",
@@ -238,15 +238,15 @@
       "status": 302
     },
     {
-      "t": "+3.92s",
+      "t": "+3.08s",
       "step": "consent page (goblin CLI (s4 e2e), allowance 5.00): wrong password first (negative), then Allow",
       "via": "browser",
       "method": "GET",
-      "url": "http://127.0.0.1:37697/callback?code=<redacted>&state=<redacted>&iss=https%3A%2F%2Fhm26-s4-mcp.kristjan-grm11775.workers.dev",
+      "url": "http://127.0.0.1:37031/callback?code=<redacted>&state=<redacted>&iss=https%3A%2F%2Fhm26-s4-mcp.kristjan-grm11775.workers.dev",
       "status": 200
     },
     {
-      "t": "+4.29s",
+      "t": "+3.33s",
       "step": "finishAuth (goblin CLI (s4 e2e)): code + PKCE verifier → tokens",
       "via": "sdk",
       "method": "POST",
@@ -254,7 +254,7 @@
       "status": 200
     },
     {
-      "t": "+4.35s",
+      "t": "+3.48s",
       "step": "connect #2 with tokens: initialize, tools/list",
       "via": "sdk",
       "method": "POST",
@@ -263,7 +263,7 @@
       "note": "initialize"
     },
     {
-      "t": "+4.40s",
+      "t": "+3.54s",
       "step": "connect #2 with tokens: initialize, tools/list",
       "via": "sdk",
       "method": "POST",
@@ -272,7 +272,15 @@
       "note": "notifications/initialized"
     },
     {
-      "t": "+4.57s",
+      "t": "+3.57s",
+      "step": "connect #2 with tokens: initialize, tools/list",
+      "via": "sdk",
+      "method": "GET",
+      "url": "https://hm26-s4-mcp.kristjan-grm11775.workers.dev/mcp",
+      "status": 405
+    },
+    {
+      "t": "+3.78s",
       "step": "connect #2 with tokens: initialize, tools/list",
       "via": "sdk",
       "method": "POST",
@@ -281,15 +289,7 @@
       "note": "tools/list"
     },
     {
-      "t": "+4.59s",
-      "step": "wallet_overview",
-      "via": "sdk",
-      "method": "GET",
-      "url": "https://hm26-s4-mcp.kristjan-grm11775.workers.dev/mcp",
-      "status": 405
-    },
-    {
-      "t": "+5.04s",
+      "t": "+4.31s",
       "step": "wallet_overview",
       "via": "sdk",
       "method": "POST",
@@ -298,7 +298,7 @@
       "note": "tools/call wallet_overview"
     },
     {
-      "t": "+5.23s",
+      "t": "+4.49s",
       "step": "payment_prepare 100 USDC to Bob (owner lane), twice with the same idempotency key",
       "via": "sdk",
       "method": "POST",
@@ -307,7 +307,7 @@
       "note": "tools/call payment_prepare"
     },
     {
-      "t": "+5.29s",
+      "t": "+4.56s",
       "step": "payment_prepare 100 USDC to Bob (owner lane), twice with the same idempotency key",
       "via": "sdk",
       "method": "POST",
@@ -316,7 +316,7 @@
       "note": "tools/call payment_prepare"
     },
     {
-      "t": "+5.50s",
+      "t": "+4.71s",
       "step": "payment_status before approval; preview the approval page (no side effect)",
       "via": "sdk",
       "method": "POST",
@@ -325,15 +325,15 @@
       "note": "tools/call payment_status"
     },
     {
-      "t": "+5.69s",
+      "t": "+4.94s",
       "step": "payment_status before approval; preview the approval page (no side effect)",
       "via": "browser",
       "method": "GET",
-      "url": "https://hm26-s4-mcp.kristjan-grm11775.workers.dev/approve/pi_cd439315ff08f8d1127ac31c",
+      "url": "https://hm26-s4-mcp.kristjan-grm11775.workers.dev/approve/pi_b64f06e3a2c30400ed9c85a1",
       "status": 200
     },
     {
-      "t": "+6.11s",
+      "t": "+5.12s",
       "step": "payment_status before approval; preview the approval page (no side effect)",
       "via": "sdk",
       "method": "POST",
@@ -342,15 +342,15 @@
       "note": "tools/call payment_status"
     },
     {
-      "t": "+6.38s",
+      "t": "+5.24s",
       "step": "approve: wrong password (negative), then Approve",
       "via": "browser",
       "method": "POST",
-      "url": "https://hm26-s4-mcp.kristjan-grm11775.workers.dev/approve/pi_cd439315ff08f8d1127ac31c",
+      "url": "https://hm26-s4-mcp.kristjan-grm11775.workers.dev/approve/pi_b64f06e3a2c30400ed9c85a1",
       "status": 401
     },
     {
-      "t": "+6.50s",
+      "t": "+5.44s",
       "step": "approve: wrong password (negative), then Approve",
       "via": "sdk",
       "method": "POST",
@@ -359,15 +359,15 @@
       "note": "tools/call payment_status"
     },
     {
-      "t": "+6.72s",
+      "t": "+5.61s",
       "step": "approve: wrong password (negative), then Approve",
       "via": "browser",
       "method": "POST",
-      "url": "https://hm26-s4-mcp.kristjan-grm11775.workers.dev/approve/pi_cd439315ff08f8d1127ac31c",
+      "url": "https://hm26-s4-mcp.kristjan-grm11775.workers.dev/approve/pi_b64f06e3a2c30400ed9c85a1",
       "status": 200
     },
     {
-      "t": "+6.89s",
+      "t": "+5.88s",
       "step": "poll payment_status → confirmed",
       "via": "sdk",
       "method": "POST",
@@ -376,7 +376,7 @@
       "note": "tools/call payment_status"
     },
     {
-      "t": "+7.88s",
+      "t": "+6.69s",
       "step": "poll payment_status → confirmed",
       "via": "sdk",
       "method": "POST",
@@ -385,7 +385,7 @@
       "note": "tools/call payment_status"
     },
     {
-      "t": "+8.71s",
+      "t": "+7.60s",
       "step": "poll payment_status → confirmed",
       "via": "sdk",
       "method": "POST",
@@ -394,7 +394,7 @@
       "note": "tools/call payment_status"
     },
     {
-      "t": "+8.85s",
+      "t": "+7.74s",
       "step": "refresh token: new access token, same connection (props survive refresh)",
       "via": "raw",
       "method": "POST",
@@ -403,7 +403,7 @@
       "note": "refresh_token grant"
     },
     {
-      "t": "+9.04s",
+      "t": "+7.77s",
       "step": "refresh token: new access token, same connection (props survive refresh)",
       "via": "sdk",
       "method": "POST",
@@ -412,7 +412,7 @@
       "note": "initialize"
     },
     {
-      "t": "+9.16s",
+      "t": "+7.91s",
       "step": "refresh token: new access token, same connection (props survive refresh)",
       "via": "sdk",
       "method": "POST",
@@ -421,7 +421,7 @@
       "note": "notifications/initialized"
     },
     {
-      "t": "+9.20s",
+      "t": "+7.94s",
       "step": "refresh token: new access token, same connection (props survive refresh)",
       "via": "sdk",
       "method": "GET",
@@ -429,7 +429,7 @@
       "status": 405
     },
     {
-      "t": "+9.22s",
+      "t": "+8.11s",
       "step": "refresh token: new access token, same connection (props survive refresh)",
       "via": "sdk",
       "method": "POST",
@@ -438,7 +438,7 @@
       "note": "tools/call wallet_overview"
     },
     {
-      "t": "+9.41s",
+      "t": "+8.25s",
       "step": "refresh token: new access token, same connection (props survive refresh)",
       "via": "raw",
       "method": "POST",
@@ -447,7 +447,7 @@
       "note": "old access token after refresh"
     },
     {
-      "t": "+9.50s",
+      "t": "+8.46s",
       "step": "revoke (RFC 7009) the access token → /mcp refuses it",
       "via": "raw",
       "method": "POST",
@@ -456,7 +456,7 @@
       "note": "revocation"
     },
     {
-      "t": "+9.53s",
+      "t": "+8.49s",
       "step": "revoke (RFC 7009) the access token → /mcp refuses it",
       "via": "raw",
       "method": "POST",
@@ -465,7 +465,7 @@
       "note": "revoked access token"
     },
     {
-      "t": "+9.67s",
+      "t": "+8.62s",
       "step": "after RFC 7009 on the access token: does its refresh token still work?",
       "via": "raw",
       "method": "POST",
@@ -474,7 +474,7 @@
       "note": "refresh after the access token was revoked"
     },
     {
-      "t": "+9.69s",
+      "t": "+8.63s",
       "step": "connect (Claude-like client (s4 e2e)): SDK does discovery + DCR, then asks for authorization",
       "via": "sdk",
       "method": "POST",
@@ -483,7 +483,7 @@
       "note": "initialize www-authenticate: Bearer realm=\"OAuth\", resource_metadata=\"https://hm26-s4-mcp.kristjan-grm11775.workers.dev/.well-known/oauth-protected-resource/mcp\", scope=\"wallet\""
     },
     {
-      "t": "+9.70s",
+      "t": "+8.64s",
       "step": "connect (Claude-like client (s4 e2e)): SDK does discovery + DCR, then asks for authorization",
       "via": "sdk",
       "method": "GET",
@@ -491,7 +491,7 @@
       "status": 200
     },
     {
-      "t": "+9.71s",
+      "t": "+8.65s",
       "step": "connect (Claude-like client (s4 e2e)): SDK does discovery + DCR, then asks for authorization",
       "via": "sdk",
       "method": "GET",
@@ -499,7 +499,7 @@
       "status": 200
     },
     {
-      "t": "+9.76s",
+      "t": "+8.70s",
       "step": "connect (Claude-like client (s4 e2e)): SDK does discovery + DCR, then asks for authorization",
       "via": "sdk",
       "method": "POST",
@@ -507,15 +507,15 @@
       "status": 201
     },
     {
-      "t": "+9.95s",
+      "t": "+8.98s",
       "step": "consent page (Claude-like client (s4 e2e), allowance 2.50)",
       "via": "browser",
       "method": "GET",
-      "url": "https://hm26-s4-mcp.kristjan-grm11775.workers.dev/authorize?response_type=code&client_id=k760obLrq8HCD_Lw&code_challenge=<redacted>&code_challenge_method=S256&redirect_uri=http%3A%2F%2F127.0.0.1%3A37697%2Fcallback&state=<redacted>&scope=wallet+offline_access&prompt=consent&resource=https%3A%2F%2Fhm26-s4-mcp.kristjan-grm11775.workers.dev%2Fmcp",
+      "url": "https://hm26-s4-mcp.kristjan-grm11775.workers.dev/authorize?response_type=code&client_id=UhALnmJUofHvtI6-&code_challenge=<redacted>&code_challenge_method=S256&redirect_uri=http%3A%2F%2F127.0.0.1%3A37031%2Fcallback&state=<redacted>&scope=wallet+offline_access&prompt=consent&resource=https%3A%2F%2Fhm26-s4-mcp.kristjan-grm11775.workers.dev%2Fmcp",
       "status": 200
     },
     {
-      "t": "+10.52s",
+      "t": "+9.47s",
       "step": "consent page (Claude-like client (s4 e2e), allowance 2.50)",
       "via": "browser",
       "method": "POST",
@@ -523,15 +523,15 @@
       "status": 302
     },
     {
-      "t": "+10.53s",
+      "t": "+9.47s",
       "step": "consent page (Claude-like client (s4 e2e), allowance 2.50)",
       "via": "browser",
       "method": "GET",
-      "url": "http://127.0.0.1:37697/callback?code=<redacted>&state=<redacted>&iss=https%3A%2F%2Fhm26-s4-mcp.kristjan-grm11775.workers.dev",
+      "url": "http://127.0.0.1:37031/callback?code=<redacted>&state=<redacted>&iss=https%3A%2F%2Fhm26-s4-mcp.kristjan-grm11775.workers.dev",
       "status": 200
     },
     {
-      "t": "+10.83s",
+      "t": "+9.61s",
       "step": "finishAuth (Claude-like client (s4 e2e)): code + PKCE verifier → tokens",
       "via": "sdk",
       "method": "POST",
@@ -539,7 +539,7 @@
       "status": 200
     },
     {
-      "t": "+11.06s",
+      "t": "+9.64s",
       "step": "finishAuth (Claude-like client (s4 e2e)): code + PKCE verifier → tokens",
       "via": "sdk",
       "method": "POST",
@@ -548,7 +548,7 @@
       "note": "initialize"
     },
     {
-      "t": "+11.09s",
+      "t": "+9.68s",
       "step": "finishAuth (Claude-like client (s4 e2e)): code + PKCE verifier → tokens",
       "via": "sdk",
       "method": "POST",
@@ -557,15 +557,7 @@
       "note": "notifications/initialized"
     },
     {
-      "t": "+11.13s",
-      "step": "finishAuth (Claude-like client (s4 e2e)): code + PKCE verifier → tokens",
-      "via": "sdk",
-      "method": "GET",
-      "url": "https://hm26-s4-mcp.kristjan-grm11775.workers.dev/mcp",
-      "status": 405
-    },
-    {
-      "t": "+11.25s",
+      "t": "+9.76s",
       "step": "finishAuth (Claude-like client (s4 e2e)): code + PKCE verifier → tokens",
       "via": "sdk",
       "method": "POST",
@@ -574,7 +566,15 @@
       "note": "tools/call wallet_overview"
     },
     {
-      "t": "+11.31s",
+      "t": "+9.80s",
+      "step": "finishAuth (Claude-like client (s4 e2e)): code + PKCE verifier → tokens",
+      "via": "sdk",
+      "method": "GET",
+      "url": "https://hm26-s4-mcp.kristjan-grm11775.workers.dev/mcp",
+      "status": 405
+    },
+    {
+      "t": "+9.95s",
       "step": "finishAuth (Claude-like client (s4 e2e)): code + PKCE verifier → tokens",
       "via": "sdk",
       "method": "POST",
@@ -583,7 +583,7 @@
       "note": "tools/call payment_status"
     },
     {
-      "t": "+11.62s",
+      "t": "+10.20s",
       "step": "negative: replay B’s authorization code → 400 and the grant is revoked",
       "via": "raw",
       "method": "POST",
@@ -592,7 +592,7 @@
       "note": "code replay"
     },
     {
-      "t": "+11.65s",
+      "t": "+10.22s",
       "step": "negative: replay B’s authorization code → 400 and the grant is revoked",
       "via": "raw",
       "method": "POST",
@@ -601,7 +601,7 @@
       "note": "B access token after code replay"
     },
     {
-      "t": "+11.70s",
+      "t": "+10.27s",
       "step": "negative: replay B’s authorization code → 400 and the grant is revoked",
       "via": "raw",
       "method": "POST",
@@ -610,7 +610,7 @@
       "note": "B refresh after code replay"
     },
     {
-      "t": "+11.71s",
+      "t": "+10.28s",
       "step": "negative: wrong PKCE verifier (third client)",
       "via": "sdk",
       "method": "POST",
@@ -619,7 +619,7 @@
       "note": "initialize www-authenticate: Bearer realm=\"OAuth\", resource_metadata=\"https://hm26-s4-mcp.kristjan-grm11775.workers.dev/.well-known/oauth-protected-resource/mcp\", scope=\"wallet\""
     },
     {
-      "t": "+11.73s",
+      "t": "+10.29s",
       "step": "negative: wrong PKCE verifier (third client)",
       "via": "sdk",
       "method": "GET",
@@ -627,7 +627,7 @@
       "status": 200
     },
     {
-      "t": "+11.73s",
+      "t": "+10.30s",
       "step": "negative: wrong PKCE verifier (third client)",
       "via": "sdk",
       "method": "GET",
@@ -635,7 +635,7 @@
       "status": 200
     },
     {
-      "t": "+11.79s",
+      "t": "+10.35s",
       "step": "negative: wrong PKCE verifier (third client)",
       "via": "sdk",
       "method": "POST",
@@ -643,15 +643,15 @@
       "status": 201
     },
     {
-      "t": "+12.00s",
+      "t": "+10.70s",
       "step": "negative: wrong PKCE verifier (third client)",
       "via": "browser",
       "method": "GET",
-      "url": "https://hm26-s4-mcp.kristjan-grm11775.workers.dev/authorize?response_type=code&client_id=iviazQxsVW6c2VPF&code_challenge=<redacted>&code_challenge_method=S256&redirect_uri=http%3A%2F%2F127.0.0.1%3A37697%2Fcallback&state=<redacted>&scope=wallet+offline_access&prompt=consent&resource=https%3A%2F%2Fhm26-s4-mcp.kristjan-grm11775.workers.dev%2Fmcp",
+      "url": "https://hm26-s4-mcp.kristjan-grm11775.workers.dev/authorize?response_type=code&client_id=YyJxrOHZv6zHK93L&code_challenge=<redacted>&code_challenge_method=S256&redirect_uri=http%3A%2F%2F127.0.0.1%3A37031%2Fcallback&state=<redacted>&scope=wallet+offline_access&prompt=consent&resource=https%3A%2F%2Fhm26-s4-mcp.kristjan-grm11775.workers.dev%2Fmcp",
       "status": 200
     },
     {
-      "t": "+12.56s",
+      "t": "+11.15s",
       "step": "negative: wrong PKCE verifier (third client)",
       "via": "browser",
       "method": "POST",
@@ -659,15 +659,15 @@
       "status": 302
     },
     {
-      "t": "+12.57s",
+      "t": "+11.15s",
       "step": "negative: wrong PKCE verifier (third client)",
       "via": "browser",
       "method": "GET",
-      "url": "http://127.0.0.1:37697/callback?code=<redacted>&state=<redacted>&iss=https%3A%2F%2Fhm26-s4-mcp.kristjan-grm11775.workers.dev",
+      "url": "http://127.0.0.1:37031/callback?code=<redacted>&state=<redacted>&iss=https%3A%2F%2Fhm26-s4-mcp.kristjan-grm11775.workers.dev",
       "status": 200
     },
     {
-      "t": "+12.65s",
+      "t": "+11.20s",
       "step": "negative: wrong PKCE verifier (third client)",
       "via": "raw",
       "method": "POST",
@@ -676,7 +676,7 @@
       "note": "wrong code_verifier"
     },
     {
-      "t": "+12.66s",
+      "t": "+11.21s",
       "step": "connect (Revoke target (s4 e2e)): SDK does discovery + DCR, then asks for authorization",
       "via": "sdk",
       "method": "POST",
@@ -685,7 +685,7 @@
       "note": "initialize www-authenticate: Bearer realm=\"OAuth\", resource_metadata=\"https://hm26-s4-mcp.kristjan-grm11775.workers.dev/.well-known/oauth-protected-resource/mcp\", scope=\"wallet\""
     },
     {
-      "t": "+12.67s",
+      "t": "+11.22s",
       "step": "connect (Revoke target (s4 e2e)): SDK does discovery + DCR, then asks for authorization",
       "via": "sdk",
       "method": "GET",
@@ -693,7 +693,7 @@
       "status": 200
     },
     {
-      "t": "+12.68s",
+      "t": "+11.23s",
       "step": "connect (Revoke target (s4 e2e)): SDK does discovery + DCR, then asks for authorization",
       "via": "sdk",
       "method": "GET",
@@ -701,7 +701,7 @@
       "status": 200
     },
     {
-      "t": "+12.73s",
+      "t": "+11.27s",
       "step": "connect (Revoke target (s4 e2e)): SDK does discovery + DCR, then asks for authorization",
       "via": "sdk",
       "method": "POST",
@@ -709,15 +709,15 @@
       "status": 201
     },
     {
-      "t": "+12.96s",
+      "t": "+11.39s",
       "step": "consent page (Revoke target (s4 e2e), allowance 1.00)",
       "via": "browser",
       "method": "GET",
-      "url": "https://hm26-s4-mcp.kristjan-grm11775.workers.dev/authorize?response_type=code&client_id=5lG9_MEwWZ9TZsDQ&code_challenge=<redacted>&code_challenge_method=S256&redirect_uri=http%3A%2F%2F127.0.0.1%3A37697%2Fcallback&state=<redacted>&scope=wallet+offline_access&prompt=consent&resource=https%3A%2F%2Fhm26-s4-mcp.kristjan-grm11775.workers.dev%2Fmcp",
+      "url": "https://hm26-s4-mcp.kristjan-grm11775.workers.dev/authorize?response_type=code&client_id=PQG3g2H8AufQ_4bz&code_challenge=<redacted>&code_challenge_method=S256&redirect_uri=http%3A%2F%2F127.0.0.1%3A37031%2Fcallback&state=<redacted>&scope=wallet+offline_access&prompt=consent&resource=https%3A%2F%2Fhm26-s4-mcp.kristjan-grm11775.workers.dev%2Fmcp",
       "status": 200
     },
     {
-      "t": "+13.47s",
+      "t": "+11.87s",
       "step": "consent page (Revoke target (s4 e2e), allowance 1.00)",
       "via": "browser",
       "method": "POST",
@@ -725,15 +725,15 @@
       "status": 302
     },
     {
-      "t": "+13.47s",
+      "t": "+11.87s",
       "step": "consent page (Revoke target (s4 e2e), allowance 1.00)",
       "via": "browser",
       "method": "GET",
-      "url": "http://127.0.0.1:37697/callback?code=<redacted>&state=<redacted>&iss=https%3A%2F%2Fhm26-s4-mcp.kristjan-grm11775.workers.dev",
+      "url": "http://127.0.0.1:37031/callback?code=<redacted>&state=<redacted>&iss=https%3A%2F%2Fhm26-s4-mcp.kristjan-grm11775.workers.dev",
       "status": 200
     },
     {
-      "t": "+13.62s",
+      "t": "+12.01s",
       "step": "finishAuth (Revoke target (s4 e2e)): code + PKCE verifier → tokens",
       "via": "sdk",
       "method": "POST",
@@ -741,7 +741,7 @@
       "status": 200
     },
     {
-      "t": "+13.66s",
+      "t": "+12.04s",
       "step": "finishAuth (Revoke target (s4 e2e)): code + PKCE verifier → tokens",
       "via": "sdk",
       "method": "POST",
@@ -750,7 +750,7 @@
       "note": "initialize"
     },
     {
-      "t": "+13.70s",
+      "t": "+12.08s",
       "step": "finishAuth (Revoke target (s4 e2e)): code + PKCE verifier → tokens",
       "via": "sdk",
       "method": "POST",
@@ -759,7 +759,7 @@
       "note": "notifications/initialized"
     },
     {
-      "t": "+13.72s",
+      "t": "+12.11s",
       "step": "finishAuth (Revoke target (s4 e2e)): code + PKCE verifier → tokens",
       "via": "sdk",
       "method": "GET",
@@ -767,7 +767,7 @@
       "status": 405
     },
     {
-      "t": "+13.86s",
+      "t": "+12.29s",
       "step": "finishAuth (Revoke target (s4 e2e)): code + PKCE verifier → tokens",
       "via": "sdk",
       "method": "POST",
@@ -776,7 +776,7 @@
       "note": "tools/call wallet_overview"
     },
     {
-      "t": "+14.05s",
+      "t": "+12.38s",
       "step": "finishAuth (Revoke target (s4 e2e)): code + PKCE verifier → tokens",
       "via": "browser",
       "method": "GET",
@@ -784,7 +784,7 @@
       "status": 200
     },
     {
-      "t": "+14.60s",
+      "t": "+12.80s",
       "step": "finishAuth (Revoke target (s4 e2e)): code + PKCE verifier → tokens",
       "via": "browser",
       "method": "POST",
@@ -792,7 +792,7 @@
       "status": 200
     },
     {
-      "t": "+15.04s",
+      "t": "+13.04s",
       "step": "finishAuth (Revoke target (s4 e2e)): code + PKCE verifier → tokens",
       "via": "raw",
       "method": "POST",
@@ -801,7 +801,7 @@
       "note": "D access token after owner revoke"
     },
     {
-      "t": "+15.09s",
+      "t": "+13.08s",
       "step": "finishAuth (Revoke target (s4 e2e)): code + PKCE verifier → tokens",
       "via": "raw",
       "method": "POST",

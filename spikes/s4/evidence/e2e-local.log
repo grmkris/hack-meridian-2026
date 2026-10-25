@@ -1,0 +1,193 @@
+
+== negative: /mcp without a token, with a bogus token
+  +0.19s  raw     POST   401  http://localhost:8799/mcp  (no Authorization header)
+   ✓ 401 without token
+   ✓ WWW-Authenticate names resource_metadata
+  +0.24s  raw     POST   401  http://localhost:8799/mcp  (bogus bearer)
+   ✓ 401 with a bogus token
+
+== connect (goblin CLI (s4 e2e)): SDK does discovery + DCR, then asks for authorization
+  +0.28s  sdk     POST   401  http://localhost:8799/mcp  (initialize www-authenticate: Bearer realm="OAuth", resource_metadata="http://localhost:8799/.well-known/oauth-protected-resource/mcp", scope="wallet")
+  +0.29s  sdk     GET    200  http://localhost:8799/.well-known/oauth-protected-resource/mcp
+  +0.33s  sdk     GET    200  http://localhost:8799/.well-known/oauth-authorization-server
+  +0.35s  sdk     POST   201  http://localhost:8799/oauth/register
+   ✓ first connect throws UnauthorizedError
+   ✓ DCR issued client_id PdeRGOdebhIRWnS9
+   ✓ SDK produced an authorization URL
+
+== consent page (goblin CLI (s4 e2e), allowance 5.00): wrong password first (negative), then Allow
+  +0.43s  browser GET    200  http://localhost:8799/authorize?response_type=code&client_id=PdeRGOdebhIRWnS9&code_challenge=<redacted>&code_challenge_method=S256&redirect_uri=http%3A%2F%2F127.0.0.1%3A43477%2Fcallback&state=<redacted>&scope=wallet+offline_access&prompt=consent&resource=http%3A%2F%2Flocalhost%3A8799%2Fmcp
+   ✓ consent shows the client name
+   ✓ consent shows the redirect host
+   ✓ consent warns about a loopback redirect
+  +0.75s  browser POST   401  http://localhost:8799/authorize
+   ✓ wrong password refused
+  +0.85s  browser GET    200  http://localhost:8799/authorize?response_type=code&client_id=PdeRGOdebhIRWnS9&code_challenge=<redacted>&code_challenge_method=S256&redirect_uri=http%3A%2F%2F127.0.0.1%3A43477%2Fcallback&state=<redacted>&scope=wallet+offline_access&prompt=consent&resource=http%3A%2F%2Flocalhost%3A8799%2Fmcp
+  +1.08s  browser POST   302  http://localhost:8799/authorize
+  +1.09s  browser GET    200  http://127.0.0.1:43477/callback?code=<redacted>&state=<redacted>&iss=http%3A%2F%2Flocalhost%3A8799
+   ✓ callback state matches
+   ✓ callback carries a code
+   ✓ callback carries iss=http://localhost:8799 (RFC 9207)
+
+== finishAuth (goblin CLI (s4 e2e)): code + PKCE verifier → tokens
+  +1.15s  sdk     POST   200  http://localhost:8799/oauth/token
+   ✓ access token issued
+   ✓ refresh token issued
+
+== connect #2 with tokens: initialize, tools/list
+  +1.19s  sdk     POST   200  http://localhost:8799/mcp  (initialize)
+  +1.22s  sdk     POST   202  http://localhost:8799/mcp  (notifications/initialized)
+  +1.23s  sdk     GET    405  http://localhost:8799/mcp
+  +1.26s  sdk     POST   200  http://localhost:8799/mcp  (tools/list)
+   ✓ tools/list → wallet_overview, payment_prepare, payment_status
+
+== wallet_overview
+  +1.30s  sdk     POST   200  http://localhost:8799/mcp  (tools/call wallet_overview)
+   ✓ balance 50.00 USDC
+   ✓ allowance 5.00 remaining (from consent)
+
+== payment_prepare 100 USDC to Bob (owner lane), twice with the same idempotency key
+  +1.33s  sdk     POST   200  http://localhost:8799/mcp  (tools/call payment_prepare)
+   ✓ status requires_approval
+   ✓ approval_url http://localhost:8799/approve/pi_aad0cdabb6e704b3e19e1b57
+  +1.35s  sdk     POST   200  http://localhost:8799/mcp  (tools/call payment_prepare)
+   ✓ same idempotency key → same payment_id
+
+== payment_status before approval; preview the approval page (no side effect)
+  +1.38s  sdk     POST   200  http://localhost:8799/mcp  (tools/call payment_status)
+   ✓ awaiting_approval
+  +1.49s  browser GET    200  http://localhost:8799/approve/pi_aad0cdabb6e704b3e19e1b57
+   ✓ approval page shows amount and recipient
+   ✓ approval page shows the requesting connection
+  +1.70s  sdk     POST   200  http://localhost:8799/mcp  (tools/call payment_status)
+   ✓ still awaiting_approval after opening the page
+
+== approve: wrong password (negative), then Approve
+  +1.90s  browser POST   401  http://localhost:8799/approve/pi_aad0cdabb6e704b3e19e1b57
+   ✓ wrong password refused on approval
+  +2.12s  sdk     POST   200  http://localhost:8799/mcp  (tools/call payment_status)
+   ✓ still awaiting_approval after a wrong password
+  +2.35s  browser POST   200  http://localhost:8799/approve/pi_aad0cdabb6e704b3e19e1b57
+
+== poll payment_status → confirmed
+  +2.57s  sdk     POST   200  http://localhost:8799/mcp  (tools/call payment_status)
+  +3.35s  sdk     POST   200  http://localhost:8799/mcp  (tools/call payment_status)
+  +4.11s  sdk     POST   200  http://localhost:8799/mcp  (tools/call payment_status)
+  +4.96s  sdk     POST   200  http://localhost:8799/mcp  (tools/call payment_status)
+   ✓ confirmed after 4 polls (submitted → submitted → submitted → confirmed)
+
+== refresh token: new access token, same connection (props survive refresh)
+  +5.05s  raw     POST   200  http://localhost:8799/oauth/token  (refresh_token grant)
+   ✓ refresh → 200
+   ✓ new access token differs
+  +5.15s  sdk     POST   200  http://localhost:8799/mcp  (initialize)
+  +5.26s  sdk     POST   202  http://localhost:8799/mcp  (notifications/initialized)
+  +5.31s  sdk     GET    405  http://localhost:8799/mcp
+  +5.35s  sdk     POST   200  http://localhost:8799/mcp  (tools/call wallet_overview)
+   ✓ same connection_id e3c66179-1fd3-46f3-9d2c-cdd6f6326a7c after refresh
+  +5.42s  raw     POST   200  http://localhost:8799/mcp  (old access token after refresh)
+
+== revoke (RFC 7009) the access token → /mcp refuses it
+  +5.55s  raw     POST   200  http://localhost:8799/oauth/token  (revocation)
+   ✓ revocation → 200
+  +5.61s  raw     POST   401  http://localhost:8799/mcp  (revoked access token)
+   ✓ revoked token → 401
+
+== after RFC 7009 on the access token: does its refresh token still work?
+  +5.69s  raw     POST   200  http://localhost:8799/oauth/token  (refresh after the access token was revoked)
+   · refresh after RFC 7009 access-token revocation → 200
+
+== second connection (another DCR client): own connection_id and allowance, cannot see the first one’s payment
+
+== connect (Claude-like client (s4 e2e)): SDK does discovery + DCR, then asks for authorization
+  +5.72s  sdk     POST   401  http://localhost:8799/mcp  (initialize www-authenticate: Bearer realm="OAuth", resource_metadata="http://localhost:8799/.well-known/oauth-protected-resource/mcp", scope="wallet")
+  +5.75s  sdk     GET    200  http://localhost:8799/.well-known/oauth-protected-resource/mcp
+  +5.79s  sdk     GET    200  http://localhost:8799/.well-known/oauth-authorization-server
+  +5.83s  sdk     POST   201  http://localhost:8799/oauth/register
+   ✓ first connect throws UnauthorizedError
+   ✓ DCR issued client_id 6eTrgxbTpDrT1sPh
+   ✓ SDK produced an authorization URL
+
+== consent page (Claude-like client (s4 e2e), allowance 2.50)
+  +5.91s  browser GET    200  http://localhost:8799/authorize?response_type=code&client_id=6eTrgxbTpDrT1sPh&code_challenge=<redacted>&code_challenge_method=S256&redirect_uri=http%3A%2F%2F127.0.0.1%3A43477%2Fcallback&state=<redacted>&scope=wallet+offline_access&prompt=consent&resource=http%3A%2F%2Flocalhost%3A8799%2Fmcp
+   ✓ consent shows the client name
+   ✓ consent shows the redirect host
+   ✓ consent warns about a loopback redirect
+  +6.24s  browser POST   302  http://localhost:8799/authorize
+  +6.25s  browser GET    200  http://127.0.0.1:43477/callback?code=<redacted>&state=<redacted>&iss=http%3A%2F%2Flocalhost%3A8799
+   ✓ callback state matches
+   ✓ callback carries a code
+   ✓ callback carries iss=http://localhost:8799 (RFC 9207)
+
+== finishAuth (Claude-like client (s4 e2e)): code + PKCE verifier → tokens
+  +6.35s  sdk     POST   200  http://localhost:8799/oauth/token
+   ✓ access token issued
+   ✓ refresh token issued
+  +6.42s  sdk     POST   200  http://localhost:8799/mcp  (initialize)
+  +6.49s  sdk     POST   202  http://localhost:8799/mcp  (notifications/initialized)
+  +6.50s  sdk     GET    405  http://localhost:8799/mcp
+  +6.52s  sdk     POST   200  http://localhost:8799/mcp  (tools/call wallet_overview)
+   ✓ B has its own connection_id
+   ✓ B allowance 2.50 (its own consent)
+  +6.56s  sdk     POST   200  http://localhost:8799/mcp  (tools/call payment_status)
+   ✓ B cannot read A’s payment (isError)
+
+== negative: replay B’s authorization code → 400 and the grant is revoked
+  +6.60s  raw     POST   400  http://localhost:8799/oauth/token  (code replay)
+   ✓ replayed code refused
+  +6.62s  raw     POST   401  http://localhost:8799/mcp  (B access token after code replay)
+   ✓ B’s access token revoked by the replay (RFC 6749 §4.1.2)
+  +6.64s  raw     POST   400  http://localhost:8799/oauth/token  (B refresh after code replay)
+   ✓ B’s refresh token dead too
+
+== negative: wrong PKCE verifier (third client)
+  +6.66s  sdk     POST   401  http://localhost:8799/mcp  (initialize www-authenticate: Bearer realm="OAuth", resource_metadata="http://localhost:8799/.well-known/oauth-protected-resource/mcp", scope="wallet")
+  +6.67s  sdk     GET    200  http://localhost:8799/.well-known/oauth-protected-resource/mcp
+  +6.68s  sdk     GET    200  http://localhost:8799/.well-known/oauth-authorization-server
+  +6.71s  sdk     POST   201  http://localhost:8799/oauth/register
+  +6.79s  browser GET    200  http://localhost:8799/authorize?response_type=code&client_id=AdGPkZwi1zYqUAFw&code_challenge=<redacted>&code_challenge_method=S256&redirect_uri=http%3A%2F%2F127.0.0.1%3A43477%2Fcallback&state=<redacted>&scope=wallet+offline_access&prompt=consent&resource=http%3A%2F%2Flocalhost%3A8799%2Fmcp
+  +7.19s  browser POST   302  http://localhost:8799/authorize
+  +7.19s  browser GET    200  http://127.0.0.1:43477/callback?code=<redacted>&state=<redacted>&iss=http%3A%2F%2Flocalhost%3A8799
+  +7.32s  raw     POST   400  http://localhost:8799/oauth/token  (wrong code_verifier)
+   ✓ wrong PKCE verifier refused
+
+== owner revokes a connection on /connections → all of its tokens die (demo step 9)
+
+== connect (Revoke target (s4 e2e)): SDK does discovery + DCR, then asks for authorization
+  +7.36s  sdk     POST   401  http://localhost:8799/mcp  (initialize www-authenticate: Bearer realm="OAuth", resource_metadata="http://localhost:8799/.well-known/oauth-protected-resource/mcp", scope="wallet")
+  +7.40s  sdk     GET    200  http://localhost:8799/.well-known/oauth-protected-resource/mcp
+  +7.41s  sdk     GET    200  http://localhost:8799/.well-known/oauth-authorization-server
+  +7.46s  sdk     POST   201  http://localhost:8799/oauth/register
+   ✓ first connect throws UnauthorizedError
+   ✓ DCR issued client_id 5vq5fIC4KOAmQwWB
+   ✓ SDK produced an authorization URL
+
+== consent page (Revoke target (s4 e2e), allowance 1.00)
+  +7.52s  browser GET    200  http://localhost:8799/authorize?response_type=code&client_id=5vq5fIC4KOAmQwWB&code_challenge=<redacted>&code_challenge_method=S256&redirect_uri=http%3A%2F%2F127.0.0.1%3A43477%2Fcallback&state=<redacted>&scope=wallet+offline_access&prompt=consent&resource=http%3A%2F%2Flocalhost%3A8799%2Fmcp
+   ✓ consent shows the client name
+   ✓ consent shows the redirect host
+   ✓ consent warns about a loopback redirect
+  +7.77s  browser POST   302  http://localhost:8799/authorize
+  +7.77s  browser GET    200  http://127.0.0.1:43477/callback?code=<redacted>&state=<redacted>&iss=http%3A%2F%2Flocalhost%3A8799
+   ✓ callback state matches
+   ✓ callback carries a code
+   ✓ callback carries iss=http://localhost:8799 (RFC 9207)
+
+== finishAuth (Revoke target (s4 e2e)): code + PKCE verifier → tokens
+  +7.83s  sdk     POST   200  http://localhost:8799/oauth/token
+   ✓ access token issued
+   ✓ refresh token issued
+  +7.85s  sdk     POST   200  http://localhost:8799/mcp  (initialize)
+  +7.87s  sdk     POST   202  http://localhost:8799/mcp  (notifications/initialized)
+  +7.87s  sdk     GET    405  http://localhost:8799/mcp
+  +7.89s  sdk     POST   200  http://localhost:8799/mcp  (tools/call wallet_overview)
+  +7.91s  browser GET    200  http://localhost:8799/connections
+   ✓ connection D listed on /connections
+  +8.11s  browser POST   200  http://localhost:8799/connections/revoke
+   ✓ owner revoke confirmed
+  +8.23s  raw     POST   401  http://localhost:8799/mcp  (D access token after owner revoke)
+   ✓ D access token → 401 after owner revoke
+  +8.24s  raw     POST   400  http://localhost:8799/oauth/token  (D refresh after owner revoke)
+   ✓ D refresh token → 400 after owner revoke
+
+PASS

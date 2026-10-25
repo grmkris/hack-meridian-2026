@@ -10,11 +10,14 @@ import { probe } from './probe.ts'
 export { Payments } from './payments.ts'
 export { OAuthStore } from './kv-shim.ts'
 
+/** What `FormData.get` returns (workers-types has no global `FormDataEntryValue`). */
+type FormValue = ReturnType<FormData['get']>
+
 const SCOPES = ['wallet', 'offline_access']
 const OWNER_ID = 'dev-owner'
 const WALLET_ID = 'wal_personal'
 
-async function passwordOk(env: Env, given: FormDataEntryValue | null): Promise<boolean> {
+async function passwordOk(env: Env, given: FormValue): Promise<boolean> {
   if (typeof given !== 'string' || !env.DEV_PASSWORD) return false
   const enc = new TextEncoder()
   const [a, b] = await Promise.all([
@@ -24,12 +27,12 @@ async function passwordOk(env: Env, given: FormDataEntryValue | null): Promise<b
   return crypto.subtle.timingSafeEqual(a, b)
 }
 
-function allowanceFrom(value: FormDataEntryValue | null): string {
+function allowanceFrom(value: FormValue): string {
   const text = typeof value === 'string' ? value.trim() : ''
   return /^\d{1,6}(\.\d{1,2})?$/u.test(text) ? Number(text).toFixed(2) : '5.00'
 }
 
-function expiryFrom(value: FormDataEntryValue | null): string {
+function expiryFrom(value: FormValue): string {
   const at = typeof value === 'string' ? Date.parse(value) : Number.NaN
   const max = Date.now() + 30 * 86400_000
   return Number.isFinite(at) && at > Date.now() && at <= max
