@@ -58,8 +58,11 @@ export const createOwnerWallet = (input: {
   readonly contractId: string
   readonly credentialId: string
   readonly publicKey: string
-  readonly deployTx: string
+  /** Null for a deposit-first wallet until its account is deployed (deposit.ts). */
+  readonly deployTx: string | null
   readonly fundTx: string | null
+  /** Deposit-first: where the account will be deployed; its wallet_activations row is written in the same batch. */
+  readonly plan?: { readonly deployer: string; readonly salt: string } | undefined
 }) =>
   Effect.gen(function* () {
     const ownerId = yield* randomId('own')
@@ -79,6 +82,17 @@ export const createOwnerWallet = (input: {
         fund_tx: input.fundTx,
         created_at: now,
       }),
+      ...(input.plan === undefined
+        ? []
+        : [
+            insert('wallet_activations', {
+              wallet_id: walletId,
+              status: 'awaiting_deposit',
+              deployer: input.plan.deployer,
+              salt: input.plan.salt,
+              created_at: now,
+            }),
+          ]),
     )
     const wallet = yield* walletById(walletId)
     return wallet === undefined ? yield* Effect.die(new Error(`wallet ${walletId} vanished after insert`)) : wallet

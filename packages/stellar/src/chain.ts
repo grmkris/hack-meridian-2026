@@ -1,6 +1,7 @@
 import { Clock, Context, DateTime, Effect, Layer, Option, Redacted, Schema } from 'effect'
 
 import {
+  type AccountPlan,
   Chain,
   ChainError,
   type ChainHealth,
@@ -13,12 +14,14 @@ import {
   type WebAuthnAssertion,
 } from '@hm/protocol'
 import {
+  Account,
   Address,
   Asset,
   authorizeEntry,
   FeeBumpTransaction,
   Keypair,
   Operation,
+  rpc,
   TransactionBuilder,
   xdr,
 } from '@stellar/stellar-sdk'
@@ -36,6 +39,7 @@ import { fromHex, toBase64Url, toBuffer, toHex } from './bytes.ts'
 import { ChainConfig } from './config.ts'
 import { INCLUSION_FEE } from './constants.ts'
 import {
+  contractIdFor,
   createDepositOps,
   EXPIRATION_MARGIN_LEDGERS,
   lockDepositOps,
@@ -72,7 +76,7 @@ import {
   str,
   u32,
 } from './scval.ts'
-import { makeSoroban, nativeOf, type TxOutcome } from './soroban.ts'
+import { isRetryableRejection, makeSoroban, nativeOf, signWith, type TxOutcome } from './soroban.ts'
 import { deriveVaultKey, makeVaultCore } from './vault.ts'
 import { facilitatorBearer, payX402, payX402Mcp, probeFacilitator, x402TargetOf } from './x402.ts'
 
@@ -376,6 +380,73 @@ export const makeStellar = Effect.gen(function* () {
           Effect.ignore,
         )
       return { contractId, tx: outcome.hash }
+    })
+
+  /**
+   * Deposit-first: the primary relayer is the deployer, so the id is fixed before anything is onchain. The plan stores
+   * the deployer, so a later change of relayers cannot move a planned wallet.
+   */
+  const planAccount = Effect.sync((): AccountPlan => {
+    const salt = crypto.getRandomValues(new Uint8Array(32))
+    const deployer = pool.primary.publicKey()
+    return { contractId: contractIdFor(deployer, salt, passphrase), deployer, salt: toHex(salt) }
+  })
+
+  /** One source-authorized operation from a given relayer (the deployer must be the source), retried on txBadSeq. */
+  const submitAsRelayer = (relayer: Keypair, op: xdr.Operation) =>
+    Effect.gen(function* () {
+      const source = relayer.publicKey()
+      const raw = new TransactionBuilder(new Account(source, yield* soroban.sequence(source)), {
+        fee: String(INCLUSION_FEE),
+        networkPassphrase: passphrase,
+      })
+        .addOperation(op)
+        .setTimeout(120)
+        .build()
+      const sim = yield* soroban.simulate(raw, 'record', 'simulation')
+      const tx = rpc.assembleTransaction(raw, sim).build()
+      if (BigInt(tx.fee) > config.maxFeeStroops)
+        return yield* new ChainError({
+          kind: 'fee_ceiling_exceeded',
+          message: `the deploy needs ${tx.fee} stroops, the ceiling is ${config.maxFeeStroops}; not submitted`,
+        })
+      return yield* soroban.sendAndPoll(signWith(tx, relayer))
+    }).pipe(Effect.retry({ times: 3, while: isRetryableRejection }))
+
+  const deployPlannedAccount = (owner: OwnerPasskey, plan: AccountPlan) =>
+    Effect.gen(function* () {
+      const salt = fromHex(plan.salt)
+      if (salt.length !== 32) return yield* badInput('the plan salt is not 32 bytes')
+      if (contractIdFor(plan.deployer, salt, passphrase) !== plan.contractId)
+        return yield* badInput(`the plan does not yield ${plan.contractId}`)
+      const deployer = pool.keypairs.find(kp => kp.publicKey() === plan.deployer)
+      if (deployer === undefined)
+        return yield* badInput(`deployer ${plan.deployer} is not one of this stage's relayers`)
+      if ((yield* ledgerEntries([contractInstanceKey(plan.contractId)])).length > 0)
+        return { contractId: plan.contractId, tx: null }
+      const signer = webAuthnSignerScVal(owner.pubkey, owner.credentialId, C.webauthnVerifier)
+      const outcome = yield* submitAsRelayer(
+        deployer,
+        Operation.createCustomContract({
+          address: new Address(plan.deployer),
+          wasmHash: toBuffer(fromHex(C.accountWasmHash)),
+          salt: toBuffer(salt),
+          constructorArgs: [xdr.ScVal.scvVec([signer]), xdr.ScVal.scvMap([])],
+        }),
+      )
+      const returned = outcome.returnValue === undefined ? undefined : Address.fromScVal(outcome.returnValue).toString()
+      if (returned !== plan.contractId)
+        return yield* new ChainError({
+          kind: 'unknown',
+          message: `the deploy returned ${returned ?? 'nothing'}, not the planned ${plan.contractId}`,
+          tx: outcome.hash,
+        })
+      if (config.walletTtlLedgers > 0)
+        yield* invoker.extendTtl([contractInstanceKey(plan.contractId)], config.walletTtlLedgers).pipe(
+          Effect.tapError(e => Effect.logWarning(`wallet ${plan.contractId}: TTL extension failed: ${e.message}`)),
+          Effect.ignore,
+        )
+      return { contractId: plan.contractId, tx: outcome.hash }
     })
 
   const fundNewWallet = (contractId: string, usdc: bigint) =>
@@ -861,6 +932,9 @@ export const makeStellar = Effect.gen(function* () {
   })
 
   const chain = Chain.of({
+    planAccount,
+    deployPlannedAccount,
+    depositsAvailable: C.depositRouter !== '',
     deployAccount,
     fundNewWallet,
     newSigner,

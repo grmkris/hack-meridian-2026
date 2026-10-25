@@ -1,0 +1,76 @@
+{
+  "base": "http://localhost:18960",
+  "steps": [
+    {
+      "at": "2026-10-25T19:25:03.986Z",
+      "step": "health",
+      "stage": "local",
+      "release": "local",
+      "network": "testnet",
+      "relayer": "GBGNYETYEEWM5RIRE6KWUUZKD3X4DBZZ72M2LHQJNUGYO3D6ZYADBPT6"
+    },
+    {
+      "at": "2026-10-25T19:25:04.588Z",
+      "step": "relayer before",
+      "xlm": "4994.4589900",
+      "num_sponsoring": 48,
+      "subentries": 0
+    },
+    {
+      "at": "2026-10-25T19:25:05.130Z",
+      "step": "signup",
+      "ms": 515,
+      "wallet_id": "wal_db3767a3b76fe01e11667e660a40c31b",
+      "contract_id": "CC3OI4UG3ZSDCL3VA3GPK6GDGP3RAZ34XBVSJELMTHU5IPFQMAKKQD3R",
+      "deploy_tx": null,
+      "fund_tx": null
+    },
+    {
+      "at": "2026-10-25T19:25:06.014Z",
+      "step": "overview after signup",
+      "account_status": "awaiting_deposit",
+      "usdc": "0",
+      "contract_onchain": false
+    },
+    {
+      "at": "2026-10-25T19:25:17.648Z",
+      "step": "deposit address",
+      "ms": 11634,
+      "address": "GACPUAQEMPTS6PDBX2CCUPQQXV5PRWXKRNWC6A3T2T6E6UFR43ABFP7P",
+      "recipient": "CC3OI4UG3ZSDCL3VA3GPK6GDGP3RAZ34XBVSJELMTHU5IPFQMAKKQD3R",
+      "expires_at": "2027-04-23T19:16:47.260Z",
+      "create_tx": "https://stellar.expert/explorer/testnet/tx/9fd32ed887dd6972c6c6defd11b34bef16ad3bbd1d150ae44289b143f40b9178",
+      "register_tx": "https://stellar.expert/explorer/testnet/tx/4bfc3ddc7684abb3af6e804beb79415bff09f06de2f7cbc769449e298b3aeb7b",
+      "lock_tx": "https://stellar.expert/explorer/testnet/tx/01a3c58343ea7a86f45b32786217381768ef711991e8201d2f4e3106e3a94137"
+    },
+    {
+      "at": "2026-10-25T19:25:17.946Z",
+      "step": "relayer after the deposit address, before any USDC",
+      "xlm": "4994.3615138",
+      "num_sponsoring": 52,
+      "subentries": 0,
+      "xlm_spent": "0.0974762",
+      "sponsoring_added": 4,
+      "contract_onchain": false
+    },
+    {
+      "at": "2026-10-25T19:25:27.406Z",
+      "step": "exchange pays the deposit address",
+      "exchange": "GBLTKUBXR5GHAHT6YVCGN7YPDAMFQB2SBWJJP6WD5TZ5TQVMEJBZO7U7",
+      "usdc": "3",
+      "tx": "https://stellar.expert/explorer/testnet/tx/6cbf931ffa3dba4c15e1ab901ff53caf71391beb358dc67280459a207a83b905"
+    },
+    {
+      "at": "2026-10-25T19:26:41.735Z",
+      "step": "activated",
+      "ms_after_payment": 74210,
+      "account_status": "active",
+      "usdc": "30000000",
+      "deploy_tx": "https://stellar.expert/explorer/testnet/tx/f7ad23a26f55f29758246066272556822e244ece20496cd48b2aec4a2879d774",
+      "sweep_tx": "https://stellar.expert/explorer/testnet/tx/5a0947605bcb807191ba6a972434ae4ef825414cff488e44aa01a5dfcaf29e48",
+      "swept_total": "30000000",
+      "contract": "https://stellar.expert/explorer/testnet/contract/CC3OI4UG3ZSDCL3VA3GPK6GDGP3RAZ34XBVSJELMTHU5IPFQMAKKQD3R",
+      "contract_onchain": true
+    }
+  ]
+}

@@ -195,6 +195,19 @@ export interface DepositAddress {
 }
 
 /**
+ * Deposit-first signup: where a wallet's smart account will live before anything is onchain. The id is the one
+ * `createCustomContract(deployer, salt)` yields, so USDC can be sent to it (and swept into it) before the deploy, and
+ * only `deployer`, a relayer, can ever deploy there.
+ */
+export interface AccountPlan {
+  readonly contractId: string
+  /** The relayer `G…` that deploys (and alone can deploy) at `contractId`. */
+  readonly deployer: string
+  /** The 32-byte salt, hex. */
+  readonly salt: string
+}
+
+/**
  * The quote hook: called with the seller's terms before anything is signed. It validates, reserves and pulls the
  * shortfall into the pocket, returning the pull's receipt (null when the pocket already held enough). Fail with
  * `declined` to stop.
@@ -204,6 +217,18 @@ export type X402QuoteHook = (quote: X402Quote) => Effect.Effect<Receipt | null |
 export interface ChainShape {
   /** Relayer deploys the smart account with the passkey as rule 0. */
   readonly deployAccount: (ownerPasskey: OwnerPasskey) => Effect.Effect<{ contractId: string; tx: string }, ChainError>
+  /** Deposit-first signup: a fresh salt and the contract id the deployer gets for it. Nothing is submitted. */
+  readonly planAccount: Effect.Effect<AccountPlan, ChainError>
+  /**
+   * Deploy a planned account with the passkey as rule 0 (the same WASM and constructor as `deployAccount`). Idempotent:
+   * when the account is already there, `tx` is null and nothing is submitted.
+   */
+  readonly deployPlannedAccount: (
+    ownerPasskey: OwnerPasskey,
+    plan: AccountPlan,
+  ) => Effect.Effect<{ contractId: string; tx: string | null }, ChainError>
+  /** Whether this network has a deposit router, so `createDepositAddress` can work (pubnet: not until it is deployed). */
+  readonly depositsAvailable: boolean
   /** Treasury → wallet, testnet only (the judge path: 10 USDC on create). */
   readonly fundNewWallet: (contractId: string, usdc: bigint) => Effect.Effect<{ tx: string }, ChainError>
   /** A fresh connection key K, encrypted under the vault key. `address` is K as a `G…` strkey. */

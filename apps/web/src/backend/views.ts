@@ -2,6 +2,7 @@ import { NewContact, RevokeReply } from '@hm/api'
 
 export {
   Contact,
+  DepositAddressView,
   GrantView,
   NewContact,
   Overview,

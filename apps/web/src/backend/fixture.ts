@@ -18,6 +18,7 @@ const ADDRESS = {
   carol: 'GDEAHO3TSCX6DIWCXQPCEBN3VC3VVOZGGZ6SFIOFPKLD4BJ7JHXUNMUJ',
   seller: 'GDAOGLNF2RL43GMCP5KRQPOOHGBVAOHOZSL6ANBCT6TVZGTCZMJDE7F6',
   relayer: 'GBFLTGBMKV6CFFMG6ESV6VKWQTEP6LLS22IUTGATBOKL47CSK7WGX4MQ',
+  deposit: 'GB7EGCF2J4WRZM74ZSMCLYIB2A3M5Z4NO2EGRSYTCXIIXBO4IYMSZ4VQ',
 } as const
 
 const stroops = (whole: number, hundredths = 0): bigint => BigInt(whole) * 10_000_000n + BigInt(hundredths) * 100_000n
@@ -301,6 +302,18 @@ export const fixtureBackend = (options: { readonly signedIn: boolean }) =>
             },
           ),
         receipts: whenSignedIn(() => receipts),
+        depositAddress: whenSignedIn(() => ({
+          address: ADDRESS.deposit,
+          recipient: ADDRESS.wallet,
+          expires_ledger: 8_496_182,
+          expires_at: '2027-04-23T18:30:00.000Z',
+          pending: '0',
+          swept_total: USDC(2, 75),
+          create_tx: 'ad82b35901c6c5dee76ac430edc32d19b6b7e1de3be01c2cca1c2c9ff2ea4473',
+          register_tx: '3c2d253df23b2167716655fb87a3776bed00e4038b10b95684e2af3e49eeccaa',
+          lock_tx: '0998d2f98263af425dd0338c0f1987a0154e95a8942843fb9d8e81fa48f4f36f',
+          last_sweep_tx: '6509c22269a78b60c0776d43855db7d612f7b49030ce5bb8b4b55785caa67e68',
+        })),
       }
     }),
   )

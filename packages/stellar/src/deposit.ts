@@ -1,4 +1,14 @@
-import { Account, type Asset, Operation, TimeoutInfinite, TransactionBuilder, type xdr } from '@stellar/stellar-sdk'
+import {
+  Account,
+  Address,
+  type Asset,
+  hash,
+  Operation,
+  StrKey,
+  TimeoutInfinite,
+  TransactionBuilder,
+  xdr,
+} from '@stellar/stellar-sdk'
 
 import { addr, invokeContractFunc, u32 } from './scval.ts'
 
@@ -77,4 +87,24 @@ export const teardownTx = (
     .setTimeout(TimeoutInfinite)
     .build()
   return { xdr: tx.toXDR(), hash: new Uint8Array(tx.hash()) }
+}
+
+/**
+ * The contract id `createCustomContract(deployer, salt)` yields on this network (CAP-46 `HashIdPreimageContractId`), as
+ * scripts/mainnet/lib.ts computes Alice's: a deposit-first wallet's address is known, and can receive USDC, before its
+ * smart account is deployed. Only `deployer` can deploy there (the deploy needs its authorization).
+ */
+export const contractIdFor = (deployer: string, salt: Uint8Array, networkPassphrase: string): string => {
+  const preimage = xdr.HashIdPreimage.envelopeTypeContractId(
+    new xdr.HashIdPreimageContractId({
+      networkId: hash(Buffer.from(networkPassphrase)),
+      contractIdPreimage: xdr.ContractIdPreimage.contractIdPreimageFromAddress(
+        new xdr.ContractIdPreimageFromAddress({
+          address: Address.fromString(deployer).toScAddress(),
+          salt: Buffer.from(salt),
+        }),
+      ),
+    }),
+  )
+  return StrKey.encodeContract(hash(preimage.toXDR()))
 }

@@ -111,6 +111,11 @@ export const WalletSummary = Schema.Struct({
    * once `GET /api/wallet/deposit-address` has created it; null before. Sent by `/api/overview`.
    */
   deposit_address: Schema.optionalKey(Schema.NullOr(Schema.String)),
+  /**
+   * `awaiting_deposit`: a deposit-first wallet whose smart account deploys when its first USDC arrives (send it to the
+   * deposit address); `active`: deployed. Sent by `/api/overview`.
+   */
+  account_status: Schema.optionalKey(Schema.Literals(['awaiting_deposit', 'active'])),
 })
 export type WalletSummary = typeof WalletSummary.Type
 
@@ -163,6 +168,11 @@ export const NewWallet = Schema.Struct({
   attestation_object: Schema.String,
   /** Required on mainnet. */
   invite_code: Schema.optionalKey(Schema.String),
+  /**
+   * Deposit-first: no deploy and no welcome USDC now; the wallet gets a deposit address and its smart account deploys
+   * when the first USDC arrives. Always so on mainnet once it has a deposit router; testnet only when asked.
+   */
+  deposit_first: Schema.optionalKey(Schema.Boolean),
 })
 export const AssertionOptions = Schema.Struct({
   challenge: Schema.String,

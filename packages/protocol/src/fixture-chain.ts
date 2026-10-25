@@ -131,6 +131,9 @@ export const makeFixtureChain = (options: FixtureOptions = {}): FixtureChain => 
   const rules: Array<FixtureRule> = []
   /** Deposit address → the wallet the fixture router binds it to. */
   const deposits = new Map<string, string>()
+  /** Deposit-first: planned contract ids, and which of them are deployed. */
+  const planned = new Set<string>()
+  const deployed = new Set<string>()
   const nextRuleId = new Map<string, number>()
   const failures = new Map<keyof ChainShape, ChainError['kind']>(
     Object.entries(options.failNext ?? {}).filter(
@@ -148,7 +151,8 @@ export const makeFixtureChain = (options: FixtureOptions = {}): FixtureChain => 
   const next = () => ++counter
   const txHash = () => next().toString(16).padStart(64, '0')
   const balance = (address: string) =>
-    balances.get(address) ?? (options.lenient === true && address.startsWith('C') ? 2_000_000_000n : 0n)
+    balances.get(address) ??
+    (options.lenient === true && address.startsWith('C') && !planned.has(address) ? 2_000_000_000n : 0n)
   const credit = (address: string, amount: bigint) => balances.set(address, balance(address) + amount)
   const receipt = (feePayer = FIXTURE_RELAYER, feeStroops = 15_000_000n): Receipt => {
     const tx = txHash()
@@ -226,6 +230,28 @@ export const makeFixtureChain = (options: FixtureOptions = {}): FixtureChain => 
     })
 
   const chain: ChainShape = {
+    planAccount: Effect.suspend(() =>
+      call('planAccount', [], () =>
+        Effect.sync(() => {
+          const contractId = strkey('C', next(), 'PLANNED', seed)
+          planned.add(contractId)
+          const salt = [...digest(contractId)].map(byte => byte.toString(16).padStart(2, '0')).join('')
+          return { contractId, deployer: FIXTURE_RELAYER, salt }
+        }),
+      ),
+    ),
+    deployPlannedAccount: (ownerPasskey, plan) =>
+      call('deployPlannedAccount', [ownerPasskey, plan], () =>
+        Effect.suspend((): Effect.Effect<{ contractId: string; tx: string | null }, ChainError> => {
+          if (!planned.has(plan.contractId) && options.lenient !== true)
+            return fail('simulation_failed', `fixture: ${plan.contractId} was never planned`)
+          if (deployed.has(plan.contractId)) return Effect.succeed({ contractId: plan.contractId, tx: null })
+          deployed.add(plan.contractId)
+          nextRuleId.set(plan.contractId, 1)
+          return Effect.succeed({ contractId: plan.contractId, tx: receipt().tx })
+        }),
+      ),
+    depositsAvailable: true,
     deployAccount: ownerPasskey =>
       call('deployAccount', [ownerPasskey], () =>
         Effect.sync(() => {
@@ -423,13 +449,15 @@ export const makeFixtureChain = (options: FixtureOptions = {}): FixtureChain => 
     readiness: address =>
       call('readiness', [address], () =>
         Effect.succeed(
-          address.startsWith('C')
-            ? ('contract' as const)
-            : accountsMissing.has(address)
-              ? ('account_missing' as const)
-              : trustlineMissing.has(address)
-                ? ('trustline_required' as const)
-                : ('usdc_ready' as const),
+          planned.has(address) && !deployed.has(address)
+            ? ('account_missing' as const)
+            : address.startsWith('C')
+              ? ('contract' as const)
+              : accountsMissing.has(address)
+                ? ('account_missing' as const)
+                : trustlineMissing.has(address)
+                  ? ('trustline_required' as const)
+                  : ('usdc_ready' as const),
         ),
       ),
     prepareClaim: (sender, recipient, amountStroops, validForLedgers) =>

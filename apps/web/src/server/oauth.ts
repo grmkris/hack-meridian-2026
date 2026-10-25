@@ -12,6 +12,7 @@ import { Assertion } from '@hm/api'
 import { Chain, fromStroops, MIN_NOD_ABOVE_STROOPS, PreparedOwnerAuth, toStroops } from '@hm/protocol'
 
 import { isoIn, nowIso, nowMillis, randomId } from './clock.ts'
+import { activateWallet } from './deposit.ts'
 import { serveMcp } from './mcp.ts'
 import { inviteRequired, Network } from './network.ts'
 import { OwnerError, checkAssertion, requireWallet, walletOfSession, sessionToken } from './owner.ts'
@@ -113,6 +114,14 @@ export const prepareGrant = (runtime: AppRuntime, request: Request) =>
           message: `the nod line must be a USDC amount from ${fromStroops(MIN_NOD_ABOVE_STROOPS)} up to the allowance (${fromStroops(total)})`,
         })
       const chain = yield* Chain
+      // A deposit-first wallet's account deploys before its first allowance: the rule install needs the account.
+      yield* activateWallet(wallet, 'allowance').pipe(
+        Effect.catchTag('DepositError', error =>
+          Effect.fail(
+            new OwnerError({ kind: 'unavailable', message: `your wallet is being set up (${error.message})` }),
+          ),
+        ),
+      )
       const signer = yield* chain.newSigner
       const prepared = yield* chain.prepareInstallGrant(wallet.contract_id, signer.publicKey, total, lifetime)
       const encoded = yield* Schema.encodeEffect(PreparedOwnerAuth)(prepared).pipe(

@@ -1,6 +1,15 @@
 import { Context, type Effect, type Option, Schema } from 'effect'
 
-import type { Contact, GrantView, NewContact, Overview, ReceiptRecord, RevokeReply, WalletSummary } from './views'
+import type {
+  Contact,
+  DepositAddressView,
+  GrantView,
+  NewContact,
+  Overview,
+  ReceiptRecord,
+  RevokeReply,
+  WalletSummary,
+} from './views'
 
 /** The owner has no session on this device: sign in or create a wallet with a passkey. */
 export class SignedOut extends Schema.TaggedError<SignedOut>()('SignedOut', {}) {}
@@ -57,5 +66,7 @@ export class Backend extends Context.Service<
     readonly contacts: Effect.Effect<ReadonlyArray<Contact>, BackendError>
     readonly addContact: (contact: NewContact) => Effect.Effect<Contact, BackendError>
     readonly receipts: Effect.Effect<ReadonlyArray<ReceiptRecord>, BackendError>
+    /** The wallet's deposit address (created on the first call, ~15 s on the real chain): a `G…` exchanges can pay. */
+    readonly depositAddress: Effect.Effect<DepositAddressView, BackendError>
   }
 >()('hm/Backend') {}

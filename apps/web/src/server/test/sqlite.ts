@@ -8,6 +8,7 @@ import events from '../migrations/0004_events.sql?raw'
 import requests from '../migrations/0005_requests.sql?raw'
 import nodLine from '../migrations/0006_nod_line.sql?raw'
 import depositAddresses from '../migrations/0007_deposit_addresses.sql?raw'
+import walletActivations from '../migrations/0008_wallet_activations.sql?raw'
 
 /** The subset of node:sqlite's DatabaseSync the tests use. */
 interface SqliteDatabase {
@@ -32,7 +33,16 @@ export const sqliteEngine = async (): Promise<SqlEngine & { readonly database: S
   // oxlint-disable-next-line typescript/no-unsafe-type-assertion
   const { DatabaseSync } = (await import(/* @vite-ignore */ specifier)) as SqliteModule
   const database = new DatabaseSync(':memory:')
-  for (const migration of [wallet, pocketBalance, grantTxs, events, requests, nodLine, depositAddresses])
+  for (const migration of [
+    wallet,
+    pocketBalance,
+    grantTxs,
+    events,
+    requests,
+    nodLine,
+    depositAddresses,
+    walletActivations,
+  ])
     database.exec(migration)
   return {
     database,

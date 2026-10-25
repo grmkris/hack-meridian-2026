@@ -4,6 +4,7 @@ import { Chain, type ChainError, type Wallet, type WebAuthnAssertion } from '@hm
 
 import { randomToken } from './clock.ts'
 import type { DbError } from './db.ts'
+import { depositFirstSignup } from './deposit.ts'
 import { inviteRequired, Network } from './network.ts'
 import {
   consumeChallenge,
@@ -76,6 +77,8 @@ export interface NewWalletInput {
   readonly inviteCode?: string | undefined
   /** Counts against the hourly wallet caps (see registrationOptions). */
   readonly visitor?: string | undefined
+  /** Deposit-first on testnet too: plan the account, deploy it when USDC arrives (pubnet always, given a router). */
+  readonly depositFirst?: boolean | undefined
 }
 
 /** Registration → the relayer deploys the smart account with the passkey as admin → treasury sends welcome USDC. */
@@ -98,18 +101,24 @@ export const createWallet = (site: Site, input: NewWalletInput) =>
     const visitor = input.visitor
     if (visitor !== undefined) yield* WalletCaps.use(caps => caps.take(visitor))
     const chain = yield* Chain
-    const deployed = yield* chain.deployAccount({ pubkey: publicKey, credentialId })
+    // Deposit-first (deposit.ts): the account's id is planned now and deployed when the first USDC arrives.
+    const plan = (yield* depositFirstSignup(input.depositFirst)) ? yield* chain.planAccount : undefined
+    const deployed =
+      plan === undefined
+        ? yield* chain.deployAccount({ pubkey: publicKey, credentialId })
+        : { contractId: plan.contractId, tx: null }
     const settings = yield* WalletSettings
     const network = yield* Network
     // Welcome USDC from the treasury: testnet only (the judge path), never on mainnet.
-    const funded = network.welcomeFunding
-      ? yield* chain.fundNewWallet(deployed.contractId, settings.welcomeUsdc).pipe(
-          Effect.map(result => result.tx),
-          Effect.catchTag('ChainError', error =>
-            Effect.as(Effect.logWarning('welcome USDC failed', error.kind, error.message), null),
-          ),
-        )
-      : null
+    const funded =
+      network.welcomeFunding && plan === undefined
+        ? yield* chain.fundNewWallet(deployed.contractId, settings.welcomeUsdc).pipe(
+            Effect.map(result => result.tx),
+            Effect.catchTag('ChainError', error =>
+              Effect.as(Effect.logWarning('welcome USDC failed', error.kind, error.message), null),
+            ),
+          )
+        : null
     const wallet = yield* createOwnerWallet({
       network: network.caip,
       name: input.name.trim().slice(0, 40) || 'Personal',
@@ -118,6 +127,7 @@ export const createWallet = (site: Site, input: NewWalletInput) =>
       publicKey: b64url(publicKey),
       deployTx: deployed.tx,
       fundTx: funded,
+      plan,
     })
     // Demo stages: the wallet starts with Alice, Bob and Carol, readiness read from the chain now.
     yield* Effect.forEach(settings.demoContacts, contact =>

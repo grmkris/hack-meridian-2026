@@ -6,7 +6,10 @@ import { Chain, type ChainError, type Wallet } from '@hm/protocol'
 import { randomId } from './clock.ts'
 import { DbError } from './db.ts'
 import { EventsHost } from './events/host.ts'
+import { Network } from './network.ts'
 import { first, sql, write } from './rows.ts'
+import { walletById } from './store.ts'
+import { b64urlDecode } from './webauthn.ts'
 
 /**
  * Deposit addresses (docs/spikes/s8-deposit.md, after nidohq/nido#165): one sponsored classic `G…` per wallet that
@@ -197,8 +200,9 @@ export const sweepDeposit = (row: ActiveDeposit) =>
   })
 
 /**
- * One alarm turn of the wallet's Durable Object: sweep while the watch lasts. `nextAt` (epoch ms) is when to look
- * again, null when the watch is over or there is no address. An idle address costs one ledger read.
+ * One alarm turn of the wallet's Durable Object: sweep while the watch lasts, and deploy a deposit-first wallet once
+ * USDC is there. `nextAt` (epoch ms) is when to look again, null when the watch is over or there is no address. An
+ * idle address costs one ledger read.
  */
 export const depositWatchTick = (walletId: string) =>
   Effect.gen(function* () {
@@ -208,5 +212,139 @@ export const depositWatchTick = (walletId: string) =>
     const until = DateTime.makeUnsafe(row.watch_until)
     if (DateTime.isLessThanOrEqualTo(until, now)) return { nextAt: null, swept: 0n }
     const { swept } = yield* sweepDeposit(row)
+    yield* activateIfFunded(walletId, swept).pipe(
+      Effect.catch(error => Effect.logWarning('deposit-first activation', walletId, error.message)),
+    )
     return { nextAt: DateTime.toEpochMillis(DateTime.addDuration(now, WATCH_EVERY)), swept }
+  })
+
+// Deposit-first signup (K2): the passkey and the deposit address at once; the smart account deploys when USDC arrives.
+
+/** Whether wallet creation plans the account instead of deploying it. */
+export const depositFirstSignup = (requested: boolean | undefined) =>
+  Effect.gen(function* () {
+    const chain = yield* Chain
+    if (!chain.depositsAvailable) return false
+    // Testnet keeps the judge path (deploy now, 10 welcome USDC) unless the caller asks; pubnet is deposit-first.
+    return requested === true || !(yield* Network).welcomeFunding
+  })
+
+const ActivationRow = Schema.Struct({
+  wallet_id: Schema.String,
+  status: Schema.Literals(['awaiting_deposit', 'deploying', 'active', 'failed']),
+  deployer: Schema.String,
+  salt: Schema.String,
+  claim_token: Schema.NullOr(Schema.String),
+  claimed_at: Schema.NullOr(Schema.String),
+  deploy_tx: Schema.NullOr(Schema.String),
+  trigger: Schema.NullOr(Schema.String),
+  activated_at: Schema.NullOr(Schema.String),
+})
+export type ActivationRow = typeof ActivationRow.Type
+
+const toActivation = (row: Record<string, unknown>) =>
+  Schema.decodeUnknownEffect(ActivationRow)(row).pipe(
+    Effect.mapError(error => new DbError({ operation: 'decode wallet_activations', message: String(error) })),
+  )
+
+export const activationOf = (walletId: string) =>
+  first(
+    sql(
+      `SELECT wallet_id, status, deployer, salt, claim_token, claimed_at, deploy_tx, trigger, activated_at
+         FROM wallet_activations WHERE wallet_id = ?`,
+      walletId,
+    ),
+    toActivation,
+  )
+
+/** What /api and the tools say about the account: deployed, or waiting for its first USDC. */
+export const accountStatusOf = (walletId: string) =>
+  Effect.map(activationOf(walletId), row =>
+    row === undefined || row.status === 'active' ? ('active' as const) : ('awaiting_deposit' as const),
+  )
+
+export type ActivationTrigger = 'deposit' | 'allowance' | 'claim'
+
+/**
+ * Deploy a deposit-first wallet's smart account at its planned id (passkey as rule 0), once: claim the row (one deployer
+ * per wallet; a stale or failed claim is taken over), deploy, record. A wallet deployed at signup, or already
+ * activated, returns `tx` null and nothing is submitted. A concurrent request fails `busy`.
+ */
+export const activateWallet = (wallet: Wallet, trigger: ActivationTrigger) =>
+  Effect.gen(function* () {
+    const row = yield* activationOf(wallet.id)
+    if (row === undefined || row.status === 'active') return { tx: null, activated: false }
+    const now = yield* DateTime.now
+    const token = yield* randomId('act')
+    yield* write(
+      sql(
+        `UPDATE wallet_activations SET status = 'deploying', claim_token = ?, claimed_at = ?
+           WHERE wallet_id = ? AND (status IN ('awaiting_deposit', 'failed') OR (status = 'deploying' AND claimed_at < ?))`,
+        token,
+        iso(now),
+        wallet.id,
+        iso(DateTime.subtractDuration(now, CLAIM_STALE)),
+      ),
+    )
+    const claimed = yield* activationOf(wallet.id)
+    if (claimed?.status === 'active') return { tx: null, activated: false }
+    if (claimed?.claim_token !== token)
+      return yield* new DepositError({ reason: 'busy', message: 'wallet_activating: retry in a few seconds' })
+    const owner = yield* Effect.all({
+      pubkey: b64urlDecode(wallet.passkey_public_key),
+      credentialId: b64urlDecode(wallet.passkey_credential_id),
+    }).pipe(Effect.mapError(error => new DepositError({ reason: 'chain', message: error.message })))
+    const deployed = yield* Chain.use(chain =>
+      chain.deployPlannedAccount(owner, {
+        contractId: wallet.contract_id,
+        deployer: claimed.deployer,
+        salt: claimed.salt,
+      }),
+    ).pipe(
+      Effect.tapError(() =>
+        write(
+          sql(
+            `UPDATE wallet_activations SET status = 'failed' WHERE wallet_id = ? AND claim_token = ?`,
+            wallet.id,
+            token,
+          ),
+        ).pipe(Effect.ignore),
+      ),
+      Effect.mapError(fromChain),
+    )
+    const done = iso(yield* DateTime.now)
+    yield* write(
+      sql(
+        `UPDATE wallet_activations SET status = 'active', deploy_tx = ?, trigger = ?, activated_at = ?
+           WHERE wallet_id = ? AND claim_token = ?`,
+        deployed.tx,
+        trigger,
+        done,
+        wallet.id,
+        token,
+      ),
+      sql('UPDATE wallets SET deploy_tx = COALESCE(deploy_tx, ?) WHERE id = ?', deployed.tx, wallet.id),
+    )
+    return { tx: deployed.tx, activated: true }
+  })
+
+/**
+ * A deposit-first wallet whose USDC arrived (swept from the deposit address, or paid to its planned `C…`): deploy it.
+ * Nothing for a deployed wallet (one row read). `justSwept` skips the balance read after a sweep that moved USDC.
+ */
+export const activateIfFunded = (walletId: string, justSwept = 0n) =>
+  Effect.gen(function* () {
+    const row = yield* activationOf(walletId)
+    if (row === undefined || row.status === 'active') return null
+    const wallet = yield* walletById(walletId)
+    if (wallet === undefined) return null
+    const held =
+      justSwept > 0n
+        ? justSwept
+        : yield* Chain.use(chain => chain.balances(wallet.contract_id)).pipe(
+            Effect.map(b => b.usdc),
+            Effect.orElseSucceed(() => 0n),
+          )
+    if (held <= 0n) return null
+    return yield* activateWallet(wallet, 'deposit')
   })

@@ -18,6 +18,8 @@ import { Counter } from './counter.ts'
 import type { DbError } from './db.ts'
 import type { Db } from './db.ts'
 import {
+  accountStatusOf,
+  activateIfFunded,
   type DepositError,
   depositAddressOf,
   depositOfWallet,
@@ -221,6 +223,7 @@ const SessionHandlers = HttpApiBuilder.group(
               clientDataJSON: payload.client_data_json,
               inviteCode: payload.invite_code,
               visitor: yield* visitor,
+              depositFirst: payload.deposit_first,
             })
           }),
         ).pipe(
@@ -279,6 +282,10 @@ const WalletHandlers = HttpApiBuilder.group(
           Effect.gen(function* () {
             const wallet = yield* sessionWallet
             const here = yield* site
+            // A deposit-first wallet whose USDC arrived while nobody watched deploys now (one row read otherwise).
+            yield* activateIfFunded(wallet.id).pipe(
+              Effect.catch(error => Effect.logWarning('activation on overview', error.message)),
+            )
             const balances = yield* chain.balances(wallet.contract_id).pipe(
               Effect.map(b => ({ usdc: b.usdc.toString(), xlm: b.xlm.toString() })),
               Effect.catchTag('ChainError', () => Effect.fail(new Unavailable({ error: 'the chain did not answer' }))),
@@ -286,7 +293,11 @@ const WalletHandlers = HttpApiBuilder.group(
             const connections = yield* connectionsOfWallet(wallet.id)
             const pending = yield* pendingOfWallet(wallet.id)
             return {
-              wallet: { ...summary(wallet, network), deposit_address: yield* depositAddressOf(wallet.id) },
+              wallet: {
+                ...summary(wallet, network),
+                deposit_address: yield* depositAddressOf(wallet.id),
+                account_status: yield* accountStatusOf(wallet.id),
+              },
               network: network.caip,
               explorer_base: network.explorerBase,
               balances,
@@ -392,6 +403,9 @@ const WalletHandlers = HttpApiBuilder.group(
               return yield* new NotFound({ error: 'no deposit address yet: GET /api/wallet/deposit-address' })
             const result = yield* sweepDeposit({ ...row, status: 'active', address: row.address }).pipe(
               Effect.catchTag('DepositError', error => Effect.fail(fromDeposit(error))),
+            )
+            yield* activateIfFunded(wallet.id, result.swept).pipe(
+              Effect.catch(error => Effect.logWarning('activation after sweep', error.message)),
             )
             return {
               swept: result.swept.toString(),
