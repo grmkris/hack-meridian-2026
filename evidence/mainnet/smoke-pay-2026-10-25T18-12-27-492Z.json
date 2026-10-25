@@ -1,0 +1,26 @@
+{
+  "at": "2026-10-25T18:12:27.492Z",
+  "network": "stellar:pubnet",
+  "seller": "https://hm26-seller-mainnet.kristjan-grm11775.workers.dev",
+  "payer": "GBJOFDKUKPHIPG34NEMVINELO36TS3QVVLNTXRO3SRUPEK5CPMYBVSPI",
+  "pay_to": "GAJ6XSMEBPLATVHRQVQK5QTL7GYGGYGHC2IFNIQZBMRNIYWHVFOAM47G",
+  "payment_id": "hm26_mainnet_e4bd86629e2143f09fe71cb5b4686171",
+  "settle": {
+    "success": true,
+    "payer": "GBJOFDKUKPHIPG34NEMVINELO36TS3QVVLNTXRO3SRUPEK5CPMYBVSPI",
+    "transaction": "129fbe27c635b86b6ca1f69ccaba1e5d3eae235b58344bd1d877b97aef28d383",
+    "network": "stellar:pubnet"
+  },
+  "transaction": {
+    "hash": "129fbe27c635b86b6ca1f69ccaba1e5d3eae235b58344bd1d877b97aef28d383",
+    "status": "SUCCESS",
+    "ledger": 65133231,
+    "fee_charged_stroops": "12103",
+    "explorer": "https://stellar.expert/explorer/public/tx/129fbe27c635b86b6ca1f69ccaba1e5d3eae235b58344bd1d877b97aef28d383"
+  },
+  "usdc_delta": {
+    "treasury": "-0.1000000",
+    "seller": "0.1000000"
+  },
+  "treasury_xlm_delta": "0.0000000"
+}
