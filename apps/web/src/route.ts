@@ -20,7 +20,7 @@ const routeParser = Route.oneOf(connectionsRouter, contactsRouter, receiptsRoute
 
 export const urlToAppRoute = Route.parseUrlWithFallback(routeParser, AppRoute.NotFound)
 
-const WORKER_PAGES = ['/approve/', '/authorize', '/claim/', '/oauth/', '/api/', '/mcp', '/.well-known/']
+const WORKER_PAGES = ['/approve/', '/authorize', '/claim/', '/oauth/', '/api/', '/mcp', '/.well-known/', '/sample']
 
 export const isWorkerPage = (pathname: string): boolean =>
   Array.some(WORKER_PAGES, prefix => String.startsWith(prefix)(pathname))
