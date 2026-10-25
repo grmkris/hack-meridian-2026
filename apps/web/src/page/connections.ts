@@ -163,6 +163,8 @@ const revokeControls = (connection: GrantView, revoke: Revoke, h: HtmlBuilder<Me
     [
       h.Type('button'),
       h.OnClick(Message.ClickedRevoke({ connectionId: connection.connection_id })),
+      h.DataAttribute('testid', 'revoke'),
+      h.DataAttribute('connection', connection.connection_id),
       h.Class(`${BUTTON_SECONDARY} self-start`),
     ],
     ['Revoke'],
@@ -192,6 +194,8 @@ const revokeControls = (connection: GrantView, revoke: Revoke, h: HtmlBuilder<Me
                       [
                         h.Type('button'),
                         h.OnClick(Message.ClickedConfirmRevoke({ connectionId })),
+                        h.DataAttribute('testid', 'revoke-confirm'),
+                        h.DataAttribute('connection', connectionId),
                         h.Class(BUTTON_DANGER),
                       ],
                       ['Revoke now'],
@@ -218,7 +222,11 @@ const connectionCard = (connection: GrantView, revoke: Revoke, h: HtmlBuilder<Me
   const isActive = connection.connection_status === 'active'
   return h.keyed('li')(
     connection.connection_id,
-    [h.Class('flex flex-col gap-4 rounded-3xl border border-line bg-paper p-5 sm:p-6')],
+    [
+      h.Class('flex flex-col gap-4 rounded-3xl border border-line bg-paper p-5 sm:p-6'),
+      h.DataAttribute('connection', connection.connection_id),
+      ...(isActive ? [] : [h.DataAttribute('testid', 'revoked')]),
+    ],
     [
       h.div(
         [h.Class('flex flex-wrap items-start justify-between gap-3')],
@@ -288,7 +296,10 @@ const ruleRemovalNotice = (url: string, h: HtmlBuilder<Message>): Html =>
     ],
     [
       h.p([h.Class('text-sm text-ink')], ['The connection is off. Removing its onchain rule needs your passkey.']),
-      h.a([h.Href(url), h.Class(`${BUTTON_PRIMARY} shrink-0`)], ['Remove the rule']),
+      h.a(
+        [h.Href(url), h.DataAttribute('testid', 'remove-rule'), h.Class(`${BUTTON_PRIMARY} shrink-0`)],
+        ['Remove the rule'],
+      ),
     ],
   )
 
