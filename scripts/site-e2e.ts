@@ -96,6 +96,7 @@ try {
     await page.getByRole('heading', { name: 'Home', level: 1 }).or(page.getByRole('alert')).first().waitFor()
     await noAlert(page)
     await page.getByText('Wallet balance').waitFor()
+    await page.getByText('Loading…').first().waitFor({ state: 'hidden' })
     const walletLink = page.getByRole('banner').getByRole('link', { name: /·/u })
     newWallet.wallet = (await walletLink.getAttribute('title')) ?? undefined
     newWallet.explorer = (await walletLink.getAttribute('href')) ?? undefined
@@ -114,7 +115,7 @@ try {
         await page.getByRole('link', { name: heading, exact: true }).first().click()
         await page.waitForURL(new URL(path, origin).href)
         await page.getByRole('heading', { name: heading, level: 1 }).waitFor()
-        await page.waitForLoadState('networkidle')
+        await page.getByText('Loading…').first().waitFor({ state: 'hidden' })
         await noAlert(page)
         await page.screenshot({ path: join(directory, `${heading.toLowerCase()}.png`), fullPage: true })
       })
