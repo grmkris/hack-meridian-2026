@@ -43,19 +43,19 @@ with a stable `grant_id`; the allowance belongs to it, not to the session.
    (WebAuthn registration → relayer deploys the smart account with the passkey as admin signer).
 2. Consent screen: "Allow **ChatGPT** to spend up to **5 USDC** total from **Personal** until **tomorrow 12:00**.
    Larger payments need your passkey." Passkey signs the context-rule install. Connection becomes active.
-3. Agent calls `wallet_overview`: balance 120 USDC (the video wallet is topped up from the treasury; a judge's fresh wallet gets 10 USDC and a 5 USDC dinner), allowance 5.00 remaining, expiry, pending approvals.
+3. Agent calls `wallet_overview`: balance 30 USDC (the video wallet is funded from the treasury; a judge's fresh testnet wallet gets 10 USDC), allowance 5.00 remaining, expiry, pending approvals.
 4. Agent buys one x402 resource for 0.10 USDC (`paid_resource_fetch`). No owner prompt. Allowance 4.90.
 5. Agent sends 2 USDC to saved contact Alice (`payment_prepare` → `payment_execute`). Allowance 2.90.
-6. Agent requests 100 USDC "dinner" to Bob → `requires_approval` + approval URL.
+6. Agent requests 20 USDC "dinner" to Bob → `requires_approval` + approval URL.
 7. Owner opens the link, sees recipient address + name, amount, requester, and approves with the passkey. Agent polls
    `payment_status` and gets a confirmed receipt. Allowance still 2.90 (owner lane does not consume the grant).
 8. Agent repeats the exact same request (same idempotency key) → same receipt, no second payment. Agent requests 4 USDC
    → `requires_approval` because 4 > 2.90 remaining (not an onchain revert; the service routes it to the owner lane).
 9. Owner revokes the connection on the site; the next delegated payment is refused, and the onchain rule is gone.
 
-Unlocked extension (priority 5): "Send Carol 10 USDC" where Carol's classic `G…` account has no USDC trustline. The
+Unlocked extension (priority 5): "Send Carol 5 USDC" where Carol's classic `G…` account has no USDC trustline. The
 wallet marks her **Trustline required**, generates an acceptance link, Carol signs the `trust` auth entry, and the
-wallet executes one atomic invocation: USDC SAC `trust(carol)` + `transfer(owner, carol, 10)`.
+wallet executes one atomic invocation: USDC SAC `trust(carol)` + `transfer(owner, carol, 5)`.
 
 ## Actors
 
@@ -187,7 +187,7 @@ transaction, so the policy counts both paths against the same N.
 1. A 0.10 USDC x402 purchase settles and consumes the grant.
 2. A payment above the remaining allowance is routed to the owner lane, never signed with the connection key.
 3. A forced over-limit transfer signed with the connection key is **rejected onchain** (negative test for the policy).
-4. A 100 USDC payment requires the passkey; the approval binds recipient and amount.
+4. A 20 USDC payment requires the passkey; the approval binds recipient and amount.
 5. Repeating the same request does not pay twice.
 6. Revoking the connection blocks the next delegated payment.
 7. A receipt is returned only after confirmed settlement.
@@ -255,3 +255,6 @@ Show the explorer for two transactions (a delegated one and the owner-approved o
 - 2026-10-25 13:00 UTC, Kristjan via the pitch session: the product is presented as **Nod**; user-facing text follows the
   vocabulary in `docs/PITCH.md` (allowance, needs your nod, Nod pays the network fee). Enums and field names in tool JSON
   and `/api` stay unchanged. Session a3 owns pitch, landing copy, deck, README product sections and the video.
+- 2026-10-25 13:05 UTC, Kristjan: demo amounts are **5 USDC allowance, 20 USDC dinner, 5 USDC to Carol**, same on testnet
+  and mainnet. Outflow from the video wallet is 28 USDC (1 USDC pocket pull, 2 to Alice, 20 to Bob, 5 to Carol); the pocket's
+  0.90 leftover is swept back on revoke. Mainnet funding: ~50 XLM and ~30 USDC, all to our own accounts.
