@@ -6,8 +6,8 @@ Plans and queues live in the release plan (.local/brainstorm/FINAL-REVIEW.md §K
 below; mainnet only on the orchestrator's explicit go, never during a recording.
 
 Live: **testnet at `5253df0`** (19:12 UTC, deposit-address service + migration 0007) on https://testnet.trynod.si (MCP at
-`/mcp`; the workers.dev host redirects there); **mainnet at `9fc080f`** on https://trynod.si. Dated sections below are
-the history.
+`/mcp`; the workers.dev host redirects there); **mainnet at `5253df0`** (19:24 UTC) on https://trynod.si. Dated sections
+below are the history.
 
 ## The deploy worktree is the only place a testnet deploy runs
 
@@ -171,3 +171,22 @@ Post-deploy checklist additions (session A): on every mainnet deploy, check on t
 `backfillNetwork` ran (`wallets.network` and `contact_destinations.network` all `stellar:pubnet` on D1
 `hack-meridian-mainnet-wallet`; the code logs only a failure, "network backfill failed", so read the rows); on `9fc080f`
 it did not.
+
+## 19:24 UTC: mainnet at `5253df0` (session A, orchestrator's go)
+
+Same worktree, same SHA as the 19:12 testnet deploy. `plan:mainnet`: `[WalletDb] update` (migration 0007, additive) +
+`[Web] update` + `[Web/RELEASE] update`, no delete, no replace; deploy `"deletedClasses":[]`; `__alchemy_migrations`
+shows `0007_deposit_addresses.sql` applied 19:23:47 UTC, `deposit_addresses` empty. `/api/health` (mainnet): release
+`5253df02…`, network pubnet, `invite_required` false, payments on, fee ceilings 1 / 1 XLM, relayers 27.0 and 10.0 XLM,
+treasury 0 USDC / 2.96 XLM. Read-only probe against `https://trynod.si`: OpenZeppelin Channels `/supported` exact on
+pubnet, mainnet seller 402, OAuth metadata and the `/mcp` 401 challenge green; red only on the testnet funding floors
+(relayers < 500 XLM, treasury < 50 USDC), which do not apply to mainnet. `GET /api/wallet/deposit-address` without a
+session is 401 (session first, by design); the 404 `deposit_unavailable` for a signed-in pubnet wallet is covered by
+`apps/web/src/server/deposit.test.ts`, not exercised live (no mainnet wallet created). No rehearsal on mainnet.
+
+Backfill check: D1 `hack-meridian-mainnet-wallet` has every `wallets` (1) and `contact_destinations` (3) row on
+`stellar:pubnet`, but those rows were fixed by hand at 18:42 UTC, so they prove nothing about the code. D1 query
+analytics show no `UPDATE wallets SET network = ? WHERE network <> ?` from the Worker on either stage's database since
+`9fc080f` (the hand-run literal UPDATE at 18:42 does show; analytics are sampled, so a strong hint, not proof), and the
+Worker logged no "network backfill failed". Open: whether `networkBackfill` runs at all (session A item 5, on local
+workerd).
