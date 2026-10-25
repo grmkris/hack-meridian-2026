@@ -5,8 +5,8 @@ Plans and queues live in the release plan (.local/brainstorm/FINAL-REVIEW.md §K
 **Deploys: session A ("ops and hardening") only, since 19:10 UTC 2026-10-25**, testnet and mainnet, from the worktree
 below; mainnet only on the orchestrator's explicit go, never during a recording.
 
-Live: **testnet at `5253df0`** (19:12 UTC, deposit-address service + migration 0007) on https://testnet.trynod.si (MCP at
-`/mcp`; the workers.dev host redirects there); **mainnet at `5253df0`** (19:24 UTC) on https://trynod.si. Dated sections
+Live: **testnet at `31a84de`** (19:30 UTC: C's pages in the night identity with self-hosted fonts, D's served files) on
+https://testnet.trynod.si (MCP at `/mcp`; the workers.dev host redirects there); **mainnet at `5253df0`** (19:24 UTC) on https://trynod.si. Dated sections
 below are the history.
 
 ## The deploy worktree is the only place a testnet deploy runs
@@ -190,3 +190,24 @@ analytics show no `UPDATE wallets SET network = ? WHERE network <> ?` from the W
 `9fc080f` (the hand-run literal UPDATE at 18:42 does show; analytics are sampled, so a strong hint, not proof), and the
 Worker logged no "network backfill failed". Open: whether `networkBackfill` runs at all (session A item 5, on local
 workerd).
+
+## 19:30 UTC: testnet at `31a84de` (session A, orchestrator's go)
+
+Ten commits over `5253df0`: C's Worker pages (`0e4c5e0`: consent, approval, revoke, claim; self-hosted fonts under
+`public/fonts`, CSP `font-src 'self'`) and D's served files (`31a84de`: llms.txt, sitemap, robots, index meta). No
+migration, no binding. Frozen install, `heavy bun run check` green in the worktree, plan `[Web] update` +
+`[Web/RELEASE] update` only, deploy `"deletedClasses":[]`, health release `31a84de0…`. Checks (testnet):
+
+- smoke 9/9 (`evidence/probe/smoke-testnet-2026-10-25T19-30-28Z.json`); `/llms.txt` byte-identical to
+  `apps/web/public/llms.txt`; the three `/fonts/*.woff2` 200 `font/woff2` at their file sizes; `robots.txt` and
+  `sitemap.xml` name both hosts.
+- events-check 8/8, settlement `d46c9395…`
+  (https://stellar.expert/explorer/testnet/tx/d46c9395c2ba2db854dbd0b39cfd3766512b73b9b356e06522828b3720dc197b).
+- claude-code-check 7/7 (`.local/claude-code-check/2026-10-25T19-30-53-155Z/`).
+- rehearsal s1–s11 green, acceptance 1, 2, 4–9 PASS, 3 REF; the new consent page renders in the real OAuth flow
+  (`evidence/demo/2026-10-25T19-31-58-574Z/consent.png`); seven hashes `successful` on Horizon, e.g. the claim
+  https://stellar.expert/explorer/testnet/tx/6ab5cdc27c18d2fd1edee689e57eda3a0387d14deb89d15725257240615d09a5.
+  The judge path keeps the 19:14 run as its reference (README and submission cite it).
+- probe all green, 1 warn (`evidence/probe/2026-10-25T19-35-39-964Z.json`).
+
+Rollback: re-pin `5253df0`.

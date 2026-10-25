@@ -1,0 +1,71 @@
+{
+  "stage": "testnet",
+  "origin": "https://testnet.trynod.si",
+  "at": "2026-10-25T19:30:28.701Z",
+  "release": "31a84de0b30ccd5ff97341981ccfe9c9a610c0d4",
+  "checks": [
+    {
+      "name": "app shell",
+      "ok": true,
+      "status": 200,
+      "ms": 511,
+      "detail": "ok"
+    },
+    {
+      "name": "client route falls back to the app",
+      "ok": true,
+      "status": 200,
+      "ms": 864,
+      "detail": "ok"
+    },
+    {
+      "name": "health",
+      "ok": true,
+      "status": 200,
+      "ms": 2290,
+      "detail": "ok"
+    },
+    {
+      "name": "counter reads the contract",
+      "ok": true,
+      "status": 200,
+      "ms": 997,
+      "detail": "ok"
+    },
+    {
+      "name": "unknown API path is a 404",
+      "ok": true,
+      "status": 404,
+      "ms": 43,
+      "detail": "ok"
+    },
+    {
+      "name": "owner API needs a passkey session",
+      "ok": true,
+      "status": 401,
+      "ms": 660,
+      "detail": "ok"
+    },
+    {
+      "name": "MCP refuses an anonymous client and names its metadata",
+      "ok": true,
+      "status": 401,
+      "ms": 16,
+      "detail": "ok"
+    },
+    {
+      "name": "protected-resource metadata",
+      "ok": true,
+      "status": 200,
+      "ms": 32,
+      "detail": "ok"
+    },
+    {
+      "name": "authorization-server metadata (DCR, PKCE S256)",
+      "ok": true,
+      "status": 200,
+      "ms": 27,
+      "detail": "ok"
+    }
+  ]
+}
