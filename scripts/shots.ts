@@ -19,6 +19,10 @@ const VIEWPORTS = [
   { name: 'desktop', width: 1440, height: 900, deviceScaleFactor: 1, isMobile: false },
 ] as const
 
+/** A signed-out visit asks the Worker for a session and gets 401; the browser logs that, and it is not a failure. */
+const isSignedOutProbe = (text: string, url: string): boolean =>
+  text.includes('status of 401') && new URL(url, 'http://unused.invalid').pathname.startsWith('/api/')
+
 const stage = process.argv[2] ?? 'local'
 const path = process.argv[3] ?? '/'
 const origin = process.env['HM_URL'] ?? ORIGINS[stage]
@@ -40,7 +44,9 @@ try {
     const problems: Array<string> = []
     page.on('pageerror', error => problems.push(`page error: ${error.message}`))
     page.on('console', message => {
-      if (message.type() === 'error') problems.push(`console error: ${message.text()}`)
+      if (message.type() === 'error' && !isSignedOutProbe(message.text(), message.location().url)) {
+        problems.push(`console error: ${message.text()}`)
+      }
     })
     await page.goto(new URL(path, origin).href, { waitUntil: 'networkidle' })
     const alerts = await page.getByRole('alert').allTextContents()
