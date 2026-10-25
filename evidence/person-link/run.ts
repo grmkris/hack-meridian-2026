@@ -20,7 +20,7 @@
  *
  * Evidence (run.json, screenshots) in evidence/person-link/<timestamp>/. Testnet only. The link key is printed nowhere.
  */
-import { mkdirSync, writeFileSync } from 'node:fs'
+import { chmodSync, mkdirSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 
 import { Stellar } from '../../apps/seller/demo-deps.ts'
@@ -43,6 +43,8 @@ const arg = (name: string, fallback: string) => {
 const BASE = arg('--base', 'http://localhost:18960')
 const AMOUNT = arg('--amount', '6')
 const DEX_FUNDED = process.argv.includes('--dex-funded')
+/** `--keep-passkeys <dir>`: save both browsers' virtual passkeys (mode 600, outside the repository) for reuse. */
+const KEEP = process.argv.includes('--keep-passkeys') ? arg('--keep-passkeys', '') : ''
 const NET = PRESETS.testnet
 const EXPLORER = 'https://stellar.expert/explorer/testnet'
 const stamp = new Date().toISOString().replace(/[:.]/gu, '-')
@@ -373,6 +375,20 @@ step('taken back', {
   links,
 })
 
+if (KEEP !== '') {
+  mkdirSync(KEEP, { recursive: true, mode: 0o700 })
+  for (const [who, browser] of [
+    ['sender', sender],
+    ['jan', jan],
+  ] as const) {
+    // WebAuthn.getCredentials returns each resident credential with its private key (PKCS#8); never printed.
+    const { credentials } = await browser.cdp.send('WebAuthn.getCredentials', { authenticatorId: browser.authenticatorId })
+    const file = join(KEEP, `${stamp}-${who}.passkeys.json`)
+    writeFileSync(file, `${JSON.stringify({ base: BASE, who, credentials }, null, 2)}\n`, { mode: 0o600 })
+    chmodSync(file, 0o600)
+    step('passkey kept', { who, file, count: credentials.length })
+  }
+}
 writeFileSync(join(dir, 'run.json'), `${JSON.stringify({ base: BASE, amount: AMOUNT, steps: log }, null, 2)}\n`)
 console.log(`wrote ${join(dir, 'run.json')}`)
 await client.close()

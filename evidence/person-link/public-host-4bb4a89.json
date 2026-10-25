@@ -1,0 +1,58 @@
+{
+  "host": "https://testnet.trynod.si (public host)",
+  "release": "4bb4a8912ae763205f01df2f8ec3d99812a013c7",
+  "network": "stellar:testnet",
+  "treasury_usdc_used": 0,
+  "run": "evidence/person-link/2026-10-25T21-02-09-931Z/run.json",
+  "horizon_verified": [
+    {
+      "hash": "0d15d753a80dd078e263628d6d659e9219321220aecb3860c6720c0e9f519777",
+      "successful": true,
+      "ledger": 5387727,
+      "created_at": "2026-10-25T21:03:42Z",
+      "explorer": "https://stellar.expert/explorer/testnet/tx/0d15d753a80dd078e263628d6d659e9219321220aecb3860c6720c0e9f519777"
+    },
+    {
+      "hash": "1803a30c74b6e05272d85fbe146a11d1a46ff3595569cd672b1c5ebc822bb582",
+      "successful": true,
+      "ledger": 5387741,
+      "created_at": "2026-10-25T21:04:52Z",
+      "explorer": "https://stellar.expert/explorer/testnet/tx/1803a30c74b6e05272d85fbe146a11d1a46ff3595569cd672b1c5ebc822bb582"
+    },
+    {
+      "hash": "74b0a683be8d76d5c57893b0c0b2e2adc96166578a82afaddcbc6c7128faec01",
+      "successful": true,
+      "ledger": 5387714,
+      "created_at": "2026-10-25T21:02:37Z",
+      "explorer": "https://stellar.expert/explorer/testnet/tx/74b0a683be8d76d5c57893b0c0b2e2adc96166578a82afaddcbc6c7128faec01"
+    },
+    {
+      "hash": "929c79ebb658ee764125f48eec9b2dc00b52c25ea64d9e28759ca23515a1aa0f",
+      "successful": true,
+      "ledger": 5387734,
+      "created_at": "2026-10-25T21:04:17Z",
+      "explorer": "https://stellar.expert/explorer/testnet/tx/929c79ebb658ee764125f48eec9b2dc00b52c25ea64d9e28759ca23515a1aa0f"
+    },
+    {
+      "hash": "e2b4ebf8093da45c5fc37a333eb4283d36f1d600d00d8fd23d73292d0140cf73",
+      "successful": true,
+      "ledger": 5387740,
+      "created_at": "2026-10-25T21:04:47Z",
+      "explorer": "https://stellar.expert/explorer/testnet/tx/e2b4ebf8093da45c5fc37a333eb4283d36f1d600d00d8fd23d73292d0140cf73"
+    },
+    {
+      "hash": "fd54c5267cea3afe68beb528afd44e385695c9b0e21f48c591b1588062fd77a6",
+      "successful": true,
+      "ledger": 5387736,
+      "created_at": "2026-10-25T21:04:27Z",
+      "explorer": "https://stellar.expert/explorer/testnet/tx/fd54c5267cea3afe68beb528afd44e385695c9b0e21f48c591b1588062fd77a6"
+    },
+    {
+      "hash": "fee254ccebb5230e2774b205db282c526f3e4e86b9b971160b30d6ca46c3b3a0",
+      "successful": true,
+      "ledger": 5387737,
+      "created_at": "2026-10-25T21:04:32Z",
+      "explorer": "https://stellar.expert/explorer/testnet/tx/fee254ccebb5230e2774b205db282c526f3e4e86b9b971160b30d6ca46c3b3a0"
+    }
+  ]
+}
