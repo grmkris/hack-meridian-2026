@@ -6,7 +6,7 @@ Plans and queues live in the release plan (.local/brainstorm/FINAL-REVIEW.md §K
 below; mainnet only on the orchestrator's explicit go, never during a recording.
 
 Live: **testnet at `4bb4a89`** (20:56 UTC: person links and migration 0011, the five K5 fixes, the backfill fix) on
-https://testnet.trynod.si (MCP at `/mcp`; the workers.dev host redirects there); **mainnet at `2a86e7e`** (20:33 UTC, deposit router bound) on https://trynod.si. Dated sections
+https://testnet.trynod.si (MCP at `/mcp`; the workers.dev host redirects there); **mainnet at `4bb4a89`** (21:03 UTC; deposit router bound) on https://trynod.si. Dated sections
 below are the history.
 
 ## The deploy worktree is the only place a testnet deploy runs
@@ -368,3 +368,14 @@ four relayers, **fee ceilings 35 / 4 XLM** (were 100 / 40), treasury 37.5 USDC.
   (`evidence/probe/2026-10-25T21-01-51-005Z.json`).
 
 Rollback: re-pin `2a86e7e` and restore `.env.testnet.pre-fee-overrides` (0011 additive).
+
+## 21:03 UTC: mainnet at `4bb4a89` (orchestrator's go)
+
+Plan `[WalletDb] update` (0011) + `[Web] update` + RELEASE only (mainnet's fee lines come from `.env.mainnet`, so no
+unbind; `SEED_DEMO_CONTACTS` unset, so a stranger's new wallet starts empty); deploy `"deletedClasses":[]`; 0011 applied
+21:03:08 UTC. Worker bindings read back: `DEPOSIT_ROUTER_ID=CBWDC7KR…I6YX`, the three fee lines at 1 XLM, no
+`SEED_DEMO_CONTACTS`. Health: release `4bb4a891…`, pubnet, invite off, payments on, fee ceilings 1 / 1 XLM, relayers
+91.5 / 50.0 XLM, treasury 30 USDC. `/llms.txt` byte-identical; unknown `/approve/link/cl_…`, `/approve/revoke-link/cl_…`
+and `/claim/cl_…` → 404 pages; `/api/links`, `/api/wallet/deposit-address` and `POST /mcp` 401 anonymous. Backfill
+(read-only): one wallet and three contact destinations, all `stellar:pubnet`; the code path was proven live on testnet
+at 20:56. No wallet created, nothing spent.
