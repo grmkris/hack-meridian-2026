@@ -20,6 +20,7 @@
     "contracts/target",
     "contracts/**/test_snapshots",
     "packages/counter-client",
+    "apps/web/src/server/cards/*.html",
     ".agents/skills",
     ".claude/skills",
     ".codex",
