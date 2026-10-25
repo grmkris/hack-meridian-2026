@@ -35,6 +35,21 @@ A second throwaway testnet wallet, connected the same way.
 | Contacts | `contacts-added-by-*` | Dave saved by `contact_add`: "Added by Demo AI app. Its first payment needs your nod." |
 | Home, Add money | `home-deposit-address-*`, `home-add-money-phone.png` | after "Get a deposit address": the deposit address `GDHENY6DPTHFDAGOQCQGQE67ZFG47XYLB53CFXAKSF4PF6ZXXYZW3ITS`, nothing received yet, works until 23 Apr |
 
+### Person link (release 4bb4a89, 21:02–21:10 UTC)
+
+One more testnet wallet (approved; its passkey is kept outside the repository for later captures), connected as Demo
+AI app with an allowance of 5. `payment_prepare` for someone new, Jan, 6 USDC: past the allowance, so it becomes a
+person link that waits for the sender's passkey.
+
+| Surface | Files | What it shows |
+| --- | --- | --- |
+| Link approval, before | `person-link-approve-*` | "Send Jan 6.00 USDC with a link": who asked and its words, nothing leaves the wallet until Jan claims it |
+| Link approval, after | `person-link-approved-*` | the link to send, Copy the link; **the key after `#k=` is masked** in these images (the link was revoked minutes later anyway); the rule install b6981479… shows in the status line, unwrapped on the phone (fixed in pages.ts after this capture) |
+| The link, as Jan sees it | `person-link-claim-*` | "Jan, 6.00 USDC for you", opened with no Nod session; left unclaimed |
+| Connections, Links | `connections-links-*` | the open link row with Revoke under the AI app |
+| Take the link back | `person-link-revoke-*`, `person-link-revoked-*` | one passkey tap removes the rule: [4c299d7c…](https://stellar.expert/explorer/testnet/tx/4c299d7c28f856e232028cb4f2e22041d0f1a01bb451b35b8a58b2b6fabcf240) |
+| Connections, after | `connections-links-revoked-*` | Jan 6.00 USDC, Revoked |
+
 ## trynod.si (mainnet, 20:04 UTC)
 
 Signed out only; no wallet was created on mainnet. `landing-*.jpg` and `consent-signin-*` (the "Stellar Mainnet" pill).

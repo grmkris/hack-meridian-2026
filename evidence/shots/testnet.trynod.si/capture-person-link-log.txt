@@ -1,0 +1,18 @@
+2026-10-25T21:02:16.482Z DCR client o253-w8v-iOrFnlK
+2026-10-25T21:02:34.109Z saved 1 passkey credential(s) to .local/c-ux
+2026-10-25T21:02:49.133Z connected
+2026-10-25T21:02:50.461Z person link payment awaiting_approval owner cl_f990f656506468f80513413e6b6d6a5e
+2026-10-25T21:02:52.772Z shot person-link-approve
+2026-10-25T21:02:58.720Z claim link made (157 characters, not logged)
+2026-10-25T21:02:58.724Z masked 2 place(s) holding the link key
+2026-10-25T21:03:00.377Z shot person-link-approved
+2026-10-25T21:03:02.203Z shot person-link-claim
+2026-10-25T21:03:04.743Z shot connections-links
+2026-10-25T21:03:07.603Z shot person-link-revoke
+2026-10-25T21:06:07.637Z FAILED: TimeoutError: waitFor: Timeout 180000ms exceeded.
+Call log:
+[2m  - waiting for locator('[data-testid="link-revoked"]') to be visible[22m
+
+Note (C): the revoke did land (Taken back, transaction 4c299d7c28f856e232028cb4f2e22041d0f1a01bb451b35b8a58b2b6fabcf240);
+the page shows that state without the test id the script waited for. person-link-revoked-* and
+connections-links-revoked-* were shot at 21:10 UTC by signing back in with the saved capture passkey.
