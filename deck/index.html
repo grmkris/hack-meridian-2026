@@ -1,0 +1,1301 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Nod Deck</title>
+    <meta
+      name="description"
+      content="Nod: a Stellar wallet your AI spends from inside an onchain allowance. HackMeridian 2026, Stellar Composed."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Gabarito:wght@600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+    />
+    <style>
+      /* Layout: 1920x1080 slides, a 120px margin, headline top-left, one idea per slide, a quiet footer with the testnet mark. */
+      :root {
+        --canvas: oklch(0.975 0.006 85);
+        --paper: oklch(0.995 0.002 90);
+        --mist: oklch(0.955 0.007 85);
+        --line: oklch(0.9 0.01 85);
+        --ink: oklch(0.2 0.02 265);
+        --muted: oklch(0.5 0.02 265);
+        --accent: oklch(0.5 0.2 275);
+        --accent-soft: oklch(0.94 0.04 275);
+        --good: oklch(0.52 0.13 155);
+        --good-soft: oklch(0.94 0.05 155);
+        --warn: oklch(0.6 0.14 65);
+        --warn-soft: oklch(0.95 0.05 75);
+        --danger: oklch(0.55 0.2 27);
+        --display: 'Gabarito', 'Avenir Next', 'Segoe UI', system-ui, sans-serif;
+        --body: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+        --mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+        color-scheme: light;
+      }
+      @page {
+        size: 1920px 1080px;
+        margin: 0;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        background: oklch(0.9 0.01 265);
+        color: var(--ink);
+        font-family: var(--body);
+        font-feature-settings:
+          'tnum' 1,
+          'cv11' 1;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+      .deck {
+        display: grid;
+        justify-content: center;
+        gap: 32px;
+        padding: 32px 0;
+      }
+      .frame {
+        width: calc(1920px * var(--s, 1));
+        height: calc(1080px * var(--s, 1));
+        overflow: hidden;
+        box-shadow: 0 2px 24px oklch(0.2 0.02 265 / 0.12);
+      }
+      .slide {
+        width: 1920px;
+        height: 1080px;
+        transform: scale(var(--s, 1));
+        transform-origin: top left;
+        background: var(--canvas);
+        padding: 104px 120px 0;
+        display: grid;
+        grid-template-rows: auto 1fr 104px;
+        gap: 40px;
+        position: relative;
+      }
+      @media print {
+        html,
+        body {
+          background: var(--canvas);
+        }
+        .deck {
+          display: block;
+          padding: 0;
+        }
+        .frame {
+          width: 1920px;
+          height: 1080px;
+          box-shadow: none;
+          break-after: page;
+        }
+        .slide {
+          transform: none;
+        }
+      }
+      a {
+        color: var(--accent);
+        text-decoration-thickness: 2px;
+        text-underline-offset: 6px;
+      }
+      h1,
+      h2,
+      h3 {
+        font-family: var(--display);
+        margin: 0;
+        text-wrap: balance;
+        letter-spacing: -0.02em;
+      }
+      h2 {
+        font-size: 80px;
+        font-weight: 800;
+        line-height: 1.02;
+        max-width: 1500px;
+      }
+      h3 {
+        font-size: 36px;
+        font-weight: 700;
+        line-height: 1.15;
+      }
+      p {
+        margin: 0;
+      }
+      .eyebrow {
+        font-size: 22px;
+        font-weight: 600;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--accent);
+        margin-bottom: 20px;
+      }
+      .lead {
+        font-size: 34px;
+        line-height: 1.4;
+        color: var(--muted);
+        max-width: 1280px;
+      }
+      .mono {
+        font-family: var(--mono);
+      }
+      .foot {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-top: 2px solid var(--line);
+        font-size: 22px;
+        color: var(--muted);
+      }
+      .foot .left {
+        display: flex;
+        align-items: center;
+        gap: 18px;
+      }
+      .mark {
+        font-family: var(--display);
+        font-weight: 800;
+        letter-spacing: -0.04em;
+        display: inline-flex;
+        align-items: baseline;
+        color: var(--ink);
+        line-height: 1;
+      }
+      .mark .o {
+        display: inline-block;
+        width: 0.5em;
+        height: 0.5em;
+        border-radius: 50%;
+        background: var(--accent);
+        margin: 0 0.04em;
+        transform: translateY(0.06em);
+      }
+      .foot .mark {
+        font-size: 40px;
+      }
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        padding: 6px 16px;
+        border-radius: 999px;
+        font-size: 20px;
+        font-weight: 600;
+        white-space: nowrap;
+      }
+      .pill.testnet {
+        background: var(--warn-soft);
+        color: var(--warn);
+      }
+      .pill.accent {
+        background: var(--accent-soft);
+        color: var(--accent);
+      }
+      .pill.good {
+        background: var(--good-soft);
+        color: var(--good);
+      }
+      .num {
+        font-family: var(--mono);
+        font-size: 22px;
+      }
+      .body {
+        min-height: 0;
+      }
+
+      .card {
+        background: var(--paper);
+        border: 2px solid var(--line);
+        border-radius: 28px;
+      }
+      .twonum {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        overflow: hidden;
+      }
+      .twonum .cell {
+        padding: 36px 40px;
+        display: grid;
+        gap: 10px;
+        align-content: start;
+      }
+      .twonum .cell + .cell {
+        border-left: 2px solid var(--line);
+      }
+      .twonum .wide {
+        grid-column: 1 / 3;
+        border-top: 2px solid var(--line);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 28px 40px;
+      }
+      .k {
+        font-size: 18px;
+        font-weight: 600;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+      .v {
+        font-family: var(--display);
+        font-weight: 800;
+        font-size: 64px;
+        letter-spacing: -0.02em;
+        line-height: 1.05;
+      }
+      .v.acc {
+        color: var(--accent);
+      }
+      .meter {
+        height: 12px;
+        border-radius: 999px;
+        background: var(--accent);
+        margin-top: 8px;
+      }
+      .small {
+        font-size: 22px;
+        color: var(--muted);
+      }
+
+      /* slide 1 */
+      .title .body {
+        display: grid;
+        grid-template-columns: 1fr 780px;
+        gap: 96px;
+        align-items: center;
+      }
+      .title .mark.big {
+        font-size: 220px;
+      }
+      .title h1 {
+        font-size: 104px;
+        font-weight: 800;
+        line-height: 1;
+        margin-top: 40px;
+      }
+      .title .tag {
+        font-family: var(--display);
+        font-size: 44px;
+        font-weight: 600;
+        color: var(--muted);
+        margin-top: 28px;
+        line-height: 1.2;
+      }
+      .title .tag b {
+        color: var(--ink);
+      }
+      .title .live a {
+        font-size: 24px;
+        white-space: nowrap;
+      }
+      .title .live {
+        margin-top: 56px;
+        display: flex;
+        gap: 16px;
+        align-items: center;
+        flex-wrap: wrap;
+        font-size: 26px;
+      }
+
+      /* slide 2 */
+      .problem .body {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: auto auto;
+        gap: 40px 48px;
+        align-content: start;
+      }
+      .option {
+        padding: 44px 48px;
+        display: grid;
+        gap: 18px;
+        align-content: start;
+      }
+      .option p {
+        font-size: 30px;
+        line-height: 1.4;
+        color: var(--muted);
+      }
+      .option .x {
+        font-family: var(--display);
+        font-weight: 800;
+        font-size: 30px;
+        color: var(--danger);
+      }
+      blockquote {
+        margin: 0;
+        grid-column: 1 / 3;
+        border-left: 8px solid var(--accent);
+        padding: 8px 0 8px 40px;
+        display: grid;
+        gap: 12px;
+      }
+      blockquote q {
+        font-family: var(--display);
+        font-size: 48px;
+        font-weight: 700;
+        line-height: 1.15;
+      }
+      blockquote cite {
+        font-style: normal;
+        font-size: 24px;
+        color: var(--muted);
+      }
+
+      /* slide 3 */
+      .lanes .body {
+        display: grid;
+        grid-template-columns: 420px 120px 1fr;
+        grid-template-rows: 1fr 1fr;
+        column-gap: 0;
+        row-gap: 36px;
+        align-items: stretch;
+      }
+      .ask {
+        grid-row: 1 / 3;
+        align-self: center;
+        padding: 40px;
+        display: grid;
+        gap: 14px;
+      }
+      .ask .who {
+        font-size: 22px;
+        font-weight: 600;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--warn);
+      }
+      .ask p {
+        font-size: 30px;
+        line-height: 1.3;
+      }
+      .arrows {
+        grid-row: 1 / 3;
+        grid-column: 2;
+        width: 120px;
+        height: 100%;
+      }
+      .lane {
+        padding: 40px 48px;
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 14px 40px;
+        align-content: center;
+      }
+      .lane h3 {
+        font-size: 44px;
+      }
+      .lane .how {
+        grid-column: 1;
+        font-size: 28px;
+        color: var(--muted);
+        line-height: 1.35;
+      }
+      .lane .ex {
+        grid-column: 2;
+        grid-row: 1 / 3;
+        display: grid;
+        gap: 12px;
+        align-content: center;
+        justify-items: end;
+      }
+      .lane .ex span {
+        font-family: var(--mono);
+        font-size: 24px;
+        padding: 10px 18px;
+        border-radius: 14px;
+        background: var(--mist);
+        white-space: nowrap;
+      }
+      .lane.in {
+        border-color: var(--accent);
+      }
+      .lane.in h3 {
+        color: var(--accent);
+      }
+      .lane.over {
+        border-color: var(--warn);
+      }
+      .lane.over h3 {
+        color: var(--warn);
+      }
+
+      /* slide 4 */
+      .demo .body {
+        display: grid;
+        grid-template-columns: 1.55fr 0.62fr 0.62fr;
+        grid-template-rows: 1fr auto;
+        gap: 28px 32px;
+        min-height: 0;
+      }
+      .shot {
+        display: grid;
+        grid-template-rows: 1fr auto;
+        gap: 12px;
+        min-height: 0;
+      }
+      .shot .img {
+        border: 2px solid var(--line);
+        border-radius: 20px;
+        overflow: hidden;
+        background: var(--paper);
+        min-height: 0;
+      }
+      .shot img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: top;
+        display: block;
+      }
+      .shot.narrow img {
+        object-fit: contain;
+        object-position: top center;
+        background: oklch(0.97 0.004 265);
+      }
+      .shot .cap {
+        font-size: 20px;
+        color: var(--muted);
+      }
+      .beats {
+        grid-column: 1 / 4;
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
+        gap: 16px;
+      }
+      .beat {
+        border-top: 4px solid var(--accent);
+        padding-top: 14px;
+        display: grid;
+        gap: 6px;
+      }
+      .beat.nod {
+        border-color: var(--warn);
+      }
+      .beat .amt {
+        font-family: var(--mono);
+        font-size: 26px;
+        font-weight: 500;
+      }
+      .beat .what {
+        font-size: 21px;
+        color: var(--muted);
+        line-height: 1.3;
+      }
+
+      /* slide 5 */
+      .tech .body {
+        display: grid;
+        grid-template-columns: 700px 1fr;
+        gap: 72px;
+        align-items: start;
+      }
+      .stack {
+        display: grid;
+        gap: 0;
+      }
+      .layer {
+        padding: 18px 28px;
+        display: grid;
+        gap: 6px;
+      }
+      .layer + .down {
+        justify-self: center;
+        width: 4px;
+        height: 16px;
+        background: var(--line);
+      }
+      .layer b {
+        font-size: 28px;
+      }
+      .layer span {
+        font-size: 22px;
+        color: var(--muted);
+        line-height: 1.35;
+      }
+      .layer.acct {
+        border-color: var(--accent);
+      }
+      .rules {
+        display: grid;
+        gap: 8px;
+        margin-top: 8px;
+      }
+      .rules div {
+        font-family: var(--mono);
+        font-size: 19px;
+        background: var(--mist);
+        border-radius: 10px;
+        padding: 8px 14px;
+      }
+      .proofs {
+        display: grid;
+        gap: 0;
+      }
+      .proof {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 6px 32px;
+        padding: 20px 0;
+        border-top: 2px solid var(--line);
+        align-items: baseline;
+      }
+      .proof:first-child {
+        border-top: 0;
+        padding-top: 0;
+      }
+      .proof .claim {
+        font-size: 30px;
+        line-height: 1.3;
+      }
+      .proof .tx {
+        font-family: var(--mono);
+        font-size: 24px;
+        white-space: nowrap;
+      }
+      .proof .note {
+        font-size: 22px;
+        color: var(--muted);
+      }
+
+      /* slide 6 */
+      .composed .body {
+        display: grid;
+        grid-template-columns: 1fr 520px;
+        gap: 64px;
+        align-items: start;
+      }
+      .grid9 {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        border-top: 2px solid var(--line);
+        border-left: 2px solid var(--line);
+      }
+      .grid9 div {
+        border-right: 2px solid var(--line);
+        border-bottom: 2px solid var(--line);
+        padding: 26px 28px;
+        display: grid;
+        gap: 8px;
+        align-content: start;
+        background: var(--paper);
+      }
+      .grid9 b {
+        font-family: var(--display);
+        font-size: 30px;
+        font-weight: 700;
+        line-height: 1.15;
+      }
+      .grid9 span {
+        font-size: 21px;
+        color: var(--muted);
+        line-height: 1.35;
+      }
+      .quotes {
+        display: grid;
+        gap: 40px;
+      }
+      .quotes blockquote {
+        grid-column: auto;
+        padding-left: 32px;
+      }
+      .quotes q {
+        font-size: 32px;
+        line-height: 1.3;
+      }
+
+      /* slide 7 */
+      .new .body {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: 1fr 1fr;
+        gap: 24px 32px;
+        min-height: 0;
+      }
+      .idea {
+        padding: 28px 36px;
+        display: grid;
+        gap: 10px;
+        align-content: start;
+      }
+      .idea h3 {
+        font-size: 32px;
+      }
+      .idea p {
+        font-size: 23px;
+        line-height: 1.4;
+        color: var(--muted);
+      }
+      .idea .n {
+        font-family: var(--display);
+        font-weight: 800;
+        font-size: 30px;
+        color: var(--accent);
+      }
+      .flow {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-family: var(--mono);
+        font-size: 18px;
+        white-space: nowrap;
+      }
+      .flow span {
+        background: var(--mist);
+        border-radius: 10px;
+        padding: 8px 12px;
+      }
+      .flow i {
+        font-style: normal;
+        color: var(--muted);
+      }
+
+      /* slide 8 */
+      .progress .body {
+        display: grid;
+        grid-template-rows: auto auto;
+        gap: 72px;
+        align-content: start;
+      }
+      .timeline {
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
+        position: relative;
+      }
+      .timeline::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 15px;
+        height: 4px;
+        background: var(--line);
+      }
+      .tick {
+        display: grid;
+        gap: 12px;
+        padding-right: 28px;
+        position: relative;
+      }
+      .tick .dot {
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        background: var(--paper);
+        border: 6px solid var(--accent);
+        z-index: 1;
+      }
+      .tick.done .dot {
+        background: var(--accent);
+      }
+      .tick .t {
+        font-family: var(--mono);
+        font-size: 28px;
+        font-weight: 500;
+      }
+      .tick .d {
+        font-size: 24px;
+        line-height: 1.35;
+        color: var(--muted);
+      }
+      .stats {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 32px;
+      }
+      .stat {
+        border-top: 2px solid var(--line);
+        padding-top: 24px;
+        display: grid;
+        gap: 8px;
+      }
+      .stat .big {
+        font-family: var(--display);
+        font-weight: 800;
+        font-size: 96px;
+        line-height: 1;
+        letter-spacing: -0.03em;
+      }
+      .stat .lbl {
+        font-size: 24px;
+        color: var(--muted);
+        line-height: 1.35;
+      }
+
+      /* slide 9 */
+      .market .body {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 40px 64px;
+        align-content: start;
+      }
+      .point {
+        display: grid;
+        gap: 12px;
+        border-top: 4px solid var(--accent);
+        padding-top: 24px;
+      }
+      .point p {
+        font-size: 28px;
+        line-height: 1.4;
+        color: var(--muted);
+      }
+      .point.ready {
+        border-color: var(--good);
+      }
+
+      /* slide 10 */
+      .try .body {
+        display: grid;
+        grid-template-columns: 1fr 620px;
+        gap: 80px;
+        align-items: start;
+      }
+      .urls {
+        display: grid;
+        gap: 22px;
+      }
+      .url {
+        display: grid;
+        gap: 8px;
+      }
+      .url .val {
+        font-family: var(--mono);
+        font-size: 26px;
+        font-weight: 500;
+        white-space: nowrap;
+      }
+      .prompts {
+        display: grid;
+        gap: 14px;
+        margin-top: 12px;
+      }
+      .prompts div {
+        font-size: 28px;
+        padding: 14px 24px;
+        border-radius: 18px;
+        background: var(--paper);
+        border: 2px solid var(--line);
+      }
+      .prompts div.nod {
+        border-color: var(--warn);
+      }
+      .prompts small {
+        display: block;
+        font-size: 21px;
+        color: var(--muted);
+        margin-top: 4px;
+      }
+      .next {
+        display: grid;
+        gap: 0;
+      }
+      .next li {
+        font-size: 26px;
+        line-height: 1.35;
+        padding: 16px 0;
+        border-top: 2px solid var(--line);
+        list-style: none;
+      }
+      .next ul {
+        margin: 16px 0 0;
+        padding: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="deck">
+      <div class="frame">
+        <section class="slide title">
+          <div></div>
+          <div class="body">
+            <div>
+              <span class="mark big" aria-label="nod">n<span class="o"></span>d</span>
+              <h1>Give your AI an allowance.</h1>
+              <p class="tag"><b>Small stuff, it just pays.</b> Big stuff needs your nod.</p>
+              <div class="live">
+                <span class="pill testnet">Live on Stellar testnet</span>
+                <a class="mono" href="https://hack-meridian-testnet.kristjan-grm11775.workers.dev"
+                  >hack-meridian-testnet.kristjan-grm11775.workers.dev</a
+                >
+              </div>
+            </div>
+            <div class="card twonum">
+              <div class="cell">
+                <span class="k">Wallet</span>
+                <span class="v">30.00</span>
+                <span class="small">USDC · Personal · testnet</span>
+              </div>
+              <div class="cell">
+                <span class="k">Claude may spend</span>
+                <span class="v acc">5.00</span>
+                <div class="meter"></div>
+                <span class="small">USDC until tomorrow 12:00 UTC</span>
+              </div>
+              <div class="wide">
+                <div>
+                  <div style="font-size: 30px; font-weight: 700">20.00 USDC to Bob</div>
+                  <div class="small">Claude asked · "Dinner with Bob"</div>
+                </div>
+                <span class="pill testnet">Needs your nod</span>
+              </div>
+            </div>
+          </div>
+          <footer class="foot">
+            <span class="left">HackMeridian 2026 · Genesis · Stellar Composed</span>
+            <span class="num">01</span>
+          </footer>
+        </section>
+      </div>
+
+      <div class="frame">
+        <section class="slide problem">
+          <header>
+            <div class="eyebrow">The problem</div>
+            <h2>Your AI can do everything except pay safely.</h2>
+          </header>
+          <div class="body">
+            <div class="card option">
+              <span class="x">Give it everything</span>
+              <h3>Hand over a card or a private key.</h3>
+              <p>No limit, no expiry, no way to see what it may spend. One bad prompt can empty the account.</p>
+            </div>
+            <div class="card option">
+              <span class="x">Give it nothing</span>
+              <h3>Make every payment yourself.</h3>
+              <p>The task stops at checkout. A paid API call or paying a friend back waits for you.</p>
+            </div>
+            <blockquote>
+              <q>There is no policy layer for x402 on Stellar today.</q>
+              <cite>Stellar developer docs, on agent payments</cite>
+            </blockquote>
+          </div>
+          <footer class="foot">
+            <span class="left"
+              ><span class="mark">n<span class="o"></span>d</span
+              ><span class="pill testnet">Stellar testnet</span></span
+            >
+            <span class="num">02</span>
+          </footer>
+        </section>
+      </div>
+
+      <div class="frame">
+        <section class="slide lanes">
+          <header>
+            <div class="eyebrow">The product</div>
+            <h2>One connector. Two lanes.</h2>
+          </header>
+          <div class="body">
+            <div class="card ask">
+              <span class="who">Claude asks to pay</span>
+              <p>
+                Add Nod to Claude, or any MCP app, with one URL. Each AI app gets its own allowance on your Stellar
+                account.
+              </p>
+            </div>
+            <svg class="arrows" viewBox="0 0 120 600" preserveAspectRatio="none" aria-hidden="true">
+              <path d="M0 300 C 60 300, 60 150, 120 150" fill="none" stroke="oklch(0.5 0.2 275)" stroke-width="5" />
+              <path d="M0 300 C 60 300, 60 450, 120 450" fill="none" stroke="oklch(0.6 0.14 65)" stroke-width="5" />
+            </svg>
+            <div class="card lane in">
+              <h3>Inside the allowance, it just pays.</h3>
+              <p class="how">
+                Paid APIs over x402 and contacts by name. Claude's own key signs; the account checks the limit.
+              </p>
+              <div class="ex"><span>0.10 · market brief</span><span>2.00 · Alice</span></div>
+            </div>
+            <div class="card lane over">
+              <h3>Over it, it needs your nod.</h3>
+              <p class="how">
+                Claude gets a link. You see who, how much and why, and your passkey signs that exact payment.
+              </p>
+              <div class="ex"><span>20.00 · Bob, dinner</span><span>Face ID → paid</span></div>
+            </div>
+          </div>
+          <footer class="foot">
+            <span class="left"
+              ><span class="mark">n<span class="o"></span>d</span
+              ><span class="pill testnet">Stellar testnet</span></span
+            >
+            <span class="num">03</span>
+          </footer>
+        </section>
+      </div>
+
+      <div class="frame">
+        <section class="slide demo">
+          <header>
+            <div class="eyebrow">Demo</div>
+            <h2>It works on Stellar testnet today.</h2>
+          </header>
+          <div class="body">
+            <figure class="shot" style="margin: 0">
+              <div class="img">
+                <img src="img/home-crop.png" alt="Nod Home: wallet balance and what Claude may spend" />
+              </div>
+              <figcaption class="cap">
+                Home: what you hold, what Claude may spend, what needs your nod (demo data)
+              </figcaption>
+            </figure>
+            <figure class="shot narrow" style="margin: 0">
+              <div class="img"><img src="img/consent.png" alt="Consent page setting a 5 USDC allowance" /></div>
+              <figcaption class="cap">Consent: the allowance, signed by your passkey</figcaption>
+            </figure>
+            <figure class="shot narrow" style="margin: 0">
+              <div class="img"><img src="img/approval.png" alt="Approval page for a payment that needs a nod" /></div>
+              <figcaption class="cap">Approval: recipient, amount, who asked</figcaption>
+            </figure>
+            <div class="beats">
+              <div class="beat">
+                <span class="amt">0.10</span><span class="what">Buys the market brief over x402</span>
+              </div>
+              <div class="beat"><span class="amt">2.00</span><span class="what">Pays Alice by name</span></div>
+              <div class="beat nod">
+                <span class="amt">20.00</span><span class="what">Bob's dinner needs your nod</span>
+              </div>
+              <div class="beat"><span class="amt">×2 → ×1</span><span class="what">Ask twice, pay once</span></div>
+              <div class="beat nod">
+                <span class="amt">5.00</span><span class="what">Carol gets USDC via a claim link</span>
+              </div>
+              <div class="beat"><span class="amt">revoke</span><span class="what">Next payment refused</span></div>
+            </div>
+          </div>
+          <footer class="foot">
+            <span class="left"
+              ><span class="mark">n<span class="o"></span>d</span><span class="pill testnet">Stellar testnet</span
+              ><span>Consent and approval pages from today's testnet rehearsal</span></span
+            >
+            <span class="num">04</span>
+          </footer>
+        </section>
+      </div>
+
+      <div class="frame">
+        <section class="slide tech">
+          <header>
+            <div class="eyebrow">Technical execution</div>
+            <h2>The limit lives on Stellar, not on our server.</h2>
+          </header>
+          <div class="body">
+            <div class="stack">
+              <div class="card layer">
+                <b>Claude, or any MCP app</b><span>OAuth 2.1 with PKCE. A connection alone can spend nothing.</span>
+              </div>
+              <div class="down"></div>
+              <div class="card layer">
+                <b>Nod wallet service</b
+                ><span
+                  >Cloudflare Worker. Holds only each app's key, reserves before signing, relays and pays every
+                  fee.</span
+                >
+              </div>
+              <div class="down"></div>
+              <div class="card layer acct">
+                <b>Your OpenZeppelin smart account</b>
+                <div class="rules">
+                  <div>rule 0 · your passkey · admin and approvals</div>
+                  <div>rule n · Claude's key · ≤ 5.00 USDC until T</div>
+                </div>
+              </div>
+              <div class="down"></div>
+              <div class="card layer"><b>Circle USDC</b><span>Stellar Asset Contract, settled on testnet</span></div>
+            </div>
+            <div class="proofs">
+              <div class="proof">
+                <span class="claim">A 5.00 allowance spends exactly 5.00. One stroop more is rejected.</span>
+                <a
+                  class="tx"
+                  href="https://stellar.expert/explorer/testnet/tx/c0f6f923936b7dc4d716454ba3e3d3f43f21ddcf353e49e3e083d054bf5f9c57"
+                  >c0f6f923</a
+                >
+              </div>
+              <div class="proof">
+                <span class="claim">An over-limit transfer forced onchain is rejected by the account itself.</span>
+                <a
+                  class="tx"
+                  href="https://stellar.expert/explorer/testnet/tx/3daf4b000cb58ad1bbef3629c13a02d44403c4b690dd51815020cbc89723b42a"
+                  >3daf4b00</a
+                >
+                <span class="note">Error #3221, spending limit exceeded</span>
+              </div>
+              <div class="proof">
+                <span class="claim"
+                  >Your passkey signs the exact payment. Nod cannot change the recipient or amount.</span
+                >
+                <a
+                  class="tx"
+                  href="https://stellar.expert/explorer/testnet/tx/8f9e79cb0df7f06dd7b813988a5b6d71ad5afb32ed57e306c108303b74d44a9f"
+                  >8f9e79cb</a
+                >
+                <span class="note">20 USDC approved with a WebAuthn signature</span>
+              </div>
+              <div class="proof">
+                <span class="claim">Ask twice, pay once. Receipts only after settlement.</span>
+                <span class="tx" style="color: var(--muted)">idempotency keys</span>
+              </div>
+              <div class="proof">
+                <span class="claim">Nod pays every network fee. The owner holds 0 XLM.</span>
+                <span class="tx" style="color: var(--muted)">relayer as source</span>
+              </div>
+            </div>
+          </div>
+          <footer class="foot">
+            <span class="left"
+              ><span class="mark">n<span class="o"></span>d</span><span class="pill testnet">Stellar testnet</span
+              ><span>Every hash links to stellar.expert</span></span
+            >
+            <span class="num">05</span>
+          </footer>
+        </section>
+      </div>
+
+      <div class="frame">
+        <section class="slide composed">
+          <header>
+            <div class="eyebrow">Track alignment · Stellar Composed</div>
+            <h2>Nine Stellar building blocks, one wallet.</h2>
+          </header>
+          <div class="body">
+            <div class="grid9">
+              <div><b>OpenZeppelin smart account</b><span>One contract account per wallet</span></div>
+              <div><b>OpenZeppelin spending-limit policy</b><span>The allowance, N USDC until T</span></div>
+              <div><b>Passkeys</b><span>WebAuthn verifier on the secp256r1 host function</span></div>
+              <div><b>Circle USDC</b><span>Through the Stellar Asset Contract</span></div>
+              <div><b>x402 facilitators</b><span>x402.org and OpenZeppelin Channels, never our own</span></div>
+              <div><b>MCP and OAuth</b><span>A connector in Claude, any MCP app</span></div>
+              <div><b>SAC trust (CAP-73)</b><span>Trustline and payment in one transaction</span></div>
+              <div><b>Sponsored reserves</b><span>Each app's payer account holds 0 XLM</span></div>
+              <div><b>Built-in DEX</b><span>The paid market brief reads the XLM/USDC book</span></div>
+            </div>
+            <div class="quotes">
+              <blockquote>
+                <q
+                  >Agents that spend: Give an agent a wallet … set its limits with OpenZeppelin's policy library, and
+                  let it pay for APIs in stablecoins … over x402 or MPP.</q
+                >
+                <cite>Stellar Composed, first idea</cite>
+              </blockquote>
+              <blockquote>
+                <q>No seed phrases, no gas, no jargon. Spending limits … live in the wallet.</q>
+                <cite>Stellar Composed, wallets idea</cite>
+              </blockquote>
+            </div>
+          </div>
+          <footer class="foot">
+            <span class="left"
+              ><span class="mark">n<span class="o"></span>d</span
+              ><span class="pill testnet">Stellar testnet</span></span
+            >
+            <span class="num">06</span>
+          </footer>
+        </section>
+      </div>
+
+      <div class="frame">
+        <section class="slide new">
+          <header>
+            <div class="eyebrow">Innovation</div>
+            <h2>Four ideas behind Nod.</h2>
+          </header>
+          <div class="body">
+            <div class="card idea">
+              <span class="n">The pocket model</span>
+              <h3>A smart account pays any x402 seller today.</h3>
+              <p>
+                Hosted facilitators reject smart accounts. Claude's key fills its own small account under the policy,
+                then pays.
+              </p>
+              <div class="flow">
+                <span>your account</span><i>→ policy →</i><span>pocket</span><i>→ stock x402 client →</i
+                ><span>x402.org</span>
+              </div>
+            </div>
+            <div class="card idea">
+              <span class="n">Connect = allowance</span>
+              <h3>Connecting an AI app installs its allowance onchain.</h3>
+              <p>The OAuth consent page and the passkey signature are one step. One rule, expiry and revoke per app.</p>
+            </div>
+            <div class="card idea">
+              <span class="n">Ask, don't reject</span>
+              <h3>An over-allowance payment becomes a passkey approval.</h3>
+              <p>
+                Most agent wallets just block it. Nod sends Claude a link, and your nod covers that exact recipient and
+                amount.
+              </p>
+            </div>
+            <div class="card idea">
+              <span class="n">Claim link</span>
+              <h3>Pays people who have never held USDC.</h3>
+              <p>Carol signs once. The USDC contract's trust function and the transfer run in one invocation.</p>
+            </div>
+          </div>
+          <footer class="foot">
+            <span class="left"
+              ><span class="mark">n<span class="o"></span>d</span
+              ><span class="pill testnet">Stellar testnet</span></span
+            >
+            <span class="num">07</span>
+          </footer>
+        </section>
+      </div>
+
+      <div class="frame">
+        <section class="slide progress">
+          <header>
+            <div class="eyebrow">Hackathon progress · 25 October, UTC</div>
+            <h2>Built in one day, with a transaction for every claim.</h2>
+          </header>
+          <div class="body">
+            <div class="timeline">
+              <div class="tick done">
+                <span class="dot"></span><span class="t">10:55</span
+                ><span class="d">Research, pinned versions, live probes</span>
+              </div>
+              <div class="tick done">
+                <span class="dot"></span><span class="t">11:25</span><span class="d">Product spec, first commit</span>
+              </div>
+              <div class="tick done">
+                <span class="dot"></span><span class="t">11:25–12:20</span
+                ><span class="d">Five spikes, each claim proven on testnet</span>
+              </div>
+              <div class="tick done">
+                <span class="dot"></span><span class="t">12:15</span
+                ><span class="d">Four build streams on one main branch</span>
+              </div>
+              <div class="tick done">
+                <span class="dot"></span><span class="t">13:38</span
+                ><span class="d">First end-to-end run on the real chain</span>
+              </div>
+              <div class="tick done">
+                <span class="dot"></span><span class="t">14:30</span
+                ><span class="d">Live on testnet with a public URL</span>
+              </div>
+            </div>
+            <div class="stats">
+              <div class="stat">
+                <span class="big">130+</span><span class="lbl">commits, all on main, from 25 October</span>
+              </div>
+              <div class="stat">
+                <span class="big">117</span
+                ><span class="lbl">testnet transactions linked in the spikes and evidence</span>
+              </div>
+              <div class="stat">
+                <span class="big">5</span><span class="lbl">spikes that de-risked every hard part first</span>
+              </div>
+              <div class="stat"><span class="big">0</span><span class="lbl">facilitators of our own</span></div>
+            </div>
+          </div>
+          <footer class="foot">
+            <span class="left"
+              ><span class="mark">n<span class="o"></span>d</span><span class="pill testnet">Stellar testnet</span
+              ><span>Commit history and spike results are in the repository</span></span
+            >
+            <span class="num">08</span>
+          </footer>
+        </section>
+      </div>
+
+      <div class="frame">
+        <section class="slide market">
+          <header>
+            <div class="eyebrow">Market and ecosystem</div>
+            <h2>Every AI app is a door.</h2>
+          </header>
+          <div class="body">
+            <div class="point">
+              <h3>Distribution through MCP</h3>
+              <p>Any MCP app can connect with one URL. Claude today, more hosts as their payment policies allow.</p>
+            </div>
+            <div class="point">
+              <h3>Buyers for Stellar's x402 sellers</h3>
+              <p>
+                Stellar builders have shipped paid APIs and paid MCP tools. They need buyers whose owners will let them
+                spend.
+              </p>
+            </div>
+            <div class="point">
+              <h3>People first, then teams</h3>
+              <p>
+                One allowance per AI app today. Next, a company card for every agent: limits, approvals and receipts.
+              </p>
+            </div>
+            <div class="point ready">
+              <h3>Ready for a mainnet pilot</h3>
+              <p>
+                Every contract Nod uses is already on mainnet with identical WASM, except our 920-byte router. A full
+                allowance lifecycle costs about 0.6 XLM at mainnet rent.
+              </p>
+            </div>
+          </div>
+          <footer class="foot">
+            <span class="left"
+              ><span class="mark">n<span class="o"></span>d</span><span class="pill testnet">Stellar testnet</span
+              ><span>Mainnet figures from a read-only check (docs/research/mainnet.md)</span></span
+            >
+            <span class="num">09</span>
+          </footer>
+        </section>
+      </div>
+
+      <div class="frame">
+        <section class="slide try">
+          <header>
+            <div class="eyebrow">Try it</div>
+            <h2>Three minutes, in your own Claude.</h2>
+          </header>
+          <div class="body">
+            <div class="urls">
+              <div class="url">
+                <span class="k">Site</span><span class="val">hack-meridian-testnet.kristjan-grm11775.workers.dev</span>
+              </div>
+              <div class="url">
+                <span class="k">Claude connector</span
+                ><span class="val">hack-meridian-testnet.kristjan-grm11775.workers.dev/mcp</span>
+              </div>
+              <div class="prompts">
+                <div>"Buy the market brief" <small>0.10 USDC, no prompt</small></div>
+                <div>"Send Alice 2 USDC" <small>2.90 left of the 5.00 allowance</small></div>
+                <div class="nod">
+                  "Pay Bob 5 USDC for dinner" <small>More than what is left, so it needs your nod</small>
+                </div>
+              </div>
+              <span class="small">New wallets get 10 testnet USDC. Full steps in evidence/JUDGE-TEST-PATH.md.</span>
+            </div>
+            <div class="next">
+              <h3>What's next</h3>
+              <ul>
+                <li>Mainnet pilot with one AI app</li>
+                <li>Recovery passkey and shared wallets</li>
+                <li>Cash-out through a Stellar anchor</li>
+                <li>Task budgets and merchant allowlists</li>
+                <li>Agent-to-agent escrow</li>
+                <li>No pocket step once facilitators accept smart accounts</li>
+              </ul>
+            </div>
+          </div>
+          <footer class="foot">
+            <span class="left"
+              ><span class="mark">n<span class="o"></span>d</span><span class="pill testnet">Stellar testnet</span
+              ><a class="mono" href="https://github.com/grmkris/hack-meridian-2026"
+                >github.com/grmkris/hack-meridian-2026</a
+              ></span
+            >
+            <span class="num">10</span>
+          </footer>
+        </section>
+      </div>
+    </main>
+    <script>
+      const fit = () => {
+        const s = Math.min(1, (window.innerWidth - 48) / 1920)
+        document.documentElement.style.setProperty('--s', String(s))
+      }
+      window.addEventListener('resize', fit)
+      fit()
+      window.addEventListener('beforeprint', () => document.documentElement.style.setProperty('--s', '1'))
+    </script>
+  </body>
+</html>
