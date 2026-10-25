@@ -5,8 +5,8 @@ Plans and queues live in the release plan (.local/brainstorm/FINAL-REVIEW.md §K
 **Deploys: session A ("ops and hardening") only, since 19:10 UTC 2026-10-25**, testnet and mainnet, from the worktree
 below; mainnet only on the orchestrator's explicit go, never during a recording.
 
-Live: **testnet at `3d4364f`** (19:56 UTC: claim link v2 and migration 0009 over `9a965a3`) on https://testnet.trynod.si
-(MCP at `/mcp`; the workers.dev host redirects there); **mainnet at `3d4364f`** (20:04 UTC) on https://trynod.si. Dated sections
+Live: **testnet at `3473ee4`** (20:05 UTC: B's six MCP tools and migration 0010, C's rebuilt card, D's og.png) on
+https://testnet.trynod.si (MCP at `/mcp`; the workers.dev host redirects there); **mainnet at `3d4364f`** (20:04 UTC) on https://trynod.si. Dated sections
 below are the history.
 
 ## The deploy worktree is the only place a testnet deploy runs
@@ -281,3 +281,27 @@ Plan `[WalletDb] update` (0009) + `[Web] update` + RELEASE, deploy `"deletedClas
 (`claim_links` exists; still one wallet, none created). Health release `3d4364f0…`, pubnet, invite off, payments on.
 `/llms.txt` identical; unknown `/claim/cl_0123…` → 404 "Not found · Nod"; anonymous `POST /mcp` 401. tools/list needs a
 mainnet connection (none made); same build as the 19:56 testnet list.
+
+## 20:05 UTC: testnet at `3473ee4` (orchestrator's go)
+
+Carries `7170303` (contact_add, contact_update, contact_remove, wallet_deposit_address, payments_list,
+connection_grant_update; migration `0010_contact_marks.sql`), C's card states rebuilt in a clean worktree (`7522620`,
+`3473ee4`; `cards:check` green) and D's network-neutral `og.png`. Gate green, plan `[WalletDb] update` + `[Web] update` +
+RELEASE, deploy `"deletedClasses":[]`, 0010 applied 20:05:21 UTC (`contacts.added_by`, `contacts.added_by_connection`,
+`contact_destinations.source`), health release `3473ee4e…`.
+
+- smoke 9/9 (`evidence/probe/smoke-testnet-2026-10-25T20-05-51Z.json`); `/og.png` byte-identical to the repository file (658,260 bytes, was 661,235);
+  unknown `/approve/allowance/con_0123…?amount=1&hours=24` → 404 "Not found · Nod".
+- tools/list: 21 tools, the first fifteen byte-identical to the 3d4364f list, then the six new ones
+  (`evidence/tools/tools-list-testnet-3473ee4.json` against `…-3d4364f.json`).
+- `resources/read ui://nod/card/v1` serves exactly the committed `card.html` (plus the view meta).
+- events-check 8/8 (`bad46758…`).
+- rehearsal: the first run failed at s1 when the consent page's wallet creation reported "not final after 60 s" while
+  both relayers were busy with other sessions' transactions (`evidence/demo/2026-10-25T20-06-33-683Z/`, Worker log
+  "createWallet failed" after 70 s); the retry passed s1–s11, acceptance 1, 2, 4–9 PASS, 3 REF
+  (`evidence/demo/2026-10-25T20-09-32-837Z/`; claim
+  https://stellar.expert/explorer/testnet/tx/4bb71d0bb3b5516c045a1ec8c807d8a3e9aca1b5a28dc1c6576923ebb87fa2fb).
+- probe all green, 1 warn (`evidence/probe/2026-10-25T20-13-23-383Z.json`). Treasury 81.5 USDC. No Claude Code check
+  this time (one new wallet per deploy until the faucet top-up).
+
+Rollback: re-pin `3d4364f` (0010 additive).

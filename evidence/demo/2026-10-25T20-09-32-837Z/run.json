@@ -1,0 +1,1759 @@
+{
+  "run_id": "1025200932",
+  "target": "testnet",
+  "network": "stellar:testnet",
+  "fixture_chain": null,
+  "base": "https://testnet.trynod.si",
+  "mcp": "https://testnet.trynod.si/mcp",
+  "seller": "https://hm26-seller.kristjan-grm11775.workers.dev",
+  "relayers": [
+    "GBCALSA3XQAWW24AXGFWJIGNUCDBCMUPPWC5XHMZ22VY4HMX6XCFYWBR",
+    "GAWYWVMHLTRN6N7DXKV3XYCLAFPCPPUXPDFC7J5KL3LNKO26YNJSYE4I",
+    "GBGNYETYEEWM5RIRE6KWUUZKD3X4DBZZ72M2LHQJNUGYO3D6ZYADBPT6"
+  ],
+  "started_at": "2026-10-25T20:09:32.837Z",
+  "finished_at": "2026-10-25T20:11:42.406Z",
+  "oauth": {
+    "client_id": "90fDci6-0awtGVJ1",
+    "redirect": "http://127.0.0.1:38337/callback"
+  },
+  "tools": [
+    "wallet_overview",
+    "contacts_search",
+    "payment_prepare",
+    "payment_execute",
+    "payment_approve_url",
+    "payment_status",
+    "paid_resource_fetch",
+    "paid_mcp_call",
+    "connection_grant_create",
+    "connection_grant_revoke",
+    "nod_home",
+    "request_create",
+    "requests_list",
+    "request_pay",
+    "request_decline",
+    "contact_add",
+    "contact_update",
+    "contact_remove",
+    "wallet_deposit_address",
+    "payments_list",
+    "connection_grant_update"
+  ],
+  "steps": [
+    {
+      "id": "s1",
+      "title": "Connect the AI app: DCR + PKCE, consent page, passkey, allowance",
+      "status": "pass",
+      "ms": 34280
+    },
+    {
+      "id": "s2",
+      "title": "Allowance installed onchain: amount and expiry for this AI app",
+      "status": "pass",
+      "ms": 2177
+    },
+    {
+      "id": "s3",
+      "title": "wallet_overview: wallet balance and allowance are two numbers",
+      "status": "pass",
+      "ms": 300
+    },
+    {
+      "id": "s4",
+      "title": "paid_resource_fetch: buy the market brief for 0.10 over x402",
+      "status": "pass",
+      "ms": 16272
+    },
+    {
+      "id": "s5",
+      "title": "Send Alice 2 USDC inside the allowance: payment_prepare → payment_execute",
+      "status": "pass",
+      "ms": 6522
+    },
+    {
+      "id": "s6",
+      "title": "Ask for 5 USDC to Bob for dinner (2.90 left) → needs your nod (approval link)",
+      "status": "pass",
+      "ms": 1007
+    },
+    {
+      "id": "s7",
+      "title": "Owner opens the link, sees recipient and amount, nods with the passkey; the AI app polls",
+      "status": "pass",
+      "ms": 10184
+    },
+    {
+      "id": "s8a",
+      "title": "Same request again (same idempotency key) → same receipt, no second payment",
+      "status": "pass",
+      "ms": 7234
+    },
+    {
+      "id": "s8b",
+      "title": "Ask for 4 USDC with 2.90 left → needs your nod, not an onchain revert",
+      "status": "pass",
+      "ms": 758
+    },
+    {
+      "id": "s10",
+      "title": "Send Carol 1 USDC: trustline required → your nod → claim link → trust + transfer in one transaction",
+      "status": "pass",
+      "ms": 10692
+    },
+    {
+      "id": "s9",
+      "title": "Owner revokes the AI app on the site → its next payment is refused, allowance gone onchain",
+      "status": "pass",
+      "ms": 30718
+    },
+    {
+      "id": "s11",
+      "title": "Fee audit: Nod paid every network fee, the owner account holds no XLM",
+      "status": "pass",
+      "ms": 373
+    }
+  ],
+  "acceptance": {
+    "1": {
+      "status": "PASS",
+      "checks": [
+        "pass s4: status paid, http 200",
+        "pass s4: body is the seller’s market brief",
+        "pass s4: x402 settlement (receipt only after it landed): 39a91cb9… successful onchain",
+        "pass s4: x402 purchase consumed the grant: allowance 5.00 → 4.90 (expected 0.1000000 less)"
+      ]
+    },
+    "2": {
+      "status": "PASS",
+      "checks": [
+        "pass s8b: 4 > 2.90 → lane owner, status awaiting_approval",
+        "pass s8b: payment_execute refuses an owner-lane intent (never signed with the connection key)",
+        "pass s8b: nothing reserved or spent: allowance 2.90 → 2.90 (expected unchanged)"
+      ]
+    },
+    "3": {
+      "status": "REF",
+      "checks": [
+        "ref s11: forced over-limit transfer signed by the connection key: rejected onchain #3221 in S1 (3daf4b00…, docs/spikes/s1.md) and refused at enforce simulation in S5; not reachable through MCP by design"
+      ]
+    },
+    "4": {
+      "status": "PASS",
+      "checks": [
+        "pass s6: lane owner, status awaiting_approval, approval_url https://testnet.trynod.si/approve/pi_fa474a45fe109b114c2edc43cd08f93f",
+        "pass s6: the approval link is in the tool result text too",
+        "pass s6: owner-lane request reserved nothing: allowance 2.90 → 2.90 (expected unchanged)",
+        "pass s7: approval page shows Bob (GACQCA…) and 5 USDC",
+        "pass s7: Bob received exactly 5: GACQCA… USDC 0.0000000 → 5.0000000",
+        "pass s7: owner lane did not consume the grant: allowance 2.90 → 2.90 (expected unchanged)"
+      ]
+    },
+    "5": {
+      "status": "PASS",
+      "checks": [
+        "pass s8a: same payment_id pi_fa474a45fe109b114c2edc43cd08f93f",
+        "pass s8a: same receipt 2e520c8e…",
+        "pass s8a: no second payment to Bob: GACQCA… USDC 5.0000000 → 5.0000000"
+      ]
+    },
+    "6": {
+      "status": "PASS",
+      "checks": [
+        "pass s9: next delegated payment after revoke: Unauthorized",
+        "pass s9: allowance removed from the account onchain: a202d41b… successful onchain",
+        "pass s9: pocket swept back to the wallet: 8f45984a… successful onchain",
+        "pass s9: rule 1 removed onchain"
+      ]
+    },
+    "7": {
+      "status": "PASS",
+      "checks": [
+        "pass s4: x402 pull from the wallet into the pocket: 1f79ab58… successful onchain",
+        "pass s5: payment_status confirmed with receipt 9f330528",
+        "pass s5: payment to Alice inside the allowance: 9f330528… successful onchain",
+        "pass s5: Alice received 2: CCHECH… USDC 43.5100000 → 45.5100000",
+        "pass s5: delegated payment consumed the grant: allowance 4.90 → 2.90 (expected 2.0000000 less)",
+        "pass s6: before approval: awaiting_approval, no receipt",
+        "pass s7: opening the link had no side effect before approving",
+        "pass s7: payment_status confirmed, receipt 2e520c8e",
+        "pass s7: payment to Bob approved with the passkey: 2e520c8e… successful onchain"
+      ]
+    },
+    "8": {
+      "status": "PASS",
+      "checks": [
+        "pass s10: Carol readiness trustline_required",
+        "pass s10: GALY5T… has no USDC trustline before",
+        "pass s10: payment_status confirmed, receipt 4bb71d0b",
+        "pass s10: claim: trustline + payment in one transaction: 4bb71d0b… successful onchain",
+        "pass s10: Carol now has the trustline",
+        "pass s10: Carol holds 1 USDC"
+      ]
+    },
+    "9": {
+      "status": "PASS",
+      "checks": [
+        "pass s4: x402 settlement (receipt only after it landed): fee 11637 stroops paid by the facilitator GA6THK…",
+        "pass s4: x402 pull from the wallet into the pocket: fee 407208 stroops paid by GAWYWV… (Nod's relayers: GBCALS…, GAWYWV…, GBGNYE…)",
+        "pass s5: payment to Alice inside the allowance: fee 47471 stroops paid by GBCALS… (Nod's relayers: GBCALS…, GAWYWV…, GBGNYE…)",
+        "pass s7: payment to Bob approved with the passkey: fee 12949 stroops paid by GBCALS… (Nod's relayers: GBCALS…, GAWYWV…, GBGNYE…)",
+        "pass s10: claim: trustline + payment in one transaction: fee 20035 stroops paid by GAWYWV… (Nod's relayers: GBCALS…, GAWYWV…, GBGNYE…)",
+        "pass s9: allowance removed from the account onchain: fee 20013 stroops paid by GAWYWV… (Nod's relayers: GBCALS…, GAWYWV…, GBGNYE…)",
+        "pass s9: pocket swept back to the wallet: fee 10826 stroops paid by GBCALS… (Nod's relayers: GBCALS…, GAWYWV…, GBGNYE…)",
+        "pass s11: owner account CCBNC3… holds 0.0000000 XLM"
+      ]
+    }
+  },
+  "checks": [
+    {
+      "step": "s1",
+      "test": null,
+      "status": "pass",
+      "detail": "DCR client_id 90fDci6-0awtGVJ1"
+    },
+    {
+      "step": "s1",
+      "test": null,
+      "status": "pass",
+      "detail": "callback state matches"
+    },
+    {
+      "step": "s1",
+      "test": null,
+      "status": "pass",
+      "detail": "callback iss https://testnet.trynod.si (RFC 9207)"
+    },
+    {
+      "step": "s1",
+      "test": null,
+      "status": "pass",
+      "detail": "access token issued (PKCE)"
+    },
+    {
+      "step": "s1",
+      "test": null,
+      "status": "pass",
+      "detail": "tools/list → wallet_overview, contacts_search, payment_prepare, payment_execute, payment_approve_url, payment_status, paid_resource_fetch, paid_mcp_call, connection_grant_create, connection_grant_revoke, nod_home, request_create, requests_list, request_pay, request_decline, contact_add, contact_update, contact_remove, wallet_deposit_address, payments_list, connection_grant_update"
+    },
+    {
+      "step": "s2",
+      "test": null,
+      "status": "pass",
+      "detail": "grant total 5.00 = consent 5"
+    },
+    {
+      "step": "s2",
+      "test": null,
+      "status": "pass",
+      "detail": "rule 1 live onchain on CCBNC3…"
+    },
+    {
+      "step": "s2",
+      "test": null,
+      "status": "pass",
+      "detail": "contact Alice saved in the new wallet"
+    },
+    {
+      "step": "s2",
+      "test": null,
+      "status": "pass",
+      "detail": "contact Bob saved in the new wallet"
+    },
+    {
+      "step": "s2",
+      "test": null,
+      "status": "pass",
+      "detail": "contact Carol saved in the new wallet"
+    },
+    {
+      "step": "s3",
+      "test": null,
+      "status": "pass",
+      "detail": "balance 10.00 USDC, allowance 5.00 remaining until 2026-10-26T12:00:04.360Z"
+    },
+    {
+      "step": "s4",
+      "test": 1,
+      "status": "pass",
+      "detail": "status paid, http 200"
+    },
+    {
+      "step": "s4",
+      "test": 1,
+      "status": "pass",
+      "detail": "body is the seller’s market brief"
+    },
+    {
+      "step": "s4",
+      "test": 9,
+      "status": "pass",
+      "detail": "x402 settlement (receipt only after it landed): fee 11637 stroops paid by the facilitator GA6THK…"
+    },
+    {
+      "step": "s4",
+      "test": 1,
+      "status": "pass",
+      "detail": "x402 settlement (receipt only after it landed): 39a91cb9… successful onchain"
+    },
+    {
+      "step": "s4",
+      "test": 9,
+      "status": "pass",
+      "detail": "x402 pull from the wallet into the pocket: fee 407208 stroops paid by GAWYWV… (Nod's relayers: GBCALS…, GAWYWV…, GBGNYE…)"
+    },
+    {
+      "step": "s4",
+      "test": 7,
+      "status": "pass",
+      "detail": "x402 pull from the wallet into the pocket: 1f79ab58… successful onchain"
+    },
+    {
+      "step": "s4",
+      "test": 1,
+      "status": "pass",
+      "detail": "x402 purchase consumed the grant: allowance 5.00 → 4.90 (expected 0.1000000 less)"
+    },
+    {
+      "step": "s5",
+      "test": null,
+      "status": "pass",
+      "detail": "lane autonomous"
+    },
+    {
+      "step": "s5",
+      "test": 7,
+      "status": "pass",
+      "detail": "payment_status confirmed with receipt 9f330528"
+    },
+    {
+      "step": "s5",
+      "test": 9,
+      "status": "pass",
+      "detail": "payment to Alice inside the allowance: fee 47471 stroops paid by GBCALS… (Nod's relayers: GBCALS…, GAWYWV…, GBGNYE…)"
+    },
+    {
+      "step": "s5",
+      "test": 7,
+      "status": "pass",
+      "detail": "payment to Alice inside the allowance: 9f330528… successful onchain"
+    },
+    {
+      "step": "s5",
+      "test": 7,
+      "status": "pass",
+      "detail": "Alice received 2: CCHECH… USDC 43.5100000 → 45.5100000"
+    },
+    {
+      "step": "s5",
+      "test": 7,
+      "status": "pass",
+      "detail": "delegated payment consumed the grant: allowance 4.90 → 2.90 (expected 2.0000000 less)"
+    },
+    {
+      "step": "s6",
+      "test": 4,
+      "status": "pass",
+      "detail": "lane owner, status awaiting_approval, approval_url https://testnet.trynod.si/approve/pi_fa474a45fe109b114c2edc43cd08f93f"
+    },
+    {
+      "step": "s6",
+      "test": 4,
+      "status": "pass",
+      "detail": "the approval link is in the tool result text too"
+    },
+    {
+      "step": "s6",
+      "test": 7,
+      "status": "pass",
+      "detail": "before approval: awaiting_approval, no receipt"
+    },
+    {
+      "step": "s6",
+      "test": 4,
+      "status": "pass",
+      "detail": "owner-lane request reserved nothing: allowance 2.90 → 2.90 (expected unchanged)"
+    },
+    {
+      "step": "s7",
+      "test": 4,
+      "status": "pass",
+      "detail": "approval page shows Bob (GACQCA…) and 5 USDC"
+    },
+    {
+      "step": "s7",
+      "test": 7,
+      "status": "pass",
+      "detail": "opening the link had no side effect before approving"
+    },
+    {
+      "step": "s7",
+      "test": 7,
+      "status": "pass",
+      "detail": "payment_status confirmed, receipt 2e520c8e"
+    },
+    {
+      "step": "s7",
+      "test": 9,
+      "status": "pass",
+      "detail": "payment to Bob approved with the passkey: fee 12949 stroops paid by GBCALS… (Nod's relayers: GBCALS…, GAWYWV…, GBGNYE…)"
+    },
+    {
+      "step": "s7",
+      "test": 7,
+      "status": "pass",
+      "detail": "payment to Bob approved with the passkey: 2e520c8e… successful onchain"
+    },
+    {
+      "step": "s7",
+      "test": 4,
+      "status": "pass",
+      "detail": "Bob received exactly 5: GACQCA… USDC 0.0000000 → 5.0000000"
+    },
+    {
+      "step": "s7",
+      "test": 4,
+      "status": "pass",
+      "detail": "owner lane did not consume the grant: allowance 2.90 → 2.90 (expected unchanged)"
+    },
+    {
+      "step": "s8a",
+      "test": 5,
+      "status": "pass",
+      "detail": "same payment_id pi_fa474a45fe109b114c2edc43cd08f93f"
+    },
+    {
+      "step": "s8a",
+      "test": 5,
+      "status": "pass",
+      "detail": "same receipt 2e520c8e…"
+    },
+    {
+      "step": "s8a",
+      "test": 5,
+      "status": "pass",
+      "detail": "no second payment to Bob: GACQCA… USDC 5.0000000 → 5.0000000"
+    },
+    {
+      "step": "s8b",
+      "test": 2,
+      "status": "pass",
+      "detail": "4 > 2.90 → lane owner, status awaiting_approval"
+    },
+    {
+      "step": "s8b",
+      "test": 2,
+      "status": "pass",
+      "detail": "payment_execute refuses an owner-lane intent (never signed with the connection key)"
+    },
+    {
+      "step": "s8b",
+      "test": 2,
+      "status": "pass",
+      "detail": "nothing reserved or spent: allowance 2.90 → 2.90 (expected unchanged)"
+    },
+    {
+      "step": "s10",
+      "test": 8,
+      "status": "pass",
+      "detail": "Carol readiness trustline_required"
+    },
+    {
+      "step": "s10",
+      "test": 8,
+      "status": "pass",
+      "detail": "GALY5T… has no USDC trustline before"
+    },
+    {
+      "step": "s10",
+      "test": 8,
+      "status": "pass",
+      "detail": "payment_status confirmed, receipt 4bb71d0b"
+    },
+    {
+      "step": "s10",
+      "test": 9,
+      "status": "pass",
+      "detail": "claim: trustline + payment in one transaction: fee 20035 stroops paid by GAWYWV… (Nod's relayers: GBCALS…, GAWYWV…, GBGNYE…)"
+    },
+    {
+      "step": "s10",
+      "test": 8,
+      "status": "pass",
+      "detail": "claim: trustline + payment in one transaction: 4bb71d0b… successful onchain"
+    },
+    {
+      "step": "s10",
+      "test": 8,
+      "status": "pass",
+      "detail": "Carol now has the trustline"
+    },
+    {
+      "step": "s10",
+      "test": 8,
+      "status": "pass",
+      "detail": "Carol holds 1 USDC"
+    },
+    {
+      "step": "s9",
+      "test": 6,
+      "status": "pass",
+      "detail": "next delegated payment after revoke: Unauthorized"
+    },
+    {
+      "step": "s9",
+      "test": 9,
+      "status": "pass",
+      "detail": "allowance removed from the account onchain: fee 20013 stroops paid by GAWYWV… (Nod's relayers: GBCALS…, GAWYWV…, GBGNYE…)"
+    },
+    {
+      "step": "s9",
+      "test": 6,
+      "status": "pass",
+      "detail": "allowance removed from the account onchain: a202d41b… successful onchain"
+    },
+    {
+      "step": "s9",
+      "test": 9,
+      "status": "pass",
+      "detail": "pocket swept back to the wallet: fee 10826 stroops paid by GBCALS… (Nod's relayers: GBCALS…, GAWYWV…, GBGNYE…)"
+    },
+    {
+      "step": "s9",
+      "test": 6,
+      "status": "pass",
+      "detail": "pocket swept back to the wallet: 8f45984a… successful onchain"
+    },
+    {
+      "step": "s9",
+      "test": 6,
+      "status": "pass",
+      "detail": "rule 1 removed onchain"
+    },
+    {
+      "step": "s11",
+      "test": 3,
+      "status": "ref",
+      "detail": "forced over-limit transfer signed by the connection key: rejected onchain #3221 in S1 (3daf4b00…, docs/spikes/s1.md) and refused at enforce simulation in S5; not reachable through MCP by design"
+    },
+    {
+      "step": "s11",
+      "test": 9,
+      "status": "pass",
+      "detail": "owner account CCBNC3… holds 0.0000000 XLM"
+    }
+  ],
+  "calls": [
+    {
+      "step": "s2",
+      "t": 34391,
+      "tool": "wallet_overview",
+      "arguments": {
+        "idempotency_key": "rh-1025200932-overview-0"
+      },
+      "ms": 397,
+      "ok": true,
+      "isError": false,
+      "structured": {
+        "network": "stellar:testnet",
+        "explorer_base": "https://stellar.expert/explorer/testnet",
+        "wallet": {
+          "id": "wal_a59577da181bb747273fe1e5ae04fd03",
+          "name": "Personal",
+          "contract_id": "CCBNC3KT3PTJ23H2X6IFMZYCDBKGEAJ6B5RDTTIJL5CJ4TT2UJPEPK7Q",
+          "network": "stellar:testnet",
+          "deploy_tx": "f6de44945753fae2b28b98613febc36a60980829def10928c7dc3fc39162dae6",
+          "fund_tx": "90fbdbe52ef0965c3ee85482d8657925b16b946313b7de1980f6cbbaf9d0cc6c"
+        },
+        "balances": {
+          "usdc": "10.00",
+          "xlm": "0.00"
+        },
+        "grant": {
+          "grant_id": "gr_52359d42b17a44cbcb0c5d100fe4a8d3",
+          "asset": "USDC",
+          "total": "5.00",
+          "spent": "0.00",
+          "reserved": "0.00",
+          "pocket_balance": "0.00",
+          "remaining": "5.00",
+          "valid_until": "2026-10-26T12:00:04.360Z",
+          "status": "active",
+          "rule_id": 1,
+          "install_tx": "e9c1a89f11401cecf136588394701b38ddcc5fca093dc76e3976eb9d4ecc72ab",
+          "remove_tx": null
+        },
+        "pending_approvals": [],
+        "recent_receipts": [],
+        "connection": {
+          "id": "con_d54b67d4654cbce3fd7f3d4239922ae5",
+          "client_name": "hm26 rehearse (testnet)",
+          "status": "active"
+        },
+        "grant_remaining": "5.00"
+      },
+      "text": "Nod wallet Personal (Stellar Testnet) holds 10.00 USDC. This AI app may still spend 5.00 USDC on its own until 2026-10-26T12:00:04.360Z; anything bigger needs the user's nod.\n{\n  \"network\": \"stellar:testnet\",\n  \"explorer_base\": \"https://stellar.expert/explorer/testnet\",\n  \"wallet\": {\n    \"id\": \"wal_a59577da181bb747273fe1e5ae04fd03\",\n    \"name\": \"Personal\",\n    \"contract_id\": \"CCBNC3KT3PTJ23H2X6IFMZYCDBKGEAJ6B5RDTTIJL5CJ4TT2UJPEPK7Q\",\n    \"network\": \"stellar:testnet\",\n    \"deploy_tx\": \"f6de44945753fae2b28b98613febc36a60980829def10928c7dc3fc39162dae6\",\n    \"fund_tx\": \"90fbdbe52ef0965c3ee85482d8657925b16b946313b7de1980f6cbbaf9d0cc6c\"\n  },\n  \"balances\": {\n    \"usdc\": \"10.00\",\n    \"xlm\": \"0.00\"\n  },\n  \"grant\": {\n    \"grant_id\": \"gr_52359d42b17a44cbcb0c5d100fe4a8d3\",\n    \"asset\": \"USDC\",\n    \"total\": \"5.00\",\n    \"spent\": \"0.00\",\n    \"reserved\": \"0.00\",\n    \"pocket_balance\": \"0.00\",\n    \"remaining\": \"5.00\",\n    \"valid_until\": \"2026-10-26T12:00:04.360Z\",\n    \"status\": \"active\",\n    \"rule_id\": 1,\n    \"install_tx\": \"e9c1a89f11401cecf136588394701b38ddcc5fca093dc76e3976eb9d4ecc72ab\",\n    \"remove_tx\": null\n  },\n  \"pending_approvals\": [],\n  \"recent_receipts\": [],\n  \"connection\": {\n    \"id\": \"con_d54b67d4654cbce3fd7f3d4239922ae5\",\n    \"client_name\": \"hm26 rehearse (testnet)\",\n    \"status\": \"active\"\n  },\n  \"grant_remaining\": \"5.00\"\n}"
+    },
+    {
+      "step": "s2",
+      "t": 35975,
+      "tool": "contacts_search",
+      "arguments": {
+        "query": "Alice"
+      },
+      "ms": 211,
+      "ok": true,
+      "isError": false,
+      "structured": {
+        "contacts": [
+          {
+            "contact_id": "ct_fd144a305618be9a05d9d18a77ab5145",
+            "name": "Alice",
+            "aliases": [
+              "demo contact"
+            ],
+            "destinations": [
+              {
+                "address": "CCHECHASMG7C4QOPTD5EBSWF632JJRUZS6VABC6ADFCKPHGJH4T3SO4Q",
+                "network": "stellar:testnet",
+                "memo": null,
+                "readiness": [
+                  "usdc_ready"
+                ],
+                "last_paid_at": null
+              }
+            ],
+            "added_by": null
+          }
+        ],
+        "grant_remaining": "5.00"
+      },
+      "text": "1 contact(s): Alice.\n{\n  \"contacts\": [\n    {\n      \"contact_id\": \"ct_fd144a305618be9a05d9d18a77ab5145\",\n      \"name\": \"Alice\",\n      \"aliases\": [\n        \"demo contact\"\n      ],\n      \"destinations\": [\n        {\n          \"address\": \"CCHECHASMG7C4QOPTD5EBSWF632JJRUZS6VABC6ADFCKPHGJH4T3SO4Q\",\n          \"network\": \"stellar:testnet\",\n          \"memo\": null,\n          \"readiness\": [\n            \"usdc_ready\"\n          ],\n          \"last_paid_at\": null\n        }\n      ],\n      \"added_by\": null\n    }\n  ],\n  \"grant_remaining\": \"5.00\"\n}"
+    },
+    {
+      "step": "s2",
+      "t": 36187,
+      "tool": "contacts_search",
+      "arguments": {
+        "query": "Bob"
+      },
+      "ms": 188,
+      "ok": true,
+      "isError": false,
+      "structured": {
+        "contacts": [
+          {
+            "contact_id": "ct_77efe164d0ce5e8720229a2c437d9f6b",
+            "name": "Bob",
+            "aliases": [
+              "demo contact"
+            ],
+            "destinations": [
+              {
+                "address": "GACQCAQZSAUAZIXAGUTCQX76CWZBQQK4Y75YT5NZONNAWCXMO2BJNGIY",
+                "network": "stellar:testnet",
+                "memo": null,
+                "readiness": [
+                  "usdc_ready"
+                ],
+                "last_paid_at": null
+              }
+            ],
+            "added_by": null
+          }
+        ],
+        "grant_remaining": "5.00"
+      },
+      "text": "1 contact(s): Bob.\n{\n  \"contacts\": [\n    {\n      \"contact_id\": \"ct_77efe164d0ce5e8720229a2c437d9f6b\",\n      \"name\": \"Bob\",\n      \"aliases\": [\n        \"demo contact\"\n      ],\n      \"destinations\": [\n        {\n          \"address\": \"GACQCAQZSAUAZIXAGUTCQX76CWZBQQK4Y75YT5NZONNAWCXMO2BJNGIY\",\n          \"network\": \"stellar:testnet\",\n          \"memo\": null,\n          \"readiness\": [\n            \"usdc_ready\"\n          ],\n          \"last_paid_at\": null\n        }\n      ],\n      \"added_by\": null\n    }\n  ],\n  \"grant_remaining\": \"5.00\"\n}"
+    },
+    {
+      "step": "s2",
+      "t": 36376,
+      "tool": "contacts_search",
+      "arguments": {
+        "query": "Carol"
+      },
+      "ms": 191,
+      "ok": true,
+      "isError": false,
+      "structured": {
+        "contacts": [
+          {
+            "contact_id": "ct_f3ab48c5e59283458d60eb63f2d65109",
+            "name": "Carol",
+            "aliases": [
+              "demo contact"
+            ],
+            "destinations": [
+              {
+                "address": "GALY5TMIFUVMUO626Y66WWXOXZM6FJQVJA7ROBO2PCTFWGYBJYUQUUAK",
+                "network": "stellar:testnet",
+                "memo": null,
+                "readiness": [
+                  "trustline_required"
+                ],
+                "last_paid_at": null
+              }
+            ],
+            "added_by": null
+          }
+        ],
+        "grant_remaining": "5.00"
+      },
+      "text": "1 contact(s): Carol.\n{\n  \"contacts\": [\n    {\n      \"contact_id\": \"ct_f3ab48c5e59283458d60eb63f2d65109\",\n      \"name\": \"Carol\",\n      \"aliases\": [\n        \"demo contact\"\n      ],\n      \"destinations\": [\n        {\n          \"address\": \"GALY5TMIFUVMUO626Y66WWXOXZM6FJQVJA7ROBO2PCTFWGYBJYUQUUAK\",\n          \"network\": \"stellar:testnet\",\n          \"memo\": null,\n          \"readiness\": [\n            \"trustline_required\"\n          ],\n          \"last_paid_at\": null\n        }\n      ],\n      \"added_by\": null\n    }\n  ],\n  \"grant_remaining\": \"5.00\"\n}"
+    },
+    {
+      "step": "s3",
+      "t": 36568,
+      "tool": "wallet_overview",
+      "arguments": {
+        "idempotency_key": "rh-1025200932-overview-1"
+      },
+      "ms": 300,
+      "ok": true,
+      "isError": false,
+      "structured": {
+        "network": "stellar:testnet",
+        "explorer_base": "https://stellar.expert/explorer/testnet",
+        "wallet": {
+          "id": "wal_a59577da181bb747273fe1e5ae04fd03",
+          "name": "Personal",
+          "contract_id": "CCBNC3KT3PTJ23H2X6IFMZYCDBKGEAJ6B5RDTTIJL5CJ4TT2UJPEPK7Q",
+          "network": "stellar:testnet",
+          "deploy_tx": "f6de44945753fae2b28b98613febc36a60980829def10928c7dc3fc39162dae6",
+          "fund_tx": "90fbdbe52ef0965c3ee85482d8657925b16b946313b7de1980f6cbbaf9d0cc6c"
+        },
+        "balances": {
+          "usdc": "10.00",
+          "xlm": "0.00"
+        },
+        "grant": {
+          "grant_id": "gr_52359d42b17a44cbcb0c5d100fe4a8d3",
+          "asset": "USDC",
+          "total": "5.00",
+          "spent": "0.00",
+          "reserved": "0.00",
+          "pocket_balance": "0.00",
+          "remaining": "5.00",
+          "valid_until": "2026-10-26T12:00:04.360Z",
+          "status": "active",
+          "rule_id": 1,
+          "install_tx": "e9c1a89f11401cecf136588394701b38ddcc5fca093dc76e3976eb9d4ecc72ab",
+          "remove_tx": null
+        },
+        "pending_approvals": [],
+        "recent_receipts": [],
+        "connection": {
+          "id": "con_d54b67d4654cbce3fd7f3d4239922ae5",
+          "client_name": "hm26 rehearse (testnet)",
+          "status": "active"
+        },
+        "grant_remaining": "5.00"
+      },
+      "text": "Nod wallet Personal (Stellar Testnet) holds 10.00 USDC. This AI app may still spend 5.00 USDC on its own until 2026-10-26T12:00:04.360Z; anything bigger needs the user's nod.\n{\n  \"network\": \"stellar:testnet\",\n  \"explorer_base\": \"https://stellar.expert/explorer/testnet\",\n  \"wallet\": {\n    \"id\": \"wal_a59577da181bb747273fe1e5ae04fd03\",\n    \"name\": \"Personal\",\n    \"contract_id\": \"CCBNC3KT3PTJ23H2X6IFMZYCDBKGEAJ6B5RDTTIJL5CJ4TT2UJPEPK7Q\",\n    \"network\": \"stellar:testnet\",\n    \"deploy_tx\": \"f6de44945753fae2b28b98613febc36a60980829def10928c7dc3fc39162dae6\",\n    \"fund_tx\": \"90fbdbe52ef0965c3ee85482d8657925b16b946313b7de1980f6cbbaf9d0cc6c\"\n  },\n  \"balances\": {\n    \"usdc\": \"10.00\",\n    \"xlm\": \"0.00\"\n  },\n  \"grant\": {\n    \"grant_id\": \"gr_52359d42b17a44cbcb0c5d100fe4a8d3\",\n    \"asset\": \"USDC\",\n    \"total\": \"5.00\",\n    \"spent\": \"0.00\",\n    \"reserved\": \"0.00\",\n    \"pocket_balance\": \"0.00\",\n    \"remaining\": \"5.00\",\n    \"valid_until\": \"2026-10-26T12:00:04.360Z\",\n    \"status\": \"active\",\n    \"rule_id\": 1,\n    \"install_tx\": \"e9c1a89f11401cecf136588394701b38ddcc5fca093dc76e3976eb9d4ecc72ab\",\n    \"remove_tx\": null\n  },\n  \"pending_approvals\": [],\n  \"recent_receipts\": [],\n  \"connection\": {\n    \"id\": \"con_d54b67d4654cbce3fd7f3d4239922ae5\",\n    \"client_name\": \"hm26 rehearse (testnet)\",\n    \"status\": \"active\"\n  },\n  \"grant_remaining\": \"5.00\"\n}"
+    },
+    {
+      "step": "s4",
+      "t": 36868,
+      "tool": "paid_resource_fetch",
+      "arguments": {
+        "url": "https://hm26-seller.kristjan-grm11775.workers.dev/api/market-brief",
+        "max_amount": "0.10",
+        "reason": "market brief for the demo",
+        "idempotency_key": "rh-1025200932-brief"
+      },
+      "ms": 15756,
+      "ok": true,
+      "isError": false,
+      "structured": {
+        "status": "paid",
+        "payment_id": "pi_427807c8d1f85122749bc2664bfae51c",
+        "http_status": 200,
+        "content_type": "application/json",
+        "body": "{\"title\":\"Stellar testnet market brief\",\"topic\":\"XLM/USDC\",\"generated_at\":\"2026-10-25T20:10:20.154Z\",\"payment_id\":\"pi_427807c8d1f85122749bc2664bfae51c\",\"via\":\"http\",\"price\":{\"amount\":\"0.10\",\"asset\":\"USDC\",\"network\":\"stellar:testnet\"},\"summary\":\"1 XLM ≈ 0.5616672 USDC on the testnet DEX (best bid 0.2475248, best ask 0.8758095).\",\"xlm_in_usdc\":{\"bid\":\"0.2475248\",\"ask\":\"0.8758095\",\"mid\":\"0.5616672\"},\"ledger\":{\"sequence\":5387086,\"closed_at\":\"2026-10-25T20:10:17Z\"},\"seller\":\"hm26-seller, the demo x402 seller for Nod\"}",
+        "price": "0.10",
+        "receipt": {
+          "receipt_id": "rc_86844c08cf159b083673792897a01da6",
+          "payment_id": "pi_427807c8d1f85122749bc2664bfae51c",
+          "kind": "x402_fetch",
+          "amount": "0.10",
+          "asset": "USDC",
+          "recipient": "GAINGRVWOM5BGQI6GQ7P2OIWTUS65H3PHTEHX365CVDB3NWHC3WVTDNI",
+          "recipient_name": null,
+          "lane": "autonomous",
+          "tx_hash": "39a91cb9a62852359c14599531d7a038eae868fa082f316a58770540710ed12e",
+          "ledger": 5387087,
+          "confirmed_at": "2026-10-25T20:10:27.101Z",
+          "explorer_url": "https://stellar.expert/explorer/testnet/tx/39a91cb9a62852359c14599531d7a038eae868fa082f316a58770540710ed12e",
+          "pull_tx_hash": "1f79ab58e9ada356ad1b9ec3b438c690bcc99ce818acfc31ab36ce0bb7569281",
+          "pull_explorer_url": "https://stellar.expert/explorer/testnet/tx/1f79ab58e9ada356ad1b9ec3b438c690bcc99ce818acfc31ab36ce0bb7569281",
+          "fee_xlm": "0.0418845",
+          "fee_paid_by": "facilitator",
+          "requester": "hm26 rehearse (testnet)",
+          "resource": "https://hm26-seller.kristjan-grm11775.workers.dev/api/market-brief"
+        },
+        "approval_url": null,
+        "approval_reason": null,
+        "message": "Paid 0.10 USDC from this AI app's allowance; the facilitator paid the network fee.",
+        "pull": null,
+        "facilitator_message": null,
+        "grant_remaining": "4.90"
+      },
+      "text": "Paid 0.10 USDC for https://hm26-seller.kristjan-grm11775.workers.dev/api/market-brief; settlement 39a91cb9a62852359c14599531d7a038eae868fa082f316a58770540710ed12e, pocket pull 1f79ab58e9ada356ad1b9ec3b438c690bcc99ce818acfc31ab36ce0bb7569281. 4.90 USDC left.\n{\n  \"status\": \"paid\",\n  \"payment_id\": \"pi_427807c8d1f85122749bc2664bfae51c\",\n  \"http_status\": 200,\n  \"content_type\": \"application/json\",\n  \"body\": \"{\\\"title\\\":\\\"Stellar testnet market brief\\\",\\\"topic\\\":\\\"XLM/USDC\\\",\\\"generated_at\\\":\\\"2026-10-25T20:10:20.154Z\\\",\\\"payment_id\\\":\\\"pi_427807c8d1f85122749bc2664bfae51c\\\",\\\"via\\\":\\\"http\\\",\\\"price\\\":{\\\"amount\\\":\\\"0.10\\\",\\\"asset\\\":\\\"USDC\\\",\\\"network\\\":\\\"stellar:testnet\\\"},\\\"summary\\\":\\\"1 XLM ≈ 0.5616672 USDC on the testnet DEX (best bid 0.2475248, best ask 0.8758095).\\\",\\\"xlm_in_usdc\\\":{\\\"bid\\\":\\\"0.2475248\\\",\\\"ask\\\":\\\"0.8758095\\\",\\\"mid\\\":\\\"0.5616672\\\"},\\\"ledger\\\":{\\\"sequence\\\":5387086,\\\"closed_at\\\":\\\"2026-10-25T20:10:17Z\\\"},\\\"seller\\\":\\\"hm26-seller, the demo x402 seller for Nod\\\"}\",\n  \"price\": \"0.10\",\n  \"receipt\": {\n    \"receipt_id\": \"rc_86844c08cf159b083673792897a01da6\",\n    \"payment_id\": \"pi_427807c8d1f85122749bc2664bfae51c\",\n    \"kind\": \"x402_fetch\",\n    \"amount\": \"0.10\",\n    \"asset\": \"USDC\",\n    \"recipient\": \"GAINGRVWOM5BGQI6GQ7P2OIWTUS65H3PHTEHX365CVDB3NWHC3WVTDNI\",\n    \"recipient_name\": null,\n    \"lane\": \"autonomous\",\n    \"tx_hash\": \"39a91cb9a62852359c14599531d7a038eae868fa082f316a58770540710ed12e\",\n    \"ledger\": 5387087,\n    \"confirmed_at\": \"2026-10-25T20:10:27.101Z\",\n    \"explorer_url\": \"https://stellar.expert/explorer/testnet/tx/39a91cb9a62852359c14599531d7a038eae868fa082f316a58770540710ed12e\",\n    \"pull_tx_hash\": \"1f79ab58e9ada356ad1b9ec3b438c690bcc99ce818acfc31ab36ce0bb7569281\",\n    \"pull_explorer_url\": \"https://stellar.expert/explorer/testnet/tx/1f79ab58e9ada356ad1b9ec3b438c690bcc99ce818acfc31ab36ce0bb7569281\",\n    \"fee_xlm\": \"0.0418845\",\n    \"fee_paid_by\": \"facilitator\",\n    \"requester\": \"hm26 rehearse (testnet)\",\n    \"resource\": \"https://hm26-seller.kristjan-grm11775.workers.dev/api/market-brief\"\n  },\n  \"approval_url\": null,\n  \"approval_reason\": null,\n  \"message\": \"Paid 0.10 USDC from this AI app's allowance; the facilitator paid the network fee.\",\n  \"pull\": null,\n  \"facilitator_message\": null,\n  \"grant_remaining\": \"4.90\"\n}"
+    },
+    {
+      "step": "s5",
+      "t": 53141,
+      "tool": "payment_prepare",
+      "arguments": {
+        "recipient": "Alice",
+        "amount": "2",
+        "reason": "demo: pay a saved contact",
+        "idempotency_key": "rh-1025200932-alice-2"
+      },
+      "ms": 506,
+      "ok": true,
+      "isError": false,
+      "structured": {
+        "payment_id": "pi_348852ed531e2c11bcea37fb5a697964",
+        "kind": "payment",
+        "status": "prepared",
+        "lane": "autonomous",
+        "approval_reason": null,
+        "amount": "2.00",
+        "asset": "USDC",
+        "network": "stellar:testnet",
+        "recipient": {
+          "name": "Alice",
+          "address": "CCHECHASMG7C4QOPTD5EBSWF632JJRUZS6VABC6ADFCKPHGJH4T3SO4Q",
+          "readiness": "usdc_ready"
+        },
+        "fee_ceiling_xlm": 40,
+        "reason": "demo: pay a saved contact",
+        "expires_at": "2026-10-25T20:40:28.190Z",
+        "approval_url": null,
+        "claim_url": null,
+        "receipt": null,
+        "failure": null,
+        "next_step": "Within the allowance. Call payment_execute with payment_id pi_348852ed531e2c11bcea37fb5a697964 to pay.",
+        "grant_remaining": "4.90",
+        "outcome": "ready_to_execute"
+      },
+      "text": "Within the allowance. Call payment_execute with payment_id pi_348852ed531e2c11bcea37fb5a697964 to pay.\n{\n  \"payment_id\": \"pi_348852ed531e2c11bcea37fb5a697964\",\n  \"kind\": \"payment\",\n  \"status\": \"prepared\",\n  \"lane\": \"autonomous\",\n  \"approval_reason\": null,\n  \"amount\": \"2.00\",\n  \"asset\": \"USDC\",\n  \"network\": \"stellar:testnet\",\n  \"recipient\": {\n    \"name\": \"Alice\",\n    \"address\": \"CCHECHASMG7C4QOPTD5EBSWF632JJRUZS6VABC6ADFCKPHGJH4T3SO4Q\",\n    \"readiness\": \"usdc_ready\"\n  },\n  \"fee_ceiling_xlm\": 40,\n  \"reason\": \"demo: pay a saved contact\",\n  \"expires_at\": \"2026-10-25T20:40:28.190Z\",\n  \"approval_url\": null,\n  \"claim_url\": null,\n  \"receipt\": null,\n  \"failure\": null,\n  \"next_step\": \"Within the allowance. Call payment_execute with payment_id pi_348852ed531e2c11bcea37fb5a697964 to pay.\",\n  \"grant_remaining\": \"4.90\",\n  \"outcome\": \"ready_to_execute\"\n}"
+    },
+    {
+      "step": "s5",
+      "t": 53893,
+      "tool": "payment_execute",
+      "arguments": {
+        "payment_id": "pi_348852ed531e2c11bcea37fb5a697964",
+        "idempotency_key": "rh-1025200932-alice-2-exec"
+      },
+      "ms": 4864,
+      "ok": true,
+      "isError": false,
+      "structured": {
+        "payment_id": "pi_348852ed531e2c11bcea37fb5a697964",
+        "kind": "payment",
+        "status": "confirmed",
+        "lane": "autonomous",
+        "approval_reason": null,
+        "amount": "2.00",
+        "asset": "USDC",
+        "network": "stellar:testnet",
+        "recipient": {
+          "name": "Alice",
+          "address": "CCHECHASMG7C4QOPTD5EBSWF632JJRUZS6VABC6ADFCKPHGJH4T3SO4Q",
+          "readiness": "usdc_ready"
+        },
+        "fee_ceiling_xlm": 40,
+        "reason": "demo: pay a saved contact",
+        "expires_at": "2026-10-25T20:40:28.190Z",
+        "approval_url": null,
+        "claim_url": null,
+        "receipt": {
+          "receipt_id": "rc_bacbacd4b93c960546f6bd304a8f5f2a",
+          "payment_id": "pi_348852ed531e2c11bcea37fb5a697964",
+          "kind": "payment",
+          "amount": "2.00",
+          "asset": "USDC",
+          "recipient": "CCHECHASMG7C4QOPTD5EBSWF632JJRUZS6VABC6ADFCKPHGJH4T3SO4Q",
+          "recipient_name": "Alice",
+          "lane": "autonomous",
+          "tx_hash": "9f33052822b52e05c8accaaf681107143dddd9e50c9a757ab768d452eef928b9",
+          "ledger": 5387089,
+          "confirmed_at": "2026-10-25T20:10:33.193Z",
+          "explorer_url": "https://stellar.expert/explorer/testnet/tx/9f33052822b52e05c8accaaf681107143dddd9e50c9a757ab768d452eef928b9",
+          "pull_tx_hash": null,
+          "pull_explorer_url": null,
+          "fee_xlm": "0.0047471",
+          "fee_paid_by": "relayer",
+          "requester": "hm26 rehearse (testnet)",
+          "resource": null
+        },
+        "failure": null,
+        "next_step": "Confirmed on Stellar; the receipt is final.",
+        "grant_remaining": "2.90"
+      },
+      "text": "Paid 2.00 USDC to Alice from the allowance; Nod paid the network fee. Transaction 9f33052822b52e05c8accaaf681107143dddd9e50c9a757ab768d452eef928b9 (https://stellar.expert/explorer/testnet/tx/9f33052822b52e05c8accaaf681107143dddd9e50c9a757ab768d452eef928b9). This AI app may still spend 2.90 USDC.\n{\n  \"payment_id\": \"pi_348852ed531e2c11bcea37fb5a697964\",\n  \"kind\": \"payment\",\n  \"status\": \"confirmed\",\n  \"lane\": \"autonomous\",\n  \"approval_reason\": null,\n  \"amount\": \"2.00\",\n  \"asset\": \"USDC\",\n  \"network\": \"stellar:testnet\",\n  \"recipient\": {\n    \"name\": \"Alice\",\n    \"address\": \"CCHECHASMG7C4QOPTD5EBSWF632JJRUZS6VABC6ADFCKPHGJH4T3SO4Q\",\n    \"readiness\": \"usdc_ready\"\n  },\n  \"fee_ceiling_xlm\": 40,\n  \"reason\": \"demo: pay a saved contact\",\n  \"expires_at\": \"2026-10-25T20:40:28.190Z\",\n  \"approval_url\": null,\n  \"claim_url\": null,\n  \"receipt\": {\n    \"receipt_id\": \"rc_bacbacd4b93c960546f6bd304a8f5f2a\",\n    \"payment_id\": \"pi_348852ed531e2c11bcea37fb5a697964\",\n    \"kind\": \"payment\",\n    \"amount\": \"2.00\",\n    \"asset\": \"USDC\",\n    \"recipient\": \"CCHECHASMG7C4QOPTD5EBSWF632JJRUZS6VABC6ADFCKPHGJH4T3SO4Q\",\n    \"recipient_name\": \"Alice\",\n    \"lane\": \"autonomous\",\n    \"tx_hash\": \"9f33052822b52e05c8accaaf681107143dddd9e50c9a757ab768d452eef928b9\",\n    \"ledger\": 5387089,\n    \"confirmed_at\": \"2026-10-25T20:10:33.193Z\",\n    \"explorer_url\": \"https://stellar.expert/explorer/testnet/tx/9f33052822b52e05c8accaaf681107143dddd9e50c9a757ab768d452eef928b9\",\n    \"pull_tx_hash\": null,\n    \"pull_explorer_url\": null,\n    \"fee_xlm\": \"0.0047471\",\n    \"fee_paid_by\": \"relayer\",\n    \"requester\": \"hm26 rehearse (testnet)\",\n    \"resource\": null\n  },\n  \"failure\": null,\n  \"next_step\": \"Confirmed on Stellar; the receipt is final.\",\n  \"grant_remaining\": \"2.90\"\n}"
+    },
+    {
+      "step": "s5",
+      "t": 58758,
+      "tool": "payment_status",
+      "arguments": {
+        "payment_id": "pi_348852ed531e2c11bcea37fb5a697964"
+      },
+      "ms": 184,
+      "ok": true,
+      "isError": false,
+      "structured": {
+        "payment_id": "pi_348852ed531e2c11bcea37fb5a697964",
+        "kind": "payment",
+        "status": "confirmed",
+        "lane": "autonomous",
+        "approval_reason": null,
+        "amount": "2.00",
+        "asset": "USDC",
+        "network": "stellar:testnet",
+        "recipient": {
+          "name": "Alice",
+          "address": "CCHECHASMG7C4QOPTD5EBSWF632JJRUZS6VABC6ADFCKPHGJH4T3SO4Q",
+          "readiness": "usdc_ready"
+        },
+        "fee_ceiling_xlm": 40,
+        "reason": "demo: pay a saved contact",
+        "expires_at": "2026-10-25T20:40:28.190Z",
+        "approval_url": null,
+        "claim_url": null,
+        "receipt": {
+          "receipt_id": "rc_bacbacd4b93c960546f6bd304a8f5f2a",
+          "payment_id": "pi_348852ed531e2c11bcea37fb5a697964",
+          "kind": "payment",
+          "amount": "2.00",
+          "asset": "USDC",
+          "recipient": "CCHECHASMG7C4QOPTD5EBSWF632JJRUZS6VABC6ADFCKPHGJH4T3SO4Q",
+          "recipient_name": "Alice",
+          "lane": "autonomous",
+          "tx_hash": "9f33052822b52e05c8accaaf681107143dddd9e50c9a757ab768d452eef928b9",
+          "ledger": 5387089,
+          "confirmed_at": "2026-10-25T20:10:33.193Z",
+          "explorer_url": "https://stellar.expert/explorer/testnet/tx/9f33052822b52e05c8accaaf681107143dddd9e50c9a757ab768d452eef928b9",
+          "pull_tx_hash": null,
+          "pull_explorer_url": null,
+          "fee_xlm": "0.0047471",
+          "fee_paid_by": "relayer",
+          "requester": "hm26 rehearse (testnet)",
+          "resource": null
+        },
+        "failure": null,
+        "next_step": "Confirmed on Stellar; the receipt is final.",
+        "grant_remaining": "2.90"
+      },
+      "text": "Confirmed. Transaction 9f33052822b52e05c8accaaf681107143dddd9e50c9a757ab768d452eef928b9 in ledger 5387089 (https://stellar.expert/explorer/testnet/tx/9f33052822b52e05c8accaaf681107143dddd9e50c9a757ab768d452eef928b9). Confirmed on Stellar; the receipt is final.\n{\n  \"payment_id\": \"pi_348852ed531e2c11bcea37fb5a697964\",\n  \"kind\": \"payment\",\n  \"status\": \"confirmed\",\n  \"lane\": \"autonomous\",\n  \"approval_reason\": null,\n  \"amount\": \"2.00\",\n  \"asset\": \"USDC\",\n  \"network\": \"stellar:testnet\",\n  \"recipient\": {\n    \"name\": \"Alice\",\n    \"address\": \"CCHECHASMG7C4QOPTD5EBSWF632JJRUZS6VABC6ADFCKPHGJH4T3SO4Q\",\n    \"readiness\": \"usdc_ready\"\n  },\n  \"fee_ceiling_xlm\": 40,\n  \"reason\": \"demo: pay a saved contact\",\n  \"expires_at\": \"2026-10-25T20:40:28.190Z\",\n  \"approval_url\": null,\n  \"claim_url\": null,\n  \"receipt\": {\n    \"receipt_id\": \"rc_bacbacd4b93c960546f6bd304a8f5f2a\",\n    \"payment_id\": \"pi_348852ed531e2c11bcea37fb5a697964\",\n    \"kind\": \"payment\",\n    \"amount\": \"2.00\",\n    \"asset\": \"USDC\",\n    \"recipient\": \"CCHECHASMG7C4QOPTD5EBSWF632JJRUZS6VABC6ADFCKPHGJH4T3SO4Q\",\n    \"recipient_name\": \"Alice\",\n    \"lane\": \"autonomous\",\n    \"tx_hash\": \"9f33052822b52e05c8accaaf681107143dddd9e50c9a757ab768d452eef928b9\",\n    \"ledger\": 5387089,\n    \"confirmed_at\": \"2026-10-25T20:10:33.193Z\",\n    \"explorer_url\": \"https://stellar.expert/explorer/testnet/tx/9f33052822b52e05c8accaaf681107143dddd9e50c9a757ab768d452eef928b9\",\n    \"pull_tx_hash\": null,\n    \"pull_explorer_url\": null,\n    \"fee_xlm\": \"0.0047471\",\n    \"fee_paid_by\": \"relayer\",\n    \"requester\": \"hm26 rehearse (testnet)\",\n    \"resource\": null\n  },\n  \"failure\": null,\n  \"next_step\": \"Confirmed on Stellar; the receipt is final.\",\n  \"grant_remaining\": \"2.90\"\n}"
+    },
+    {
+      "step": "s6",
+      "t": 59663,
+      "tool": "payment_prepare",
+      "arguments": {
+        "recipient": "Bob",
+        "amount": "5",
+        "reason": "dinner",
+        "idempotency_key": "rh-1025200932-dinner"
+      },
+      "ms": 818,
+      "ok": true,
+      "isError": false,
+      "structured": {
+        "payment_id": "pi_fa474a45fe109b114c2edc43cd08f93f",
+        "kind": "payment",
+        "status": "awaiting_approval",
+        "lane": "owner",
+        "approval_reason": "over_allowance",
+        "amount": "5.00",
+        "asset": "USDC",
+        "network": "stellar:testnet",
+        "recipient": {
+          "name": "Bob",
+          "address": "GACQCAQZSAUAZIXAGUTCQX76CWZBQQK4Y75YT5NZONNAWCXMO2BJNGIY",
+          "readiness": "usdc_ready"
+        },
+        "fee_ceiling_xlm": 12,
+        "reason": "dinner",
+        "expires_at": "2026-10-25T20:40:34.847Z",
+        "approval_url": "https://testnet.trynod.si/approve/pi_fa474a45fe109b114c2edc43cd08f93f",
+        "claim_url": null,
+        "receipt": null,
+        "failure": null,
+        "next_step": "This needs the user's nod. Ask the user to open https://testnet.trynod.si/approve/pi_fa474a45fe109b114c2edc43cd08f93f and approve it with their passkey, then poll payment_status with payment_id pi_fa474a45fe109b114c2edc43cd08f93f.",
+        "grant_remaining": "2.90",
+        "outcome": "requires_approval"
+      },
+      "text": "This payment of 5.00 USDC to Bob is above what this AI app may spend on its own, so it needs the user's nod. Ask the user to open https://testnet.trynod.si/approve/pi_fa474a45fe109b114c2edc43cd08f93f and approve it with their passkey, then call payment_status with payment_id pi_fa474a45fe109b114c2edc43cd08f93f.\n{\n  \"payment_id\": \"pi_fa474a45fe109b114c2edc43cd08f93f\",\n  \"kind\": \"payment\",\n  \"status\": \"awaiting_approval\",\n  \"lane\": \"owner\",\n  \"approval_reason\": \"over_allowance\",\n  \"amount\": \"5.00\",\n  \"asset\": \"USDC\",\n  \"network\": \"stellar:testnet\",\n  \"recipient\": {\n    \"name\": \"Bob\",\n    \"address\": \"GACQCAQZSAUAZIXAGUTCQX76CWZBQQK4Y75YT5NZONNAWCXMO2BJNGIY\",\n    \"readiness\": \"usdc_ready\"\n  },\n  \"fee_ceiling_xlm\": 12,\n  \"reason\": \"dinner\",\n  \"expires_at\": \"2026-10-25T20:40:34.847Z\",\n  \"approval_url\": \"https://testnet.trynod.si/approve/pi_fa474a45fe109b114c2edc43cd08f93f\",\n  \"claim_url\": null,\n  \"receipt\": null,\n  \"failure\": null,\n  \"next_step\": \"This needs the user's nod. Ask the user to open https://testnet.trynod.si/approve/pi_fa474a45fe109b114c2edc43cd08f93f and approve it with their passkey, then poll payment_status with payment_id pi_fa474a45fe109b114c2edc43cd08f93f.\",\n  \"grant_remaining\": \"2.90\",\n  \"outcome\": \"requires_approval\"\n}"
+    },
+    {
+      "step": "s6",
+      "t": 60481,
+      "tool": "payment_status",
+      "arguments": {
+        "payment_id": "pi_fa474a45fe109b114c2edc43cd08f93f"
+      },
+      "ms": 189,
+      "ok": true,
+      "isError": false,
+      "structured": {
+        "payment_id": "pi_fa474a45fe109b114c2edc43cd08f93f",
+        "kind": "payment",
+        "status": "awaiting_approval",
+        "lane": "owner",
+        "approval_reason": "over_allowance",
+        "amount": "5.00",
+        "asset": "USDC",
+        "network": "stellar:testnet",
+        "recipient": {
+          "name": "Bob",
+          "address": "GACQCAQZSAUAZIXAGUTCQX76CWZBQQK4Y75YT5NZONNAWCXMO2BJNGIY",
+          "readiness": "usdc_ready"
+        },
+        "fee_ceiling_xlm": 12,
+        "reason": "dinner",
+        "expires_at": "2026-10-25T20:40:34.847Z",
+        "approval_url": "https://testnet.trynod.si/approve/pi_fa474a45fe109b114c2edc43cd08f93f",
+        "claim_url": null,
+        "receipt": null,
+        "failure": null,
+        "next_step": "This needs the user's nod. Ask the user to open https://testnet.trynod.si/approve/pi_fa474a45fe109b114c2edc43cd08f93f and approve it with their passkey, then poll payment_status with payment_id pi_fa474a45fe109b114c2edc43cd08f93f.",
+        "grant_remaining": "2.90"
+      },
+      "text": "Still waiting for the user's nod at https://testnet.trynod.si/approve/pi_fa474a45fe109b114c2edc43cd08f93f.\n{\n  \"payment_id\": \"pi_fa474a45fe109b114c2edc43cd08f93f\",\n  \"kind\": \"payment\",\n  \"status\": \"awaiting_approval\",\n  \"lane\": \"owner\",\n  \"approval_reason\": \"over_allowance\",\n  \"amount\": \"5.00\",\n  \"asset\": \"USDC\",\n  \"network\": \"stellar:testnet\",\n  \"recipient\": {\n    \"name\": \"Bob\",\n    \"address\": \"GACQCAQZSAUAZIXAGUTCQX76CWZBQQK4Y75YT5NZONNAWCXMO2BJNGIY\",\n    \"readiness\": \"usdc_ready\"\n  },\n  \"fee_ceiling_xlm\": 12,\n  \"reason\": \"dinner\",\n  \"expires_at\": \"2026-10-25T20:40:34.847Z\",\n  \"approval_url\": \"https://testnet.trynod.si/approve/pi_fa474a45fe109b114c2edc43cd08f93f\",\n  \"claim_url\": null,\n  \"receipt\": null,\n  \"failure\": null,\n  \"next_step\": \"This needs the user's nod. Ask the user to open https://testnet.trynod.si/approve/pi_fa474a45fe109b114c2edc43cd08f93f and approve it with their passkey, then poll payment_status with payment_id pi_fa474a45fe109b114c2edc43cd08f93f.\",\n  \"grant_remaining\": \"2.90\"\n}"
+    },
+    {
+      "step": "s7",
+      "t": 61048,
+      "tool": "payment_status",
+      "arguments": {
+        "payment_id": "pi_fa474a45fe109b114c2edc43cd08f93f"
+      },
+      "ms": 189,
+      "ok": true,
+      "isError": false,
+      "structured": {
+        "payment_id": "pi_fa474a45fe109b114c2edc43cd08f93f",
+        "kind": "payment",
+        "status": "awaiting_approval",
+        "lane": "owner",
+        "approval_reason": "over_allowance",
+        "amount": "5.00",
+        "asset": "USDC",
+        "network": "stellar:testnet",
+        "recipient": {
+          "name": "Bob",
+          "address": "GACQCAQZSAUAZIXAGUTCQX76CWZBQQK4Y75YT5NZONNAWCXMO2BJNGIY",
+          "readiness": "usdc_ready"
+        },
+        "fee_ceiling_xlm": 12,
+        "reason": "dinner",
+        "expires_at": "2026-10-25T20:40:34.847Z",
+        "approval_url": "https://testnet.trynod.si/approve/pi_fa474a45fe109b114c2edc43cd08f93f",
+        "claim_url": null,
+        "receipt": null,
+        "failure": null,
+        "next_step": "This needs the user's nod. Ask the user to open https://testnet.trynod.si/approve/pi_fa474a45fe109b114c2edc43cd08f93f and approve it with their passkey, then poll payment_status with payment_id pi_fa474a45fe109b114c2edc43cd08f93f.",
+        "grant_remaining": "2.90"
+      },
+      "text": "Still waiting for the user's nod at https://testnet.trynod.si/approve/pi_fa474a45fe109b114c2edc43cd08f93f.\n{\n  \"payment_id\": \"pi_fa474a45fe109b114c2edc43cd08f93f\",\n  \"kind\": \"payment\",\n  \"status\": \"awaiting_approval\",\n  \"lane\": \"owner\",\n  \"approval_reason\": \"over_allowance\",\n  \"amount\": \"5.00\",\n  \"asset\": \"USDC\",\n  \"network\": \"stellar:testnet\",\n  \"recipient\": {\n    \"name\": \"Bob\",\n    \"address\": \"GACQCAQZSAUAZIXAGUTCQX76CWZBQQK4Y75YT5NZONNAWCXMO2BJNGIY\",\n    \"readiness\": \"usdc_ready\"\n  },\n  \"fee_ceiling_xlm\": 12,\n  \"reason\": \"dinner\",\n  \"expires_at\": \"2026-10-25T20:40:34.847Z\",\n  \"approval_url\": \"https://testnet.trynod.si/approve/pi_fa474a45fe109b114c2edc43cd08f93f\",\n  \"claim_url\": null,\n  \"receipt\": null,\n  \"failure\": null,\n  \"next_step\": \"This needs the user's nod. Ask the user to open https://testnet.trynod.si/approve/pi_fa474a45fe109b114c2edc43cd08f93f and approve it with their passkey, then poll payment_status with payment_id pi_fa474a45fe109b114c2edc43cd08f93f.\",\n  \"grant_remaining\": \"2.90\"\n}"
+    },
+    {
+      "step": "s7",
+      "t": 69507,
+      "tool": "payment_status",
+      "arguments": {
+        "payment_id": "pi_fa474a45fe109b114c2edc43cd08f93f"
+      },
+      "ms": 501,
+      "ok": true,
+      "isError": false,
+      "structured": {
+        "payment_id": "pi_fa474a45fe109b114c2edc43cd08f93f",
+        "kind": "payment",
+        "status": "confirmed",
+        "lane": "owner",
+        "approval_reason": "over_allowance",
+        "amount": "5.00",
+        "asset": "USDC",
+        "network": "stellar:testnet",
+        "recipient": {
+          "name": "Bob",
+          "address": "GACQCAQZSAUAZIXAGUTCQX76CWZBQQK4Y75YT5NZONNAWCXMO2BJNGIY",
+          "readiness": "usdc_ready"
+        },
+        "fee_ceiling_xlm": 12,
+        "reason": "dinner",
+        "expires_at": "2026-10-25T20:40:34.847Z",
+        "approval_url": null,
+        "claim_url": null,
+        "receipt": {
+          "receipt_id": "rc_ebcb4b242ff01d45e7adcfac55be3424",
+          "payment_id": "pi_fa474a45fe109b114c2edc43cd08f93f",
+          "kind": "payment",
+          "amount": "5.00",
+          "asset": "USDC",
+          "recipient": "GACQCAQZSAUAZIXAGUTCQX76CWZBQQK4Y75YT5NZONNAWCXMO2BJNGIY",
+          "recipient_name": "Bob",
+          "lane": "owner",
+          "tx_hash": "2e520c8ea597ab441aa83ec932f297e90737223cd6336e827c4b30895fe54e07",
+          "ledger": 5387091,
+          "confirmed_at": "2026-10-25T20:10:42.836Z",
+          "explorer_url": "https://stellar.expert/explorer/testnet/tx/2e520c8ea597ab441aa83ec932f297e90737223cd6336e827c4b30895fe54e07",
+          "pull_tx_hash": null,
+          "pull_explorer_url": null,
+          "fee_xlm": "0.0012949",
+          "fee_paid_by": "relayer",
+          "requester": "hm26 rehearse (testnet)",
+          "resource": null
+        },
+        "failure": null,
+        "next_step": "Confirmed on Stellar: the user approved this payment with their passkey on Nod's approval page. The receipt is final.",
+        "grant_remaining": "2.90"
+      },
+      "text": "Confirmed. Transaction 2e520c8ea597ab441aa83ec932f297e90737223cd6336e827c4b30895fe54e07 in ledger 5387091 (https://stellar.expert/explorer/testnet/tx/2e520c8ea597ab441aa83ec932f297e90737223cd6336e827c4b30895fe54e07). Confirmed on Stellar: the user approved this payment with their passkey on Nod's approval page. The receipt is final.\n{\n  \"payment_id\": \"pi_fa474a45fe109b114c2edc43cd08f93f\",\n  \"kind\": \"payment\",\n  \"status\": \"confirmed\",\n  \"lane\": \"owner\",\n  \"approval_reason\": \"over_allowance\",\n  \"amount\": \"5.00\",\n  \"asset\": \"USDC\",\n  \"network\": \"stellar:testnet\",\n  \"recipient\": {\n    \"name\": \"Bob\",\n    \"address\": \"GACQCAQZSAUAZIXAGUTCQX76CWZBQQK4Y75YT5NZONNAWCXMO2BJNGIY\",\n    \"readiness\": \"usdc_ready\"\n  },\n  \"fee_ceiling_xlm\": 12,\n  \"reason\": \"dinner\",\n  \"expires_at\": \"2026-10-25T20:40:34.847Z\",\n  \"approval_url\": null,\n  \"claim_url\": null,\n  \"receipt\": {\n    \"receipt_id\": \"rc_ebcb4b242ff01d45e7adcfac55be3424\",\n    \"payment_id\": \"pi_fa474a45fe109b114c2edc43cd08f93f\",\n    \"kind\": \"payment\",\n    \"amount\": \"5.00\",\n    \"asset\": \"USDC\",\n    \"recipient\": \"GACQCAQZSAUAZIXAGUTCQX76CWZBQQK4Y75YT5NZONNAWCXMO2BJNGIY\",\n    \"recipient_name\": \"Bob\",\n    \"lane\": \"owner\",\n    \"tx_hash\": \"2e520c8ea597ab441aa83ec932f297e90737223cd6336e827c4b30895fe54e07\",\n    \"ledger\": 5387091,\n    \"confirmed_at\": \"2026-10-25T20:10:42.836Z\",\n    \"explorer_url\": \"https://stellar.expert/explorer/testnet/tx/2e520c8ea597ab441aa83ec932f297e90737223cd6336e827c4b30895fe54e07\",\n    \"pull_tx_hash\": null,\n    \"pull_explorer_url\": null,\n    \"fee_xlm\": \"0.0012949\",\n    \"fee_paid_by\": \"relayer\",\n    \"requester\": \"hm26 rehearse (testnet)\",\n    \"resource\": null\n  },\n  \"failure\": null,\n  \"next_step\": \"Confirmed on Stellar: the user approved this payment with their passkey on Nod's approval page. The receipt is final.\",\n  \"grant_remaining\": \"2.90\"\n}"
+    },
+    {
+      "step": "s8a",
+      "t": 71265,
+      "tool": "payment_prepare",
+      "arguments": {
+        "recipient": "Bob",
+        "amount": "5",
+        "reason": "dinner",
+        "idempotency_key": "rh-1025200932-dinner"
+      },
+      "ms": 546,
+      "ok": true,
+      "isError": false,
+      "structured": {
+        "payment_id": "pi_fa474a45fe109b114c2edc43cd08f93f",
+        "kind": "payment",
+        "status": "confirmed",
+        "lane": "owner",
+        "approval_reason": "over_allowance",
+        "amount": "5.00",
+        "asset": "USDC",
+        "network": "stellar:testnet",
+        "recipient": {
+          "name": "Bob",
+          "address": "GACQCAQZSAUAZIXAGUTCQX76CWZBQQK4Y75YT5NZONNAWCXMO2BJNGIY",
+          "readiness": "usdc_ready"
+        },
+        "fee_ceiling_xlm": 12,
+        "reason": "dinner",
+        "expires_at": "2026-10-25T20:40:34.847Z",
+        "approval_url": null,
+        "claim_url": null,
+        "receipt": {
+          "receipt_id": "rc_ebcb4b242ff01d45e7adcfac55be3424",
+          "payment_id": "pi_fa474a45fe109b114c2edc43cd08f93f",
+          "kind": "payment",
+          "amount": "5.00",
+          "asset": "USDC",
+          "recipient": "GACQCAQZSAUAZIXAGUTCQX76CWZBQQK4Y75YT5NZONNAWCXMO2BJNGIY",
+          "recipient_name": "Bob",
+          "lane": "owner",
+          "tx_hash": "2e520c8ea597ab441aa83ec932f297e90737223cd6336e827c4b30895fe54e07",
+          "ledger": 5387091,
+          "confirmed_at": "2026-10-25T20:10:42.836Z",
+          "explorer_url": "https://stellar.expert/explorer/testnet/tx/2e520c8ea597ab441aa83ec932f297e90737223cd6336e827c4b30895fe54e07",
+          "pull_tx_hash": null,
+          "pull_explorer_url": null,
+          "fee_xlm": "0.0012949",
+          "fee_paid_by": "relayer",
+          "requester": "hm26 rehearse (testnet)",
+          "resource": null
+        },
+        "failure": null,
+        "next_step": "Confirmed on Stellar: the user approved this payment with their passkey on Nod's approval page. The receipt is final.",
+        "grant_remaining": "2.90",
+        "outcome": "confirmed"
+      },
+      "text": "Confirmed on Stellar: the user approved this payment with their passkey on Nod's approval page. The receipt is final.\n{\n  \"payment_id\": \"pi_fa474a45fe109b114c2edc43cd08f93f\",\n  \"kind\": \"payment\",\n  \"status\": \"confirmed\",\n  \"lane\": \"owner\",\n  \"approval_reason\": \"over_allowance\",\n  \"amount\": \"5.00\",\n  \"asset\": \"USDC\",\n  \"network\": \"stellar:testnet\",\n  \"recipient\": {\n    \"name\": \"Bob\",\n    \"address\": \"GACQCAQZSAUAZIXAGUTCQX76CWZBQQK4Y75YT5NZONNAWCXMO2BJNGIY\",\n    \"readiness\": \"usdc_ready\"\n  },\n  \"fee_ceiling_xlm\": 12,\n  \"reason\": \"dinner\",\n  \"expires_at\": \"2026-10-25T20:40:34.847Z\",\n  \"approval_url\": null,\n  \"claim_url\": null,\n  \"receipt\": {\n    \"receipt_id\": \"rc_ebcb4b242ff01d45e7adcfac55be3424\",\n    \"payment_id\": \"pi_fa474a45fe109b114c2edc43cd08f93f\",\n    \"kind\": \"payment\",\n    \"amount\": \"5.00\",\n    \"asset\": \"USDC\",\n    \"recipient\": \"GACQCAQZSAUAZIXAGUTCQX76CWZBQQK4Y75YT5NZONNAWCXMO2BJNGIY\",\n    \"recipient_name\": \"Bob\",\n    \"lane\": \"owner\",\n    \"tx_hash\": \"2e520c8ea597ab441aa83ec932f297e90737223cd6336e827c4b30895fe54e07\",\n    \"ledger\": 5387091,\n    \"confirmed_at\": \"2026-10-25T20:10:42.836Z\",\n    \"explorer_url\": \"https://stellar.expert/explorer/testnet/tx/2e520c8ea597ab441aa83ec932f297e90737223cd6336e827c4b30895fe54e07\",\n    \"pull_tx_hash\": null,\n    \"pull_explorer_url\": null,\n    \"fee_xlm\": \"0.0012949\",\n    \"fee_paid_by\": \"relayer\",\n    \"requester\": \"hm26 rehearse (testnet)\",\n    \"resource\": null\n  },\n  \"failure\": null,\n  \"next_step\": \"Confirmed on Stellar: the user approved this payment with their passkey on Nod's approval page. The receipt is final.\",\n  \"grant_remaining\": \"2.90\",\n  \"outcome\": \"confirmed\"\n}"
+    },
+    {
+      "step": "s8b",
+      "t": 78088,
+      "tool": "payment_prepare",
+      "arguments": {
+        "recipient": "Alice",
+        "amount": "4",
+        "reason": "more than the allowance left",
+        "idempotency_key": "rh-1025200932-alice-over"
+      },
+      "ms": 507,
+      "ok": true,
+      "isError": false,
+      "structured": {
+        "payment_id": "pi_a4d4093706b6a40d976950a55e48b34b",
+        "kind": "payment",
+        "status": "awaiting_approval",
+        "lane": "owner",
+        "approval_reason": "over_allowance",
+        "amount": "4.00",
+        "asset": "USDC",
+        "network": "stellar:testnet",
+        "recipient": {
+          "name": "Alice",
+          "address": "CCHECHASMG7C4QOPTD5EBSWF632JJRUZS6VABC6ADFCKPHGJH4T3SO4Q",
+          "readiness": "usdc_ready"
+        },
+        "fee_ceiling_xlm": 12,
+        "reason": "more than the allowance left",
+        "expires_at": "2026-10-25T20:40:53.152Z",
+        "approval_url": "https://testnet.trynod.si/approve/pi_a4d4093706b6a40d976950a55e48b34b",
+        "claim_url": null,
+        "receipt": null,
+        "failure": null,
+        "next_step": "This needs the user's nod. Ask the user to open https://testnet.trynod.si/approve/pi_a4d4093706b6a40d976950a55e48b34b and approve it with their passkey, then poll payment_status with payment_id pi_a4d4093706b6a40d976950a55e48b34b.",
+        "grant_remaining": "2.90",
+        "outcome": "requires_approval"
+      },
+      "text": "This payment of 4.00 USDC to Alice is above what this AI app may spend on its own, so it needs the user's nod. Ask the user to open https://testnet.trynod.si/approve/pi_a4d4093706b6a40d976950a55e48b34b and approve it with their passkey, then call payment_status with payment_id pi_a4d4093706b6a40d976950a55e48b34b.\n{\n  \"payment_id\": \"pi_a4d4093706b6a40d976950a55e48b34b\",\n  \"kind\": \"payment\",\n  \"status\": \"awaiting_approval\",\n  \"lane\": \"owner\",\n  \"approval_reason\": \"over_allowance\",\n  \"amount\": \"4.00\",\n  \"asset\": \"USDC\",\n  \"network\": \"stellar:testnet\",\n  \"recipient\": {\n    \"name\": \"Alice\",\n    \"address\": \"CCHECHASMG7C4QOPTD5EBSWF632JJRUZS6VABC6ADFCKPHGJH4T3SO4Q\",\n    \"readiness\": \"usdc_ready\"\n  },\n  \"fee_ceiling_xlm\": 12,\n  \"reason\": \"more than the allowance left\",\n  \"expires_at\": \"2026-10-25T20:40:53.152Z\",\n  \"approval_url\": \"https://testnet.trynod.si/approve/pi_a4d4093706b6a40d976950a55e48b34b\",\n  \"claim_url\": null,\n  \"receipt\": null,\n  \"failure\": null,\n  \"next_step\": \"This needs the user's nod. Ask the user to open https://testnet.trynod.si/approve/pi_a4d4093706b6a40d976950a55e48b34b and approve it with their passkey, then poll payment_status with payment_id pi_a4d4093706b6a40d976950a55e48b34b.\",\n  \"grant_remaining\": \"2.90\",\n  \"outcome\": \"requires_approval\"\n}"
+    },
+    {
+      "step": "s8b",
+      "t": 78596,
+      "tool": "payment_execute",
+      "arguments": {
+        "payment_id": "pi_a4d4093706b6a40d976950a55e48b34b",
+        "idempotency_key": "rh-1025200932-alice-over-exec"
+      },
+      "ms": 249,
+      "ok": true,
+      "isError": false,
+      "structured": {
+        "payment_id": "pi_a4d4093706b6a40d976950a55e48b34b",
+        "kind": "payment",
+        "status": "awaiting_approval",
+        "lane": "owner",
+        "approval_reason": "over_allowance",
+        "amount": "4.00",
+        "asset": "USDC",
+        "network": "stellar:testnet",
+        "recipient": {
+          "name": "Alice",
+          "address": "CCHECHASMG7C4QOPTD5EBSWF632JJRUZS6VABC6ADFCKPHGJH4T3SO4Q",
+          "readiness": "usdc_ready"
+        },
+        "fee_ceiling_xlm": 12,
+        "reason": "more than the allowance left",
+        "expires_at": "2026-10-25T20:40:53.152Z",
+        "approval_url": "https://testnet.trynod.si/approve/pi_a4d4093706b6a40d976950a55e48b34b",
+        "claim_url": null,
+        "receipt": null,
+        "failure": null,
+        "next_step": "This needs the user's nod. Ask the user to open https://testnet.trynod.si/approve/pi_a4d4093706b6a40d976950a55e48b34b and approve it with their passkey, then poll payment_status with payment_id pi_a4d4093706b6a40d976950a55e48b34b.",
+        "grant_remaining": "2.90"
+      },
+      "text": "Not paid: this needs the user's nod. Ask the user to open https://testnet.trynod.si/approve/pi_a4d4093706b6a40d976950a55e48b34b and approve it with their passkey, then call payment_status with payment_id pi_a4d4093706b6a40d976950a55e48b34b.\n{\n  \"payment_id\": \"pi_a4d4093706b6a40d976950a55e48b34b\",\n  \"kind\": \"payment\",\n  \"status\": \"awaiting_approval\",\n  \"lane\": \"owner\",\n  \"approval_reason\": \"over_allowance\",\n  \"amount\": \"4.00\",\n  \"asset\": \"USDC\",\n  \"network\": \"stellar:testnet\",\n  \"recipient\": {\n    \"name\": \"Alice\",\n    \"address\": \"CCHECHASMG7C4QOPTD5EBSWF632JJRUZS6VABC6ADFCKPHGJH4T3SO4Q\",\n    \"readiness\": \"usdc_ready\"\n  },\n  \"fee_ceiling_xlm\": 12,\n  \"reason\": \"more than the allowance left\",\n  \"expires_at\": \"2026-10-25T20:40:53.152Z\",\n  \"approval_url\": \"https://testnet.trynod.si/approve/pi_a4d4093706b6a40d976950a55e48b34b\",\n  \"claim_url\": null,\n  \"receipt\": null,\n  \"failure\": null,\n  \"next_step\": \"This needs the user's nod. Ask the user to open https://testnet.trynod.si/approve/pi_a4d4093706b6a40d976950a55e48b34b and approve it with their passkey, then poll payment_status with payment_id pi_a4d4093706b6a40d976950a55e48b34b.\",\n  \"grant_remaining\": \"2.90\"\n}"
+    },
+    {
+      "step": "s10",
+      "t": 78846,
+      "tool": "payment_prepare",
+      "arguments": {
+        "recipient": "Carol",
+        "amount": "1",
+        "reason": "claim-link demo",
+        "idempotency_key": "rh-1025200932-carol"
+      },
+      "ms": 513,
+      "ok": true,
+      "isError": false,
+      "structured": {
+        "payment_id": "pi_56bc895376303f959c88c17016b4bf2a",
+        "kind": "payment",
+        "status": "awaiting_approval",
+        "lane": "owner",
+        "approval_reason": "recipient_not_ready",
+        "amount": "1.00",
+        "asset": "USDC",
+        "network": "stellar:testnet",
+        "recipient": {
+          "name": "Carol",
+          "address": "GALY5TMIFUVMUO626Y66WWXOXZM6FJQVJA7ROBO2PCTFWGYBJYUQUUAK",
+          "readiness": "trustline_required"
+        },
+        "fee_ceiling_xlm": 12,
+        "reason": "claim-link demo",
+        "expires_at": "2026-10-25T20:40:53.897Z",
+        "approval_url": "https://testnet.trynod.si/approve/pi_56bc895376303f959c88c17016b4bf2a",
+        "claim_url": "https://testnet.trynod.si/claim/pi_56bc895376303f959c88c17016b4bf2a",
+        "receipt": null,
+        "failure": null,
+        "next_step": "This needs the user's nod, and the recipient accepts on a claim link: ask the user to open https://testnet.trynod.si/approve/pi_56bc895376303f959c88c17016b4bf2a and approve it with their passkey, then poll payment_status with payment_id pi_56bc895376303f959c88c17016b4bf2a.",
+        "grant_remaining": "2.90",
+        "outcome": "requires_approval"
+      },
+      "text": "This payment of 1.00 USDC to Carol is above what this AI app may spend on its own, so it needs the user's nod. Ask the user to open https://testnet.trynod.si/approve/pi_56bc895376303f959c88c17016b4bf2a and approve it with their passkey, then call payment_status with payment_id pi_56bc895376303f959c88c17016b4bf2a. Carol has no USDC trustline yet: they accept at https://testnet.trynod.si/claim/pi_56bc895376303f959c88c17016b4bf2a.\n{\n  \"payment_id\": \"pi_56bc895376303f959c88c17016b4bf2a\",\n  \"kind\": \"payment\",\n  \"status\": \"awaiting_approval\",\n  \"lane\": \"owner\",\n  \"approval_reason\": \"recipient_not_ready\",\n  \"amount\": \"1.00\",\n  \"asset\": \"USDC\",\n  \"network\": \"stellar:testnet\",\n  \"recipient\": {\n    \"name\": \"Carol\",\n    \"address\": \"GALY5TMIFUVMUO626Y66WWXOXZM6FJQVJA7ROBO2PCTFWGYBJYUQUUAK\",\n    \"readiness\": \"trustline_required\"\n  },\n  \"fee_ceiling_xlm\": 12,\n  \"reason\": \"claim-link demo\",\n  \"expires_at\": \"2026-10-25T20:40:53.897Z\",\n  \"approval_url\": \"https://testnet.trynod.si/approve/pi_56bc895376303f959c88c17016b4bf2a\",\n  \"claim_url\": \"https://testnet.trynod.si/claim/pi_56bc895376303f959c88c17016b4bf2a\",\n  \"receipt\": null,\n  \"failure\": null,\n  \"next_step\": \"This needs the user's nod, and the recipient accepts on a claim link: ask the user to open https://testnet.trynod.si/approve/pi_56bc895376303f959c88c17016b4bf2a and approve it with their passkey, then poll payment_status with payment_id pi_56bc895376303f959c88c17016b4bf2a.\",\n  \"grant_remaining\": \"2.90\",\n  \"outcome\": \"requires_approval\"\n}"
+    },
+    {
+      "step": "s10",
+      "t": 88451,
+      "tool": "payment_status",
+      "arguments": {
+        "payment_id": "pi_56bc895376303f959c88c17016b4bf2a"
+      },
+      "ms": 190,
+      "ok": true,
+      "isError": false,
+      "structured": {
+        "payment_id": "pi_56bc895376303f959c88c17016b4bf2a",
+        "kind": "payment",
+        "status": "confirmed",
+        "lane": "owner",
+        "approval_reason": "recipient_not_ready",
+        "amount": "1.00",
+        "asset": "USDC",
+        "network": "stellar:testnet",
+        "recipient": {
+          "name": "Carol",
+          "address": "GALY5TMIFUVMUO626Y66WWXOXZM6FJQVJA7ROBO2PCTFWGYBJYUQUUAK",
+          "readiness": "trustline_required"
+        },
+        "fee_ceiling_xlm": 12,
+        "reason": "claim-link demo",
+        "expires_at": "2026-10-25T20:40:53.897Z",
+        "approval_url": null,
+        "claim_url": null,
+        "receipt": {
+          "receipt_id": "rc_e513f32a7fc74a0ed8945fa312d1c7c2",
+          "payment_id": "pi_56bc895376303f959c88c17016b4bf2a",
+          "kind": "payment",
+          "amount": "1.00",
+          "asset": "USDC",
+          "recipient": "GALY5TMIFUVMUO626Y66WWXOXZM6FJQVJA7ROBO2PCTFWGYBJYUQUUAK",
+          "recipient_name": "Carol",
+          "lane": "owner",
+          "tx_hash": "4bb71d0bb3b5516c045a1ec8c807d8a3e9aca1b5a28dc1c6576923ebb87fa2fb",
+          "ledger": 5387095,
+          "confirmed_at": "2026-10-25T20:11:02.688Z",
+          "explorer_url": "https://stellar.expert/explorer/testnet/tx/4bb71d0bb3b5516c045a1ec8c807d8a3e9aca1b5a28dc1c6576923ebb87fa2fb",
+          "pull_tx_hash": null,
+          "pull_explorer_url": null,
+          "fee_xlm": "0.0020035",
+          "fee_paid_by": "relayer",
+          "requester": "hm26 rehearse (testnet)",
+          "resource": null
+        },
+        "failure": null,
+        "next_step": "Confirmed on Stellar: the user approved this payment with their passkey, and Carol accepted the claim link, so their USDC trustline and the payment landed in one transaction. Carol is now ready to receive USDC (usdc_ready). The receipt is final.",
+        "grant_remaining": "2.90"
+      },
+      "text": "Confirmed. Transaction 4bb71d0bb3b5516c045a1ec8c807d8a3e9aca1b5a28dc1c6576923ebb87fa2fb in ledger 5387095 (https://stellar.expert/explorer/testnet/tx/4bb71d0bb3b5516c045a1ec8c807d8a3e9aca1b5a28dc1c6576923ebb87fa2fb). Confirmed on Stellar: the user approved this payment with their passkey, and Carol accepted the claim link, so their USDC trustline and the payment landed in one transaction. Carol is now ready to receive USDC (usdc_ready). The receipt is final.\n{\n  \"payment_id\": \"pi_56bc895376303f959c88c17016b4bf2a\",\n  \"kind\": \"payment\",\n  \"status\": \"confirmed\",\n  \"lane\": \"owner\",\n  \"approval_reason\": \"recipient_not_ready\",\n  \"amount\": \"1.00\",\n  \"asset\": \"USDC\",\n  \"network\": \"stellar:testnet\",\n  \"recipient\": {\n    \"name\": \"Carol\",\n    \"address\": \"GALY5TMIFUVMUO626Y66WWXOXZM6FJQVJA7ROBO2PCTFWGYBJYUQUUAK\",\n    \"readiness\": \"trustline_required\"\n  },\n  \"fee_ceiling_xlm\": 12,\n  \"reason\": \"claim-link demo\",\n  \"expires_at\": \"2026-10-25T20:40:53.897Z\",\n  \"approval_url\": null,\n  \"claim_url\": null,\n  \"receipt\": {\n    \"receipt_id\": \"rc_e513f32a7fc74a0ed8945fa312d1c7c2\",\n    \"payment_id\": \"pi_56bc895376303f959c88c17016b4bf2a\",\n    \"kind\": \"payment\",\n    \"amount\": \"1.00\",\n    \"asset\": \"USDC\",\n    \"recipient\": \"GALY5TMIFUVMUO626Y66WWXOXZM6FJQVJA7ROBO2PCTFWGYBJYUQUUAK\",\n    \"recipient_name\": \"Carol\",\n    \"lane\": \"owner\",\n    \"tx_hash\": \"4bb71d0bb3b5516c045a1ec8c807d8a3e9aca1b5a28dc1c6576923ebb87fa2fb\",\n    \"ledger\": 5387095,\n    \"confirmed_at\": \"2026-10-25T20:11:02.688Z\",\n    \"explorer_url\": \"https://stellar.expert/explorer/testnet/tx/4bb71d0bb3b5516c045a1ec8c807d8a3e9aca1b5a28dc1c6576923ebb87fa2fb\",\n    \"pull_tx_hash\": null,\n    \"pull_explorer_url\": null,\n    \"fee_xlm\": \"0.0020035\",\n    \"fee_paid_by\": \"relayer\",\n    \"requester\": \"hm26 rehearse (testnet)\",\n    \"resource\": null\n  },\n  \"failure\": null,\n  \"next_step\": \"Confirmed on Stellar: the user approved this payment with their passkey, and Carol accepted the claim link, so their USDC trustline and the payment landed in one transaction. Carol is now ready to receive USDC (usdc_ready). The receipt is final.\",\n  \"grant_remaining\": \"2.90\"\n}"
+    },
+    {
+      "step": "s9",
+      "t": 119542,
+      "tool": "payment_prepare",
+      "arguments": {
+        "recipient": "Alice",
+        "amount": "0.01",
+        "reason": "after revoke",
+        "idempotency_key": "rh-1025200932-after-revoke"
+      },
+      "ms": 144,
+      "ok": false,
+      "isError": true,
+      "structured": null,
+      "text": "",
+      "error": "Unauthorized"
+    }
+  ],
+  "txs": [
+    {
+      "step": "s4",
+      "label": "x402 settlement (receipt only after it landed)",
+      "hash": "39a91cb9a62852359c14599531d7a038eae868fa082f316a58770540710ed12e",
+      "explorer": "https://stellar.expert/explorer/testnet/tx/39a91cb9a62852359c14599531d7a038eae868fa082f316a58770540710ed12e",
+      "expectedFeePayer": "facilitator",
+      "ledger": 5387087,
+      "successful": true,
+      "source": "GCSAMPGA2ICVVN65NQGFWLZDE4LVFJQWDI3XLIBAA2GQZEHX7TDOUY3P",
+      "feeAccount": "GA6THKUY2XJZOBRFMEQMMEADSCQLCZ2QMQWAWMMDXBTE7SARKAXVH7TL",
+      "feeCharged": "11637",
+      "createdAt": "2026-10-25T20:10:22Z"
+    },
+    {
+      "step": "s4",
+      "label": "x402 pull from the wallet into the pocket",
+      "hash": "1f79ab58e9ada356ad1b9ec3b438c690bcc99ce818acfc31ab36ce0bb7569281",
+      "explorer": "https://stellar.expert/explorer/testnet/tx/1f79ab58e9ada356ad1b9ec3b438c690bcc99ce818acfc31ab36ce0bb7569281",
+      "expectedFeePayer": "relayer",
+      "ledger": 5387086,
+      "successful": true,
+      "source": "GAWYWVMHLTRN6N7DXKV3XYCLAFPCPPUXPDFC7J5KL3LNKO26YNJSYE4I",
+      "feeAccount": "GAWYWVMHLTRN6N7DXKV3XYCLAFPCPPUXPDFC7J5KL3LNKO26YNJSYE4I",
+      "feeCharged": "407208",
+      "createdAt": "2026-10-25T20:10:17Z"
+    },
+    {
+      "step": "s5",
+      "label": "payment to Alice inside the allowance",
+      "hash": "9f33052822b52e05c8accaaf681107143dddd9e50c9a757ab768d452eef928b9",
+      "explorer": "https://stellar.expert/explorer/testnet/tx/9f33052822b52e05c8accaaf681107143dddd9e50c9a757ab768d452eef928b9",
+      "expectedFeePayer": "relayer",
+      "ledger": 5387089,
+      "successful": true,
+      "source": "GBCALSA3XQAWW24AXGFWJIGNUCDBCMUPPWC5XHMZ22VY4HMX6XCFYWBR",
+      "feeAccount": "GBCALSA3XQAWW24AXGFWJIGNUCDBCMUPPWC5XHMZ22VY4HMX6XCFYWBR",
+      "feeCharged": "47471",
+      "createdAt": "2026-10-25T20:10:32Z"
+    },
+    {
+      "step": "s7",
+      "label": "payment to Bob approved with the passkey",
+      "hash": "2e520c8ea597ab441aa83ec932f297e90737223cd6336e827c4b30895fe54e07",
+      "explorer": "https://stellar.expert/explorer/testnet/tx/2e520c8ea597ab441aa83ec932f297e90737223cd6336e827c4b30895fe54e07",
+      "expectedFeePayer": "relayer",
+      "ledger": 5387091,
+      "successful": true,
+      "source": "GBCALSA3XQAWW24AXGFWJIGNUCDBCMUPPWC5XHMZ22VY4HMX6XCFYWBR",
+      "feeAccount": "GBCALSA3XQAWW24AXGFWJIGNUCDBCMUPPWC5XHMZ22VY4HMX6XCFYWBR",
+      "feeCharged": "12949",
+      "createdAt": "2026-10-25T20:10:42Z"
+    },
+    {
+      "step": "s10",
+      "label": "claim: trustline + payment in one transaction",
+      "hash": "4bb71d0bb3b5516c045a1ec8c807d8a3e9aca1b5a28dc1c6576923ebb87fa2fb",
+      "explorer": "https://stellar.expert/explorer/testnet/tx/4bb71d0bb3b5516c045a1ec8c807d8a3e9aca1b5a28dc1c6576923ebb87fa2fb",
+      "expectedFeePayer": "relayer",
+      "ledger": 5387095,
+      "successful": true,
+      "source": "GAWYWVMHLTRN6N7DXKV3XYCLAFPCPPUXPDFC7J5KL3LNKO26YNJSYE4I",
+      "feeAccount": "GAWYWVMHLTRN6N7DXKV3XYCLAFPCPPUXPDFC7J5KL3LNKO26YNJSYE4I",
+      "feeCharged": "20035",
+      "createdAt": "2026-10-25T20:11:02Z"
+    },
+    {
+      "step": "s9",
+      "label": "allowance removed from the account onchain",
+      "hash": "a202d41bf767d2a58ed7de602e8edc3dea93a9b82696de0588476af867fccdd7",
+      "explorer": "https://stellar.expert/explorer/testnet/tx/a202d41bf767d2a58ed7de602e8edc3dea93a9b82696de0588476af867fccdd7",
+      "expectedFeePayer": "relayer",
+      "ledger": 5387101,
+      "successful": true,
+      "source": "GAWYWVMHLTRN6N7DXKV3XYCLAFPCPPUXPDFC7J5KL3LNKO26YNJSYE4I",
+      "feeAccount": "GAWYWVMHLTRN6N7DXKV3XYCLAFPCPPUXPDFC7J5KL3LNKO26YNJSYE4I",
+      "feeCharged": "20013",
+      "createdAt": "2026-10-25T20:11:32Z"
+    },
+    {
+      "step": "s9",
+      "label": "pocket swept back to the wallet",
+      "hash": "8f45984a85d3c34cdb5de0657e19a4516ae65404525fb7a159554f5ffdf89be7",
+      "explorer": "https://stellar.expert/explorer/testnet/tx/8f45984a85d3c34cdb5de0657e19a4516ae65404525fb7a159554f5ffdf89be7",
+      "expectedFeePayer": "relayer",
+      "ledger": 5387098,
+      "successful": true,
+      "source": "GBCALSA3XQAWW24AXGFWJIGNUCDBCMUPPWC5XHMZ22VY4HMX6XCFYWBR",
+      "feeAccount": "GBCALSA3XQAWW24AXGFWJIGNUCDBCMUPPWC5XHMZ22VY4HMX6XCFYWBR",
+      "feeCharged": "10826",
+      "createdAt": "2026-10-25T20:11:17Z"
+    }
+  ],
+  "wire": [
+    {
+      "t": 140,
+      "method": "POST",
+      "url": "https://testnet.trynod.si/mcp",
+      "status": 401,
+      "rpc": "initialize"
+    },
+    {
+      "t": 152,
+      "method": "GET",
+      "url": "https://testnet.trynod.si/.well-known/oauth-protected-resource/mcp",
+      "status": 200
+    },
+    {
+      "t": 270,
+      "method": "GET",
+      "url": "https://testnet.trynod.si/.well-known/oauth-authorization-server",
+      "status": 200
+    },
+    {
+      "t": 337,
+      "method": "POST",
+      "url": "https://testnet.trynod.si/oauth/register",
+      "status": 201
+    },
+    {
+      "t": 34074,
+      "method": "GET",
+      "url": "https://testnet.trynod.si/.well-known/oauth-protected-resource/mcp",
+      "status": 200
+    },
+    {
+      "t": 34113,
+      "method": "GET",
+      "url": "https://testnet.trynod.si/.well-known/oauth-authorization-server",
+      "status": 200
+    },
+    {
+      "t": 34229,
+      "method": "POST",
+      "url": "https://testnet.trynod.si/oauth/token",
+      "status": 200
+    },
+    {
+      "t": 34267,
+      "method": "POST",
+      "url": "https://testnet.trynod.si/mcp",
+      "status": 200,
+      "rpc": "initialize"
+    },
+    {
+      "t": 34336,
+      "method": "POST",
+      "url": "https://testnet.trynod.si/mcp",
+      "status": 202,
+      "rpc": "notifications/initialized"
+    },
+    {
+      "t": 34365,
+      "method": "GET",
+      "url": "https://testnet.trynod.si/mcp",
+      "status": 405
+    },
+    {
+      "t": 34381,
+      "method": "POST",
+      "url": "https://testnet.trynod.si/mcp",
+      "status": 200,
+      "rpc": "tools/list"
+    },
+    {
+      "t": 34784,
+      "method": "POST",
+      "url": "https://testnet.trynod.si/mcp",
+      "status": 200,
+      "rpc": "tools/call wallet_overview"
+    },
+    {
+      "t": 36185,
+      "method": "POST",
+      "url": "https://testnet.trynod.si/mcp",
+      "status": 200,
+      "rpc": "tools/call contacts_search"
+    },
+    {
+      "t": 36374,
+      "method": "POST",
+      "url": "https://testnet.trynod.si/mcp",
+      "status": 200,
+      "rpc": "tools/call contacts_search"
+    },
+    {
+      "t": 36566,
+      "method": "POST",
+      "url": "https://testnet.trynod.si/mcp",
+      "status": 200,
+      "rpc": "tools/call contacts_search"
+    },
+    {
+      "t": 36866,
+      "method": "POST",
+      "url": "https://testnet.trynod.si/mcp",
+      "status": 200,
+      "rpc": "tools/call wallet_overview"
+    },
+    {
+      "t": 52624,
+      "method": "POST",
+      "url": "https://testnet.trynod.si/mcp",
+      "status": 200,
+      "rpc": "tools/call paid_resource_fetch"
+    },
+    {
+      "t": 53646,
+      "method": "POST",
+      "url": "https://testnet.trynod.si/mcp",
+      "status": 200,
+      "rpc": "tools/call payment_prepare"
+    },
+    {
+      "t": 58756,
+      "method": "POST",
+      "url": "https://testnet.trynod.si/mcp",
+      "status": 200,
+      "rpc": "tools/call payment_execute"
+    },
+    {
+      "t": 58942,
+      "method": "POST",
+      "url": "https://testnet.trynod.si/mcp",
+      "status": 200,
+      "rpc": "tools/call payment_status"
+    },
+    {
+      "t": 60479,
+      "method": "POST",
+      "url": "https://testnet.trynod.si/mcp",
+      "status": 200,
+      "rpc": "tools/call payment_prepare"
+    },
+    {
+      "t": 60668,
+      "method": "POST",
+      "url": "https://testnet.trynod.si/mcp",
+      "status": 200,
+      "rpc": "tools/call payment_status"
+    },
+    {
+      "t": 61236,
+      "method": "POST",
+      "url": "https://testnet.trynod.si/mcp",
+      "status": 200,
+      "rpc": "tools/call payment_status"
+    },
+    {
+      "t": 70007,
+      "method": "POST",
+      "url": "https://testnet.trynod.si/mcp",
+      "status": 200,
+      "rpc": "tools/call payment_status"
+    },
+    {
+      "t": 71810,
+      "method": "POST",
+      "url": "https://testnet.trynod.si/mcp",
+      "status": 200,
+      "rpc": "tools/call payment_prepare"
+    },
+    {
+      "t": 78595,
+      "method": "POST",
+      "url": "https://testnet.trynod.si/mcp",
+      "status": 200,
+      "rpc": "tools/call payment_prepare"
+    },
+    {
+      "t": 78845,
+      "method": "POST",
+      "url": "https://testnet.trynod.si/mcp",
+      "status": 200,
+      "rpc": "tools/call payment_execute"
+    },
+    {
+      "t": 79359,
+      "method": "POST",
+      "url": "https://testnet.trynod.si/mcp",
+      "status": 200,
+      "rpc": "tools/call payment_prepare"
+    },
+    {
+      "t": 88638,
+      "method": "POST",
+      "url": "https://testnet.trynod.si/mcp",
+      "status": 200,
+      "rpc": "tools/call payment_status"
+    },
+    {
+      "t": 119567,
+      "method": "POST",
+      "url": "https://testnet.trynod.si/mcp",
+      "status": 401,
+      "rpc": "tools/call payment_prepare"
+    },
+    {
+      "t": 119584,
+      "method": "GET",
+      "url": "https://testnet.trynod.si/.well-known/oauth-protected-resource/mcp",
+      "status": 200
+    },
+    {
+      "t": 119600,
+      "method": "GET",
+      "url": "https://testnet.trynod.si/.well-known/oauth-authorization-server",
+      "status": 200
+    },
+    {
+      "t": 119641,
+      "method": "POST",
+      "url": "https://testnet.trynod.si/oauth/token",
+      "status": 400
+    },
+    {
+      "t": 119670,
+      "method": "GET",
+      "url": "https://testnet.trynod.si/.well-known/oauth-protected-resource/mcp",
+      "status": 200
+    },
+    {
+      "t": 119685,
+      "method": "GET",
+      "url": "https://testnet.trynod.si/.well-known/oauth-authorization-server",
+      "status": 200
+    }
+  ],
+  "browser": [
+    "s1 GET https://testnet.trynod.si/authorize?response_type=code&client_id=90fDci6-0awtGVJ1&code_challenge=<redacted>&code_challenge_method=S256&redirect_uri=http%3A%2F%2F127.0.0.1%3A38337%2Fcallback&state=<redacted>&scope=wallet&resource=https%3A%2F%2Ftestnet.trynod.si%2Fmcp → 200",
+    "s1 goto https://testnet.trynod.si/authorize?response_type=code&client_id=90fDci6-0awtGVJ1&code_challenge=<redacted>&code_challenge_method=S256&redirect_uri=http%3A%2F%2F127.0.0.1%3A38337%2Fcallback&state=<redacted>&scope=wallet&resource=https%3A%2F%2Ftestnet.trynod.si%2Fmcp → 200",
+    "s1 screenshot /home/kristjan/code/hack-meridian-2026/evidence/demo/2026-10-25T20-09-32-837Z/consent-start.png",
+    "s1 click [data-testid=\"passkey-create\"], [data-testid=\"passkey-signin\"]",
+    "s1 GET https://testnet.trynod.si/authorize?response_type=code&client_id=90fDci6-0awtGVJ1&code_challenge=<redacted>&code_challenge_method=S256&redirect_uri=http%3A%2F%2F127.0.0.1%3A38337%2Fcallback&state=<redacted>&scope=wallet&resource=https%3A%2F%2Ftestnet.trynod.si%2Fmcp → 200",
+    "s1 visible [data-testid=\"consent-allow\"], button[value=approve]",
+    "s1 fill [data-testid=\"allowance\"], input[name=allowance]",
+    "s1 skipped optional fill (fill: Timeout 3000ms exceeded.)",
+    "s1 screenshot /home/kristjan/code/hack-meridian-2026/evidence/demo/2026-10-25T20-09-32-837Z/consent.png",
+    "s1 click [data-testid=\"consent-allow\"], button[value=approve]",
+    "s1 POST https://testnet.trynod.si/authorize → 302",
+    "s1 GET http://127.0.0.1:38337/callback?code=<redacted>&state=<redacted>&iss=https%3A%2F%2Ftestnet.trynod.si → 200",
+    "s7 GET https://testnet.trynod.si/approve/pi_fa474a45fe109b114c2edc43cd08f93f → 200",
+    "s7 goto https://testnet.trynod.si/approve/pi_fa474a45fe109b114c2edc43cd08f93f → 200",
+    "s7 screenshot /home/kristjan/code/hack-meridian-2026/evidence/demo/2026-10-25T20-09-32-837Z/approval-before.png",
+    "s7 click [data-testid=\"approve\"], #approve",
+    "s7 GET https://testnet.trynod.si/approve/pi_fa474a45fe109b114c2edc43cd08f93f → 200",
+    "s7 visible [data-testid=\"approval-done\"]",
+    "s7 screenshot /home/kristjan/code/hack-meridian-2026/evidence/demo/2026-10-25T20-09-32-837Z/approval-after.png",
+    "s10 GET https://testnet.trynod.si/approve/pi_56bc895376303f959c88c17016b4bf2a → 200",
+    "s10 goto https://testnet.trynod.si/approve/pi_56bc895376303f959c88c17016b4bf2a → 200",
+    "s10 screenshot /home/kristjan/code/hack-meridian-2026/evidence/demo/2026-10-25T20-09-32-837Z/approval-before.png",
+    "s10 click [data-testid=\"approve\"], #approve",
+    "s10 GET https://testnet.trynod.si/approve/pi_56bc895376303f959c88c17016b4bf2a → 200",
+    "s10 visible [data-testid=\"approval-done\"]",
+    "s10 screenshot /home/kristjan/code/hack-meridian-2026/evidence/demo/2026-10-25T20-09-32-837Z/approval-after.png",
+    "s10 GET https://testnet.trynod.si/claim/pi_56bc895376303f959c88c17016b4bf2a → 200",
+    "s10 goto https://testnet.trynod.si/claim/pi_56bc895376303f959c88c17016b4bf2a → 200",
+    "s10 screenshot /home/kristjan/code/hack-meridian-2026/evidence/demo/2026-10-25T20-09-32-837Z/claim-before.png",
+    "s10 click [data-testid=\"claim-accept\"], #accept",
+    "s10 GET https://testnet.trynod.si/claim/pi_56bc895376303f959c88c17016b4bf2a → 200",
+    "s10 visible [data-testid=\"claim-done\"]",
+    "s10 screenshot /home/kristjan/code/hack-meridian-2026/evidence/demo/2026-10-25T20-09-32-837Z/claim-after.png",
+    "s9 GET https://testnet.trynod.si/connections → 200",
+    "s9 goto https://testnet.trynod.si/connections → 200",
+    "s9 skipped optional click (click: Timeout 8000ms exceeded.)",
+    "s9 GET https://testnet.trynod.si/connections → 200",
+    "s9 goto https://testnet.trynod.si/connections → 200",
+    "s9 visible [data-testid=\"revoke\"][data-connection=\"{{connection_id}}\"]",
+    "s9 screenshot /home/kristjan/code/hack-meridian-2026/evidence/demo/2026-10-25T20-09-32-837Z/connections.png",
+    "s9 click [data-testid=\"revoke\"][data-connection=\"{{connection_id}}\"]",
+    "s9 click [data-testid=\"revoke-confirm\"][data-connection=\"{{connection_id}}\"]",
+    "s9 visible [data-connection=\"{{connection_id}}\"][data-testid=\"revoked\"]",
+    "s9 screenshot /home/kristjan/code/hack-meridian-2026/evidence/demo/2026-10-25T20-09-32-837Z/connections-revoked.png",
+    "s9 GET https://testnet.trynod.si/approve/revoke/con_d54b67d4654cbce3fd7f3d4239922ae5 → 200",
+    "s9 click [data-testid=\"remove-rule\"]",
+    "s9 skipped optional click (click: Timeout 5000ms exceeded.)",
+    "s9 click button[data-testid=\"revoke\"][data-connection=\"{{connection_id}}\"]",
+    "s9 GET https://testnet.trynod.si/approve/revoke/con_d54b67d4654cbce3fd7f3d4239922ae5 → 200",
+    "s9 visible h1[data-testid=\"revoked\"]",
+    "s9 screenshot /home/kristjan/code/hack-meridian-2026/evidence/demo/2026-10-25T20-09-32-837Z/rule-removal.png"
+  ],
+  "notes": [
+    "virtual passkeys: [{\"credentialId\":\"yzTvOJMrMF5wWntbtBLfJoPM2xooRgvGntCXCJeJEFo=\",\"rpId\":\"testnet.trynod.si\",\"signCount\":2}]",
+    "wallet holds 10.0000000 USDC, no top-up",
+    "pi_348852ed531e2c11bcea37fb5a697964: confirmed",
+    "pi_fa474a45fe109b114c2edc43cd08f93f: confirmed",
+    "pi_56bc895376303f959c88c17016b4bf2a: confirmed"
+  ]
+}

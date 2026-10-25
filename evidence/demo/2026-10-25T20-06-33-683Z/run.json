@@ -1,0 +1,119 @@
+{
+  "run_id": "1025200633",
+  "target": "testnet",
+  "network": "stellar:testnet",
+  "fixture_chain": null,
+  "base": "https://testnet.trynod.si",
+  "mcp": "https://testnet.trynod.si/mcp",
+  "seller": "https://hm26-seller.kristjan-grm11775.workers.dev",
+  "relayers": [
+    "GBCALSA3XQAWW24AXGFWJIGNUCDBCMUPPWC5XHMZ22VY4HMX6XCFYWBR",
+    "GAWYWVMHLTRN6N7DXKV3XYCLAFPCPPUXPDFC7J5KL3LNKO26YNJSYE4I",
+    "GBGNYETYEEWM5RIRE6KWUUZKD3X4DBZZ72M2LHQJNUGYO3D6ZYADBPT6"
+  ],
+  "started_at": "2026-10-25T20:06:33.683Z",
+  "finished_at": "2026-10-25T20:08:35.975Z",
+  "oauth": {
+    "client_id": "msG68gVfYUh4u9ql",
+    "redirect": "http://127.0.0.1:40149/callback"
+  },
+  "tools": [],
+  "steps": [
+    {
+      "id": "s1",
+      "title": "Connect the AI app: DCR + PKCE, consent page, passkey, allowance",
+      "status": "fail",
+      "ms": 120552,
+      "error": "waitFor: Timeout 120000ms exceeded."
+    }
+  ],
+  "acceptance": {
+    "1": {
+      "status": "N/A",
+      "checks": []
+    },
+    "2": {
+      "status": "N/A",
+      "checks": []
+    },
+    "3": {
+      "status": "N/A",
+      "checks": []
+    },
+    "4": {
+      "status": "N/A",
+      "checks": []
+    },
+    "5": {
+      "status": "N/A",
+      "checks": []
+    },
+    "6": {
+      "status": "N/A",
+      "checks": []
+    },
+    "7": {
+      "status": "N/A",
+      "checks": []
+    },
+    "8": {
+      "status": "N/A",
+      "checks": []
+    },
+    "9": {
+      "status": "N/A",
+      "checks": []
+    }
+  },
+  "checks": [
+    {
+      "step": "s1",
+      "test": null,
+      "status": "pass",
+      "detail": "DCR client_id msG68gVfYUh4u9ql"
+    },
+    {
+      "step": "s1",
+      "test": null,
+      "status": "fail",
+      "detail": "s1 threw: waitFor: Timeout 120000ms exceeded."
+    }
+  ],
+  "calls": [],
+  "txs": [],
+  "wire": [
+    {
+      "t": 150,
+      "method": "POST",
+      "url": "https://testnet.trynod.si/mcp",
+      "status": 401,
+      "rpc": "initialize"
+    },
+    {
+      "t": 178,
+      "method": "GET",
+      "url": "https://testnet.trynod.si/.well-known/oauth-protected-resource/mcp",
+      "status": 200
+    },
+    {
+      "t": 209,
+      "method": "GET",
+      "url": "https://testnet.trynod.si/.well-known/oauth-authorization-server",
+      "status": 200
+    },
+    {
+      "t": 268,
+      "method": "POST",
+      "url": "https://testnet.trynod.si/oauth/register",
+      "status": 201
+    }
+  ],
+  "browser": [
+    "s1 GET https://testnet.trynod.si/authorize?response_type=code&client_id=msG68gVfYUh4u9ql&code_challenge=<redacted>&code_challenge_method=S256&redirect_uri=http%3A%2F%2F127.0.0.1%3A40149%2Fcallback&state=<redacted>&scope=wallet&resource=https%3A%2F%2Ftestnet.trynod.si%2Fmcp → 200",
+    "s1 goto https://testnet.trynod.si/authorize?response_type=code&client_id=msG68gVfYUh4u9ql&code_challenge=<redacted>&code_challenge_method=S256&redirect_uri=http%3A%2F%2F127.0.0.1%3A40149%2Fcallback&state=<redacted>&scope=wallet&resource=https%3A%2F%2Ftestnet.trynod.si%2Fmcp → 200",
+    "s1 screenshot /home/kristjan/code/hack-meridian-2026/evidence/demo/2026-10-25T20-06-33-683Z/consent-start.png",
+    "s1 click [data-testid=\"passkey-create\"], [data-testid=\"passkey-signin\"]",
+    "s1 POST https://testnet.trynod.si/api/wallets → 503 {\"_tag\":\"Unavailable\",\"error\":\"not final after 60 s\"}"
+  ],
+  "notes": []
+}
