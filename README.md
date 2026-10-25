@@ -60,6 +60,10 @@ and a device that can create a passkey. New wallets receive 10 testnet USDC.
 
 Expected results for every step, with reference transactions: [evidence/JUDGE-TEST-PATH.md](evidence/JUDGE-TEST-PATH.md).
 
+**No Claude at hand?** [hack-meridian-testnet.kristjan-grm11775.workers.dev/sample](https://hack-meridian-testnet.kristjan-grm11775.workers.dev/sample) runs a sample agent: the same nine
+steps, through the same tool handlers Claude calls over MCP, on Nod's own demo wallet (held by a software passkey on the
+service), with a live log of amounts, nods, fees and stellar.expert links. It shows Nod working; it is not your wallet.
+
 ## Proof on testnet
 
 One rehearsal on the live site (release `19e1c13`, 25 October, 15:12 UTC): all nine acceptance tests passed in 204
