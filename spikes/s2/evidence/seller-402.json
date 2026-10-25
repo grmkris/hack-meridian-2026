@@ -1,0 +1,47 @@
+{
+  "x402Version": 2,
+  "error": "Payment required",
+  "resource": {
+    "url": "http://127.0.0.1:4021/paid/quote",
+    "description": "S2 paid quote",
+    "mimeType": "application/json"
+  },
+  "accepts": [
+    {
+      "scheme": "exact",
+      "network": "stellar:testnet",
+      "amount": "1000000",
+      "asset": "CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA",
+      "payTo": "GCEKVZO7QV5AC6JLDNWXEYQQ7CS5DSWRDCK3VEQWXGHI6XJN3F4UOANH",
+      "maxTimeoutSeconds": 60,
+      "extra": {
+        "areFeesSponsored": true
+      }
+    }
+  ],
+  "extensions": {
+    "payment-identifier": {
+      "info": {
+        "required": false
+      },
+      "schema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "required": {
+            "type": "boolean"
+          },
+          "id": {
+            "type": "string",
+            "minLength": 16,
+            "maxLength": 128,
+            "pattern": "^[a-zA-Z0-9_-]+$"
+          }
+        },
+        "required": [
+          "required"
+        ]
+      }
+    }
+  }
+}
