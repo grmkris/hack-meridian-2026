@@ -11,6 +11,7 @@ import { ownerRoute } from './server/routes.ts'
 import { makeRuntime, type WorkerEnv } from './server/runtime.ts'
 import { sampleRoute } from './server/sample/route.ts'
 import type { SampleEnv } from './server/sample/runner-object.ts'
+import { STELLAR_TOML_PATH, stellarToml } from './server/stellar-toml.ts'
 
 export { OAuthStore } from './server/kv-shim.ts'
 export { SampleRunner } from './server/sample/runner-object.ts'
@@ -36,6 +37,7 @@ const defaultHandler = {
     const path = new URL(request.url).pathname
     if (path === '/authorize') return authorize(runtime, request, requestEnv)
     if (path === '/oauth/grant/prepare' && request.method === 'POST') return prepareGrant(runtime, request)
+    if (path === STELLAR_TOML_PATH) return stellarToml(request, requestEnv)
     const owner = ownerRoute(runtime, request, path)
     if (owner !== undefined) return owner
     const sample = sampleRoute(runtime, request, path, requestEnv)
