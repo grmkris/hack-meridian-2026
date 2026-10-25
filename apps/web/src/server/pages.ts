@@ -72,6 +72,7 @@ select.blank{-webkit-appearance:none;appearance:none;padding-right:1.25rem;font-
 .steps{margin:0 0 1rem;padding:0;list-style:none;counter-reset:step}.steps li{counter-increment:step;position:relative;padding:0 0 .75rem 2.4rem}.steps li::before{content:counter(step);position:absolute;left:0;top:-.05rem;display:grid;place-items:center;width:1.7rem;height:1.7rem;border-radius:50%;font-weight:600;font-size:.9rem;box-shadow:inset 0 0 0 1px var(--line);background:var(--paper)}.steps li.done::before{content:'✓';background:var(--good);color:var(--paper);box-shadow:none}
 .more{padding:0}.more summary{display:flex;align-items:center;justify-content:space-between;min-height:3rem;padding:.6rem 1.2rem;font-weight:600;cursor:pointer;list-style:none;border-radius:20px}.more summary::-webkit-details-marker{display:none}.more summary::after{content:'';width:.75rem;height:.75rem;background:var(--chevron) no-repeat center/contain}.more[open] summary::after{transform:rotate(180deg)}.more dl{padding:0 1.2rem 1.1rem}
 .claim{font-size:.8rem;color:var(--muted)}
+#status,.muted,dd{overflow-wrap:anywhere}
 </style>`
 
 const PASSKEY_JS = `
@@ -370,7 +371,7 @@ export const claimPage = (
 ${input.notice === undefined ? '' : `<p class="card warn">${escape(input.notice)}</p>`}
 <div class="card"><dl><dt>From</dt><dd>${escape(input.intent.requester)}</dd><dt>To</dt><dd><code>${escape(input.intent.recipient_address)}</code> <span class="muted">${escape(shortAddress(input.intent.recipient_address))}</span></dd>
 <dt>Amount</dt><dd><span class="amount">${escape(fromStroops(input.intent.amount))}</span> USDC</dd><dt>Network</dt><dd>Stellar ${escape(c.network)}</dd></dl>
-<p class="muted">${input.receipt === undefined ? 'Your account has no USDC trustline yet. Accepting signs one authorization: the trustline and the payment land together in one transaction.' : 'Your USDC trustline and this payment landed in one transaction.'}</p></div>
+<p class="muted">${input.receipt === undefined && input.status !== 'confirmed' ? 'Your account has no USDC trustline yet. Accepting signs one authorization: the trustline and the payment land together in one transaction.' : 'Your USDC trustline and this payment landed in one transaction.'}</p></div>
 ${input.receipt === undefined ? receiptPending(input) : receiptBlock(input.receipt)}<p id="status" class="muted" role="status"></p>`,
     input.receipt === undefined && input.recipientEntryXdr !== null
       ? `const ctx=JSON.parse(document.getElementById('ctx').textContent);
