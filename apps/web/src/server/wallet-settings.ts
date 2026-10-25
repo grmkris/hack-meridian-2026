@@ -37,6 +37,8 @@ export class WalletSettings extends Context.Service<
     readonly welcomeUsdc: bigint
     /** Contacts every new wallet starts with (demo stages only). */
     readonly demoContacts: ReadonlyArray<DemoContact>
+    /** DEMO_CLAIM_SIGNER: the demo recipient's key signs claims off testnet too (mainnet, Carol is ours). */
+    readonly demoClaimSigner?: boolean
   }
 >()('hm/WalletSettings') {
   static readonly fromBindings = (bindings: object) =>
@@ -58,6 +60,7 @@ const load = Effect.gen(function* () {
       Config.withDefault(100_000_000n),
     ),
     demoContacts: parseDemoContacts(yield* Config.String('DEMO_CONTACTS').pipe(Config.withDefault(''))),
+    demoClaimSigner: yield* Config.Boolean('DEMO_CLAIM_SIGNER').pipe(Config.withDefault(false)),
   }
 })
 

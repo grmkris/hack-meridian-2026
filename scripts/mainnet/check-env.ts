@@ -123,6 +123,7 @@ check(
   file['PAYMENTS_ENABLED'] === 'true' && file['SAMPLE_ENABLED'] === 'false',
   'PAYMENTS_ENABLED=true, SAMPLE_ENABLED=false',
 )
+check(file['DEMO_CLAIM_SIGNER'] === 'true', 'DEMO_CLAIM_SIGNER=true (Carol is ours)')
 const router = file['ONBOARD_ROUTER_ID'] ?? ''
 check(router === '' || router === routerId(), `ONBOARD_ROUTER_ID ${router === '' ? 'empty (M3)' : router}`)
 const contacts = parseDemoContacts(file['DEMO_CONTACTS'])
@@ -180,7 +181,7 @@ async function boot(label: string, record: Record<string, string>) {
   )
   const w = web.value.wallet
   console.log(
-    `  Worker: stage ${web.value.stage.stage}, chain ${w.chain}, rpId ${w.rpId._tag === 'Some' ? w.rpId.value : '(request host)'}, origin ${w.origin._tag === 'Some' ? w.origin.value : '(request)'}, demo contacts ${w.demoContacts.length}`,
+    `  Worker: stage ${web.value.stage.stage}, chain ${w.chain}, rpId ${w.rpId._tag === 'Some' ? w.rpId.value : '(request host)'}, origin ${w.origin._tag === 'Some' ? w.origin.value : '(request)'}, demo contacts ${w.demoContacts.length}, demo claim signer ${w.demoClaimSigner === true ? 'on' : 'off'}`,
   )
   return true
 }

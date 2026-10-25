@@ -318,7 +318,7 @@ const receiptPending = (input: {
 }) =>
   input.recipientEntryXdr === null
     ? `<div class="card"><p>This link is ${escape(input.status.replace('_', ' '))}.</p></div>`
-    : `${input.demo ? '<p class="card warn"><strong>Demo wallet.</strong> Nod’s demo recipient key signs on the server instead of a browser wallet (testnet only).</p>' : ''}<p class="row"><button class="primary" id="accept" data-testid="claim-accept">${input.demo ? 'Accept with the demo wallet' : 'Accept with my wallet'}</button></p>`
+    : `${input.demo ? '<p class="card warn"><strong>Demo wallet.</strong> Nod’s demo recipient key signs on the server instead of a browser wallet (Nod’s own demo contact).</p>' : ''}<p class="row"><button class="primary" id="accept" data-testid="claim-accept">${input.demo ? 'Accept with the demo wallet' : 'Accept with my wallet'}</button></p>`
 
 // Payment request (/approve/request/<id>): what someone asks this wallet for. Read-only: paying goes through the AI
 // app (request_pay) and, for anyone outside the payer's contacts, the approval page and the passkey.

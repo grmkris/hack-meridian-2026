@@ -77,6 +77,8 @@ function create() {
     'WALLET_TTL_LEDGERS=',
     '# M5: scripts/mainnet/seed.ts prints (or with --write-env sets) Alice, Bob and Carol',
     'DEMO_CONTACTS=[]',
+    '# Carol is our own account: the claim page may sign her trust entry on the server (apps/web routes.ts isDemo)',
+    'DEMO_CLAIM_SIGNER=true',
     '',
   ].join('\n')
   // 'wx': fail rather than overwrite; mode 600 from the first byte.

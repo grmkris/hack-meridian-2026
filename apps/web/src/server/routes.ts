@@ -338,12 +338,16 @@ const revokePost = (runtime: AppRuntime, request: Request, connectionId: string)
 
 // /claim/<intent>: CAP-73 acceptance (the recipient signs `trust`, the transfer rides along)
 
-/** The seeded demo recipient (testnet) signs on the server: for the demo contact without a trustline, or ?demo=1. */
-const isDemo = (request: Request, recipient: string) =>
+/**
+ * The seeded demo recipient signs on the server: for the demo contact without a trustline, or ?demo=1. On testnet
+ * always; on another network only with DEMO_CLAIM_SIGNER=true (mainnet, where Carol is Nod's own account).
+ */
+const isDemo = (request: Request, recipient: string, testnet: boolean) =>
   WalletSettings.useSync(
     settings =>
-      new URL(request.url).searchParams.get('demo') === '1' ||
-      settings.demoContacts.some(contact => contact.trustline_required && contact.address === recipient),
+      (testnet || settings.demoClaimSigner === true) &&
+      (new URL(request.url).searchParams.get('demo') === '1' ||
+        settings.demoContacts.some(contact => contact.trustline_required && contact.address === recipient)),
   )
 
 const claimGet = (runtime: AppRuntime, request: Request, intentId: string) =>
@@ -362,7 +366,7 @@ const claimGet = (runtime: AppRuntime, request: Request, intentId: string) =>
         claimPage(n, {
           intent,
           status,
-          demo: n.network === 'Testnet' && (yield* isDemo(request, intent.recipient_address)),
+          demo: yield* isDemo(request, intent.recipient_address, n.network === 'Testnet'),
           recipientEntryXdr: claim?.recipientEntryXdr ?? null,
           receipt: yield* receiptOfIntent(intent.id),
           ...(status === 'awaiting_approval'
@@ -396,7 +400,7 @@ const claimPost = (runtime: AppRuntime, request: Request, intentId: string) =>
         catch: () => new OwnerError({ kind: 'bad_request', message: 'expected JSON' }),
       })
       const given = Schema.decodeUnknownOption(Schema.Struct({ signed_entry: Schema.NullOr(Schema.String) }))(body)
-      const demo = network.name === 'testnet' && (yield* isDemo(request, intent.recipient_address))
+      const demo = yield* isDemo(request, intent.recipient_address, network.name === 'testnet')
       const signed =
         given._tag === 'Some' && given.value.signed_entry !== null
           ? given.value.signed_entry
