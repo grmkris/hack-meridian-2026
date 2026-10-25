@@ -1,0 +1,109 @@
+[
+  {
+    "request": {
+      "method": "tools/call",
+      "params": {
+        "name": "paid_quote",
+        "arguments": {
+          "topic": "call 1"
+        }
+      },
+      "jsonrpc": "2.0",
+      "id": 2
+    },
+    "status": 200,
+    "response": {
+      "result": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\"x402Version\":2,\"error\":\"Payment required to access this tool\",\"resource\":{\"url\":\"mcp://tool/paid_quote\",\"description\":\"S2 paid quote over MCP\",\"mimeType\":\"application/json\"},\"accepts\":[{\"scheme\":\"exact\",\"network\":\"stellar:testnet\",\"amount\":\"1000000\",\"asset\":\"CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA\",\"payTo\":\"GCEKVZO7QV5AC6JLDNWXEYQQ7CS5DSWRDCK3VEQWXGHI6XJN3F4UOANH\",\"maxTimeoutSeconds\":60,\"extra\":{\"areFeesSponsored\":true}}]}"
+          }
+        ],
+        "structuredContent": {
+          "x402Version": 2,
+          "error": "Payment required to access this tool",
+          "resource": {
+            "url": "mcp://tool/paid_quote",
+            "description": "S2 paid quote over MCP",
+            "mimeType": "application/json"
+          },
+          "accepts": [
+            {
+              "scheme": "exact",
+              "network": "stellar:testnet",
+              "amount": "1000000",
+              "asset": "CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA",
+              "payTo": "GCEKVZO7QV5AC6JLDNWXEYQQ7CS5DSWRDCK3VEQWXGHI6XJN3F4UOANH",
+              "maxTimeoutSeconds": 60,
+              "extra": {
+                "areFeesSponsored": true
+              }
+            }
+          ]
+        },
+        "isError": true
+      },
+      "jsonrpc": "2.0",
+      "id": 2
+    }
+  },
+  {
+    "request": {
+      "method": "tools/call",
+      "params": {
+        "name": "paid_quote",
+        "arguments": {
+          "topic": "call 1"
+        },
+        "_meta": {
+          "x402/payment": {
+            "x402Version": 2,
+            "payload": {
+              "transaction": "AAAAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAa7sAAAAAAAAAAQAAAAEAAAAAAAAAAAAAAABq3e0gAAAAAAAAAAEAAAAAAAAAGAAAAAAAAAABUEXNXsBymnaP1a0CUFhS308Cjc6DDlrFIgm6SEg7LwEAAAAIdHJhbnNmZXIAAAADAAAAEgAAAAAAAAAAQLPFTUyq0atk9mKuwyXYIiVx9ZfHh0B8sV/vNqq4aeoAAAASAAAAAAAAAACIquXfhXoBeSsbbXJiEPil0crRGJW6kha5jo9dLdl5RwAAAAoAAAAAAAAAAAAAAAAAD0JAAAAAAQAAAAEAAAAAAAAAAECzxU1MqtGrZPZirsMl2CIlcfWXx4dAfLFf7zaquGnqbcA2bEIJ3CUAUhu1AAAAEAAAAAEAAAABAAAAEQAAAAEAAAACAAAADwAAAApwdWJsaWNfa2V5AAAAAAANAAAAIECzxU1MqtGrZPZirsMl2CIlcfWXx4dAfLFf7zaquGnqAAAADwAAAAlzaWduYXR1cmUAAAAAAAANAAAAQEo8txkovrzZP+r9zZLuxKKspKvkEVeAOHxmmNeQvVhCiOFQXaTHlILyA0XYmKlUPxyitHjn6YhSQQFFblImywYAAAAAAAAAAVBFzV7Acpp2j9WtAlBYUt9PAo3Ogw5axSIJukhIOy8BAAAACHRyYW5zZmVyAAAAAwAAABIAAAAAAAAAAECzxU1MqtGrZPZirsMl2CIlcfWXx4dAfLFf7zaquGnqAAAAEgAAAAAAAAAAiKrl34V6AXkrG21yYhD4pdHK0RiVupIWuY6PXS3ZeUcAAAAKAAAAAAAAAAAAAAAAAA9CQAAAAAAAAAABAAAAAAAAAAIAAAAAAAAAAECzxU1MqtGrZPZirsMl2CIlcfWXx4dAfLFf7zaquGnqAAAABgAAAAFQRc1ewHKado/VrQJQWFLfTwKNzoMOWsUiCbpISDsvAQAAABQAAAABAAAAAwAAAAEAAAAAQLPFTUyq0atk9mKuwyXYIiVx9ZfHh0B8sV/vNqq4aeoAAAABVVNEQwAAAABCPn0F8uyvv+wZKyFaPxvpau242OcCVKvjQT4CB95WsgAAAAEAAAAAiKrl34V6AXkrG21yYhD4pdHK0RiVupIWuY6PXS3ZeUcAAAABVVNEQwAAAABCPn0F8uyvv+wZKyFaPxvpau242OcCVKvjQT4CB95WsgAAAAYAAAAAAAAAAECzxU1MqtGrZPZirsMl2CIlcfWXx4dAfLFf7zaquGnqAAAAFW3ANmxCCdwlAAAAAAALUAcAAAF4AAABNAAAAAAAAGtXAAAAAA=="
+            },
+            "resource": {
+              "url": "mcp://tool/paid_quote",
+              "description": "S2 paid quote over MCP",
+              "mimeType": "application/json"
+            },
+            "accepted": {
+              "scheme": "exact",
+              "network": "stellar:testnet",
+              "amount": "1000000",
+              "asset": "CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA",
+              "payTo": "GCEKVZO7QV5AC6JLDNWXEYQQ7CS5DSWRDCK3VEQWXGHI6XJN3F4UOANH",
+              "maxTimeoutSeconds": 60,
+              "extra": {
+                "areFeesSponsored": true
+              }
+            }
+          }
+        }
+      },
+      "jsonrpc": "2.0",
+      "id": 3
+    },
+    "status": 200,
+    "response": {
+      "result": {
+        "_meta": {
+          "x402/payment-response": {
+            "success": true,
+            "payer": "GBALHRKNJSVNDK3E6ZRK5QZF3ARCK4PVS7DYOQD4WFP66NVKXBU6VFCB",
+            "transaction": "ed410f0dbc54f998dfa2427b859b64eb213b179e0bc1919f091d17408dbc3df6",
+            "network": "stellar:testnet"
+          }
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "{\"quote\":\"Ledgers close every ~5s (call 1).\",\"served\":1}"
+          }
+        ]
+      },
+      "jsonrpc": "2.0",
+      "id": 3
+    }
+  }
+]
