@@ -1,10 +1,10 @@
-# Spec: a Stellar wallet with budgets for your AI
+# Spec: stellarmcpwallet, a Stellar wallet with budgets for your AI
 
 Status: draft v0, 2026-10-25 11:30 UTC. Scope frozen for HackMeridian 2026. Submission deadline **Mon 26 Oct 2026
 12:00 Lisbon = 12:00 UTC** (EU daylight time ended 25 Oct; this box runs CET = UTC+1, so 13:00 box time). Judging is
 asynchronous: demo video, pitch deck, GitHub repo, written answers. Finalists pitch live Wed 28 Oct.
 
-Working name: **Allowance** (placeholder, see Open decisions).
+Working name: **stellarmcpwallet** (decided by Kristjan, 2026-10-25). Repo: grmkris/hack-meridian-2026.
 
 ## One line
 
@@ -209,7 +209,7 @@ Show the explorer for two transactions (a delegated one and the owner-approved o
 
 ## Open decisions (owner's call)
 
-1. Name. Candidates: Allowance, Pocket, Stipend, Leash. Docs use Allowance until decided.
+1. ~~Name~~ decided: **stellarmcpwallet**.
 2. Demo host: Goblin (ours, OAuth client proven), Claude (custom connector), or ChatGPT developer mode. Recommendation
    pending research in `docs/research/hackathon-and-ecosystem.md`.
 3. Foldkit for the wallet site, as the previous session planned, or the plainest thing that renders four pages.
