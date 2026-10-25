@@ -1,10 +1,10 @@
-# Spec: stellarmcpwallet, a Stellar wallet with budgets for your AI
+# Spec: Nod, a Stellar wallet with budgets for your AI (repo: hack-meridian-2026)
 
 Status: draft v0, 2026-10-25 11:30 UTC. Scope frozen for HackMeridian 2026. Submission deadline **Mon 26 Oct 2026
 12:00 Lisbon = 12:00 UTC** (EU daylight time ended 25 Oct; this box runs CET = UTC+1, so 13:00 box time). Judging is
 asynchronous: demo video, pitch deck, GitHub repo, written answers. Finalists pitch live Wed 28 Oct.
 
-Working name: **stellarmcpwallet** (decided by Kristjan, 2026-10-25). Repo: grmkris/hack-meridian-2026.
+Product name: **Nod** (Kristjan, 2026-10-25 13:00 UTC; words in `docs/PITCH.md`). Engineering name in code and package ids stays as is; repo: grmkris/hack-meridian-2026.
 
 ## One line
 
@@ -226,7 +226,7 @@ Show the explorer for two transactions (a delegated one and the owner-approved o
 
 ## Open decisions (owner's call)
 
-1. ~~Name~~ decided: **stellarmcpwallet**.
+1. ~~Name~~ decided: **Nod** (user-facing); `docs/PITCH.md` owns the words.
 2. Demo host: Goblin (ours, OAuth client proven), Claude (custom connector), or ChatGPT developer mode. Recommendation
    pending research in `docs/research/hackathon-and-ecosystem.md`.
 3. Foldkit for the wallet site, as the previous session planned, or the plainest thing that renders four pages.
@@ -252,3 +252,6 @@ Show the explorer for two transactions (a delegated one and the owner-approved o
 - 2026-10-25 13:00 UTC, Kristjan: **no facilitator of our own; the demo pays through a third-party facilitator.** This
   supersedes the 12:40 entry. Features that only work with our facilitator are dropped; the x402 section now describes
   the pocket model that hosted facilitators accept today.
+- 2026-10-25 13:00 UTC, Kristjan via the pitch session: the product is presented as **Nod**; user-facing text follows the
+  vocabulary in `docs/PITCH.md` (allowance, needs your nod, Nod pays the network fee). Enums and field names in tool JSON
+  and `/api` stay unchanged. Session a3 owns pitch, landing copy, deck, README product sections and the video.
