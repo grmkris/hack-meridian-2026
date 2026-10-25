@@ -8,8 +8,8 @@ link, and one passkey tap approves that exact recipient and amount. The allowanc
 policy on your Stellar account, not a setting on our server: the most our service could ever spend for an AI app is what
 you allowed it.
 
-Built at [HackMeridian 2026](https://www.hackmeridian.com/) (Lisbon, 25–26 October 2026) for **Stellar Composed** and
-**Stellar Unlocked**. Testnet only. Product spec: [docs/SPEC.md](docs/SPEC.md).
+Built at [HackMeridian 2026](https://www.hackmeridian.com/) (Lisbon, 25–26 October 2026) in the **Stellar Composed**
+track. Testnet only. Product spec: [docs/SPEC.md](docs/SPEC.md).
 
 ## How it works
 

@@ -37,7 +37,7 @@ that key at N until T (S1: exactly 5.0 passed, one stroop over was rejected).
 3. **The limit lives on Stellar.** OpenZeppelin's smart account and spending-limit policy enforce it; x402 sellers are
    paid through public facilitators (x402.org, OpenZeppelin Channels), not one we run.
 
-Bonus, for Stellar Unlocked: **it pays people who have never held USDC.** Their trustline and the payment land in one
+Bonus, a Stellar protocol feature (CAP-73, SAC `trust`): **it pays people who have never held USDC.** Their trustline and the payment land in one
 transaction after they sign once.
 
 ## Why this is not another agent wallet
@@ -100,7 +100,7 @@ Lives inside the web app (Kristjan, 13:00 UTC). Sections, top to bottom:
 6. **Try it in 3 minutes** (for judges): add the connector, create a passkey wallet (auto-funded with 10 testnet USDC),
    ask Claude to buy the market brief, pay Alice, then ask for 20 USDC for dinner with Bob.
 7. **Built with** OpenZeppelin smart accounts · Circle USDC · x402 · passkeys · Stellar. HackMeridian 2026, Stellar
-   Composed and Stellar Unlocked. GitHub link. Testnet notice.
+   Composed track. GitHub link. Testnet notice.
 
 ## Deck (PDF, 10 slides, each headline a claim)
 
@@ -141,7 +141,7 @@ music bed and an end card. The cold open is the approval: it is the moment no ot
 | 8   | Forced over-limit transfer → rejected on stellar.expert                        | "Even if our server tried, the account itself rejects anything over the limit."                                                                            |
 | 9   | "Send Carol 5 USDC" → claim link → Carol signs → one transaction               | "Carol has never held USDC. She signs once, and her trustline and the payment land in the same transaction."                                               |
 | 10  | Revoke → next payment refused                                                  | "I revoke Claude. The next payment is refused, and the rule is gone from my account."                                                                      |
-| 11  | End card: nod · repo · Stellar Composed + Unlocked                             | "Nod. Give your AI an allowance, and keep the last word."                                                                                                  |
+| 11  | End card: nod · repo · Stellar Composed                                        | "Nod. Give your AI an allowance, and keep the last word."                                                                                                  |
 
 ## Promo film (20–30 s, no voice, captions, 16:9 and 9:16)
 
