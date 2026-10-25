@@ -1,9 +1,13 @@
 # Deploying the testnet stage
 
-Handed over by the foundation session (stream B) on 2026-10-25 15:35 UTC to the orchestrator session. Live: testnet at
-`9fc080f` (18:28 UTC; see the dated sections below) on **https://testnet.trynod.si** (cutover 17:32 UTC at 3a63bd5: custom domain attached, ORIGIN/RP_ID bindings set,
-URL sweep and W1 included; 17:39 UTC: every path worker-first so the old workers.dev host 301-redirects the landing and client
-routes too; smoke 9/9 against the new host). The stage URL is https://testnet.trynod.si (MCP at `/mcp`); https://hack-meridian-testnet.kristjan-grm11775.workers.dev redirects there.
+Plans and queues live in the release plan (.local/brainstorm/FINAL-REVIEW.md §K, tailnet); procedures below remain valid.
+
+**Deploys: session A ("ops and hardening") only, since 19:10 UTC 2026-10-25**, testnet and mainnet, from the worktree
+below; mainnet only on the orchestrator's explicit go, never during a recording.
+
+Live: **testnet at `5253df0`** (19:12 UTC, deposit-address service + migration 0007) on https://testnet.trynod.si (MCP at
+`/mcp`; the workers.dev host redirects there); **mainnet at `9fc080f`** on https://trynod.si. Dated sections below are
+the history.
 
 ## The deploy worktree is the only place a testnet deploy runs
 
@@ -141,3 +145,29 @@ State at close: testnet at `c54a331` (MCP-Apps deploy 18:45 UTC), mainnet at `9f
 Open findings for the MCP lane (not blocking): the post-nod tool result should say the owner approved with the
 passkey; the post-claim result should restate the recipient's readiness; the approval page's "they accept on the claim
 link first" sentence has the order backwards (approve, then accept, one transaction).
+
+## 19:12 UTC: testnet at `5253df0` (session A)
+
+Session A took the deploy seat: worktree clean at `c54a331`, no-op `plan:testnet` "no changes", no-op `plan:mainnet`
+RELEASE only. Pinned `5253df0` (main HEAD: `3473b0f` deposit-address service, migration `0007_deposit_addresses.sql`),
+frozen install, `heavy bun run check` green in the worktree, plan `[WalletDb] update` + `[Web] update` +
+`[Web/RELEASE] update` (no delete, no replace), deploy `"deletedClasses":[]`, `/api/health` release `5253df02…`, rent
+factor 0.1, treasury 235.5 USDC, relayers 9,032 / 8,960 XLM. Checks on this release (testnet):
+
+- `bun run smoke:testnet`: 9/9 (`evidence/probe/smoke-testnet-2026-10-25T19-12-49Z.json`).
+- `scripts/events-check.ts --target testnet`: 8/8, settlement `a00cc841…`
+  (https://stellar.expert/explorer/testnet/tx/a00cc84120cc7999970bf0b7a07ec4647460ccaa437ec0047fd4e95142841ad8).
+- `scripts/claude-code-check.ts --target testnet`: 7/7 (fresh Claude Code, CIMD + PKCE, new passkey wallet,
+  `wallet_overview` and `payment_prepare` inside the allowance; `.local/claude-code-check/2026-10-25T19-13-16-740Z/`).
+- `scripts/demo/rehearse.ts --target testnet`: s1–s11 green, acceptance 1, 2, 4–9 PASS, 3 REF, 133 s
+  (`evidence/demo/2026-10-25T19-14-24-616Z/`; hashes in `evidence/JUDGE-TEST-PATH.md` section 3, each `successful` on
+  Horizon).
+- `scripts/demo/probe.ts --target testnet --save`: all green, one warn (no saved connection for tools/list)
+  (`evidence/probe/2026-10-25T19-18-16-039Z.json`).
+
+Rollback: re-pin `c54a331` (migration 0007 is additive; the table stays).
+
+Post-deploy checklist additions (session A): on every mainnet deploy, check on the first request that `store.ts`
+`backfillNetwork` ran (`wallets.network` and `contact_destinations.network` all `stellar:pubnet` on D1
+`hack-meridian-mainnet-wallet`; the code logs only a failure, "network backfill failed", so read the rows); on `9fc080f`
+it did not.
