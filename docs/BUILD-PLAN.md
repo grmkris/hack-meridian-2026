@@ -210,3 +210,9 @@ vault test fix), then the optional `/sample` page.
   treasury floor, kill switch. First public run sr_4f0bc683: 70 s, every step ok; Carol skipped (already onboarded), a
   self-reset is being added. Linked from README, llms.txt, deck slide 10 and the landing ("No Claude at hand?").
 - Foundation session closed; deploys run from the worktree per `docs/DEPLOY.md`.
+
+## Status 15:58 UTC: testnet frozen at `4dd5d42`
+
+Public `/sample` run sr_0f181309 on the deployed Worker, 70 s, every step ok including Carol's claim (needs the nod, then
+paid in one transaction) and her reset afterwards; the visitor rate limit answered 429 with a retry time as designed.
+Evidence `evidence/sample/`. Landing verified by e6 at this release (9/9 viewport and theme shots). Deploy queue empty.
