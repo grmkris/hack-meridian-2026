@@ -25,6 +25,16 @@ wallet gets; allowance 5 USDC until tomorrow 12:00 UTC.
 | Connections, after | `connections-revoked-*` | revoked, rule removed; the next tool call was refused (Unauthorized) |
 | Receipts | `receipts-*` | both payments with their lanes |
 
+### Later the same evening (release 3473ee4, 20:13–20:14 UTC)
+
+A second throwaway testnet wallet, connected the same way.
+
+| Surface | Files | What it shows |
+| --- | --- | --- |
+| Claim link, as the stranger sees it | `claim-link-*` | `payment_prepare` with recipient "new" for Jan, 1 USDC: "Jan, 1.00 USDC for you" and the three ways to receive (create a Nod wallet, sign in, a Stellar address), opened in a browser with no Nod session; left unclaimed |
+| Contacts | `contacts-added-by-*` | Dave saved by `contact_add`: "Added by Demo AI app. Its first payment needs your nod." |
+| Home, Add money | `home-deposit-address-*`, `home-add-money-phone.png` | after "Get a deposit address": the deposit address `GDHENY6DPTHFDAGOQCQGQE67ZFG47XYLB53CFXAKSF4PF6ZXXYZW3ITS`, nothing received yet, works until 23 Apr |
+
 ## trynod.si (mainnet, 20:04 UTC)
 
 Signed out only; no wallet was created on mainnet. `landing-*.jpg` and `consent-signin-*` (the "Stellar Mainnet" pill).

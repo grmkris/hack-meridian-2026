@@ -1,0 +1,9 @@
+2026-10-25T20:13:45.107Z DCR client 0s0NbqM5Rgy9nwQ8
+2026-10-25T20:14:19.097Z connected
+2026-10-25T20:14:19.566Z claim link cl_ee38bf12f1e18e2cebedf039f5262869 https://testnet.trynod.si/claim/cl_ee38bf12f1e18e2cebedf039f5262869
+2026-10-25T20:14:21.371Z shot claim-link
+2026-10-25T20:14:29.025Z friendbot Dave 200
+2026-10-25T20:14:29.837Z contact_add added
+2026-10-25T20:14:32.431Z shot contacts-added-by
+2026-10-25T20:14:51.307Z shot home-deposit-address
+2026-10-25T20:14:51.434Z deposit address GDHENY6DPTHFDAGOQCQGQE67ZFG47XYLB53CFXAKSF4PF6ZXXYZW3ITS
