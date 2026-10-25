@@ -1,5 +1,5 @@
-import { Array, Effect, Option, Schema } from 'effect'
-import { Command, type Runtime, Update } from 'foldkit'
+import { Array, Duration, Effect, Option, Schema, Stream } from 'effect'
+import { Command, type Runtime, Subscription, Update } from 'foldkit'
 import type { Document, Html, HtmlBuilder } from 'foldkit/html'
 import { defineMessageUnion } from 'foldkit/message'
 import { UrlRequest, load, pushUrl } from 'foldkit/navigation'
@@ -52,6 +52,7 @@ export const Message = defineMessageUnion({
   FailedCheckSession: { problem: Problem },
   ClickedSignOut: {},
   CompletedSignOut: {},
+  TickedLiveRefresh: {},
   GotHomeMessage: { message: Home.Message },
   GotConnectionsMessage: { message: Connections.Message },
   GotContactsMessage: { message: Contacts.Message },
@@ -242,12 +243,37 @@ export const update = (model: Model, message: Message) =>
       }),
     ClickedSignOut: () => ({ model, commands: [SignOut()] }),
     CompletedSignOut: () => endSession(model),
+    TickedLiveRefresh: () => whenSignedIn(enterRoute(model.route))(model),
     GotHomeMessage: ({ message: homeMessage }) => foldHome(model, homeMessage),
     GotConnectionsMessage: ({ message: connectionsMessage }) => foldConnections(model, connectionsMessage),
     GotContactsMessage: ({ message: contactsMessage }) => foldContacts(model, contactsMessage),
     GotReceiptsMessage: ({ message: receiptsMessage }) => foldReceipts(model, receiptsMessage),
     GotWelcomeMessage: ({ message: welcomeMessage }) => foldWelcome(model, welcomeMessage),
   })
+
+// SUBSCRIPTION
+
+const LIVE_REFRESH = Duration.seconds(8)
+
+const isWatchingHome = (model: Model): boolean =>
+  Session.guards.SignedIn(model.session) && AppRoute.isAnyOf(['Home'])(model.route)
+
+export const subscriptions = Subscription.make<Model, Message>()(entry => ({
+  liveHome: entry(
+    { isWatching: Schema.Boolean },
+    {
+      modelToDependencies: model => ({ isWatching: isWatchingHome(model) }),
+      dependenciesToStream: ({ isWatching }) =>
+        Stream.when(
+          Stream.tick(LIVE_REFRESH).pipe(
+            Stream.drop(1),
+            Stream.map(() => Message.TickedLiveRefresh()),
+          ),
+          Effect.sync(() => isWatching),
+        ),
+    },
+  ),
+}))
 
 // VIEW
 

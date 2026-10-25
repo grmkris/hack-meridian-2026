@@ -17,6 +17,7 @@ import {
   update,
 } from './main'
 import { Connections, Home, Welcome } from './page'
+import { overview } from './page/fixtures'
 import { Problem } from './problem'
 import { AppRoute } from './route'
 
@@ -114,6 +115,32 @@ describe('links', () => {
       message(Message.ClickedLink({ request: UrlRequest.Internal({ url: urlAt('/contacts') }) })),
       Command.expectExact(NavigateInternal({ url: 'https://wallet.test/contacts' })),
       Command.resolve(NavigateInternal, Message.CompletedNavigateInternal()),
+    )
+  })
+})
+
+describe('live refresh', () => {
+  test('a tick on Home revalidates the overview without dropping what is shown', () => {
+    story(
+      update,
+      given(checking('/')),
+      message(Message.SucceededCheckSession({ wallet: fixture.wallet })),
+      Command.resolve(Home.LoadOverview, Home.Message.SucceededLoadOverview({ overview })),
+      message(Message.TickedLiveRefresh()),
+      model(nextModel => {
+        expect(nextModel.home.overview).toEqual({ _tag: 'Refreshing', data: overview })
+      }),
+      Command.resolve(Home.LoadOverview, Home.Message.SucceededLoadOverview({ overview })),
+    )
+  })
+
+  test('a tick while signed out does nothing', () => {
+    story(
+      update,
+      given(checking('/')),
+      message(Message.FailedCheckSession({ problem: Problem.SignedOut() })),
+      message(Message.TickedLiveRefresh()),
+      Command.expectNone(),
     )
   })
 })

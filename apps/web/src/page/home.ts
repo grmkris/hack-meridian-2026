@@ -237,10 +237,7 @@ export const view = Submodel.defineView<Model, Message>((model, h): Html =>
         [h.Class('flex items-center justify-between gap-4')],
         [
           h.h1([h.Class('text-2xl font-semibold tracking-tight text-ink sm:text-3xl')], ['Home']),
-          h.button(
-            [h.Type('button'), h.OnClick(Message.ClickedRefresh()), h.Class(BUTTON_SECONDARY)],
-            [AsyncData.isPending(model.overview) ? 'Refreshing…' : 'Refresh'],
-          ),
+          h.button([h.Type('button'), h.OnClick(Message.ClickedRefresh()), h.Class(BUTTON_SECONDARY)], ['Refresh']),
         ],
       ),
       AsyncData.matchData(model.overview, {
