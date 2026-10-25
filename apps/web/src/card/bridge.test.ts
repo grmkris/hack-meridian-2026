@@ -140,9 +140,7 @@ describe('the payment card in a chat', () => {
     const card = await mount('payment-needs-nod')
     await vi.waitFor(() => expect(text(card.container)).toContain('Approve with your passkey'))
     buttonNamed(card.container, 'Approve with your passkey').click()
-    await vi.waitFor(() =>
-      expect(card.links).toEqual(['https://testnet.trynod.si/approve/pi_bob20']),
-    )
+    await vi.waitFor(() => expect(card.links).toEqual(['https://testnet.trynod.si/approve/pi_bob20']))
     expect(card.calls).toEqual([])
   })
 
@@ -292,10 +290,6 @@ describe('payment requests', () => {
     expect(text(card.container)).toContain('always needs your nod')
     expect(text(card.container)).not.toContain('Pay 40.00 USDC')
     buttonNamed(card.container, 'Open the request on Nod').click()
-    await vi.waitFor(() =>
-      expect(card.links).toEqual([
-        'https://testnet.trynod.si/approve/request/rq_stranger',
-      ]),
-    )
+    await vi.waitFor(() => expect(card.links).toEqual(['https://testnet.trynod.si/approve/request/rq_stranger']))
   })
 })
