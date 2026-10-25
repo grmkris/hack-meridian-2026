@@ -6,7 +6,7 @@ const out = new URL('dist/', root)
 const png = new URL('dist/png/', root)
 
 const FONTS =
-  'https://fonts.googleapis.com/css2?family=Gabarito:wght@600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap'
+  'https://fonts.googleapis.com/css2?family=Besley:wght@700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap'
 const UA = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36'
 
 const inlineFonts = async () => {

@@ -12,27 +12,30 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Gabarito:wght@600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Besley:wght@700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap"
     />
     <style>
-      /* Layout: 1920x1080 slides, a 120px margin, headline top-left, one idea per slide, a quiet footer with the testnet mark. */
+      /* Layout: 1920x1080 slides. Night slides open and close the deck; paper slides carry one idea each, ink on warm paper with intaglio accents. Lamp is kept for the nod moment only. */
       :root {
-        --canvas: oklch(0.975 0.006 85);
-        --paper: oklch(0.995 0.002 90);
-        --mist: oklch(0.955 0.007 85);
-        --line: oklch(0.9 0.01 85);
-        --ink: oklch(0.2 0.02 265);
-        --muted: oklch(0.5 0.02 265);
-        --accent: oklch(0.5 0.2 275);
-        --accent-soft: oklch(0.94 0.04 275);
-        --good: oklch(0.52 0.13 155);
-        --good-soft: oklch(0.94 0.05 155);
-        --warn: oklch(0.6 0.14 65);
-        --warn-soft: oklch(0.95 0.05 75);
-        --danger: oklch(0.55 0.2 27);
-        --display: 'Gabarito', 'Avenir Next', 'Segoe UI', system-ui, sans-serif;
-        --body: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
-        --mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+        --night: #0b152c;
+        --night-raised: #16223d;
+        --starlight: #e6f0fa;
+        --starlight-muted: #b7c6d8;
+        --lamp: #f7c15f;
+        --lamp-ink: #995600;
+        --intaglio: #29416f;
+        --canvas: #f9f6f2;
+        --paper: #fefdfc;
+        --mist: #f1ece5;
+        --line: #e3ded6;
+        --ink: #12161f;
+        --muted: #5b6272;
+        --intaglio-soft: #e7eaf1;
+        --good: #1f7a4d;
+        --danger: #a8322a;
+        --display: 'Besley', ui-serif, Georgia, serif;
+        --body: 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;
+        --mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
         color-scheme: light;
       }
       @page {
@@ -45,12 +48,9 @@
       html,
       body {
         margin: 0;
-        background: oklch(0.9 0.01 265);
+        background: #d9dde5;
         color: var(--ink);
         font-family: var(--body);
-        font-feature-settings:
-          'tnum' 1,
-          'cv11' 1;
         -webkit-print-color-adjust: exact;
         print-color-adjust: exact;
       }
@@ -64,7 +64,7 @@
         width: calc(1920px * var(--s, 1));
         height: calc(1080px * var(--s, 1));
         overflow: hidden;
-        box-shadow: 0 2px 24px oklch(0.2 0.02 265 / 0.12);
+        box-shadow: 0 2px 24px rgb(11 21 44 / 0.14);
       }
       .slide {
         width: 1920px;
@@ -77,6 +77,7 @@
         grid-template-rows: auto 1fr 104px;
         gap: 40px;
         position: relative;
+        overflow: hidden;
       }
       @media print {
         html,
@@ -98,28 +99,31 @@
         }
       }
       a {
-        color: var(--accent);
+        color: var(--intaglio);
         text-decoration-thickness: 2px;
         text-underline-offset: 6px;
       }
       h1,
-      h2,
-      h3 {
+      h2 {
         font-family: var(--display);
+        font-weight: 700;
         margin: 0;
         text-wrap: balance;
-        letter-spacing: -0.02em;
+        letter-spacing: -0.025em;
       }
       h2 {
         font-size: 80px;
-        font-weight: 800;
         line-height: 1.02;
-        max-width: 1500px;
+        max-width: 1560px;
       }
       h3 {
-        font-size: 36px;
-        font-weight: 700;
-        line-height: 1.15;
+        font-family: var(--body);
+        font-size: 34px;
+        font-weight: 600;
+        line-height: 1.2;
+        letter-spacing: -0.01em;
+        margin: 0;
+        text-wrap: balance;
       }
       p {
         margin: 0;
@@ -129,17 +133,18 @@
         font-weight: 600;
         letter-spacing: 0.16em;
         text-transform: uppercase;
-        color: var(--accent);
+        color: var(--intaglio);
         margin-bottom: 20px;
-      }
-      .lead {
-        font-size: 34px;
-        line-height: 1.4;
-        color: var(--muted);
-        max-width: 1280px;
       }
       .mono {
         font-family: var(--mono);
+      }
+      .mark {
+        font-family: var(--display);
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        line-height: 1;
+        color: var(--ink);
       }
       .foot {
         display: flex;
@@ -154,47 +159,26 @@
         align-items: center;
         gap: 18px;
       }
-      .mark {
-        font-family: var(--display);
-        font-weight: 800;
-        letter-spacing: -0.04em;
-        display: inline-flex;
-        align-items: baseline;
-        color: var(--ink);
-        line-height: 1;
-      }
-      .mark .o {
-        display: inline-block;
-        width: 0.5em;
-        height: 0.5em;
-        border-radius: 50%;
-        background: var(--accent);
-        margin: 0 0.04em;
-        transform: translateY(0.06em);
-      }
       .foot .mark {
-        font-size: 40px;
+        font-size: 36px;
       }
       .pill {
         display: inline-flex;
         align-items: center;
-        padding: 6px 16px;
+        padding: 5px 16px;
         border-radius: 999px;
         font-size: 20px;
-        font-weight: 600;
+        font-weight: 500;
         white-space: nowrap;
       }
       .pill.testnet {
-        background: var(--warn-soft);
-        color: var(--warn);
+        border: 1px solid rgb(18 22 31 / 0.2);
+        color: var(--muted);
       }
-      .pill.accent {
-        background: var(--accent-soft);
-        color: var(--accent);
-      }
-      .pill.good {
-        background: var(--good-soft);
-        color: var(--good);
+      .pill.nod {
+        background: var(--lamp);
+        color: var(--ink);
+        font-weight: 600;
       }
       .num {
         font-family: var(--mono);
@@ -203,33 +187,10 @@
       .body {
         min-height: 0;
       }
-
       .card {
         background: var(--paper);
         border: 2px solid var(--line);
-        border-radius: 28px;
-      }
-      .twonum {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        overflow: hidden;
-      }
-      .twonum .cell {
-        padding: 36px 40px;
-        display: grid;
-        gap: 10px;
-        align-content: start;
-      }
-      .twonum .cell + .cell {
-        border-left: 2px solid var(--line);
-      }
-      .twonum .wide {
-        grid-column: 1 / 3;
-        border-top: 2px solid var(--line);
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 28px 40px;
+        border-radius: 24px;
       }
       .k {
         font-size: 18px;
@@ -238,68 +199,160 @@
         text-transform: uppercase;
         color: var(--muted);
       }
-      .v {
-        font-family: var(--display);
-        font-weight: 800;
-        font-size: 64px;
-        letter-spacing: -0.02em;
-        line-height: 1.05;
-      }
-      .v.acc {
-        color: var(--accent);
-      }
-      .meter {
-        height: 12px;
-        border-radius: 999px;
-        background: var(--accent);
-        margin-top: 8px;
-      }
       .small {
         font-size: 22px;
         color: var(--muted);
       }
 
-      /* slide 1 */
-      .title .body {
-        display: grid;
-        grid-template-columns: 1fr 780px;
-        gap: 96px;
-        align-items: center;
+      .night {
+        background: var(--night);
+        color: var(--starlight);
       }
-      .title .mark.big {
-        font-size: 220px;
+      .night a {
+        color: var(--starlight);
+        text-decoration-color: rgb(230 240 250 / 0.4);
+      }
+      .night .mark {
+        color: var(--starlight);
+      }
+      .night .pill.testnet {
+        border-color: rgb(230 240 250 / 0.28);
+        color: var(--starlight-muted);
+      }
+      .night .k,
+      .night .small {
+        color: var(--starlight-muted);
+      }
+      .night .foot {
+        border-top-color: rgb(230 240 250 / 0.16);
+        color: var(--starlight-muted);
+      }
+      .night .eyebrow {
+        color: var(--starlight-muted);
+      }
+
+      .title {
+        display: block;
+        padding: 0;
+      }
+      .title .scene {
+        position: absolute;
+        inset: 0;
+        width: 1920px;
+        height: 1080px;
+      }
+      .title .topbar {
+        position: absolute;
+        left: 120px;
+        right: 120px;
+        top: 64px;
+        display: flex;
+        align-items: center;
+        gap: 18px;
+        font-size: 22px;
+        color: var(--starlight-muted);
+      }
+      .title .topbar .mark {
+        font-size: 40px;
+        text-shadow:
+          0 0 4px var(--night),
+          0 0 16px var(--night);
+      }
+      .title .topbar .pill {
+        background: rgb(11 21 44 / 0.85);
+      }
+      .title .topbar .right {
+        text-shadow: 0 0 12px var(--night);
+      }
+      .title .topbar .right {
+        margin-left: auto;
+      }
+      .title .hero {
+        position: absolute;
+        left: 120px;
+        top: 168px;
+        width: 900px;
+        display: grid;
+        gap: 28px;
+        text-shadow:
+          0 0 3px var(--night),
+          0 0 18px var(--night),
+          0 0 36px var(--night);
       }
       .title h1 {
-        font-size: 104px;
-        font-weight: 800;
-        line-height: 1;
-        margin-top: 40px;
+        font-size: 116px;
+        line-height: 0.98;
+        color: var(--starlight);
+        max-width: 11ch;
       }
       .title .tag {
-        font-family: var(--display);
-        font-size: 44px;
-        font-weight: 600;
-        color: var(--muted);
-        margin-top: 28px;
-        line-height: 1.2;
+        font-size: 38px;
+        line-height: 1.3;
+        color: var(--starlight-muted);
       }
       .title .tag b {
-        color: var(--ink);
-      }
-      .title .live a {
-        font-size: 24px;
-        white-space: nowrap;
+        color: var(--starlight);
+        font-weight: 600;
       }
       .title .live {
-        margin-top: 56px;
         display: flex;
         gap: 16px;
         align-items: center;
-        flex-wrap: wrap;
-        font-size: 26px;
+        font-size: 24px;
+      }
+      .title .live a {
+        font-family: var(--mono);
+        white-space: nowrap;
+      }
+      .title .twonum {
+        position: absolute;
+        right: 120px;
+        top: 168px;
+        width: 700px;
+        background: rgb(22 34 61 / 0.94);
+        border: 1px solid rgb(230 240 250 / 0.2);
+        border-radius: 24px;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        overflow: hidden;
+        color: var(--starlight);
+      }
+      .twonum .cell {
+        padding: 32px 36px;
+        display: grid;
+        gap: 10px;
+        align-content: start;
+      }
+      .twonum .cell + .cell {
+        border-left: 1px solid rgb(230 240 250 / 0.16);
+      }
+      .twonum .wide {
+        grid-column: 1 / 3;
+        border-top: 1px solid rgb(230 240 250 / 0.16);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 26px 36px;
+        background: rgb(247 193 95 / 0.08);
+      }
+      .twonum .wide .who {
+        font-size: 30px;
+        font-weight: 600;
+      }
+      .v {
+        font-family: var(--display);
+        font-weight: 700;
+        font-size: 72px;
+        letter-spacing: -0.02em;
+        line-height: 1;
+      }
+      .meter {
+        height: 10px;
+        border-radius: 999px;
+        background: var(--starlight);
+        margin-top: 8px;
       }
 
-      /* slide 2 */
       .problem .body {
         display: grid;
         grid-template-columns: 1fr 1fr;
@@ -319,24 +372,26 @@
         color: var(--muted);
       }
       .option .x {
-        font-family: var(--display);
-        font-weight: 800;
-        font-size: 30px;
+        font-size: 24px;
+        font-weight: 600;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
         color: var(--danger);
       }
       blockquote {
         margin: 0;
         grid-column: 1 / 3;
-        border-left: 8px solid var(--accent);
+        border-left: 6px solid var(--intaglio);
         padding: 8px 0 8px 40px;
         display: grid;
         gap: 12px;
       }
       blockquote q {
         font-family: var(--display);
-        font-size: 48px;
+        font-size: 50px;
         font-weight: 700;
         line-height: 1.15;
+        letter-spacing: -0.015em;
       }
       blockquote cite {
         font-style: normal;
@@ -344,7 +399,6 @@
         color: var(--muted);
       }
 
-      /* slide 3 */
       .lanes .body {
         display: grid;
         grid-template-columns: 420px 120px 1fr;
@@ -365,11 +419,11 @@
         font-weight: 600;
         letter-spacing: 0.12em;
         text-transform: uppercase;
-        color: var(--warn);
+        color: var(--intaglio);
       }
       .ask p {
         font-size: 30px;
-        line-height: 1.3;
+        line-height: 1.35;
       }
       .arrows {
         grid-row: 1 / 3;
@@ -385,7 +439,10 @@
         align-content: center;
       }
       .lane h3 {
-        font-size: 44px;
+        font-family: var(--display);
+        font-weight: 700;
+        font-size: 46px;
+        letter-spacing: -0.02em;
       }
       .lane .how {
         grid-column: 1;
@@ -405,24 +462,26 @@
         font-family: var(--mono);
         font-size: 24px;
         padding: 10px 18px;
-        border-radius: 14px;
+        border-radius: 12px;
         background: var(--mist);
         white-space: nowrap;
       }
       .lane.in {
-        border-color: var(--accent);
+        border-color: var(--intaglio);
       }
       .lane.in h3 {
-        color: var(--accent);
+        color: var(--intaglio);
       }
       .lane.over {
-        border-color: var(--warn);
+        border-color: var(--lamp-ink);
       }
       .lane.over h3 {
-        color: var(--warn);
+        color: var(--lamp-ink);
+      }
+      .lane.over .ex span.nod {
+        background: var(--lamp);
       }
 
-      /* slide 4 */
       .demo .body {
         display: grid;
         grid-template-columns: 1.55fr 0.62fr 0.62fr;
@@ -435,10 +494,11 @@
         grid-template-rows: 1fr auto;
         gap: 12px;
         min-height: 0;
+        margin: 0;
       }
       .shot .img {
         border: 2px solid var(--line);
-        border-radius: 20px;
+        border-radius: 18px;
         overflow: hidden;
         background: var(--paper);
         min-height: 0;
@@ -453,7 +513,7 @@
       .shot.narrow img {
         object-fit: contain;
         object-position: top center;
-        background: oklch(0.97 0.004 265);
+        background: #f5f6f8;
       }
       .shot .cap {
         font-size: 20px;
@@ -466,13 +526,16 @@
         gap: 16px;
       }
       .beat {
-        border-top: 4px solid var(--accent);
+        border-top: 4px solid var(--intaglio);
         padding-top: 14px;
         display: grid;
         gap: 6px;
       }
       .beat.nod {
-        border-color: var(--warn);
+        border-color: var(--lamp);
+      }
+      .beat.nod .amt {
+        color: var(--lamp-ink);
       }
       .beat .amt {
         font-family: var(--mono);
@@ -485,7 +548,10 @@
         line-height: 1.3;
       }
 
-      /* slide 5 */
+      .tech h2 {
+        font-size: 68px;
+        max-width: none;
+      }
       .tech .body {
         display: grid;
         grid-template-columns: 700px 1fr;
@@ -494,21 +560,22 @@
       }
       .stack {
         display: grid;
-        gap: 0;
       }
       .layer {
         padding: 18px 28px;
         display: grid;
         gap: 6px;
       }
-      .layer + .down {
+      .down {
         justify-self: center;
-        width: 4px;
+        width: 2px;
         height: 16px;
-        background: var(--line);
+        background: var(--intaglio);
+        opacity: 0.4;
       }
       .layer b {
         font-size: 28px;
+        font-weight: 600;
       }
       .layer span {
         font-size: 22px;
@@ -516,7 +583,7 @@
         line-height: 1.35;
       }
       .layer.acct {
-        border-color: var(--accent);
+        border-color: var(--intaglio);
       }
       .rules {
         display: grid;
@@ -526,13 +593,13 @@
       .rules div {
         font-family: var(--mono);
         font-size: 19px;
-        background: var(--mist);
+        background: var(--intaglio-soft);
+        color: var(--intaglio);
         border-radius: 10px;
         padding: 8px 14px;
       }
       .proofs {
         display: grid;
-        gap: 0;
       }
       .proof {
         display: grid;
@@ -560,7 +627,6 @@
         color: var(--muted);
       }
 
-      /* slide 6 */
       .composed .body {
         display: grid;
         grid-template-columns: 1fr 520px;
@@ -583,10 +649,10 @@
         background: var(--paper);
       }
       .grid9 b {
-        font-family: var(--display);
-        font-size: 30px;
-        font-weight: 700;
-        line-height: 1.15;
+        font-size: 28px;
+        font-weight: 600;
+        line-height: 1.2;
+        color: var(--intaglio);
       }
       .grid9 span {
         font-size: 21px;
@@ -606,7 +672,6 @@
         line-height: 1.3;
       }
 
-      /* slide 7 */
       .new .body {
         display: grid;
         grid-template-columns: 1fr 1fr;
@@ -629,10 +694,14 @@
         color: var(--muted);
       }
       .idea .n {
-        font-family: var(--display);
-        font-weight: 800;
-        font-size: 30px;
-        color: var(--accent);
+        font-size: 22px;
+        font-weight: 600;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--intaglio);
+      }
+      .idea .n.nod {
+        color: var(--lamp-ink);
       }
       .flow {
         display: flex;
@@ -643,7 +712,8 @@
         white-space: nowrap;
       }
       .flow span {
-        background: var(--mist);
+        background: var(--intaglio-soft);
+        color: var(--intaglio);
         border-radius: 10px;
         padding: 8px 12px;
       }
@@ -652,7 +722,6 @@
         color: var(--muted);
       }
 
-      /* slide 8 */
       .progress .body {
         display: grid;
         grid-template-rows: auto auto;
@@ -670,8 +739,9 @@
         left: 0;
         right: 0;
         top: 15px;
-        height: 4px;
-        background: var(--line);
+        height: 2px;
+        background: var(--intaglio);
+        opacity: 0.35;
       }
       .tick {
         display: grid;
@@ -680,15 +750,13 @@
         position: relative;
       }
       .tick .dot {
-        width: 34px;
-        height: 34px;
+        width: 32px;
+        height: 32px;
         border-radius: 50%;
-        background: var(--paper);
-        border: 6px solid var(--accent);
+        background: var(--intaglio);
+        border: 6px solid var(--canvas);
+        box-shadow: 0 0 0 2px var(--intaglio);
         z-index: 1;
-      }
-      .tick.done .dot {
-        background: var(--accent);
       }
       .tick .t {
         font-family: var(--mono);
@@ -713,10 +781,11 @@
       }
       .stat .big {
         font-family: var(--display);
-        font-weight: 800;
-        font-size: 96px;
+        font-weight: 700;
+        font-size: 104px;
         line-height: 1;
         letter-spacing: -0.03em;
+        color: var(--intaglio);
       }
       .stat .lbl {
         font-size: 24px;
@@ -724,7 +793,6 @@
         line-height: 1.35;
       }
 
-      /* slide 9 */
       .market .body {
         display: grid;
         grid-template-columns: 1fr 1fr;
@@ -734,7 +802,7 @@
       .point {
         display: grid;
         gap: 12px;
-        border-top: 4px solid var(--accent);
+        border-top: 3px solid var(--intaglio);
         padding-top: 24px;
       }
       .point p {
@@ -746,107 +814,118 @@
         border-color: var(--good);
       }
 
-      /* slide 10 */
       .try .body {
         display: grid;
-        grid-template-columns: 1fr 620px;
-        gap: 80px;
+        grid-template-columns: 1fr 600px;
+        gap: 96px;
         align-items: start;
+        position: relative;
+        z-index: 1;
+      }
+      .try .swallow {
+        position: absolute;
+        right: 110px;
+        bottom: 112px;
+        width: 290px;
+        opacity: 0.9;
       }
       .urls {
         display: grid;
-        gap: 22px;
+        gap: 20px;
       }
       .url {
         display: grid;
-        gap: 8px;
+        gap: 6px;
       }
       .url .val {
         font-family: var(--mono);
         font-size: 26px;
         font-weight: 500;
         white-space: nowrap;
+        color: var(--starlight);
       }
       .prompts {
         display: grid;
-        gap: 14px;
-        margin-top: 12px;
+        gap: 12px;
+        margin-top: 10px;
       }
       .prompts div {
         font-size: 28px;
-        padding: 14px 24px;
-        border-radius: 18px;
-        background: var(--paper);
-        border: 2px solid var(--line);
+        padding: 12px 24px;
+        border-radius: 16px;
+        background: var(--night-raised);
+        border: 1px solid rgb(230 240 250 / 0.2);
       }
       .prompts div.nod {
-        border-color: var(--warn);
+        border: 2px solid var(--lamp);
       }
       .prompts small {
         display: block;
         font-size: 21px;
-        color: var(--muted);
+        color: var(--starlight-muted);
         margin-top: 4px;
       }
-      .next {
-        display: grid;
-        gap: 0;
+      .prompts div.nod small {
+        color: var(--lamp);
       }
-      .next li {
-        font-size: 26px;
-        line-height: 1.35;
-        padding: 16px 0;
-        border-top: 2px solid var(--line);
-        list-style: none;
+      .next h3 {
+        font-family: var(--display);
+        font-weight: 700;
+        font-size: 40px;
       }
       .next ul {
-        margin: 16px 0 0;
+        margin: 14px 0 0;
         padding: 0;
+      }
+      .next li {
+        font-size: 24px;
+        line-height: 1.35;
+        padding: 12px 0;
+        border-top: 1px solid rgb(230 240 250 / 0.16);
+        list-style: none;
+        color: var(--starlight-muted);
       }
     </style>
   </head>
   <body>
     <main class="deck">
       <div class="frame">
-        <section class="slide title">
-          <div></div>
-          <div class="body">
-            <div>
-              <span class="mark big" aria-label="nod">n<span class="o"></span>d</span>
-              <h1>Give your AI an allowance.</h1>
-              <p class="tag"><b>Small stuff, it just pays.</b> Big stuff needs your nod.</p>
-              <div class="live">
-                <span class="pill testnet">Live on Stellar testnet</span>
-                <a class="mono" href="https://hack-meridian-testnet.kristjan-grm11775.workers.dev"
-                  >hack-meridian-testnet.kristjan-grm11775.workers.dev</a
-                >
-              </div>
-            </div>
-            <div class="card twonum">
-              <div class="cell">
-                <span class="k">Wallet</span>
-                <span class="v">30.00</span>
-                <span class="small">USDC · Personal · testnet</span>
-              </div>
-              <div class="cell">
-                <span class="k">Claude may spend</span>
-                <span class="v acc">5.00</span>
-                <div class="meter"></div>
-                <span class="small">USDC until tomorrow 12:00 UTC</span>
-              </div>
-              <div class="wide">
-                <div>
-                  <div style="font-size: 30px; font-weight: 700">20.00 USDC to Bob</div>
-                  <div class="small">Claude asked · "Dinner with Bob"</div>
-                </div>
-                <span class="pill testnet">Needs your nod</span>
-              </div>
+        <section class="slide title night">
+          <img class="scene" src="img/night.png" alt="" />
+          <header class="topbar">
+            <span class="mark">nod</span><span class="pill testnet">Stellar testnet</span
+            ><span class="right">HackMeridian 2026 · Genesis · Stellar Composed</span>
+          </header>
+          <div class="hero">
+            <h1>Give your AI an allowance.</h1>
+            <p class="tag"><b>Small stuff, it just pays.</b> Big stuff needs your nod.</p>
+            <div class="live">
+              <span class="pill testnet">Live on Stellar testnet</span>
+              <a href="https://hack-meridian-testnet.kristjan-grm11775.workers.dev"
+                >hack-meridian-testnet.kristjan-grm11775.workers.dev</a
+              >
             </div>
           </div>
-          <footer class="foot">
-            <span class="left">HackMeridian 2026 · Genesis · Stellar Composed</span>
-            <span class="num">01</span>
-          </footer>
+          <div class="twonum">
+            <div class="cell">
+              <span class="k">In your wallet</span>
+              <span class="v">30.00</span>
+              <span class="small">USDC · Personal · testnet</span>
+            </div>
+            <div class="cell">
+              <span class="k">Claude may spend</span>
+              <span class="v">5.00</span>
+              <div class="meter"></div>
+              <span class="small">USDC, until tomorrow 12:00 UTC</span>
+            </div>
+            <div class="wide">
+              <div>
+                <div class="who">20.00 USDC to Bob</div>
+                <div class="small">Claude asked · "Dinner with Bob"</div>
+              </div>
+              <span class="pill nod">Needs your nod</span>
+            </div>
+          </div>
         </section>
       </div>
 
@@ -873,10 +952,7 @@
             </blockquote>
           </div>
           <footer class="foot">
-            <span class="left"
-              ><span class="mark">n<span class="o"></span>d</span
-              ><span class="pill testnet">Stellar testnet</span></span
-            >
+            <span class="left"><span class="mark">nod</span><span class="pill testnet">Stellar testnet</span></span>
             <span class="num">02</span>
           </footer>
         </section>
@@ -897,8 +973,8 @@
               </p>
             </div>
             <svg class="arrows" viewBox="0 0 120 600" preserveAspectRatio="none" aria-hidden="true">
-              <path d="M0 300 C 60 300, 60 150, 120 150" fill="none" stroke="oklch(0.5 0.2 275)" stroke-width="5" />
-              <path d="M0 300 C 60 300, 60 450, 120 450" fill="none" stroke="oklch(0.6 0.14 65)" stroke-width="5" />
+              <path d="M0 300 C 60 300, 60 150, 120 150" fill="none" stroke="#29416f" stroke-width="5" />
+              <path d="M0 300 C 60 300, 60 450, 120 450" fill="none" stroke="#995600" stroke-width="5" />
             </svg>
             <div class="card lane in">
               <h3>Inside the allowance, it just pays.</h3>
@@ -912,14 +988,11 @@
               <p class="how">
                 Claude gets a link. You see who, how much and why, and your passkey signs that exact payment.
               </p>
-              <div class="ex"><span>20.00 · Bob, dinner</span><span>Face ID → paid</span></div>
+              <div class="ex"><span>20.00 · Bob, dinner</span><span class="nod">Face ID → paid</span></div>
             </div>
           </div>
           <footer class="foot">
-            <span class="left"
-              ><span class="mark">n<span class="o"></span>d</span
-              ><span class="pill testnet">Stellar testnet</span></span
-            >
+            <span class="left"><span class="mark">nod</span><span class="pill testnet">Stellar testnet</span></span>
             <span class="num">03</span>
           </footer>
         </section>
@@ -965,7 +1038,7 @@
           </div>
           <footer class="foot">
             <span class="left"
-              ><span class="mark">n<span class="o"></span>d</span><span class="pill testnet">Stellar testnet</span
+              ><span class="mark">nod</span><span class="pill testnet">Stellar testnet</span
               ><span>Consent and approval pages from today's testnet rehearsal</span></span
             >
             <span class="num">04</span>
@@ -1044,7 +1117,7 @@
           </div>
           <footer class="foot">
             <span class="left"
-              ><span class="mark">n<span class="o"></span>d</span><span class="pill testnet">Stellar testnet</span
+              ><span class="mark">nod</span><span class="pill testnet">Stellar testnet</span
               ><span>Every hash links to stellar.expert</span></span
             >
             <span class="num">05</span>
@@ -1085,10 +1158,7 @@
             </div>
           </div>
           <footer class="foot">
-            <span class="left"
-              ><span class="mark">n<span class="o"></span>d</span
-              ><span class="pill testnet">Stellar testnet</span></span
-            >
+            <span class="left"><span class="mark">nod</span><span class="pill testnet">Stellar testnet</span></span>
             <span class="num">06</span>
           </footer>
         </section>
@@ -1119,7 +1189,7 @@
               <p>The OAuth consent page and the passkey signature are one step. One rule, expiry and revoke per app.</p>
             </div>
             <div class="card idea">
-              <span class="n">Ask, don't reject</span>
+              <span class="n nod">Ask, don't reject</span>
               <h3>An over-allowance payment becomes a passkey approval.</h3>
               <p>
                 Most agent wallets just block it. Nod sends Claude a link, and your nod covers that exact recipient and
@@ -1133,10 +1203,7 @@
             </div>
           </div>
           <footer class="foot">
-            <span class="left"
-              ><span class="mark">n<span class="o"></span>d</span
-              ><span class="pill testnet">Stellar testnet</span></span
-            >
+            <span class="left"><span class="mark">nod</span><span class="pill testnet">Stellar testnet</span></span>
             <span class="num">07</span>
           </footer>
         </section>
@@ -1190,7 +1257,7 @@
           </div>
           <footer class="foot">
             <span class="left"
-              ><span class="mark">n<span class="o"></span>d</span><span class="pill testnet">Stellar testnet</span
+              ><span class="mark">nod</span><span class="pill testnet">Stellar testnet</span
               ><span>Commit history and spike results are in the repository</span></span
             >
             <span class="num">08</span>
@@ -1232,7 +1299,7 @@
           </div>
           <footer class="foot">
             <span class="left"
-              ><span class="mark">n<span class="o"></span>d</span><span class="pill testnet">Stellar testnet</span
+              ><span class="mark">nod</span><span class="pill testnet">Stellar testnet</span
               ><span>Mainnet figures from a read-only check (docs/research/mainnet.md)</span></span
             >
             <span class="num">09</span>
@@ -1241,7 +1308,8 @@
       </div>
 
       <div class="frame">
-        <section class="slide try">
+        <section class="slide try night">
+          <img class="swallow" src="img/swallow-starlight.png" alt="" />
           <header>
             <div class="eyebrow">Try it</div>
             <h2>Three minutes, in your own Claude.</h2>
@@ -1282,7 +1350,7 @@
           </div>
           <footer class="foot">
             <span class="left"
-              ><span class="mark">n<span class="o"></span>d</span><span class="pill testnet">Stellar testnet</span
+              ><span class="mark">nod</span><span class="pill testnet">Stellar testnet</span
               ><a class="mono" href="https://github.com/grmkris/hack-meridian-2026"
                 >github.com/grmkris/hack-meridian-2026</a
               ></span
