@@ -19,7 +19,7 @@ Nod
 
 Small stuff, it just pays. Big stuff needs your nod. A Stellar wallet inside your AI, with one allowance you set.
 
-### Description (Markdown, ≤ 8000 characters; this one: 7689)
+### Description (Markdown, ≤ 8000 characters; this one: 7805)
 
 **Apps are turning into conversations and agents, so wallets have to follow them into the chat.** Nod is a Stellar
 wallet that lives inside the AI you already use: one connector URL in Claude, Goblin, Claude Code or any MCP app, and in
@@ -65,17 +65,20 @@ trustline and paid in one transaction, a revoke that removed the rule and swept 
   (about 0.5 XLM for the trustline reserve), and the trustline (CAP-73) and the payment land in one transaction.
 - **Revoke.** Nod stops signing at once and sweeps the pocket back; one passkey tap removes the allowance from your
   account.
-- **Cards and notifications.** Shown live in Goblin, claude.ai and ChatGPT: the wallet card, the nod as a link, the card
-  turning into its receipt. Notifications (MCP Events) arrive in Goblin and ChatGPT; claude.ai and Claude Code do not
-  implement them, so there the cards poll.
+- **Cards and notifications.** Nod's cards and the nod run live in Goblin, claude.ai and ChatGPT; notifications (MCP
+  Events) arrive in Goblin and ChatGPT, and claude.ai's cards poll.
 
-Live on testnet, on the public sandbox (release `3473ee4`):
+Live on testnet, on the public sandbox:
 
 - **Sign up with a deposit.** A wallet can start with nothing onchain and a `G…` address any exchange can pay; our
   deposit router sweeps what arrives into that wallet only, and the account deploys with the first USDC
   ([`04704caf`](https://stellar.expert/explorer/testnet/tx/04704caf5ef4fe361c18452fc00d06f4df0dd8d302ca10cf6cadd6e90aa14873)).
 - **Pay someone who is not on Stellar.** Claude makes a claim link for a name; Jan opened it with no wallet, created
   one with a passkey, and the USDC landed in it ([`eb9def8c`](https://stellar.expert/explorer/testnet/tx/eb9def8cebc58e8ad0f659e70123ab12449cc91184a243172825bd1f25dd4f1e)).
+- **Past the allowance, a link that is an allowance for one person.** Your one passkey tap installs a rule for
+  exactly the amount, for seven days; its key is made in your browser and lives only in the link. Nod never holds the
+  link key or the funds; a leaked link can take at most the amount, once, before it expires
+  ([`fd54c526`](https://stellar.expert/explorer/testnet/tx/fd54c5267cea3afe68beb528afd44e385695c9b0e21f48c591b1588062fd77a6)).
 - **Contacts from the chat.** Claude adds contacts; the first payment to one it added needs your nod
   ([`b5efd05d`](https://stellar.expert/explorer/testnet/tx/b5efd05d326c936908785b99050b7719d4b0f341923fd24ae0c56e5a2dcca282)). A bigger allowance is a link your passkey signs.
 
@@ -96,16 +99,14 @@ filled from your wallet under the same policy in 1 USDC steps. Both transactions
 
 One rehearsal on the live site passed acceptance tests 1, 2 and 4–9; test 3, a forced over-limit transfer, cannot be
 sent through MCP by design and is proven onchain in spike S1 ([`3daf4b00`](https://stellar.expert/explorer/testnet/tx/3daf4b000cb58ad1bbef3629c13a02d44403c4b690dd51815020cbc89723b42a)).
-The run drove the deployed release `5253df0` on testnet.trynod.si through Claude's path with a new passkey wallet;
-its seven transactions are in [`run.json`](https://github.com/grmkris/hack-meridian-2026/blob/main/evidence/demo/2026-10-25T19-14-24-616Z/run.json).
+Its seven transactions on release `5253df0`: [`run.json`](https://github.com/grmkris/hack-meridian-2026/blob/main/evidence/demo/2026-10-25T19-14-24-616Z/run.json).
 
 #### Try it in three minutes (testnet sandbox)
 
 Add `https://testnet.trynod.si/mcp` as a custom connector in Claude, create a passkey wallet on the page that opens and
 set a 5 USDC allowance. Then ask: "Buy the market brief", "Send Alice 2 USDC", "Pay Bob 5 USDC for dinner" (more than
-the 2.90 left, so it needs your nod). Full steps: `evidence/JUDGE-TEST-PATH.md`. No Claude at hand?
-https://testnet.trynod.si/sample runs a sample agent through the same tools on Nod's own demo wallet, with a live log
-and explorer links. More to try after a revoke: a claim link for Jan, Dave as a new contact, a bigger allowance.
+the 2.90 left, so it needs your nod). Full steps and more to try: `evidence/JUDGE-TEST-PATH.md`. No Claude at hand?
+https://testnet.trynod.si/sample runs a sample agent on Nod's own demo wallet, with explorer links.
 
 #### Built at HackMeridian
 
@@ -152,11 +153,8 @@ notifications, and a person who has never held USDC can be paid through a claim 
 
 ### What's next
 
-- **Mainnet for what runs on testnet tonight.** Deposit-first signup with an exchange deposit address, the claim link
-  that creates a wallet for someone with nothing, and contacts the AI adds, once the deposit router passes its mainnet
-  run.
-- **A claim link that is an allowance for a person.** Your one nod sets the amount for seven days, the key lives only
-  in the link, Nod never holds it.
+- **Mainnet for what runs on testnet tonight.** Deposit-first signup with an exchange deposit address, links that
+  create a wallet for someone with nothing (and act as an allowance for that one person), and contacts the AI adds.
 - **Recovery and shared wallets.** A second passkey or a guardian, and wallets two people own.
 - **Cash-out** to a bank through a Stellar anchor.
 - **No pocket step** once x402 facilitators accept smart-account payers.

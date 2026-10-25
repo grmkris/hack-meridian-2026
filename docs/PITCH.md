@@ -87,10 +87,12 @@ look-alikes here too. Nod's first 15 seconds must show what the others did not h
 | "Add it to claude.ai" and "Claude Code connects over OAuth."                                                                                                                                                                                                                                                                                                                                         | `evidence/mcp-apps/` (claude.ai), spike S4 (Claude Code)                                                                                                                                                                                                                                                     |
 | "Deposit addresses that exchanges can pay are proven on testnet." Always with "on testnet".                                                                                                                                                                                                                                                                                                          | `docs/spikes/s8-deposit.md` (router `CAFLFU5G…`, deposits swept `0f299152…`, `efcbcc48…`)                                                                                                                                                                                                                    |
 | Live on testnet, always with those words: "sign up with a passkey and a deposit: the account deploys when the first USDC lands"; "pay someone who is not on Stellar: they open the link, create a wallet with a passkey, and the USDC lands in it"; "Claude adds contacts; the first payment to one it added needs your nod"; "Claude asks to change its allowance with a link your passkey signs".  | public host `testnet.trynod.si` at `3473ee4`: `evidence/deposit-first/` (deposit `06bd7d2e…`, sweep `04704caf…`, deploy `8c356236…`), `evidence/claims/` (Jan `eb9def8c…`, his wallet `bccfbc61…`), `evidence/tools/` (Dave `b5efd05d…` by nod, `016a0772…` alone, allowance `3ff0e2e0…`), `evidence/shots/` |
+| Live on testnet: "Past the allowance, your one passkey tap makes a link that is an allowance for one person: a rule for exactly the amount, valid seven days. The key is made in your browser and lives only in the link." Trust line, verbatim: "Nod never holds the link key or the funds; a leaked link can take at most the amount, once, before it expires."                                    | public host at `4bb4a89`: `evidence/person-link/` (rule `929c79eb…`, Jan's claim `fd54c526…`, Jan's wallet `fee254cc…`, 6.0000001 refused `#3221` in enforcing simulation while exactly 6 passes, second claim refused, take-back `1803a30c…`)                                                               |
 
-Not yet, until the orchestrator says the proof exists: any mainnet wording for the three testnet features ("open to
-anyone, USDC only", deposits from exchanges on mainnet, wallet-creating claim links and AI-added contacts on mainnet), a
-ChatGPT app store listing, and the claim link as an allowance for a person (next, below).
+Not yet, until the orchestrator says the proof exists: any mainnet wording for the testnet features ("open to anyone,
+USDC only", deposits from exchanges on mainnet, wallet-creating links, the link as an allowance for one person and
+AI-added contacts on mainnet; the person link goes to mainnet copy only after the recording's mainnet hash), and a
+ChatGPT app store listing.
 
 ## Never say
 
@@ -208,10 +210,8 @@ one take per line, so any structure can use them.
 
 ## Next (say "next", never "live")
 
-- Mainnet for what runs on testnet tonight: deposit-first signup with an exchange deposit address, the claim link that
-  creates a wallet, contacts the AI adds.
-- A claim link that is an allowance for a person: your one nod sets the amount for seven days, the key lives only in
-  the link, Nod never holds it.
+- Mainnet for what runs on testnet tonight: deposit-first signup with an exchange deposit address, links that create a
+  wallet and act as an allowance for one person, contacts the AI adds.
 - Recovery passkey and shared wallets; cash-out through a Stellar anchor; no pocket step once facilitators accept
   smart-account payers.
 
@@ -262,6 +262,12 @@ pocket comes back. All of that ran on mainnet in claude.ai this evening, with my
 - **Is it audited?** No. The account, verifiers and policy are OpenZeppelin's deployed contracts. The account build
   (`1b5f4534…`) predates OpenZeppelin's 0.7.3 release; the advisory fixed there concerns Delegated signers, which Nod
   never uses. Our own contracts, the trust-and-pay router and the testnet deposit router, are small and unaudited.
+- **What if a link leaks?** Past the allowance, a link is an allowance for one person: your passkey installs a rule
+  for exactly the amount, valid seven days, and the link's key is made in your browser and lives only in the link (Nod
+  stores the public key and the rule id). Nod never holds the link key or the funds; a leaked link can take at most the
+  amount, once, before it expires. You can take an open link back under Connections → Links; on testnet the account
+  refused one stroop more than the amount (`#3221`), a second claim was refused, and a take-back removed the rule
+  (`1803a30c…`).
 - **How does money get in?** On mainnet today, Home shows the wallet's address, and wallets that can pay a contract
   address (Freighter) send USDC to it. On testnet, Home also gives a `G…` deposit address any exchange can pay, and a
   new wallet can start from one: the account deploys when the first USDC lands. Off on mainnet until its run passes.

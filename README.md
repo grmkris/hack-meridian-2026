@@ -74,8 +74,14 @@ anything past it.
   ordinary signups 10 testnet USDC so you can start at once. Design: [docs/spikes/s8-deposit.md](docs/spikes/s8-deposit.md);
   off on mainnet for now.
 - **Pay someone who is not on Stellar, live on testnet.** Claude makes a claim link for a name. The person opens it,
-  creates a wallet with a passkey (or picks their Nod wallet or a Stellar address), and the USDC lands there: inside
-  the allowance on its own, past it with one nod.
+  creates a wallet with a passkey (no XLM, no trustline) or signs in, and the USDC lands there. Inside the allowance
+  the link pays from it when claimed.
+- **Past the allowance, a link that is an allowance for one person, live on testnet.** Your one passkey tap installs a
+  rule on your account for exactly the amount, valid seven days. The link's key is made in your browser and lives only
+  in the link; Nod stores the public key and the rule id. The recipient's browser signs the transfer with that key and
+  Nod relays it and pays the fee. Nothing leaves your wallet until they claim, a second claim is refused, and you can
+  take an open link back under Connections → Links. Nod never holds the link key or the funds; a leaked link can take
+  at most the amount, once, before it expires.
 - **Contacts from the chat, live on testnet.** Claude can add, update and remove contacts. The first payment to a
   contact an AI app added needs your nod, whatever the amount; after that, payments to them go alone inside the
   allowance. Claude can also ask to change its allowance; that comes back as a link your passkey signs, and the
@@ -137,25 +143,30 @@ From the spikes that proved each risky part first (full record with commands in 
 | A passkey installs an app's allowance                                                          | [`f3160c7e`](https://stellar.expert/explorer/testnet/tx/f3160c7e183e52c4a633804d60d50a956c627e88bc461be2f8f5fad7b14bb110) |
 | A deposit address got 2 USDC; the router swept it into the wallet with no one's signature (S8) | [`efcbcc48`](https://stellar.expert/explorer/testnet/tx/efcbcc48ba6860d72243ff97eaa7d3e082218b312438d8b5969282936e9d2017) |
 
-Live on testnet: the three newest features, run on the public host testnet.trynod.si at release `3473ee4` (25
-October, 20:06–20:13 UTC; records in [`evidence/deposit-first/`](evidence/deposit-first/),
-[`evidence/claims/`](evidence/claims/) and [`evidence/tools/`](evidence/tools/), screenshots in
-[`evidence/shots/`](evidence/shots/README.md)):
+Live on testnet: the newest features, run on the public host testnet.trynod.si at releases `3473ee4` and `4bb4a89`
+(25 October, 20:06–21:05 UTC; records in [`evidence/deposit-first/`](evidence/deposit-first/),
+[`evidence/claims/`](evidence/claims/), [`evidence/tools/`](evidence/tools/) and
+[`evidence/person-link/`](evidence/person-link/), screenshots in [`evidence/shots/`](evidence/shots/README.md)):
 
-| What happened                                                                                                           | Transaction                                                                                                               |
-| ----------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| Signup with nothing onchain; Nod creates a sponsored deposit address for the wallet…                                    | [`ceb05d9d`](https://stellar.expert/explorer/testnet/tx/ceb05d9d3e1c2b3e10d54112625ede07f83b71e00654a9eed4493f982ec6dd21) |
-| …binds it to the wallet in the deposit router…                                                                          | [`ad54d85f`](https://stellar.expert/explorer/testnet/tx/ad54d85f3598254f1ae85169aebd745d0b69eb4de944b984a3ef87bc448d9bff) |
-| …and locks it (master weight 0), so nobody can move its money anywhere else                                             | [`ef8314a3`](https://stellar.expert/explorer/testnet/tx/ef8314a3c712200becdf5b7e753e1a808642aa19fb5b468f124626ca8b664336) |
-| An exchange account pays 3 USDC to the deposit address, no memo                                                         | [`06bd7d2e`](https://stellar.expert/explorer/testnet/tx/06bd7d2e98824817b1117d28a42a9f13e10e3526a30bc9e18e812dd63e1fe305) |
-| The router sweeps the 3 USDC into the wallet                                                                            | [`04704caf`](https://stellar.expert/explorer/testnet/tx/04704caf5ef4fe361c18452fc00d06f4df0dd8d302ca10cf6cadd6e90aa14873) |
-| Nod deploys the wallet's account, 75 seconds after the deposit                                                          | [`8c356236`](https://stellar.expert/explorer/testnet/tx/8c356236db0689067155bf1cc627c6b3fb2c9270df4644ae64eaedca6a816d98) |
-| 1 USDC to Jan by claim link: he opened it with no wallet, created one with a passkey, and was paid inside the allowance | [`eb9def8c`](https://stellar.expert/explorer/testnet/tx/eb9def8cebc58e8ad0f659e70123ab12449cc91184a243172825bd1f25dd4f1e) |
-| Jan's new wallet deployed                                                                                               | [`bccfbc61`](https://stellar.expert/explorer/testnet/tx/bccfbc61f23d03e79b6771f962d84ff74828f41f82536c0233fc699696cc4f6f) |
-| Claude added Dave; the first 0.50 USDC to him needed the nod                                                            | [`b5efd05d`](https://stellar.expert/explorer/testnet/tx/b5efd05d326c936908785b99050b7719d4b0f341923fd24ae0c56e5a2dcca282) |
-| The next 0.50 USDC to Dave went alone, inside the allowance                                                             | [`016a0772`](https://stellar.expert/explorer/testnet/tx/016a0772866f2b53ac531622b690fd48041207b206e2011a73d8b8d5f879e545) |
-| Claude asked for 6 USDC for 48 hours; the passkey installed the new allowance…                                          | [`3ff0e2e0`](https://stellar.expert/explorer/testnet/tx/3ff0e2e018ebffb17b5cf9c98b9b16d2abca4f6077ecfa57d78a4c08f95f42d2) |
-| …and removed the old rule                                                                                               | [`c2a73011`](https://stellar.expert/explorer/testnet/tx/c2a730119d079eaabce1997a16bba4faa7503cdd563f6d4d2c52ca2b6e6d92af) |
+| What happened                                                                                                                | Transaction                                                                                                               |
+| ---------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| Signup with nothing onchain; Nod creates a sponsored deposit address for the wallet…                                         | [`ceb05d9d`](https://stellar.expert/explorer/testnet/tx/ceb05d9d3e1c2b3e10d54112625ede07f83b71e00654a9eed4493f982ec6dd21) |
+| …binds it to the wallet in the deposit router…                                                                               | [`ad54d85f`](https://stellar.expert/explorer/testnet/tx/ad54d85f3598254f1ae85169aebd745d0b69eb4de944b984a3ef87bc448d9bff) |
+| …and locks it (master weight 0), so nobody can move its money anywhere else                                                  | [`ef8314a3`](https://stellar.expert/explorer/testnet/tx/ef8314a3c712200becdf5b7e753e1a808642aa19fb5b468f124626ca8b664336) |
+| An exchange account pays 3 USDC to the deposit address, no memo                                                              | [`06bd7d2e`](https://stellar.expert/explorer/testnet/tx/06bd7d2e98824817b1117d28a42a9f13e10e3526a30bc9e18e812dd63e1fe305) |
+| The router sweeps the 3 USDC into the wallet                                                                                 | [`04704caf`](https://stellar.expert/explorer/testnet/tx/04704caf5ef4fe361c18452fc00d06f4df0dd8d302ca10cf6cadd6e90aa14873) |
+| Nod deploys the wallet's account, 75 seconds after the deposit                                                               | [`8c356236`](https://stellar.expert/explorer/testnet/tx/8c356236db0689067155bf1cc627c6b3fb2c9270df4644ae64eaedca6a816d98) |
+| 1 USDC by claim link to Jan, who had no wallet: Jan created one with a passkey on the link and was paid inside the allowance | [`eb9def8c`](https://stellar.expert/explorer/testnet/tx/eb9def8cebc58e8ad0f659e70123ab12449cc91184a243172825bd1f25dd4f1e) |
+| Jan's new wallet deployed                                                                                                    | [`bccfbc61`](https://stellar.expert/explorer/testnet/tx/bccfbc61f23d03e79b6771f962d84ff74828f41f82536c0233fc699696cc4f6f) |
+| Claude added Dave; the first 0.50 USDC to him needed the nod                                                                 | [`b5efd05d`](https://stellar.expert/explorer/testnet/tx/b5efd05d326c936908785b99050b7719d4b0f341923fd24ae0c56e5a2dcca282) |
+| The next 0.50 USDC to Dave went alone, inside the allowance                                                                  | [`016a0772`](https://stellar.expert/explorer/testnet/tx/016a0772866f2b53ac531622b690fd48041207b206e2011a73d8b8d5f879e545) |
+| Claude asked for 6 USDC for 48 hours; the passkey installed the new allowance…                                               | [`3ff0e2e0`](https://stellar.expert/explorer/testnet/tx/3ff0e2e018ebffb17b5cf9c98b9b16d2abca4f6077ecfa57d78a4c08f95f42d2) |
+| …and removed the old rule                                                                                                    | [`c2a73011`](https://stellar.expert/explorer/testnet/tx/c2a730119d079eaabce1997a16bba4faa7503cdd563f6d4d2c52ca2b6e6d92af) |
+| 6 USDC for Jan, past the allowance: one passkey tap installs a rule for exactly 6 USDC, valid seven days; nothing moves      | [`929c79eb`](https://stellar.expert/explorer/testnet/tx/929c79ebb658ee764125f48eec9b2dc00b52c25ea64d9e28759ca23515a1aa0f) |
+| With the link key alone, the account refuses 6.0000001 (`#3221`, enforcing simulation) and accepts exactly 6                 | none                                                                                                                      |
+| Jan opens the link and creates a wallet with a passkey; Jan's browser signs the 6 USDC with the link key, Nod relays it      | [`fd54c526`](https://stellar.expert/explorer/testnet/tx/fd54c5267cea3afe68beb528afd44e385695c9b0e21f48c591b1588062fd77a6) |
+| Jan's new wallet deployed; a second claim of the same link is refused                                                        | [`fee254cc`](https://stellar.expert/explorer/testnet/tx/fee254ccebb5230e2774b205db282c526f3e4e86b9b971160b30d6ca46c3b3a0) |
+| Another open link taken back from Connections: its rule removed, its claim refused                                           | [`1803a30c`](https://stellar.expert/explorer/testnet/tx/1803a30c74b6e05272d85fbe146a11d1a46ff3595569cd672b1c5ebc822bb582) |
 
 ## Shown in real hosts
 
@@ -201,10 +212,14 @@ passkey. The same steps work on mainnet at trynod.si with your own USDC.
      with the demo button); her trustline and the payment land in one transaction.
 4. **Revoke** Claude on the site under Connections, then remove its rule with your passkey. The pocket comes back to
    your wallet, and Claude's next payment is refused.
-5. **More to try, live on testnet.** Reconnect Claude when it asks (the consent page sets a new allowance; the wallet
-   still holds about 1.90 USDC), then ask:
-   - "Send 1 USDC to Jan; he isn't on Stellar yet, so make him a claim link": Claude returns a link. Open it in a
-     private window to see what Jan sees: create a wallet with a passkey, sign in, or paste a Stellar address.
+5. **More to try, live on testnet.** Reconnect Claude when it asks. On the consent page create a new wallet (it gets
+   its own 10 testnet USDC) and keep the 5 USDC allowance, then ask:
+   - "Send 6 USDC to Jan, he isn't on Stellar": 6 is past the allowance, so Claude returns a link for your nod. One
+     passkey tap makes a link for Jan that is an allowance for that one person: exactly 6 USDC, for seven days. Open it
+     in a private window, create a wallet with a passkey, and the 6 USDC lands in it. Connections → Links can take an
+     open link back.
+   - "Send 1 USDC to Mia; she isn't on Stellar yet, so make her a claim link": inside the allowance, a link that pays
+     from it when Mia claims.
    - "Add Dave to my contacts with address GCCZ3V53QHGVWMJJ4AJZJPGCPQVRAWK3B2KAWR6QLTYNHJHEPUJHBIE3, then send him 0.50
      USDC": Claude saved Dave, so the first payment to him needs your nod.
    - "Raise my allowance to 6 USDC for two days": a link your passkey signs; the new allowance replaces the old one.

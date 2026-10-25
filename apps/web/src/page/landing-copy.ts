@@ -83,7 +83,7 @@ export const WHY = {
     {
       id: 'onboarding',
       title: 'Every payment can onboard someone',
-      body: 'Someone who has never held USDC gets a claim link. They accept it once, and their USDC trustline and your payment land in one transaction.',
+      body: 'Someone who has never held USDC gets a link. They open it, create a wallet with a passkey, and the USDC lands in it. Past your allowance, your nod makes the link an allowance for that one person.',
     },
   ] satisfies ReadonlyArray<Point>,
 } as const
