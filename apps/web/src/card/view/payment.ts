@@ -83,6 +83,11 @@ const nodReason = (model: Model, payment: PaymentView): string => {
     ),
     Match.when('no_allowance', () => `There is no allowance for ${app} right now, so this payment needs your passkey.`),
     Match.when('owner_only', () => 'A payment like this one always needs your passkey.'),
+    Match.when(
+      'new_contact',
+      () =>
+        `${payment.recipient.name ?? 'This contact'} was saved by ${app} and never paid, so the first payment needs your nod.`,
+    ),
     Match.orElse(
       () =>
         `It is more than what ${app} may still spend on its own (${decimalUsdc(payment.grant_remaining)}), so it needs your passkey.`,
