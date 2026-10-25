@@ -5,3 +5,12 @@
 {"kind":"settlement","label":"x402 settle 0.10 via http (int_mvnse0yi_0001_c91e93a9)","hash":"f2d4b987428d4b2a8390e4fd3d54d19c9da4f1bbed54e1d1312ad93894e7c784","step":"http","at":"2026-10-25T12:11:19.349Z"}
 {"kind":"pull","label":"pull 0.10 (int_mvnsegdf_0001_659a7b91)","hash":"ed8407b459ee50cc58e47d6fa7bdc6544b0726d5979e919dc0eaf742f6ba6337","step":"mcp","at":"2026-10-25T12:11:42.270Z"}
 {"kind":"settlement","label":"x402 settle 0.10 via mcp (int_mvnsegdf_0001_659a7b91)","hash":"4ddef672157938a4af086bffbf67b66a1e37c8bf7ec8352300019c0398b65671","step":"mcp","at":"2026-10-25T12:11:42.270Z"}
+{"kind":"pull","label":"pull 0.10 (int_mvnsfclu_0001_7fdc38cb)","hash":"f7d53932c086091fc90fd37ddad966c38d6e1958bc4f833184494e04f37edf6a","step":"idem","at":"2026-10-25T12:12:24.094Z"}
+{"kind":"settlement","label":"x402 settle 0.10 via http (int_mvnsfclu_0001_7fdc38cb)","hash":"fddabc1a36dad771150117b5044fc3874c6e00cca809f69bba92a8a0a2a84af6","step":"idem","at":"2026-10-25T12:12:24.094Z"}
+{"kind":"pull","label":"pull 0.10 (int_mvnsfclu_0001_7fdc38cb)","hash":"f7d53932c086091fc90fd37ddad966c38d6e1958bc4f833184494e04f37edf6a","step":"idem","at":"2026-10-25T12:12:25.971Z"}
+{"kind":"settlement","label":"x402 settle 0.10 via http (int_mvnsfclu_0001_7fdc38cb)","hash":"fddabc1a36dad771150117b5044fc3874c6e00cca809f69bba92a8a0a2a84af6","step":"idem","at":"2026-10-25T12:12:25.971Z"}
+{"kind":"pull","label":"pull 1.00 (int_mvnsfx87_0001_50db4556)","hash":"36c72640b401d0c86f6606d61b72ab46c2b1d699a8347d510c209485dc6508a7","step":"chunk","at":"2026-10-25T12:12:49.039Z"}
+{"kind":"settlement","label":"x402 settle 0.10 via http (int_mvnsfx87_0001_50db4556)","hash":"66ab89314f32b4d49b45f0560c119c122de3209bcc2e2d2756662604fc632557","step":"chunk","at":"2026-10-25T12:12:49.039Z"}
+{"kind":"settlement","label":"x402 settle 0.10 via http (int_mvnsg7pg_0002_707a03f2)","hash":"0bf6369215b5f3cd1adbd84ee1b951cb14b29aab52119cede6b37d33faf81437","step":"chunk","at":"2026-10-25T12:12:59.778Z"}
+{"kind":"settlement","label":"x402 settle 0.10 via http (int_mvnsggs5_0003_cacf262e)","hash":"0c25bd5827071631e1b5d00037af028c6a379b8b8a03f3180596b4f35d744d2a","step":"chunk","at":"2026-10-25T12:13:08.588Z"}
+{"kind":"delegated-pay","label":"delegated payment 3.65 C → merchant (rule 4)","hash":"de3d12f35a73613396984dbcd4e3cef5edf4ed8de8a2646d92ad2eeb16ddf3d4","step":"drain","at":"2026-10-25T12:13:37.690Z"}

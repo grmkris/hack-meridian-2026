@@ -57,10 +57,10 @@ async function feeOf(hash?: string) {
 }
 
 /** One purchase summary with both fees, both ledgers and step timings. */
-async function summarize(intent: Intent) {
+async function summarize(intent: Intent, record = true) {
   const [pullFee, settleFee] = await Promise.all([feeOf(intent.pull?.hash), feeOf(intent.settlement?.transaction)])
-  recordTx('pull', `pull ${intent.pullAmount ? usdc(intent.pullAmount) : '?'} (${intent.id})`, intent.pull?.hash)
-  recordTx('settlement', `x402 settle ${intent.price ? usdc(intent.price) : '?'} via ${intent.transport} (${intent.id})`, intent.settlement?.transaction)
+  if (record) recordTx('pull', `pull ${intent.pullAmount ? usdc(intent.pullAmount) : '?'} (${intent.id})`, intent.pull?.hash)
+  if (record) recordTx('settlement', `x402 settle ${intent.price ? usdc(intent.price) : '?'} via ${intent.transport} (${intent.id})`, intent.settlement?.transaction)
   const t = intent.timings
   return {
     id: intent.id,
@@ -87,7 +87,7 @@ async function purchaseHttp(store: IntentStore, path: string, key: string, opts:
   const before = await snapshot()
   const r = await paidResourceFetch(store, `${HTTP}${path}`, key, opts)
   const after = await snapshot()
-  const s = await summarize(r.intent)
+  const s = await summarize(r.intent, !r.replayed)
   console.log(`  ${r.replayed ? 'REPLAY' : 'call'} ${key}: ${s.state} pull=${s.pull?.hash?.slice(0, 8) ?? '-'} settle=${s.settlement?.transaction?.slice(0, 8) ?? '-'} total=${s.wallMs.total} ms ${s.error ?? ''}`)
   return { replayed: r.replayed, before, after, purchase: s }
 }
@@ -229,7 +229,8 @@ switch (step) {
   }
   case 'fees': {
     const path = join(OUT, 'txs.jsonl')
-    const rows = existsSync(path) ? readFileSync(path, 'utf8').trim().split('\n').map(l => JSON.parse(l) as { kind: Kind; label: string; hash: string; step: string }) : []
+    const all = existsSync(path) ? readFileSync(path, 'utf8').trim().split('\n').map(l => JSON.parse(l) as { kind: Kind; label: string; hash: string; step: string }) : []
+    const rows = all.filter((r, i) => all.findIndex(x => x.hash === r.hash) === i)
     const out: Array<TxFee & { kind: Kind; label: string; step: string }> = []
     for (const r of rows) out.push({ ...(await txFee(r.hash)), kind: r.kind, label: r.label, step: r.step })
     evidence.txs = out

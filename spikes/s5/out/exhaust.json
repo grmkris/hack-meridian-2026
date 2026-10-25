@@ -1,0 +1,203 @@
+{
+  "step": "exhaust",
+  "startedAt": "2026-10-25T12:13:39.066Z",
+  "onchainBackstop": {
+    "replayed": false,
+    "before": {
+      "ledger": 5381366,
+      "policy": {
+        "limit": "5.00",
+        "spent": "4.95",
+        "remaining": "0.05",
+        "history": [
+          "0.10@5381337",
+          "0.10@5381341",
+          "0.10@5381350",
+          "1.00@5381355",
+          "3.65@5381366"
+        ]
+      },
+      "pocketUsdc": "0.70",
+      "accountUsdc": "19.05"
+    },
+    "after": {
+      "ledger": 5381366,
+      "policy": {
+        "limit": "5.00",
+        "spent": "4.95",
+        "remaining": "0.05",
+        "history": [
+          "0.10@5381337",
+          "0.10@5381341",
+          "0.10@5381350",
+          "1.00@5381355",
+          "3.65@5381366"
+        ]
+      },
+      "pocketUsdc": "0.70",
+      "accountUsdc": "19.05"
+    },
+    "purchase": {
+      "id": "int_mvnsha40_0001_f1734967",
+      "key": "s5-exhaust-onchain-1792930419069",
+      "state": "requires_approval",
+      "price": "1.00",
+      "floatBefore": "0.70",
+      "pullAmount": "0.30",
+      "wallMs": {
+        "to402": 5,
+        "pull": 0,
+        "total": 765,
+        "raw": {
+          "firstResponse": 5,
+          "termsParsed": 8,
+          "total": 765
+        }
+      },
+      "error": "pull refused at enforce-simulate: Error(Contract, #3221)"
+    },
+    "seller": {
+      "before": {
+        "mode": "hosted",
+        "payTo": "GCEKVZO7QV5AC6JLDNWXEYQQ7CS5DSWRDCK3VEQWXGHI6XJN3F4UOANH",
+        "requests": 11,
+        "unpaid402": 6,
+        "paidAttempts": 5,
+        "served": 5,
+        "cacheHits": 0,
+        "facilitator": {
+          "verify": 5,
+          "settle": 5,
+          "settleSuccess": 5,
+          "supported": 1,
+          "lastSettleMs": 3344,
+          "lastVerifyMs": 372
+        },
+        "cached": 5
+      },
+      "after": {
+        "mode": "hosted",
+        "payTo": "GCEKVZO7QV5AC6JLDNWXEYQQ7CS5DSWRDCK3VEQWXGHI6XJN3F4UOANH",
+        "requests": 12,
+        "unpaid402": 7,
+        "paidAttempts": 5,
+        "served": 5,
+        "cacheHits": 0,
+        "facilitator": {
+          "verify": 5,
+          "settle": 5,
+          "settleSuccess": 5,
+          "supported": 1,
+          "lastSettleMs": 3344,
+          "lastVerifyMs": 372
+        },
+        "cached": 5
+      }
+    }
+  },
+  "ownerLane": {
+    "replayed": false,
+    "before": {
+      "ledger": 5381366,
+      "policy": {
+        "limit": "5.00",
+        "spent": "4.95",
+        "remaining": "0.05",
+        "history": [
+          "0.10@5381337",
+          "0.10@5381341",
+          "0.10@5381350",
+          "1.00@5381355",
+          "3.65@5381366"
+        ]
+      },
+      "pocketUsdc": "0.70",
+      "accountUsdc": "19.05"
+    },
+    "after": {
+      "ledger": 5381367,
+      "policy": {
+        "limit": "5.00",
+        "spent": "4.95",
+        "remaining": "0.05",
+        "history": [
+          "0.10@5381337",
+          "0.10@5381341",
+          "0.10@5381350",
+          "1.00@5381355",
+          "3.65@5381366"
+        ]
+      },
+      "pocketUsdc": "0.70",
+      "accountUsdc": "19.05"
+    },
+    "purchase": {
+      "id": "int_mvnshcgr_0002_1264c6af",
+      "key": "s5-exhaust-precheck-1792930421984",
+      "state": "requires_approval",
+      "price": "1.00",
+      "floatBefore": "0.70",
+      "wallMs": {
+        "to402": 6,
+        "pull": 0,
+        "total": 546,
+        "raw": {
+          "firstResponse": 6,
+          "termsParsed": 7,
+          "precheck": 546,
+          "total": 546
+        }
+      },
+      "error": "grant check: price 1.00 > float 0.70 + remaining 0.05; routed to the owner lane, nothing signed"
+    },
+    "seller": {
+      "before": {
+        "mode": "hosted",
+        "payTo": "GCEKVZO7QV5AC6JLDNWXEYQQ7CS5DSWRDCK3VEQWXGHI6XJN3F4UOANH",
+        "requests": 12,
+        "unpaid402": 7,
+        "paidAttempts": 5,
+        "served": 5,
+        "cacheHits": 0,
+        "facilitator": {
+          "verify": 5,
+          "settle": 5,
+          "settleSuccess": 5,
+          "supported": 1,
+          "lastSettleMs": 3344,
+          "lastVerifyMs": 372
+        },
+        "cached": 5
+      },
+      "after": {
+        "mode": "hosted",
+        "payTo": "GCEKVZO7QV5AC6JLDNWXEYQQ7CS5DSWRDCK3VEQWXGHI6XJN3F4UOANH",
+        "requests": 13,
+        "unpaid402": 8,
+        "paidAttempts": 5,
+        "served": 5,
+        "cacheHits": 0,
+        "facilitator": {
+          "verify": 5,
+          "settle": 5,
+          "settleSuccess": 5,
+          "supported": 1,
+          "lastSettleMs": 3344,
+          "lastVerifyMs": 372
+        },
+        "cached": 5
+      }
+    }
+  },
+  "counters": {
+    "calls": 2,
+    "replays": 0,
+    "pulls": 0,
+    "pullRefusals": 1,
+    "routedToOwner": 1,
+    "paymentsSigned": 0,
+    "settlements": 0,
+    "sellerRequests": 2
+  },
+  "finishedAt": "2026-10-25T12:13:45.614Z"
+}

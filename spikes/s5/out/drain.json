@@ -1,0 +1,54 @@
+{
+  "step": "drain",
+  "startedAt": "2026-10-25T12:13:26.391Z",
+  "before": {
+    "ledger": 5381364,
+    "policy": {
+      "limit": "5.00",
+      "spent": "1.30",
+      "remaining": "3.70",
+      "history": [
+        "0.10@5381337",
+        "0.10@5381341",
+        "0.10@5381350",
+        "1.00@5381355"
+      ]
+    },
+    "pocketUsdc": "0.70",
+    "accountUsdc": "22.70"
+  },
+  "payment": {
+    "amount": "3.65",
+    "hash": "de3d12f35a73613396984dbcd4e3cef5edf4ed8de8a2646d92ad2eeb16ddf3d4",
+    "feeCharged": "16933966",
+    "maxFee": "19478073",
+    "resourceFee": "19477073",
+    "timings": {
+      "recordSim": 160,
+      "recordSimMinResourceFee": 52518539,
+      "sign": 7,
+      "enforceSim": 169,
+      "enforceSimMinResourceFee": 19477073,
+      "sendToFinal": 5921
+    },
+    "explorer": "https://stellar.expert/explorer/testnet/tx/de3d12f35a73613396984dbcd4e3cef5edf4ed8de8a2646d92ad2eeb16ddf3d4"
+  },
+  "after": {
+    "ledger": 5381366,
+    "policy": {
+      "limit": "5.00",
+      "spent": "4.95",
+      "remaining": "0.05",
+      "history": [
+        "0.10@5381337",
+        "0.10@5381341",
+        "0.10@5381350",
+        "1.00@5381355",
+        "3.65@5381366"
+      ]
+    },
+    "pocketUsdc": "0.70",
+    "accountUsdc": "19.05"
+  },
+  "finishedAt": "2026-10-25T12:13:38.798Z"
+}
