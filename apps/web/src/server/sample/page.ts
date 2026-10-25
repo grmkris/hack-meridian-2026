@@ -24,7 +24,7 @@ button:disabled{opacity:.55;cursor:default}
 .line .t{font-weight:600;flex:1 1 16rem}.line .s{font-size:.78rem;font-weight:650;text-transform:uppercase;letter-spacing:.04em;padding:.1rem .45rem;border-radius:6px;border:1px solid currentColor}
 .line .meta{display:flex;gap:.9rem;flex-wrap:wrap;font-size:.88rem;margin:.25rem 0 0}.line .amt{font-weight:650;font-variant-numeric:tabular-nums}
 .line .tool{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.78rem;color:var(--muted)}
-.line .d{margin:.3rem 0 0;font-size:.93rem}.line .links{display:flex;gap:.8rem;flex-wrap:wrap;font-size:.88rem;margin:.3rem 0 0}
+.line .d{margin:.3rem 0 0;font-size:.93rem;overflow-wrap:anywhere}.line .t,.card p{overflow-wrap:anywhere}.line .links{display:flex;gap:.8rem;flex-wrap:wrap;font-size:.88rem;margin:.3rem 0 0}
 .ok,.paid,.nodded,.same_receipt,.revoked,.refused{border-left-color:var(--ok)}.ok .s,.paid .s,.nodded .s,.same_receipt .s,.revoked .s,.refused .s{color:var(--ok)}
 .needs_nod,.left_pending{border-left-color:var(--warnline)}.needs_nod .s,.left_pending .s{color:var(--warnline)}
 .failed{border-left-color:var(--err)}.failed .s{color:var(--err)}.skipped .s{color:var(--muted)}.running{border-left-color:var(--accent)}.running .s{color:var(--accent)}
@@ -76,7 +76,7 @@ export const samplePage = (c: Chrome, view: { readonly unavailable: string | nul
 <div class="card"><p>The sample agent gets an allowance of ${SAMPLE_AMOUNTS.allowance} USDC, then:</p><ol>${steps.map(text => `<li>${escape(text)}</li>`).join('')}</ol></div>
 <div class="row">${button}<span id="note" class="muted">${escape(view.unavailable ?? 'Takes a few minutes on testnet.')}</span></div>
 <ol id="log" aria-live="polite"></ol>
-<div class="card muted"><p>Nod pays the network fee for every transaction, never the wallet. Each run installs a new allowance (the last step revokes it), and at today's testnet rent the first payment under a new allowance costs Nod about 90 XLM, so runs are limited: one at a time, ${SAMPLE_LIMITS.perHour} an hour, one per visitor every ${SAMPLE_LIMITS.perVisitorMs / 60_000} minutes. Amounts and recipients are fixed; nothing you send reaches the chain.</p>
+<div class="card muted"><p>Nod pays the network fee for every transaction, never the wallet. Each run installs a new allowance (the last step revokes it), and at today's testnet rent (over 200 times normal) a new allowance and its first payment cost Nod tens of XLM, so runs are limited: one at a time, ${SAMPLE_LIMITS.perHour} an hour, one per visitor every ${SAMPLE_LIMITS.perVisitorMs / 60_000} minutes. Amounts and recipients are fixed; nothing you send reaches the chain.</p>
 <p>Try the real thing: add <code>${escape(view.origin)}/mcp</code> to Claude as a connector and create your own passkey wallet. <a href="/">About Nod</a></p></div>`
   return `<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="no-referrer"><title>Sample agent · Nod</title><meta name="description" content="Watch a sample AI agent pay from a Nod allowance on Stellar testnet, step by step."><link rel="icon" href="data:,">${STYLE}<body><p class="brand"><span class="mark">nod</span> · <span class="net">Stellar ${escape(c.network)}</span></p>${body}<script nonce="${c.nonce}">${SCRIPT}</script></body></html>`
 }

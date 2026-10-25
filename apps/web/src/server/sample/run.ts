@@ -49,12 +49,18 @@ const messageOf = (error: unknown): string =>
 
 type Outcome = Pick<SampleLine, 'state' | 'amount' | 'fee' | 'detail' | 'links'>
 
+/** "9.2790493" → "9.28", "0.0070832" → "0.0071": enough digits to read, not seven decimals. */
+const xlmText = (decimal: string) => {
+  const value = Number(decimal)
+  return value >= 0.01 ? value.toFixed(2) : value.toPrecision(2)
+}
+
 const feeOf = (receipt: ReceiptView | null): string | null =>
   receipt === null
     ? null
     : receipt.fee_paid_by === 'relayer'
-      ? `Nod paid ${receipt.fee_xlm} XLM`
-      : `the facilitator paid ${receipt.fee_xlm} XLM`
+      ? `Nod paid ${xlmText(receipt.fee_xlm)} XLM`
+      : `the facilitator paid ${xlmText(receipt.fee_xlm)} XLM`
 
 /** Idempotency keys are per run: a repeat inside the run hits the same intent, the next run starts fresh. */
 const keyOf = (runId: string, name: string) => `sample-${runId}-${name}`
