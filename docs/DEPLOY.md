@@ -78,3 +78,13 @@ lines set in both `.env.testnet` copies before the pin; expect two binding updat
 `plan:testnet --detailed --include Web`). Post-deploy: docs/DEPLOY.md checks plus docs/DOMAIN.md verification, then the
 pitch session's URL sweep, then Kristjan re-adds the connector and records. The local dev stage on :18960 is being
 restarted by that session (migration 0004 needs a fresh start).
+
+## 17:45 UTC: identity on chain
+
+`GET /.well-known/stellar.toml` is served by the Worker per stage (`apps/web/src/server/stellar-toml.ts`: text/plain,
+CORS `*`, 5-minute cache, ACCOUNTS = the stage's relayers and treasury). `home_domain = testnet.trynod.si` is set on
+`GBCALSA3…` (`5e7d299a…`), `GAWYWVMH…` (`653755e9…`) and `GB4F3NUA…` (`c1b51014…`) via `scripts/mainnet/home-domain.ts
+--network testnet`. Mainnet: `HM26_MAINNET_GO=yes bun scripts/mainnet/home-domain.ts --network pubnet` after the
+mainnet stage serves its own file. This box has a temporary `/etc/hosts` line for `testnet.trynod.si`, `trynod.si` and
+`www.trynod.si` (its resolver negative-cached the name while the zone was pending); remove it once `resolvectl query
+testnet.trynod.si` answers.
