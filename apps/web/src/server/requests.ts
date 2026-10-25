@@ -14,7 +14,10 @@ import {
 } from '@hm/protocol'
 
 import { isoIn, millisOf, nowIso, nowMillis, randomId } from './clock.ts'
-import { sql } from './db.ts'
+import { DbError, sql } from './db.ts'
+import { requestAnswered, requestReceived } from './events/emit.ts'
+import { EventsHost } from './events/host.ts'
+import { journalStatement } from './events/journal.ts'
 import { Network } from './network.ts'
 import type { RequestPageView } from './pages.ts'
 import { first, insert, query, write } from './rows.ts'
@@ -59,7 +62,7 @@ type RequestRow = typeof RequestRow.Type
 
 const toRow = (row: Record<string, unknown>) =>
   Schema.decodeUnknownEffect(RequestRow)(row).pipe(
-    Effect.mapError(error => new ToolError({ message: `A stored payment request is unreadable (${String(error)}).` })),
+    Effect.mapError(error => new DbError({ operation: 'decode payment_requests', message: String(error) })),
   )
 
 export const requestById = (id: string) => first(sql('SELECT * FROM payment_requests WHERE id = ?', id), toRow)
@@ -75,13 +78,13 @@ const requestByKey = (walletId: string, connectionId: string, key: string) =>
     toRow,
   )
 
-const walletIdOfAddress = (address: string) =>
-  Effect.map(
-    query(sql('SELECT id FROM wallets WHERE contract_id = ?', address), row => Effect.succeed(String(row['id']))),
-    rows => rows[0],
+const walletOfAddress = (address: string) =>
+  first(sql('SELECT id, owner_id FROM wallets WHERE contract_id = ?', address), row =>
+    Effect.succeed({ id: String(row['id']), ownerId: String(row['owner_id']) }),
   )
 
-export const requestUrl = (origin: string, requestId: string) => `${origin}/approve/request/${requestId}`
+const requestPath = (requestId: string) => `/approve/request/${requestId}`
+export const requestUrl = (origin: string, requestId: string) => `${origin}${requestPath(requestId)}`
 
 /** The row's status at `nowMs`: paid once its intent confirmed, expired once past its time and still open. */
 const statusOf = (row: RequestRow, intentStatus: string | undefined, nowMs: number): RequestStatus => {
@@ -152,14 +155,36 @@ export const requestCreate = (ctx: ToolContext, input: RequestCreateInput) =>
       (yield* Effect.gen(function* () {
         const now = yield* nowIso
         const id = yield* randomId('rq')
-        const payerWalletId = yield* walletIdOfAddress(payer.address)
+        const payerWallet = yield* walletOfAddress(payer.address)
+        const expiresAt = yield* isoIn((input.expires_in_hours ?? DEFAULT_TTL_HOURS) * 3_600_000)
+        const received =
+          payerWallet === undefined
+            ? []
+            : [
+                journalStatement(
+                  requestReceived({
+                    walletId: payerWallet.id,
+                    network: network.caip,
+                    requestId: id,
+                    amount,
+                    // How the payer saved the requester, never the requester's own wallet name.
+                    from: {
+                      address: wallet.contract_id,
+                      contact_name: yield* contactNameOf(payerWallet.ownerId, wallet.contract_id),
+                    },
+                    expiresAt,
+                    url: requestPath(id),
+                    occurredAt: now,
+                  }),
+                ),
+              ]
         yield* write(
           insert('payment_requests', {
             id,
             requester_wallet_id: wallet.id,
             requester_connection_id: connection.id,
             requester_address: wallet.contract_id,
-            payer_wallet_id: payerWalletId ?? null,
+            payer_wallet_id: payerWallet?.id ?? null,
             payer_address: payer.address,
             amount,
             asset: 'USDC',
@@ -169,11 +194,13 @@ export const requestCreate = (ctx: ToolContext, input: RequestCreateInput) =>
             intent_id: null,
             idempotency_key: input.idempotency_key,
             request_fingerprint: fingerprint,
-            expires_at: yield* isoIn((input.expires_in_hours ?? DEFAULT_TTL_HOURS) * 3_600_000),
+            expires_at: expiresAt,
             created_at: now,
             updated_at: now,
           }),
+          ...received,
         )
+        if (payerWallet !== undefined) yield* EventsHost.use(host => host.poke(payerWallet.id))
         const created = yield* requestById(id)
         if (created === undefined)
           return yield* fail('The request was not stored; retry with the same idempotency key.')
@@ -273,15 +300,39 @@ export const requestDecline = (ctx: ToolContext, requestId: string) =>
       return yield* fail(`No payment request ${requestId} is addressed to this wallet.`)
     const intent = row.intent_id === null ? undefined : yield* intentById(row.intent_id)
     const status = statusOf(row, intent?.status, yield* nowMillis)
-    if (status === 'open' && (intent === undefined || intent.status === 'expired' || intent.status === 'failed'))
+    if (status === 'open' && (intent === undefined || intent.status === 'expired' || intent.status === 'failed')) {
+      const now = yield* nowIso
+      const requester = yield* walletOfAddress(row.requester_address)
       yield* write(
         sql(
           "UPDATE payment_requests SET status = 'declined', updated_at = ? WHERE id = ? AND status = 'open'",
-          yield* nowIso,
+          now,
           row.id,
         ),
+        ...(requester === undefined
+          ? []
+          : [
+              journalStatement(
+                requestAnswered({
+                  walletId: requester.id,
+                  network: row.network,
+                  requestId: row.id,
+                  status: 'declined',
+                  amount: row.amount,
+                  by: {
+                    address: wallet.contract_id,
+                    contact_name: yield* contactNameOf(requester.ownerId, wallet.contract_id),
+                  },
+                  tx: null,
+                  explorer: null,
+                  url: requestPath(row.id),
+                  occurredAt: now,
+                }),
+              ),
+            ]),
       )
-    else if (status === 'open')
+      if (requester !== undefined) yield* EventsHost.use(host => host.poke(requester.id))
+    } else if (status === 'open')
       return yield* fail(`Request ${requestId} already has payment ${row.intent_id} in progress; it can't be declined.`)
     const updated = yield* requestById(requestId)
     if (updated === undefined) return yield* fail(`Request ${requestId} is gone.`)

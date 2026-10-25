@@ -16,7 +16,7 @@ import {
 
 import { isoIn, millisOf, nowIso, nowMillis, randomId } from './clock.ts'
 import { Db, DbError, type SqlStatement } from './db.ts'
-import { allowanceChanged, approvalNeeded, paymentReceived, paymentSettled } from './events/emit.ts'
+import { allowanceChanged, approvalNeeded, paymentReceived, paymentSettled, requestAnswered } from './events/emit.ts'
 import { journalStatement } from './events/journal.ts'
 import { terminateConnectionStatement } from './events/store.ts'
 import { first, insert, sql, toGrant, toIntent, toReservation, write } from './rows.ts'
@@ -396,6 +396,42 @@ const confirmedEvents = Effect.fnUntraced(function* (
             from: { address: payer, contact_name: yield* contactNameOf(recipient.ownerId, payer) },
             tx: settlement.tx,
             explorer: settlement.explorer,
+            occurredAt: now,
+          }),
+        ),
+      )
+    // A payment request this payment answers (request_pay linked it): paid, and its requester hears about it.
+    const request = yield* first(
+      sql(
+        `SELECT r.id, r.requester_wallet_id, w.owner_id FROM payment_requests r JOIN wallets w ON w.id = r.requester_wallet_id
+           WHERE r.intent_id = ? AND r.status = 'open'`,
+        intent.id,
+      ),
+      row =>
+        Effect.succeed({
+          id: String(row['id']),
+          requesterWalletId: String(row['requester_wallet_id']),
+          requesterOwnerId: String(row['owner_id']),
+        }),
+    )
+    if (request !== undefined && payer !== undefined)
+      statements.push(
+        sql(
+          "UPDATE payment_requests SET status = 'paid', updated_at = ? WHERE id = ? AND status = 'open'",
+          now,
+          request.id,
+        ),
+        journalStatement(
+          requestAnswered({
+            walletId: request.requesterWalletId,
+            network: intent.network,
+            requestId: request.id,
+            status: 'paid',
+            amount: intent.amount,
+            by: { address: payer, contact_name: yield* contactNameOf(request.requesterOwnerId, payer) },
+            tx: settlement.tx,
+            explorer: settlement.explorer,
+            url: `/approve/request/${request.id}`,
             occurredAt: now,
           }),
         ),
