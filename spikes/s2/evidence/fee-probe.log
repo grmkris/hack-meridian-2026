@@ -1,0 +1,28 @@
+[client] 402 accepted: 1000000 of CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA → GCEKVZO7QV5AC6JLDNWXEYQQ7CS5DSWRDCK3VEQWXGHI6XJN3F4UOANH on stellar:testnet (maxTimeout 300s)
+[fee-probe:oz] client's declared tx.fee = 27856 stroops (resourceFee 27756)
+[fee-probe:oz] tx.fee=    27856 → 601 ms {"isValid":true,"payer":"GBALHRKNJSVNDK3E6ZRK5QZF3ARCK4PVS7DYOQD4WFP66NVKXBU6VFCB"}
+[fee-probe:oz] tx.fee=    50000 → 363 ms {"isValid":true,"payer":"GBALHRKNJSVNDK3E6ZRK5QZF3ARCK4PVS7DYOQD4WFP66NVKXBU6VFCB"}
+[fee-probe:oz] tx.fee=   100000 → 414 ms {"isValid":true,"payer":"GBALHRKNJSVNDK3E6ZRK5QZF3ARCK4PVS7DYOQD4WFP66NVKXBU6VFCB"}
+[fee-probe:oz] tx.fee=   200000 → 296 ms {"isValid":true,"payer":"GBALHRKNJSVNDK3E6ZRK5QZF3ARCK4PVS7DYOQD4WFP66NVKXBU6VFCB"}
+[fee-probe:oz] tx.fee=   400000 → 337 ms {"isValid":true,"payer":"GBALHRKNJSVNDK3E6ZRK5QZF3ARCK4PVS7DYOQD4WFP66NVKXBU6VFCB"}
+[fee-probe:oz] tx.fee=  1000000 → 340 ms {"isValid":true,"payer":"GBALHRKNJSVNDK3E6ZRK5QZF3ARCK4PVS7DYOQD4WFP66NVKXBU6VFCB"}
+[fee-probe:oz] tx.fee= 10000000 → 334 ms {"isValid":false,"invalidReason":"invalid_exact_stellar_payload_fee_exceeds_maximum","payer":"GBALHRKNJSVNDK3E6ZRK5QZF3ARCK4PVS7DYOQD4WFP66NVKXBU6VFCB"}
+[fee-probe:oz] tx.fee=100000000 → 271 ms {"isValid":false,"invalidReason":"invalid_exact_stellar_payload_fee_exceeds_maximum","payer":"GBALHRKNJSVNDK3E6ZRK5QZF3ARCK4PVS7DYOQD4WFP66NVKXBU6VFCB"}
+[fee-probe:oz] tx.fee=  1500000 → 644 ms {"isValid":false,"invalidReason":"invalid_exact_stellar_payload_fee_exceeds_maximum","payer":"GBALHRKNJSVNDK3E6ZRK5QZF3ARCK4PVS7DYOQD4WFP66NVKXBU6VFCB"}
+[fee-probe:oz] tx.fee=  2000000 → 339 ms {"isValid":false,"invalidReason":"invalid_exact_stellar_payload_fee_exceeds_maximum","payer":"GBALHRKNJSVNDK3E6ZRK5QZF3ARCK4PVS7DYOQD4WFP66NVKXBU6VFCB"}
+[fee-probe:oz] tx.fee=  3000000 → 578 ms {"isValid":false,"invalidReason":"invalid_exact_stellar_payload_fee_exceeds_maximum","payer":"GBALHRKNJSVNDK3E6ZRK5QZF3ARCK4PVS7DYOQD4WFP66NVKXBU6VFCB"}
+[fee-probe:oz] tx.fee=  5000000 → 361 ms {"isValid":false,"invalidReason":"invalid_exact_stellar_payload_fee_exceeds_maximum","payer":"GBALHRKNJSVNDK3E6ZRK5QZF3ARCK4PVS7DYOQD4WFP66NVKXBU6VFCB"}
+[fee-probe:oz] tx.fee=  7500000 → 497 ms {"isValid":false,"invalidReason":"invalid_exact_stellar_payload_fee_exceeds_maximum","payer":"GBALHRKNJSVNDK3E6ZRK5QZF3ARCK4PVS7DYOQD4WFP66NVKXBU6VFCB"}
+[fee-probe:oz] tx.fee=  1000001 → 374 ms {"isValid":false,"invalidReason":"invalid_exact_stellar_payload_fee_exceeds_maximum","payer":"GBALHRKNJSVNDK3E6ZRK5QZF3ARCK4PVS7DYOQD4WFP66NVKXBU6VFCB"}
+[fee-probe:oz] tx.fee=  1100000 → 331 ms {"isValid":false,"invalidReason":"invalid_exact_stellar_payload_fee_exceeds_maximum","payer":"GBALHRKNJSVNDK3E6ZRK5QZF3ARCK4PVS7DYOQD4WFP66NVKXBU6VFCB"}
+[fee-probe:oz] tx.fee=  1250000 → 311 ms {"isValid":false,"invalidReason":"invalid_exact_stellar_payload_fee_exceeds_maximum","payer":"GBALHRKNJSVNDK3E6ZRK5QZF3ARCK4PVS7DYOQD4WFP66NVKXBU6VFCB"}
+[client] 402 accepted: 1000000 of CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA → GCEKVZO7QV5AC6JLDNWXEYQQ7CS5DSWRDCK3VEQWXGHI6XJN3F4UOANH on stellar:testnet (maxTimeout 300s)
+[fee-probe:hosted] client's declared tx.fee = 27856 stroops (resourceFee 27756)
+[fee-probe:hosted] tx.fee=    27856 → 524 ms {"isValid":true,"payer":"GBALHRKNJSVNDK3E6ZRK5QZF3ARCK4PVS7DYOQD4WFP66NVKXBU6VFCB"}
+[fee-probe:hosted] tx.fee=    50000 → 397 ms {"isValid":true,"payer":"GBALHRKNJSVNDK3E6ZRK5QZF3ARCK4PVS7DYOQD4WFP66NVKXBU6VFCB"}
+[fee-probe:hosted] tx.fee=   100000 → 400 ms {"isValid":true,"payer":"GBALHRKNJSVNDK3E6ZRK5QZF3ARCK4PVS7DYOQD4WFP66NVKXBU6VFCB"}
+[fee-probe:hosted] tx.fee=   200000 → 268 ms {"isValid":true,"payer":"GBALHRKNJSVNDK3E6ZRK5QZF3ARCK4PVS7DYOQD4WFP66NVKXBU6VFCB"}
+[fee-probe:hosted] tx.fee=   400000 → 349 ms {"isValid":true,"payer":"GBALHRKNJSVNDK3E6ZRK5QZF3ARCK4PVS7DYOQD4WFP66NVKXBU6VFCB"}
+[fee-probe:hosted] tx.fee=  1000000 → 445 ms {"isValid":true,"payer":"GBALHRKNJSVNDK3E6ZRK5QZF3ARCK4PVS7DYOQD4WFP66NVKXBU6VFCB"}
+[fee-probe:hosted] tx.fee= 10000000 → 339 ms {"isValid":true,"payer":"GBALHRKNJSVNDK3E6ZRK5QZF3ARCK4PVS7DYOQD4WFP66NVKXBU6VFCB"}
+[fee-probe:hosted] tx.fee=100000000 → 264 ms {"isValid":true,"payer":"GBALHRKNJSVNDK3E6ZRK5QZF3ARCK4PVS7DYOQD4WFP66NVKXBU6VFCB"}

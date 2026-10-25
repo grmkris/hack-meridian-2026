@@ -1,0 +1,35 @@
+[pocket] G(K) before: {"created":false,"xlm":"0.0000000","usdc":"0.0000000","subentries":1,"sponsoring":0,"sponsored":3}
+[pocket] base_reserve 5000000 stroops → unsponsored G(K) would need (2 + 1 trustline) × 0.5 = 1.5 XLM locked
+[client] 402 accepted: 1000000 of CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA → GCEKVZO7QV5AC6JLDNWXEYQQ7CS5DSWRDCK3VEQWXGHI6XJN3F4UOANH on stellar:testnet (maxTimeout 60s)
+[pocket] pull 1000000 → G(K): 1fbf5c9aa3002e4e93aefe7e92aae0a98e0ef284610fc74ffae7115c50c88a36 ledger 5381106 in 4984 ms
+[pocket] receipt {
+  "resource": "http://127.0.0.1:4024/paid/quote",
+  "status": 200,
+  "body": "{\"quote\":\"Ledgers close every ~5s.\",\"served\":2,\"at\":\"2026-10-25T11:51:59.076Z\"}",
+  "totalMs": 13479,
+  "pull": {
+    "tx": "1fbf5c9aa3002e4e93aefe7e92aae0a98e0ef284610fc74ffae7115c50c88a36",
+    "ledger": 5381106,
+    "ms": 4984,
+    "feeCharged": 7272,
+    "feeAccount": "GBALHRKNJSVNDK3E6ZRK5QZF3ARCK4PVS7DYOQD4WFP66NVKXBU6VFCB",
+    "link": "https://stellar.expert/explorer/testnet/tx/1fbf5c9aa3002e4e93aefe7e92aae0a98e0ef284610fc74ffae7115c50c88a36"
+  },
+  "settlement": {
+    "success": true,
+    "payer": "GDYOJXFMNXPUWPNXPTBSYZK5N6WVMPW6TI4D6KAJBGOR37U6DC25O5SR",
+    "transaction": "b817cef37252a949bc5e502e2411fdb4694025163beadc042b765bd153b88b4d",
+    "network": "stellar:testnet",
+    "ledger": 5381107,
+    "feeCharged": 21436,
+    "feeAccount": "GA6THKUY2XJZOBRFMEQMMEADSCQLCZ2QMQWAWMMDXBTE7SARKAXVH7TL",
+    "link": "https://stellar.expert/explorer/testnet/tx/b817cef37252a949bc5e502e2411fdb4694025163beadc042b765bd153b88b4d"
+  },
+  "pocketAfter": {
+    "xlm": "0.0000000",
+    "usdc": "0.0000000",
+    "subentries": 1,
+    "sponsoring": 0,
+    "sponsored": 3
+  }
+}

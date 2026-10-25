@@ -1,0 +1,37 @@
+generated POCKET: GDYOJXFMNXPUWPNXPTBSYZK5N6WVMPW6TI4D6KAJBGOR37U6DC25O5SR
+[pocket] created G(K) GDYOJXFMNXPUWPNXPTBSYZK5N6WVMPW6TI4D6KAJBGOR37U6DC25O5SR with sponsored reserves: 3481475d45933b394bbdc1d0ded3ac61bb890f616c7657c0451dbfec720c803c fee 400 stroops, 4912 ms https://stellar.expert/explorer/testnet/tx/3481475d45933b394bbdc1d0ded3ac61bb890f616c7657c0451dbfec720c803c
+[pocket] G(K) before: {"created":true,"createTx":"3481475d45933b394bbdc1d0ded3ac61bb890f616c7657c0451dbfec720c803c","xlm":"0.0000000","usdc":"0.0000000","subentries":1,"sponsoring":0,"sponsored":3}
+[pocket] base_reserve 5000000 stroops → unsponsored G(K) would need (2 + 1 trustline) × 0.5 = 1.5 XLM locked
+[client] 402 accepted: 1000000 of CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA → GCEKVZO7QV5AC6JLDNWXEYQQ7CS5DSWRDCK3VEQWXGHI6XJN3F4UOANH on stellar:testnet (maxTimeout 60s)
+[pocket] pull 1000000 → G(K): d199e4b62992dfc8b794309043397076944f50bea22b8e8497d53a2a2c071ab4 ledger 5381103 in 5019 ms
+[pocket] receipt {
+  "resource": "http://127.0.0.1:4021/paid/quote",
+  "status": 200,
+  "body": "{\"quote\":\"Ledgers close every ~5s.\",\"served\":1,\"at\":\"2026-10-25T11:51:43.901Z\"}",
+  "totalMs": 9786,
+  "pull": {
+    "tx": "d199e4b62992dfc8b794309043397076944f50bea22b8e8497d53a2a2c071ab4",
+    "ledger": 5381103,
+    "ms": 5019,
+    "feeCharged": 7272,
+    "feeAccount": "GBALHRKNJSVNDK3E6ZRK5QZF3ARCK4PVS7DYOQD4WFP66NVKXBU6VFCB",
+    "link": "https://stellar.expert/explorer/testnet/tx/d199e4b62992dfc8b794309043397076944f50bea22b8e8497d53a2a2c071ab4"
+  },
+  "settlement": {
+    "success": true,
+    "payer": "GDYOJXFMNXPUWPNXPTBSYZK5N6WVMPW6TI4D6KAJBGOR37U6DC25O5SR",
+    "transaction": "ba9f2b1eb9b31b548d3ecf982070827525b86f41b40d5338e54b88cd74cd5595",
+    "network": "stellar:testnet",
+    "ledger": 5381104,
+    "feeCharged": 21436,
+    "feeAccount": "GC5OLUZ4WANPN6VT7YGTK2SRMZG762KOVKJXHWIO4K57UBASO2FMNRET",
+    "link": "https://stellar.expert/explorer/testnet/tx/ba9f2b1eb9b31b548d3ecf982070827525b86f41b40d5338e54b88cd74cd5595"
+  },
+  "pocketAfter": {
+    "xlm": "0.0000000",
+    "usdc": "0.0000000",
+    "subentries": 1,
+    "sponsoring": 0,
+    "sponsored": 3
+  }
+}
