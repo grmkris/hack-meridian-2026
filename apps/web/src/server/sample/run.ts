@@ -240,7 +240,7 @@ export const sampleProgram = (runtime: AppRuntime, input: SampleInput, report: (
       }),
     )
 
-    // 4. dinner: above the allowance → needs your nod
+    // 4. dinner: above what is left of the allowance → needs your nod
     const dinner = {
       recipient: 'Bob',
       amount: SAMPLE_AMOUNTS.dinner,
@@ -263,7 +263,7 @@ export const sampleProgram = (runtime: AppRuntime, input: SampleInput, report: (
             fee: null,
             detail:
               asked.success.status === 'awaiting_approval'
-                ? `More than the allowance, so it needs your nod. The agent gets an approval link, not an error, and nothing moves yet. Still ${asked.success.grant_remaining} USDC left.`
+                ? `More than the ${asked.success.grant_remaining} USDC left of the allowance, so it needs your nod. The agent gets an approval link, not an error, and nothing moves yet.`
                 : asked.success.next_step,
             links:
               asked.success.approval_url === null ? [] : [{ label: 'approval page', url: asked.success.approval_url }],

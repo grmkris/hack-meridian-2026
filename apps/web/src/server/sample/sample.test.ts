@@ -111,7 +111,7 @@ describe('the /sample run on the fixture chain', () => {
     expect(states(run)).toEqual([
       '0:ok', // demo wallet created (passkey registration → deploy → welcome USDC)
       '0:ok', // allowance installed by the soft passkey, pocket created
-      '0:ok', // treasury top-up to 30
+      '0:ok', // treasury top-up to 15
       '1:ok',
       '2:paid',
       '3:paid',
@@ -128,11 +128,13 @@ describe('the /sample run on the fixture chain', () => {
     const line = (step: string, state: string) => run?.lines.find(l => l.step === step && l.state === state)
     expect(line('2', 'paid')?.amount).toBe('0.10 USDC')
     expect(line('3', 'paid')?.detail).toContain('2.90 USDC left')
+    expect(line('4', 'needs_nod')?.detail).toContain('More than the 2.90 USDC left')
+    expect(line('5', 'nodded')?.amount).toBe('5.00 USDC')
     expect(line('5', 'nodded')?.detail).toContain('2.90 USDC left')
     expect(line('7', 'left_pending')?.detail).toContain('2.90')
     expect(line('9', 'refused')?.detail).toContain('revoked')
-    expect(fixture.balanceOf(BOB)).toBe(toStroops('20'))
-    expect(fixture.balanceOf(CAROL)).toBe(toStroops('5'))
+    expect(fixture.balanceOf(BOB)).toBe(toStroops('5'))
+    expect(fixture.balanceOf(CAROL)).toBe(toStroops('1'))
     expect(fixture.callsOf('payX402')).toHaveLength(1)
     expect(fixture.callsOf('installGrant')).toHaveLength(1)
     expect(fixture.callsOf('removeGrant')).toHaveLength(1)
@@ -188,16 +190,16 @@ describe('the /sample run on the fixture chain', () => {
     expect(await desk.start('visitor-b', SITE)).toEqual(expect.objectContaining({ ok: true }))
   })
 
-  test('at most six runs an hour across visitors', async () => {
+  test('at most four runs an hour across visitors', async () => {
     const clock = { now: Date.parse('2026-10-25T16:00:00Z') }
     const desk = memoryDesk(clock)
-    for (let visitor = 0; visitor < 6; visitor++) {
+    for (let visitor = 0; visitor < 4; visitor++) {
       expect((await desk.start(`v${visitor}`, SITE)).ok).toBe(true)
       await desk.runQueued(done, false)
       clock.now += 60_000
     }
-    expect(await desk.start('v7', SITE)).toEqual(expect.objectContaining({ ok: false, reason: 'hourly' }))
-    clock.now += 55 * 60_000
-    expect((await desk.start('v7', SITE)).ok).toBe(true)
+    expect(await desk.start('v5', SITE)).toEqual(expect.objectContaining({ ok: false, reason: 'hourly' }))
+    clock.now += 57 * 60_000
+    expect((await desk.start('v5', SITE)).ok).toBe(true)
   })
 })

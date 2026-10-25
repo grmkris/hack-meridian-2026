@@ -58,7 +58,7 @@ export const samplePage = (c: Chrome, view: { readonly unavailable: string | nul
     'reads the wallet: the balance and the allowance are two different numbers',
     `buys a market brief for ${SAMPLE_AMOUNTS.brief} USDC from a paid API over x402`,
     `pays Alice ${SAMPLE_AMOUNTS.alice} USDC on its own`,
-    `asks for ${SAMPLE_AMOUNTS.dinner} USDC to Bob for dinner, which needs your nod`,
+    `asks for ${SAMPLE_AMOUNTS.dinner} USDC to Bob for dinner: more than the 2.90 left, so it needs your nod`,
     'the demo owner nods with its passkey and the agent gets the receipt',
     'repeats the dinner request: same receipt, nothing paid twice',
     `asks for ${SAMPLE_AMOUNTS.tooMuch} USDC with 2.90 left: it comes back to the owner instead of failing`,

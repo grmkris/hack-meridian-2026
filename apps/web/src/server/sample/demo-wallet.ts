@@ -300,7 +300,7 @@ export const topUp = (wallet: Wallet, say: Say) =>
       state: 'ok',
       amount: `${fromStroops(need)} USDC`,
       fee: 'the treasury paid its own fee',
-      detail: `It held ${fromStroops(balance)} USDC; a run spends up to 28.`,
+      detail: `It held ${fromStroops(balance)} USDC; a run spends up to ${SAMPLE_AMOUNTS.runSpend}.`,
       links: [{ label: 'top-up', url: `${network.explorerBase}/tx/${funded.tx}` }],
     })
     return floor

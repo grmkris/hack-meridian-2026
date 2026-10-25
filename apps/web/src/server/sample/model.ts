@@ -3,16 +3,22 @@
  * the visitor: the amounts, recipients, URL and limits are constants, so no user input reaches the chain.
  */
 
-/** docs/SPEC.md "Demo amounts": the allowance, the x402 price, Alice, the dinner, the ask above what is left, Carol. */
+/**
+ * The judge path's amounts, smaller than the video's (docs/SPEC.md) so a run costs the treasury about 8 USDC: the
+ * allowance, the x402 price, Alice, the dinner (above the 2.90 left, so it needs the nod), the ask above what is left,
+ * Carol through the claim link.
+ */
 export const SAMPLE_AMOUNTS = {
   allowance: '5',
   brief: '0.10',
   alice: '2',
-  dinner: '20',
+  dinner: '5',
   tooMuch: '4',
-  carol: '5',
-  /** A run spends up to 28 USDC (1.00 pocket pull, 2, 20, 5); the treasury tops the demo wallet up to this first. */
-  walletFloor: '30',
+  carol: '1',
+  /** At most 1.00 (pocket pull) + 2 + 5 + 1; the pocket's 0.90 comes back on revoke. */
+  runSpend: '9',
+  /** The treasury tops the demo wallet up to this before a run. */
+  walletFloor: '15',
 } as const
 
 /** Stream C's seller (apps/seller): a 0.10 USDC market brief behind x402 on Stellar testnet. */
@@ -30,7 +36,7 @@ export const SAMPLE_CLIENT = { id: 'nod:sample-agent', name: 'Sample agent' } as
  * The treasury keeps `treasuryFloorUsdc` for new wallets (the judge path's 10 USDC welcome): below it, no top-up.
  */
 export const SAMPLE_LIMITS = {
-  perHour: 6,
+  perHour: 4,
   perVisitorMs: 10 * 60 * 1000,
   staleMs: 16 * 60 * 1000,
   treasuryFloorUsdc: '60',
