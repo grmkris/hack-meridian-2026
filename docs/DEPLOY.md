@@ -442,7 +442,7 @@ UTC (`topups` exists); health release `f6510d07…`, pubnet, invite off, payment
 19 USDC. `GET /api/topup/assets` (anonymous) 200 with 36 chains, `base` (ETH, USDC) and `sol` (SOL, USDT, USDC) among
 them. `/llms.txt` byte-identical. The rendered landing reads "Here on trynod.si, Nod runs on Stellar mainnet: open to
 anyone, USDC only, funded from any exchange or wallet through your deposit address." Unknown `/approve/link/cl_…`,
-`/approve/revoke-link/cl_…`, `/claim/cl_…` → 404 pages; `/api/links` 401. No wallet, no spend (D1 holds three mainnet
-wallets: the founder's, the 21:44 deposit test, and one signup that is not ours). Kristjan's real top-up is the proof.
+`/approve/revoke-link/cl_…`, `/claim/cl_…` → 404 pages; `/api/links` 401. No wallet, no spend. D1 holds three mainnet wallets: the founder's (18:19 UTC), `CBOEZAXM…` created 21:26 UTC by a
+signup session A did not make, and the 21:44 deposit test. Kristjan's real top-up is the proof.
 
 Rollback: testnet `843bdfd`, mainnet `1cd71c7` (0012 additive).
