@@ -6,7 +6,7 @@ Plans and queues live in the release plan (.local/brainstorm/FINAL-REVIEW.md §K
 below; mainnet only on the orchestrator's explicit go, never during a recording.
 
 Live: **testnet at `9a965a3`** (19:41 UTC: deposit-first signup and migration 0008, C's Home / Connections / header, D's
-landing per host) on https://testnet.trynod.si (MCP at `/mcp`; the workers.dev host redirects there); **mainnet at `31a84de`** (19:37 UTC) on https://trynod.si. Dated sections
+landing per host) on https://testnet.trynod.si (MCP at `/mcp`; the workers.dev host redirects there); **mainnet at `9a965a3`** (19:50 UTC) on https://trynod.si. Dated sections
 below are the history.
 
 ## The deploy worktree is the only place a testnet deploy runs
@@ -244,3 +244,12 @@ update` + RELEASE, deploy `"deletedClasses":[]`, health release `9a965a3a…`.
 - probe all green, 1 warn (`evidence/probe/2026-10-25T19-48-59-754Z.json`). Treasury 166.5 USDC.
 
 Rollback: re-pin `31a84de` (0008 is additive; the table stays).
+
+## 19:50 UTC: mainnet at `9a965a3` (orchestrator's go)
+
+Plan `[WalletDb] update` (0008) + `[Web] update` + RELEASE, deploy `"deletedClasses":[]`; 0008 applied 19:50:07 UTC on
+`hack-meridian-mainnet-wallet`. Health: release `9a965a3a…`, pubnet, invite off, payments on, relayers 27.0 / 10.0 XLM,
+treasury 0 USDC. `/llms.txt` byte-identical. `bun scripts/landing-shots.ts https://trynod.si`: 9 looks PASS; the rendered
+landing reads "Stellar mainnet", the hero connector `https://trynod.si/mcp`, Try it the testnet connector
+`https://testnet.trynod.si/mcp`, and the seven proof rows link to `stellar.expert/explorer/public` (each `successful` on
+Horizon pubnet). No wallet created; "not available on this network yet" for the deposit address stays unit-covered.
