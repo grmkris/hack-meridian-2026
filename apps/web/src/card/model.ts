@@ -118,6 +118,14 @@ export const LinkState = defineTaggedUnion({
 })
 export type LinkState = typeof LinkState.Type
 
+/** Copying a claim link to send: the chat may block the clipboard, so a failure says how to copy it by hand. */
+export const LinkCopy = defineTaggedUnion({
+  Idle: {},
+  Copied: {},
+  Failed: {},
+})
+export type LinkCopy = typeof LinkCopy.Type
+
 export const Model = Schema.Struct({
   surface: Surface,
   bridge: Bridge,
@@ -133,6 +141,7 @@ export const Model = Schema.Struct({
   maybePollError: Schema.Option(Schema.String),
   maybeSharedContext: Schema.Option(Schema.String),
   link: LinkState,
+  linkCopy: LinkCopy,
   /** A payment the card itself prepared (paying a request); shown over everything else until settled or dismissed. */
   maybeActivePayment: Schema.Option(PaymentView),
   requestAction: RequestAction,

@@ -273,6 +273,28 @@ export const FIXTURES: Readonly<Record<string, Fixture>> = {
     sentence: '',
     pending: true,
   },
+  'payment-claim-link': {
+    tool: 'payment_prepare',
+    arguments: {
+      recipient: 'new',
+      recipient_name: 'Jan',
+      amount: '1',
+      reason: 'Coffee on Friday',
+      idempotency_key: 'k-jan',
+    },
+    structured: payment({
+      payment_id: 'cl_bd709ee9a1c24e5f8d3b6a7c9e0f1234',
+      status: 'prepared',
+      lane: 'autonomous',
+      amount: '1.00',
+      recipient: { name: 'Jan', address: '', readiness: 'unverified' },
+      reason: 'Coffee on Friday',
+      approval_url: null,
+      claim_url: `${ORIGIN}/claim/cl_bd709ee9a1c24e5f8d3b6a7c9e0f1234`,
+      next_step: 'Send Jan the claim link; Nod pays when Jan opens it and picks where the money goes.',
+    }),
+    sentence: 'Claim link for Jan. Nothing is paid yet.',
+  },
   'payment-needs-nod': {
     tool: 'payment_prepare',
     arguments: PREPARE,

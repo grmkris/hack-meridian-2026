@@ -4,8 +4,9 @@ import type { Html, HtmlBuilder } from 'foldkit/html'
 import type { PaymentView, ReceiptView } from '@hm/protocol'
 
 import { decimalUsdc, shortAddress } from '../../format'
-import type { Message } from '../message'
+import { Message } from '../message'
 import type { Model } from '../model'
+import { LinkCopy } from '../model'
 import { phaseOf, recipientName } from '../phase'
 import {
   actions,
@@ -147,10 +148,62 @@ const claim = (model: Model, payment: PaymentView, h: Builder): ReadonlyArray<Ht
   pollStatus(model, `Waiting for ${recipientName(payment)} to accept`, h),
 ]
 
+/** Who a claim link is for: a name, and no address until they open it and pick one. */
+const forName = (payment: PaymentView, h: Builder): Html =>
+  h.p([h.Class('nod-recipient')], ['for ', h.strong([], [payment.recipient.name ?? 'someone new'])])
+
+/** A claim link to send (payment_prepare with recipient "new"): nothing is paid until the person opens it. */
+const claimLink = (model: Model, payment: PaymentView, h: Builder): ReadonlyArray<Html> => {
+  const name = payment.recipient.name ?? 'They'
+  const url = payment.claim_url ?? ''
+  return [
+    eyebrow('Send this link', 'quiet', h),
+    amount(decimalUsdc(payment.amount), h),
+    forName(payment, h),
+    h.div(
+      [h.Class('nod-address')],
+      [h.p([h.Class('nod-label')], ['Claim link']), h.p([h.Class('nod-mono nod-select')], [url])],
+    ),
+    actions(
+      [
+        h.button(
+          [h.Type('button'), h.Class('nod-button'), h.OnClick(Message.ClickedCopyLink({ url }))],
+          [
+            LinkCopy.match(model.linkCopy, {
+              Idle: () => 'Copy link',
+              Copied: () => 'Copied',
+              Failed: () => 'Copy link',
+            }),
+          ],
+        ),
+      ],
+      h,
+    ),
+    LinkCopy.match(model.linkCopy, {
+      Idle: () => h.empty,
+      Copied: () => h.p([h.Class('nod-note'), h.Role('status')], [`Copied. Send it to ${name}.`]),
+      Failed: () =>
+        h.p(
+          [h.Class('nod-note'), h.Role('status')],
+          ['This chat blocks copying: tap the link to select it, then copy.'],
+        ),
+    }),
+    lead(
+      `${name} taps it, creates a Nod wallet or signs in, and the payment goes through inside the allowance; past it, Nod asks for your passkey.`,
+      h,
+    ),
+    reasonQuote(model, payment.reason, h),
+    facts([['Open until', time(payment.expires_at, h)]], h),
+    pollStatus(model, `Waiting for ${name} to open it`, h),
+  ]
+}
+
 const ended = (payment: PaymentView, label: string, explanation: string, h: Builder): ReadonlyArray<Html> => [
   eyebrow(label, label === 'Expired' ? 'quiet' : 'bad', h),
   amount(decimalUsdc(payment.amount), h),
-  recipientLine(payment.recipient.name, payment.recipient.address, h),
+  payment.recipient.address === ''
+    ? forName(payment, h)
+    : recipientLine(payment.recipient.name, payment.recipient.address, h),
   lead(explanation, h),
   payment.failure === null ? h.empty : details('What Stellar said', payment.failure, h),
 ]
@@ -158,6 +211,7 @@ const ended = (payment: PaymentView, label: string, explanation: string, h: Buil
 export const paymentBody = (model: Model, payment: PaymentView, h: Builder): ReadonlyArray<Html> =>
   Match.value(phaseOf(payment)).pipe(
     Match.withReturnType<ReadonlyArray<Html>>(),
+    Match.when('ClaimLink', () => claimLink(model, payment, h)),
     Match.when('NeedsNod', () => needsNod(model, payment, h)),
     Match.when('Ready', () => inFlight(model, payment, 'Inside the allowance', 'Ready: the AI pays this next', h)),
     Match.when('Paying', () => inFlight(model, payment, 'Paying', 'Sending on Stellar', h)),
@@ -169,7 +223,16 @@ export const paymentBody = (model: Model, payment: PaymentView, h: Builder): Rea
     Match.when('Claim', () => claim(model, payment, h)),
     Match.when('Receipt', () => receipt(model, payment, h)),
     Match.when('Failed', () => ended(payment, 'Not paid', 'The payment failed. Nothing was paid.', h)),
-    Match.when('Expired', () => ended(payment, 'Expired', 'It expired before it was approved. Nothing was paid.', h)),
+    Match.when('Expired', () =>
+      ended(
+        payment,
+        'Expired',
+        payment.recipient.address === ''
+          ? `${payment.recipient.name ?? 'Nobody'} did not open the claim link in time. Nothing was paid.`
+          : 'It expired before it was approved. Nothing was paid.',
+        h,
+      ),
+    ),
     Match.exhaustive,
   )
 

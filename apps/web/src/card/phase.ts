@@ -4,9 +4,25 @@ import type { PaymentView } from '@hm/protocol'
 
 /** Where a payment stands, as the card shows it, and the sentence the AI gets when the card sees it finish. */
 
-export type PaymentPhase = 'Ready' | 'NeedsNod' | 'Paying' | 'Claim' | 'Approved' | 'Receipt' | 'Failed' | 'Expired'
+export type PaymentPhase =
+  | 'ClaimLink'
+  | 'Ready'
+  | 'NeedsNod'
+  | 'Paying'
+  | 'Claim'
+  | 'Approved'
+  | 'Receipt'
+  | 'Failed'
+  | 'Expired'
+
+/** A claim link nobody has opened yet (payment_prepare with recipient "new"): no address until the person picks one. */
+export const isOpenClaimLink = (payment: PaymentView): boolean =>
+  payment.recipient.address === '' && payment.claim_url !== null && payment.status === 'prepared'
 
 export const phaseOf = (payment: PaymentView): PaymentPhase =>
+  isOpenClaimLink(payment) ? 'ClaimLink' : statusPhase(payment)
+
+const statusPhase = (payment: PaymentView): PaymentPhase =>
   Match.value(payment.status).pipe(
     Match.withReturnType<PaymentPhase>(),
     Match.when('prepared', () => 'Ready'),

@@ -18,7 +18,7 @@ import {
 } from './decode'
 import { Host, type ToolReply } from './host'
 import { Message } from './message'
-import { Bridge, LinkState, Model, Poll, RequestAction, RequestActionKind, Shown, Surface } from './model'
+import { Bridge, LinkCopy, LinkState, Model, Poll, RequestAction, RequestActionKind, Shown, Surface } from './model'
 import { isSettled, settledSentence } from './phase'
 import { view } from './view'
 
@@ -70,6 +70,7 @@ export const init: Runtime.ElementInit<Model, Message, Flags, Host> = flags => (
     maybePollError: Option.none(),
     maybeSharedContext: Option.none(),
     link: LinkState.Idle(),
+    linkCopy: LinkCopy.Idle(),
     maybeActivePayment: Option.none(),
     requestAction: RequestAction.Idle(),
     maybeSelectedRequestId: Option.none(),
@@ -119,6 +120,16 @@ export const OpenLink = Command.define('OpenLink', {
       yield* host.openLink(url)
       return Message.SucceededOpenLink()
     }).pipe(Effect.catch(error => Effect.succeed(Message.FailedOpenLink({ url, reason: error.reason })))),
+})
+
+export const CopyLink = Command.define('CopyLink', {
+  args: { url: Schema.String },
+  messages: [Message.CompletedCopyLink, Message.FailedCopyLink],
+  execute: ({ url }) =>
+    Effect.tryPromise(() => navigator.clipboard.writeText(url)).pipe(
+      Effect.as(Message.CompletedCopyLink()),
+      Effect.catch(() => Effect.succeed(Message.FailedCopyLink())),
+    ),
 })
 
 export const ShareContext = Command.define('ShareContext', {
@@ -467,6 +478,9 @@ export const update = (model: Model, message: Message) =>
     ClickedCancelRequestAction: () => ({ model: modifyFields(model, { requestAction: () => RequestAction.Idle() }) }),
     SucceededRequestAction: ({ kind, reply }) => requestActionSucceeded(model, kind, reply),
     FailedRequestAction: ({ reason }) => failRequestAction(model, reason),
+    ClickedCopyLink: ({ url }) => ({ model, commands: [CopyLink({ url })] }),
+    CompletedCopyLink: () => ({ model: modifyFields(model, { linkCopy: () => LinkCopy.Copied() }) }),
+    FailedCopyLink: () => ({ model: modifyFields(model, { linkCopy: () => LinkCopy.Failed() }) }),
     ClickedClosePayment: () => ({
       model: modifyFields(model, {
         maybeActivePayment: () => Option.none(),

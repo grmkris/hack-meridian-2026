@@ -32,5 +32,8 @@ export const Message = defineMessageUnion({
   SucceededRequestAction: { kind: RequestActionKind, reply: ToolReply },
   FailedRequestAction: { reason: Schema.String },
   ClickedClosePayment: {},
+  ClickedCopyLink: { url: Schema.String },
+  CompletedCopyLink: {},
+  FailedCopyLink: {},
 })
 export type Message = typeof Message.Type
