@@ -90,32 +90,32 @@ export const PROOF = {
   lead: 'Each claim links to its transaction on stellar.expert. Nothing here is a mock-up.',
   items: [
     {
-      hash: '42c8aa3bde85f1785d668c1f376c599dfb7e750f324ea96edf85beede10e727a',
+      hash: 'fb77bd0f01aeb515b967e7bf5f7d0b1f8ec5c4c6af7889263ed3172a0a8ebefe',
       claim: '2 USDC to Alice, signed by the AI app’s key inside its allowance',
     },
     {
-      hash: '2577fefcb260f579d28535683e5c1ca3ea645a8bd716c3783561fe5aa804893d',
+      hash: 'fbfd200cc85525ee65a0a55f4b3dc338eedf37c1c8273abcc0ac7701f09e97da',
       claim: '20 USDC to Bob, over the allowance, approved with the passkey',
     },
     {
-      hash: '9e2f5c1613cf65a9cb034416a30bd785d50d46117c94a7c59418458493c95765',
+      hash: '565b7f0740d2cb73975939107c6b3329a03d60d26925101ba7e9a7ae5660735c',
       claim: 'Carol’s USDC trustline and 5 USDC in one transaction',
     },
     {
-      hash: '95c909b086835140139ca25ba04f639cdc02706026bfb83d6fc8b1902462993e',
+      hash: '55beab6dd2866dd95f6bfcc7209d4c3c7e8a423d4955de5607a6009da1003279',
       claim: 'Revoke removes the allowance rule from the account',
     },
     {
-      hash: '1975a39d3df82555625df12070e5626eb0c18bea218957e8d1ddb321d6ea243e',
+      hash: '00129674edaed2fcce96c73745587f2c599704850c182c38f7d7c12ab5ee55a6',
       claim: 'Revoke sweeps the pocket back to the wallet',
     },
     {
-      hash: '646d95c918bc43e1ea22f8ffc6efd48b197344d3add94599b2e40c1248a62945',
-      claim: 'An x402 purchase: the AI app’s key fills its pocket under the policy…',
+      hash: '978479126c9339de3a2cf4140dcef4958aa13d95ea39408b50cbf4ae413ed702',
+      claim: 'An x402 purchase: the AI app’s key pulls 1 USDC into its pocket under the allowance…',
     },
     {
-      hash: '1c6806128d7020f4fe4aa4906c8d0158cc403dd3e1c38ba9988f649442138a19',
-      claim: '…and a public facilitator settles 0.10 USDC to the seller',
+      hash: 'e3e62e07dbf11f0bd75ac795a3bef5a50fcc6ffd64e610c98a70dc9676890990',
+      claim: '…and OpenZeppelin Channels settles 0.10 USDC from the pocket to the seller',
     },
     {
       hash: 'c0f6f923936b7dc4d716454ba3e3d3f43f21ddcf353e49e3e083d054bf5f9c57',
