@@ -72,6 +72,10 @@ const api = makeApiHandler(Layer.effectContext(runtime.contextEffect))
 
 export default {
   fetch(request, requestEnv, ctx) {
-    return providerFor(new URL(request.url).origin).fetch(request, withKv(requestEnv), ctx)
+    // A deployed stage names its public origin (ORIGIN): the OAuth issuer and the protected-resource metadata are
+    // that URL whatever host the request came through; locally the request's own origin.
+    const origin =
+      requestEnv.ORIGIN === undefined || requestEnv.ORIGIN === '' ? new URL(request.url).origin : requestEnv.ORIGIN
+    return providerFor(origin).fetch(request, withKv(requestEnv), ctx)
   },
 } satisfies ExportedHandler<WorkerEnv>

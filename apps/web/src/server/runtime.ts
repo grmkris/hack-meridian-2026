@@ -19,6 +19,8 @@ export interface WorkerEnv {
   readonly WALLET_OBJECT: DurableObjectNamespace<WalletObject>
   readonly OAUTH_STORE: DurableObjectNamespace<import('./kv-shim.ts').OAuthStore>
   readonly CHAIN?: string
+  /** The public origin of a deployed stage; OAuth issuer, resource metadata and links use it when set. */
+  readonly ORIGIN?: string
   readonly DEMO_CONTACTS?: string
 }
 
