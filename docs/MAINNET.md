@@ -129,3 +129,16 @@ fee paid by OpenZeppelin. Treasury 9.90 USDC for Kristjan's wallet. Kristjan's d
 per-allowance or x402 price caps** ("if people want to, let them"); `MAX_GRANT_USDC`, `MAX_OWNER_PAYMENT_USDC` and
 `MAX_X402_PRICE_USDC` are set to 1,000,000 on both stages (config, redeployed). Kept: `PAYMENTS_ENABLED` (our kill
 switch), fee ceilings (relayer cost), and the wallet-creation rate caps being built for open signup (relayer protection).
+
+## 18:35 UTC: open signup, one number, `home_domain`
+
+Mainnet is at `9fc080f` with **open signup** (`INVITE_REQUIRED=false`, Kristjan 18:17 UTC), creation caps 3 per visitor
+and 30 per hour, and the **one-number allowance** (`1b04511`, Kristjan 18:20 UTC: the agent spends up to the allowance on
+its own; past it, the passkey each time, no upper limit; the W1 nod line is gone). Beats for a 10 USDC wallet
+(`71f7a71`): allowance 5, brief 0.10 alone, Alice 2 alone (2.90 left), Bob 5 needs the nod, the same request again gives
+the same receipt, 4 needs the nod, Carol 1 by claim link, revoke. Kristjan's mainnet wallet
+`CDOTWV7AICM5WKEIKQ7HTJWIPJJVZDND55VK7NOLPB7BDC76YLTNY4HC` holds 9.90 USDC (`topup.ts`,
+`416971c6f84f46151a8379f5aef3361b2ae04ca31b519febd3780b432e7fc1d6`); the treasury holds 0 USDC, so the mainnet flow runs
+on his wallet once Claude is connected to it with his passkey (consent at `https://trynod.si/mcp`), not from the runner.
+`home_domain=trynod.si` is set on the mainnet relayers and treasury (SEP-1 step 2; `aa276a3f…`, `865aa489…`,
+`7d307c2b…`), matching `ACCOUNTS` in https://trynod.si/.well-known/stellar.toml.
