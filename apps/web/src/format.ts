@@ -1,6 +1,6 @@
 import { DateTime, Option, Predicate, Schema, String } from 'effect'
 
-import { Stroops, fromStroops } from '@hm/protocol'
+import { DecimalAmount, Stroops, toStroops as decimalToStroops, fromStroops } from '@hm/protocol'
 
 /** An amount from the Worker: stroops as a decimal string on the wire, or already a bigint. */
 export type Amount = string | bigint
@@ -19,6 +19,16 @@ const formatAmount = (amount: Amount, unit: string): string =>
 export const usdc = (amount: Amount): string => formatAmount(amount, 'USDC')
 
 export const xlm = (amount: Amount): string => formatAmount(amount, 'XLM')
+
+const decodeDecimal = Schema.decodeUnknownOption(DecimalAmount)
+
+/** A decimal amount as the MCP tools send it ("20", "0.1"), in stroops when it is one. */
+export const decimalStroops = (amount: string): Option.Option<bigint> =>
+  Option.map(decodeDecimal(amount), decimalToStroops)
+
+/** A decimal amount from an MCP tool as the owner reads it: "20" → "20.00 USDC"; a malformed one is shown as sent. */
+export const decimalUsdc = (amount: string): string =>
+  Option.match(decimalStroops(amount), { onNone: () => `${amount} USDC`, onSome: usdc })
 
 const ADDRESS_EDGE = 4
 

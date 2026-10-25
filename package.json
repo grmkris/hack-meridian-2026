@@ -20,6 +20,9 @@
     "smoke:local": "bun scripts/smoke.ts local",
     "smoke:testnet": "bun scripts/smoke.ts testnet",
     "shots": "bun scripts/shots.ts",
+    "cards:build": "bun scripts/cards.ts build",
+    "cards:check": "bun scripts/cards.ts check",
+    "cards:shots": "bun scripts/cards.ts harness && bun scripts/card-shots.ts",
     "fmt": "oxfmt --write",
     "fmt:check": "oxfmt --check",
     "lint": "oxlint --type-aware --deny-warnings",
@@ -32,7 +35,7 @@
     "contracts:deploy": "bun scripts/contract.ts deploy",
     "agents:sync": "repoagents",
     "agents:check": "repoagents check",
-    "check": "bun run fmt:check && bun run agents:check && bun run lint && bun run typecheck && bun run test && bun run contracts:lint && bun run contracts:test && bun run build"
+    "check": "bun run fmt:check && bun run agents:check && bun run cards:check && bun run lint && bun run typecheck && bun run test && bun run contracts:lint && bun run contracts:test && bun run build"
   },
   "devDependencies": {
     "@effect/platform-bun": "4.0.5",

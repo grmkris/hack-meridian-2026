@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Nod card harness</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        background: #ece7df;
+        font:
+          14px system-ui,
+          sans-serif;
+      }
+      body[data-theme='dark'] {
+        background: #050b18;
+        color: #e6f0fa;
+      }
+      #slot {
+        padding: 16px;
+        max-width: var(--width, 720px);
+        box-sizing: border-box;
+      }
+      iframe {
+        display: block;
+        width: 100%;
+        border: 1px solid rgb(0 0 0/0.12);
+        border-radius: 14px;
+        background: transparent;
+      }
+      body[data-theme='dark'] iframe {
+        border-color: rgb(255 255 255/0.14);
+      }
+      #log {
+        font:
+          12px ui-monospace,
+          monospace;
+        white-space: pre-wrap;
+        padding: 0 16px 16px;
+        opacity: 0.7;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="slot"></div>
+    <div id="log"></div>
+    <script type="module" src="./harness.ts"></script>
+  </body>
+</html>

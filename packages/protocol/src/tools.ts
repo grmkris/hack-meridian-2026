@@ -261,6 +261,10 @@ export const ConnectionGrantRevokeOutput = Schema.Struct({
   grant_remaining: Schema.String,
 })
 
+// 11. nod_home: the wallet as the card's fullscreen Home view (hosts launch it; the model never calls it)
+export const NodHomeInput = Schema.Struct({})
+export const NodHomeOutput = WalletOverviewOutput
+
 export const TOOL_NAMES = [
   'wallet_overview',
   'contacts_search',
@@ -272,5 +276,10 @@ export const TOOL_NAMES = [
   'paid_mcp_call',
   'connection_grant_create',
   'connection_grant_revoke',
+  'nod_home',
+  'request_create',
+  'requests_list',
+  'request_pay',
+  'request_decline',
 ] as const
 export type ToolName = (typeof TOOL_NAMES)[number]

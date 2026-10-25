@@ -1,0 +1,580 @@
+/*
+ * The Nod card's own styles: no Tailwind, no network. Light is canvas and paper with intaglio ink; dark is night with
+ * starlight. Lamp is the nod moment only ("Needs your nod"). A host's own colours arrive as --nod-* overrides inline.
+ */
+
+:root {
+  color-scheme: light dark;
+}
+
+.nod {
+  --nod-canvas: #f9f6f2;
+  --nod-paper: #fefdfc;
+  --nod-ink: #12161f;
+  --nod-muted: #5b6474;
+  --nod-line: #e7e1d8;
+  --nod-accent: #29416f;
+  --nod-nod: #995600;
+  --nod-nod-wash: #fdf0d5;
+  --nod-lamp: #f7c15f;
+  --nod-on-lamp: #1d1405;
+  --nod-good: #1f6b43;
+  --nod-bad: #a8322a;
+  --nod-wash: #f2eee8;
+  --nod-display: 'Besley', ui-serif, Georgia, 'Times New Roman', serif;
+  --nod-sans: 'IBM Plex Sans', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --nod-code: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+.nod[data-theme='dark'] {
+  --nod-canvas: #0b152c;
+  --nod-paper: #0b152c;
+  --nod-ink: #e6f0fa;
+  --nod-muted: #b7c6d8;
+  --nod-line: #22355c;
+  --nod-accent: #e6f0fa;
+  --nod-nod: #f7c15f;
+  --nod-nod-wash: #2a2a2c;
+  --nod-good: #7fd4a2;
+  --nod-bad: #ff9a8f;
+  --nod-wash: #13213f;
+}
+
+@media (prefers-color-scheme: dark) {
+  .nod[data-theme='auto'] {
+    --nod-canvas: #0b152c;
+    --nod-paper: #0b152c;
+    --nod-ink: #e6f0fa;
+    --nod-muted: #b7c6d8;
+    --nod-line: #22355c;
+    --nod-accent: #e6f0fa;
+    --nod-nod: #f7c15f;
+    --nod-nod-wash: #2a2a2c;
+    --nod-good: #7fd4a2;
+    --nod-bad: #ff9a8f;
+    --nod-wash: #13213f;
+  }
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: transparent;
+}
+
+.nod {
+  font-family: var(--nod-sans);
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--nod-ink);
+  background: var(--nod-paper);
+  padding: 16px 18px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+.nod-home {
+  min-height: 100vh;
+  padding: max(20px, env(safe-area-inset-top)) 20px max(24px, env(safe-area-inset-bottom));
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.nod p,
+.nod h1,
+.nod h2,
+.nod dl,
+.nod ul,
+.nod figure,
+.nod blockquote,
+.nod pre {
+  margin: 0;
+}
+
+/* HEADER */
+
+.nod-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.nod-wordmark {
+  font-family: var(--nod-display);
+  font-weight: 700;
+  font-size: 20px;
+  line-height: 1;
+  letter-spacing: -0.01em;
+  color: var(--nod-ink);
+}
+
+.nod-network {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--nod-muted);
+  border: 1px solid var(--nod-line);
+  border-radius: 999px;
+  padding: 2px 9px;
+}
+
+/* TEXT */
+
+.nod-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  margin-top: 6px;
+  color: var(--nod-muted);
+}
+
+.nod-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+  flex: none;
+}
+
+.nod-tone-nod {
+  color: var(--nod-nod);
+}
+
+.nod-tone-nod .nod-dot {
+  background: var(--nod-lamp);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--nod-lamp) 28%, transparent);
+}
+
+.nod-tone-good {
+  color: var(--nod-good);
+}
+
+.nod-tone-bad {
+  color: var(--nod-bad);
+}
+
+.nod-amount {
+  font-family: var(--nod-display);
+  font-weight: 700;
+  font-size: 34px;
+  line-height: 1.1;
+  letter-spacing: -0.015em;
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+.nod-headline {
+  font-family: var(--nod-display);
+  font-weight: 700;
+  font-size: 22px;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.nod-recipient {
+  color: var(--nod-muted);
+  overflow-wrap: anywhere;
+}
+
+.nod-recipient strong {
+  color: var(--nod-ink);
+  font-weight: 600;
+}
+
+.nod-lead {
+  color: var(--nod-ink);
+  text-wrap: pretty;
+}
+
+.nod-note {
+  font-size: 13px;
+  color: var(--nod-muted);
+  text-wrap: pretty;
+}
+
+.nod-muted {
+  color: var(--nod-muted);
+}
+
+.nod-label {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--nod-muted);
+}
+
+.nod-mono {
+  font-family: var(--nod-code);
+  font-size: 0.86em;
+  overflow-wrap: anywhere;
+}
+
+.nod-select {
+  user-select: all;
+}
+
+.nod-number {
+  font-variant-numeric: tabular-nums;
+}
+
+.nod-address {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--nod-wash);
+}
+
+.nod-address .nod-mono {
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.nod-quote {
+  border-left: 3px solid var(--nod-line);
+  padding: 2px 0 2px 12px;
+}
+
+.nod-quote figcaption {
+  font-size: 12px;
+  color: var(--nod-muted);
+}
+
+.nod-quote blockquote {
+  font-style: italic;
+  overflow-wrap: anywhere;
+}
+
+.nod-stack {
+  display: flex;
+  flex-direction: column;
+}
+
+.nod-small {
+  font-size: 12px;
+  color: var(--nod-muted);
+}
+
+.nod-allowance {
+  font-variant-numeric: tabular-nums;
+  color: var(--nod-muted);
+}
+
+.nod-allowance strong {
+  font-family: var(--nod-display);
+  font-weight: 700;
+  font-size: 20px;
+  color: var(--nod-ink);
+}
+
+/* FACTS */
+
+.nod-facts {
+  display: grid;
+  grid-template-columns: minmax(0, max-content) minmax(0, 1fr);
+  gap: 6px 16px;
+  font-size: 14px;
+  padding-top: 4px;
+}
+
+.nod-facts dt {
+  color: var(--nod-muted);
+}
+
+.nod-facts dd {
+  margin: 0;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ACTIONS */
+
+.nod-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding-top: 4px;
+}
+
+.nod-button {
+  font: inherit;
+  font-weight: 600;
+  font-size: 15px;
+  min-height: 44px;
+  padding: 0 18px;
+  border-radius: 999px;
+  border: 1px solid var(--nod-line);
+  background: var(--nod-paper);
+  color: var(--nod-ink);
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    transform 120ms ease-out,
+    background-color 120ms ease-out;
+}
+
+.nod-button:active {
+  transform: scale(0.97);
+}
+
+.nod-button-primary {
+  background: var(--nod-lamp);
+  border-color: var(--nod-lamp);
+  color: var(--nod-on-lamp);
+}
+
+.nod-link {
+  font: inherit;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--nod-accent);
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--nod-accent) 40%, transparent);
+  text-underline-offset: 3px;
+  cursor: pointer;
+  font-variant-numeric: tabular-nums;
+}
+
+.nod-button:focus-visible,
+.nod-link:focus-visible,
+.nod-preview summary:focus-visible {
+  outline: 2px solid var(--nod-accent);
+  outline-offset: 2px;
+}
+
+@media (hover: hover) {
+  .nod-button:hover {
+    background: var(--nod-wash);
+  }
+
+  .nod-button-primary:hover {
+    background: color-mix(in srgb, var(--nod-lamp) 88%, var(--nod-ink));
+  }
+
+  .nod-link:hover {
+    text-decoration-color: var(--nod-accent);
+  }
+}
+
+.nod-fallback {
+  font-size: 13px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px dashed var(--nod-line);
+}
+
+/* STATUS */
+
+.nod-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--nod-muted);
+}
+
+.nod-pulse {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--nod-muted);
+  animation: nod-pulse 1.6s ease-in-out infinite;
+}
+
+.nod-pulse-still {
+  animation: none;
+  opacity: 0.5;
+}
+
+@keyframes nod-pulse {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* PANELS AND LISTS */
+
+.nod-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 12px;
+  border-top: 1px solid var(--nod-line);
+}
+
+.nod-meter {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--nod-wash);
+  overflow: hidden;
+}
+
+.nod-meter-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--nod-accent);
+}
+
+.nod-rows {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.nod-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 0;
+  min-height: 44px;
+}
+
+.nod-row + .nod-row {
+  border-top: 1px solid var(--nod-line);
+}
+
+.nod-row-main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.nod-row-amount {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.nod-row-detail {
+  font-size: 13px;
+  color: var(--nod-muted);
+  overflow-wrap: anywhere;
+}
+
+.nod-empty {
+  font-size: 14px;
+  color: var(--nod-muted);
+}
+
+.nod-checklist {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.nod-checklist li {
+  position: relative;
+  padding-left: 26px;
+}
+
+.nod-checklist li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 3px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 1.5px solid var(--nod-line);
+}
+
+.nod-checklist .nod-done::before {
+  border-color: var(--nod-good);
+  background: var(--nod-good);
+  box-shadow: inset 0 0 0 3px var(--nod-paper);
+}
+
+.nod-checklist .nod-todo::before {
+  border-color: var(--nod-lamp);
+}
+
+.nod-preview {
+  border: 1px solid var(--nod-line);
+  border-radius: 10px;
+  padding: 8px 12px;
+}
+
+.nod-preview summary {
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  min-height: 28px;
+}
+
+.nod-preview pre {
+  margin-top: 8px;
+  font-family: var(--nod-code);
+  font-size: 12px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  max-height: 240px;
+  overflow: auto;
+}
+
+/* LOADING */
+
+.nod-loading {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 8px 0 4px;
+}
+
+.nod-skeleton {
+  height: 14px;
+  width: 45%;
+  border-radius: 6px;
+  background: var(--nod-wash);
+}
+
+.nod-skeleton-wide {
+  height: 30px;
+  width: 60%;
+}
+
+.nod-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nod-pulse {
+    animation: none;
+  }
+
+  .nod-button {
+    transition: none;
+  }
+}

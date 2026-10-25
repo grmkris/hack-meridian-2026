@@ -1,0 +1,29 @@
+/*
+ * Nod's type, embedded (the card's CSP allows no font requests): Besley 700 for numbers and headlines, IBM Plex Sans
+ * (variable weight) for text, IBM Plex Mono for addresses and hashes. Latin subsets from Google Fonts. Both families
+ * are under the SIL Open Font License 1.1: Besley by Owen Earl (indestructible type*), IBM Plex by IBM Corp.
+ */
+
+@font-face {
+  font-family: 'Besley';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('./fonts/besley-700.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'IBM Plex Sans';
+  font-style: normal;
+  font-weight: 100 700;
+  font-display: swap;
+  src: url('./fonts/plex-sans.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('./fonts/plex-mono-400.woff2') format('woff2');
+}
