@@ -1,4 +1,4 @@
-import { Array, Effect, Option, Schema, String } from 'effect'
+import { Effect, Option, Schema, String } from 'effect'
 import { Command, Submodel, type Update } from 'foldkit'
 import type { Html, HtmlBuilder } from 'foldkit/html'
 import { defineMessageUnion } from 'foldkit/message'
@@ -8,6 +8,7 @@ import { modifyFields } from 'foldkit/struct'
 import { Backend, Passkey, type Resources, WalletSummary } from '../backend'
 import { Problem, recoverProblem } from '../problem'
 import { BUTTON_PRIMARY, BUTTON_SECONDARY, INPUT, errorRow } from '../view/ui'
+import * as Landing from './landing'
 
 // MODEL
 
@@ -172,28 +173,6 @@ export const update = (model: Model, message: Message) =>
 
 // VIEW
 
-const POINTS: ReadonlyArray<Readonly<{ title: string; body: string }>> = [
-  {
-    title: 'The limit lives on Stellar',
-    body: 'Each AI app gets its own allowance and expiry, enforced by your Stellar account, not by our server.',
-  },
-  {
-    title: 'Too big? It asks you',
-    body: 'A payment over the allowance comes to you, and your passkey approves that exact recipient and amount.',
-  },
-  {
-    title: 'No seed phrase, no gas',
-    body: 'Your passkey owns the wallet, and Nod pays the network fee.',
-  },
-]
-
-const pointView = (point: Readonly<{ title: string; body: string }>, h: HtmlBuilder<Message>): Html =>
-  h.keyed('li')(
-    point.title,
-    [h.Class('flex flex-col gap-1')],
-    [h.span([h.Class('font-semibold text-ink')], [point.title]), h.span([h.Class('text-sm text-muted')], [point.body])],
-  )
-
 const ceremonyNotice = (ceremony: Ceremony, h: HtmlBuilder<Message>): ReadonlyArray<Html> =>
   Ceremony.match<ReadonlyArray<Html>>(ceremony, {
     Idle: () => [],
@@ -205,28 +184,6 @@ const ceremonyNotice = (ceremony: Ceremony, h: HtmlBuilder<Message>): ReadonlyAr
     ],
     Failed: ({ error }) => [errorRow(error, h)],
   })
-
-const introView = (h: HtmlBuilder<Message>): Html =>
-  h.div(
-    [h.Class('flex max-w-xl flex-col gap-6')],
-    [
-      h.p([h.Class('text-sm font-semibold tracking-tight text-accent')], ['nod']),
-      h.h1(
-        [h.Class('text-4xl font-semibold tracking-tight text-balance text-ink sm:text-5xl')],
-        ['Give your AI an allowance.'],
-      ),
-      h.p(
-        [h.Class('text-lg text-pretty text-muted')],
-        [
-          'Nod is a Stellar wallet you add to Claude. Small payments go through on their own, inside the allowance you set. Anything bigger waits for your nod.',
-        ],
-      ),
-      h.ul(
-        [h.Class('grid gap-4 sm:grid-cols-3 lg:grid-cols-1')],
-        Array.map(POINTS, point => pointView(point, h)),
-      ),
-    ],
-  )
 
 export const walletFormView = (model: Model, h: HtmlBuilder<Message>): Html =>
   h.div(
@@ -311,15 +268,12 @@ export const addToClaudeView = (model: Model, h: HtmlBuilder<Message>): Html =>
   )
 
 export const view = Submodel.defineView<Model, Message>((model, h): Html =>
-  h.div(
-    [
-      h.Class(
-        'mx-auto flex min-h-dvh max-w-5xl flex-col justify-center gap-10 px-4 py-12 lg:flex-row lg:items-center lg:gap-16',
-      ),
-    ],
-    [
-      introView(h),
-      h.div([h.Class('flex w-full max-w-md flex-col gap-4')], [walletFormView(model, h), addToClaudeView(model, h)]),
-    ],
+  Landing.view(
+    {
+      walletForm: walletFormView(model, h),
+      addToClaude: addToClaudeView(model, h),
+      connectorUrl: model.connectorUrl,
+    },
+    h,
   ),
 )
