@@ -351,6 +351,25 @@ const isDemo = (request: Request, recipient: string, testnet: boolean) =>
         settings.demoContacts.some(contact => contact.trustline_required && contact.address === recipient)),
   )
 
+/**
+ * The claim page says plainly when Nod's own key signs for the recipient (the demo contact, DEMO_CLAIM_SIGNER): before
+ * the payment is approved, and on the receipt after, not only next to the accept button (K5).
+ */
+export const DEMO_SIGNS =
+  "This is Nod's own demo contact: Nod's demo key signs the acceptance on the server, not the recipient's own wallet."
+export const DEMO_SIGNED =
+  "This is Nod's own demo contact: Nod's demo key signed this acceptance on the server, not the recipient's own wallet."
+export const claimNotice = (input: {
+  readonly waiting: string | undefined
+  readonly demo: boolean
+  readonly accepted: boolean
+  readonly acceptable: boolean
+}): string | undefined => {
+  const demoLine = !input.demo || input.acceptable ? undefined : input.accepted ? DEMO_SIGNED : DEMO_SIGNS
+  const lines = [input.waiting, demoLine].filter((line): line is string => line !== undefined)
+  return lines.length === 0 ? undefined : lines.join(' ')
+}
+
 const claimGet = (runtime: AppRuntime, request: Request, intentId: string) =>
   page(
     runtime,
@@ -362,19 +381,28 @@ const claimGet = (runtime: AppRuntime, request: Request, intentId: string) =>
       const prepared = intent.status === 'approved' ? yield* claimPreparedOf(intent.id) : null
       const claim = prepared === null || prepared === undefined ? undefined : yield* decodeClaim(prepared)
       const status = effectiveStatus(intent, yield* nowMillis)
+      const demo = yield* isDemo(request, intent.recipient_address, n.network === 'Testnet')
+      const receipt = yield* receiptOfIntent(intent.id)
+      const recipientEntryXdr = claim?.recipientEntryXdr ?? null
+      const notice = claimNotice({
+        waiting:
+          status === 'awaiting_approval'
+            ? `This opens once ${intent.requester === 'owner' ? 'the sender' : 'the wallet owner'} approves the payment.`
+            : undefined,
+        demo,
+        accepted: receipt !== undefined,
+        // The accept button carries its own demo-wallet line (pages.ts receiptPending).
+        acceptable: receipt === undefined && recipientEntryXdr !== null,
+      })
       return html(
         n,
         claimPage(n, {
           intent,
           status,
-          demo: yield* isDemo(request, intent.recipient_address, n.network === 'Testnet'),
-          recipientEntryXdr: claim?.recipientEntryXdr ?? null,
-          receipt: yield* receiptOfIntent(intent.id),
-          ...(status === 'awaiting_approval'
-            ? {
-                notice: `This opens once ${intent.requester === 'owner' ? 'the sender' : 'the wallet owner'} approves the payment.`,
-              }
-            : {}),
+          demo,
+          recipientEntryXdr,
+          receipt,
+          ...(notice === undefined ? {} : { notice }),
         }),
       )
     }),
