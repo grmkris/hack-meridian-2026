@@ -176,7 +176,7 @@ const approvalGet = (runtime: AppRuntime, request: Request, intentId: string) =>
             : intent.recipient_readiness === 'trustline_required'
               ? {
                   notice:
-                    'The recipient has no USDC trustline yet: they accept on the claim link first, then this approval pays in one transaction.',
+                    'The recipient has no USDC trustline yet. You approve first; then they accept on the claim link, and the trustline and this payment land in one transaction.',
                 }
               : {}),
         }),

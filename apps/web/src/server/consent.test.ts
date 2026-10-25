@@ -59,7 +59,11 @@ describe('one number on the consent page: the allowance', () => {
     expect(page).toContain('data-testid="allowance" value="5.00"')
     expect(page).not.toContain('data-testid="nod-above"')
     expect(page).not.toContain('nod_above_usdc')
-    expect(page).toContain('Inside this allowance it pays on its own; anything past it needs your nod, every time.')
+    expect(page).toContain(
+      '<strong>Claude</strong> may spend up to <span class="nb"><input class="blank" name="allowance"',
+    )
+    expect(page).toContain('USDC</span> on its own until <select class="blank" name="lifetime"')
+    expect(page).toContain('Larger payments need your passkey, every time.')
     expect(page).toContain('for any amount')
   })
 
