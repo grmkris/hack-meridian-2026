@@ -25,6 +25,56 @@
       "localTreeSha256": "0301daf9e33f05f4ce97005c15dd40e8985f86bc3965b4e840a2d63970c55567",
       "unchanged": true
     },
+    "animate": {
+      "repository": "emilkowalski/skills",
+      "commit": "e8a175de22ae1e49370fc144c1f3bb9aeedf988d",
+      "path": "skills/animate",
+      "license": "MIT",
+      "licenses": [
+        "LICENSE"
+      ],
+      "treeSha256": "cad4cbda82810bbd771af0c636015ceab28a89460f619d48332709cc370a57c4",
+      "localTreeSha256": "585419279f9b7cd085f67d961158ab8413be20a57b1c78ced831db3cbe044685",
+      "unchanged": false,
+      "adaptation": "Cross-reference points at find-animation-opportunities (improve-animations is not in the shared set).",
+      "baseCommit": "e8a175de22ae1e49370fc144c1f3bb9aeedf988d"
+    },
+    "animation-vocabulary": {
+      "repository": "emilkowalski/skills",
+      "commit": "e8a175de22ae1e49370fc144c1f3bb9aeedf988d",
+      "path": "skills/animation-vocabulary",
+      "license": "MIT",
+      "licenses": [
+        "LICENSE"
+      ],
+      "treeSha256": "e8f2f403dff9e422b11c420d78bac0ed82c999cf7f56ef75745c9e8c548ec142",
+      "localTreeSha256": "e8f2f403dff9e422b11c420d78bac0ed82c999cf7f56ef75745c9e8c548ec142",
+      "unchanged": true
+    },
+    "apple-design": {
+      "repository": "emilkowalski/skills",
+      "commit": "e8a175de22ae1e49370fc144c1f3bb9aeedf988d",
+      "path": "skills/apple-design",
+      "license": "MIT",
+      "licenses": [
+        "LICENSE"
+      ],
+      "treeSha256": "17d56c00b870b03bfcfe83e603a47f81e01c48937105c5850be5f4a748b213e2",
+      "localTreeSha256": "17d56c00b870b03bfcfe83e603a47f81e01c48937105c5850be5f4a748b213e2",
+      "unchanged": true
+    },
+    "apple-web-app": {
+      "repository": "joe-bell/skills",
+      "commit": "2eb6b5da2ff003abf428255599d002047312b815",
+      "path": "skills/apple-web-app",
+      "license": "MIT",
+      "licenses": [
+        "LICENSE"
+      ],
+      "treeSha256": "614619e9f53f261d4d714ff9853ace03a00f2654955f693c77c4f89a7d9e972c",
+      "localTreeSha256": "614619e9f53f261d4d714ff9853ace03a00f2654955f693c77c4f89a7d9e972c",
+      "unchanged": true
+    },
     "audit-program": {
       "repository": "foldkit/foldkit",
       "commit": "7ee214268c602967937b80f6f20d1e831f2e8ab6",
@@ -76,6 +126,20 @@
       "treeSha256": "c82b34704b6905b2ed8a93484a519eb57c86f51858ed8648046463f07386a1ee",
       "localTreeSha256": "c82b34704b6905b2ed8a93484a519eb57c86f51858ed8648046463f07386a1ee",
       "unchanged": true
+    },
+    "find-animation-opportunities": {
+      "repository": "emilkowalski/skills",
+      "commit": "e8a175de22ae1e49370fc144c1f3bb9aeedf988d",
+      "path": "skills/find-animation-opportunities",
+      "license": "MIT",
+      "licenses": [
+        "LICENSE"
+      ],
+      "treeSha256": "d9225e049ebfc4dab5eac71fc2c6994eb1d340475b105808cdbc9ef3a3cec426",
+      "localTreeSha256": "4450c9a13e17417f2a2d8e4dae8b4cf67d8e6bd9fe9e2364bc380d7b0b80abe2",
+      "unchanged": false,
+      "adaptation": "Cross-reference points at review-animations only (improve-animations is not in the shared set).",
+      "baseCommit": "e8a175de22ae1e49370fc144c1f3bb9aeedf988d"
     },
     "foldkit": {
       "repository": "foldkit/foldkit",
@@ -139,14 +203,26 @@
       "localTreeSha256": "714b8c4d1544298615f0647b237e7ea13c6940c302417c51571ca77ba5161dad",
       "unchanged": true
     },
+    "hallmark": {
+      "repository": "nutlope/hallmark",
+      "commit": "7ec868225c6caa040558c321ee0fefa0e73f83a8",
+      "path": "skills/hallmark",
+      "license": "MIT",
+      "licenses": [
+        "LICENSE"
+      ],
+      "treeSha256": "93af49e44d04493ba457c32394b6694ffa06fe6b70cd785d2a0ec5e0445e5154",
+      "localTreeSha256": "93af49e44d04493ba457c32394b6694ffa06fe6b70cd785d2a0ec5e0445e5154",
+      "unchanged": true
+    },
     "humanizer": {
       "repository": "blader/humanizer",
       "commit": "8c307f367c91bd974002f10f2be2965d642c13df",
       "path": ".",
+      "license": "MIT",
       "licenses": [
         "LICENSE"
       ],
-      "license": "MIT",
       "treeSha256": "c1d4cb17039ded3b1fb9f9b338553e2ebe8ddb2d2ad7c954e72839c475532acf",
       "localTreeSha256": "c1d4cb17039ded3b1fb9f9b338553e2ebe8ddb2d2ad7c954e72839c475532acf",
       "unchanged": true
@@ -214,6 +290,20 @@
       "treeSha256": "2344579f6a327cdb01b7ae6fffa22365b1c374bff5f171ee026a2398772e0a56",
       "localTreeSha256": "2344579f6a327cdb01b7ae6fffa22365b1c374bff5f171ee026a2398772e0a56",
       "unchanged": true
+    },
+    "review-animations": {
+      "repository": "emilkowalski/skills",
+      "commit": "e8a175de22ae1e49370fc144c1f3bb9aeedf988d",
+      "path": "skills/review-animations",
+      "license": "MIT",
+      "licenses": [
+        "LICENSE"
+      ],
+      "treeSha256": "42e71687b56e255eb085d668506e12ac0a067c19a6f19088ee45fd6b419c14a3",
+      "localTreeSha256": "4b44ce5f57154df18a336fdd5df169834eb04113d6c5f1ea39a39765b7e6e71b",
+      "unchanged": false,
+      "adaptation": "agents/openai.yaml added so Codex also treats it as manual-only.",
+      "baseCommit": "e8a175de22ae1e49370fc144c1f3bb9aeedf988d"
     },
     "stellar-agentic-payments": {
       "repository": "stellar/stellar-dev-skill",

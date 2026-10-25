@@ -74,6 +74,7 @@ source, licence and hash in `.agents/skills/sources.json`; change one only with 
 | `stellar-smart-contracts`, `stellar-dapp`, `stellar-assets`, `stellar-data`, `stellar-standards`, `stellar-agentic-payments`             | Soroban, SDK, SAC, RPC, SEPs, x402    |
 | `rat-stack-mode`, `add-a-capability`, `add-a-store`, `test-behaviour`, `investigate-a-failure`                                           | design, persistence, tests, debugging |
 | `frontend-design`, `make-interfaces-feel-better`, `good-css`, `mobile-native`, `break-ui`, `thermo-nuclear-review`, `unslop`, `grilling` | UI, copy and review                   |
+| `hallmark`, `animate`, `apple-design`, `animation-vocabulary`, `find-animation-opportunities`, `review-animations`, `apple-web-app`      | landing art direction, motion, iOS    |
 
 MCP servers: `stellar-raven` (Stellar docs and live ecosystem data, OAuth), `cloudflare` (account, logs, docs; OAuth),
 `rat-stack` (Effect + Alchemy rules and lore; public), `mysi` (Kristjan's MyApps tools; OAuth), `foldkit-devtools`
