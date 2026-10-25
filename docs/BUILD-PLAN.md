@@ -129,3 +129,19 @@ passkey payment 0.0012 XLM. Rules: invite-only signup on pubnet, no 10 USDC auto
 Delegated signer to the account. Funding Kristjan provides: ~50 XLM and 25–115 USDC. Go/no-go at ~06:00 UTC: testnet
 rehearsal green, one real 0.10 USDC settlement through OZ Channels on mainnet, caps tested, accounts funded. Judges stay on
 testnet either way.
+
+## Integration status (13:55 UTC)
+
+- All streams have committed: A1 service (OAuth + passkey consent, ten tools, D1, WalletObject, owner pages, claim flow,
+  Nod copy, network presets, caps, kill switch, invite codes), A2 `@hm/stellar` (full live testnet run incl. the claim with
+  the smart account as sender), B site (pages, real-passkey e2e 8/8, invite-code fallback), C seller + seeds + probe +
+  rehearsal runner.
+- The local stage runs on the real chain. B's passkey flow created `CAKADCRBDPEYNNFVNQUWIMPUY53XP7DJUO6DXNNJAHJDIK5EWFSDSDIS`
+  through the product and verified 10.00 USDC directly on the SAC. A1's real-chain rehearsal passed acceptance 4, 5, 6, 9;
+  the first delegated transfer hit the 40 XLM fee ceiling at rent factor 96 (ceilings raised to 60/6 XLM), and the claim
+  flow landed after that run.
+- Testnet deploy: B deploys from a dedicated worktree at a committed SHA (c3f7b12 or later) with two fresh relayers
+  (`GBCALSA3…`, `GAWYWVMH…`). An earlier one-off deploy from the main checkout (release 34a0b91) created the Worker and the D1
+  database; its Alchemy state is copied into the worktree so the plan updates rather than recreates. URL:
+  https://hack-meridian-testnet.kristjan-grm11775.workers.dev (MCP at `/mcp`).
+- Open: owner approval of an over-allowance x402 purchase followed by the agent's retry; rent factor rising (47 → 96 today).
