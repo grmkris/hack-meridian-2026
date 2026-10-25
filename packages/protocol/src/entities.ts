@@ -38,6 +38,9 @@ export const Wallet = Schema.Struct({
   /** 65-byte uncompressed P-256 public key, base64url. */
   passkey_public_key: Schema.String,
   network: Network,
+  /** The relayer's deploy transaction and the treasury's welcome funding (testnet), when known. */
+  deploy_tx: Schema.optionalKey(Schema.NullOr(Schema.String)),
+  fund_tx: Schema.optionalKey(Schema.NullOr(Schema.String)),
   created_at: IsoTime,
 })
 export type Wallet = typeof Wallet.Type

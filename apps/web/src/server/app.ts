@@ -3,7 +3,7 @@ import { HttpRouter, HttpServer, HttpServerRequest } from 'effect/http'
 import { HttpApiBuilder } from 'effect/http-api'
 
 import { Api, BadRequest, NotFound, OwnerSession, Unauthorized, Unavailable, type ChainStatus } from '@hm/api'
-import { Chain, type ChainHealth } from '@hm/protocol'
+import { Chain, type ChainHealth, type Wallet } from '@hm/protocol'
 
 import { Counter } from './counter.ts'
 import type { DbError } from './db.ts'
@@ -76,11 +76,13 @@ const sessionWallet = Effect.gen(function* () {
   return wallet
 })
 
-const summary = (wallet: { id: string; name: string; contract_id: string; network: string }) => ({
+const summary = (wallet: Wallet) => ({
   id: wallet.id,
   name: wallet.name,
   contract_id: wallet.contract_id,
   network: wallet.network,
+  deploy_tx: wallet.deploy_tx ?? null,
+  fund_tx: wallet.fund_tx ?? null,
 })
 
 const chainStatus = (fixture: boolean, network: NetworkShape, health: ChainHealth): ChainStatus => ({

@@ -89,6 +89,9 @@ export const WalletSummary = Schema.Struct({
   name: Schema.String,
   contract_id: Schema.String,
   network: Schema.String,
+  /** The relayer's deploy transaction and the welcome funding (testnet): proof links via `<explorer_base>/tx/<hash>`. */
+  deploy_tx: Schema.optionalKey(Schema.NullOr(Schema.String)),
+  fund_tx: Schema.optionalKey(Schema.NullOr(Schema.String)),
 })
 export type WalletSummary = typeof WalletSummary.Type
 const WalletReply = Schema.Struct({ wallet: WalletSummary })

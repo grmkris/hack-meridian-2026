@@ -339,3 +339,37 @@ describe('an x402 purchase above the allowance', () => {
     }
   })
 })
+
+describe('a purchase that fails after the pocket pull', () => {
+  test('reports the pull hash and the facilitator verdict, and the next purchase spends the pulled float', async () => {
+    const fixture = makeFixtureChain()
+    const runtime: AppRuntime = ManagedRuntime.make(testServices(fixture))
+    try {
+      const passkey = await SoftPasskey.create('wallet.test', ORIGIN)
+      const { ctx } = await runtime.runPromise(world(passkey))
+      fixture.failNextSettlement('facilitator: the fee is above its cap')
+      const failed = (
+        await runtime.runPromise(
+          paidResourceFetch(ctx, { url: 'https://seller.test/api/brief', idempotency_key: 'brief-1' }),
+        )
+      ).value
+      expect(failed.status).toBe('failed')
+      expect(failed.receipt).toBeNull()
+      expect(failed.pull?.amount).toBe('1.00')
+      expect(failed.pull?.explorer_url).toContain(failed.pull?.tx_hash ?? 'missing')
+      expect(failed.facilitator_message).toContain('above its cap')
+      expect(failed.grant_remaining).toBe('5.00')
+      const paid = (
+        await runtime.runPromise(
+          paidResourceFetch(ctx, { url: 'https://seller.test/api/brief', idempotency_key: 'brief-2' }),
+        )
+      ).value
+      expect(paid.status).toBe('paid')
+      expect(paid.receipt?.pull_tx_hash).toBeNull()
+      expect(fixture.callsOf('delegatedTransfer')).toHaveLength(1)
+      expect(paid.grant_remaining).toBe('4.90')
+    } finally {
+      await runtime.dispose()
+    }
+  })
+})

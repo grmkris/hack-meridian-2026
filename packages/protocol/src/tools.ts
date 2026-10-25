@@ -31,6 +31,9 @@ export const GrantView = Schema.Struct({
   valid_until: IsoTime,
   status: Schema.Literals(['active', 'revoked', 'expired']),
   rule_id: Schema.Int,
+  /** The transaction that installed the allowance on the smart account (and, after a revoke, removed it). */
+  install_tx: Schema.optionalKey(Schema.NullOr(Schema.String)),
+  remove_tx: Schema.optionalKey(Schema.NullOr(Schema.String)),
 })
 export type GrantView = typeof GrantView.Type
 
@@ -86,7 +89,15 @@ export type PaymentView = typeof PaymentView.Type
 // 1. wallet_overview
 export const WalletOverviewInput = Schema.Struct({ idempotency_key: OptionalKey })
 export const WalletOverviewOutput = Schema.Struct({
-  wallet: Schema.Struct({ id: Schema.String, name: Schema.String, contract_id: Schema.String, network: Network }),
+  wallet: Schema.Struct({
+    id: Schema.String,
+    name: Schema.String,
+    contract_id: Schema.String,
+    network: Network,
+    /** The relayer's deploy transaction and the welcome funding (testnet), when known. */
+    deploy_tx: Schema.optionalKey(Schema.NullOr(Schema.String)),
+    fund_tx: Schema.optionalKey(Schema.NullOr(Schema.String)),
+  }),
   balances: Schema.Struct({ usdc: Schema.String, xlm: Schema.String }),
   grant: Schema.NullOr(GrantView),
   pending_approvals: Schema.Array(PaymentView),
@@ -173,6 +184,13 @@ export const PaidResourceFetchInput = Schema.Struct({
 })
 export type PaidResourceFetchInput = typeof PaidResourceFetchInput.Type
 export const PaidOutcome = Schema.Literals(['paid', 'free', 'requires_approval', 'refused', 'failed'])
+
+/** A pull into the pocket that happened even though the purchase did not settle: money moved, accounted for here. */
+export const PocketPull = Schema.Struct({
+  tx_hash: Schema.String,
+  explorer_url: Schema.String,
+  amount: Schema.String,
+})
 export const PaidResourceFetchOutput = Schema.Struct({
   status: PaidOutcome,
   payment_id: Schema.NullOr(Schema.String),
@@ -184,6 +202,10 @@ export const PaidResourceFetchOutput = Schema.Struct({
   receipt: Schema.NullOr(ReceiptView),
   approval_url: Schema.NullOr(Schema.String),
   message: Schema.String,
+  /** Set when a pull happened but the purchase failed; the USDC stays in the pocket for the next purchase. */
+  pull: Schema.optionalKey(Schema.NullOr(PocketPull)),
+  /** What the seller or facilitator said when it refused. */
+  facilitator_message: Schema.optionalKey(Schema.NullOr(Schema.String)),
   grant_remaining: Schema.String,
 })
 export type PaidResourceFetchOutput = typeof PaidResourceFetchOutput.Type
@@ -206,6 +228,8 @@ export const PaidMcpCallOutput = Schema.Struct({
   receipt: Schema.NullOr(ReceiptView),
   approval_url: Schema.NullOr(Schema.String),
   message: Schema.String,
+  pull: Schema.optionalKey(Schema.NullOr(PocketPull)),
+  facilitator_message: Schema.optionalKey(Schema.NullOr(Schema.String)),
   grant_remaining: Schema.String,
 })
 export type PaidMcpCallOutput = typeof PaidMcpCallOutput.Type
@@ -218,6 +242,8 @@ export const ConnectionGrantCreateInput = Schema.Struct({
 })
 export const ConnectionGrantCreateOutput = Schema.Struct({
   url: Schema.String,
+  /** The current allowance and the transaction that installed it. */
+  grant: Schema.optionalKey(Schema.NullOr(GrantView)),
   message: Schema.String,
   grant_remaining: Schema.String,
 })

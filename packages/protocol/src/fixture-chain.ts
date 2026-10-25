@@ -92,6 +92,8 @@ export interface FixtureChain {
   readonly balanceOf: (address: string) => bigint
   /** Fail the next call of `method` with `kind`. */
   readonly failNext: (method: keyof ChainShape, kind: ChainError['kind']) => void
+  /** Make the next x402 settlement fail after the quote hook ran (the pull already happened): the facilitator says no. */
+  readonly failNextSettlement: (message: string) => void
 }
 
 const FIXTURE_LEDGER_START = 1_000_000
@@ -204,8 +206,14 @@ export const makeFixtureChain = (options: FixtureOptions = {}): FixtureChain => 
     maxTimeoutSeconds: 60,
   })
 
+  let settlementFailure: string | undefined
   const settle = (pocket: string, quote: X402Quote) =>
     Effect.suspend(() => {
+      if (settlementFailure !== undefined) {
+        const message = settlementFailure
+        settlementFailure = undefined
+        return fail('submit_failed', message)
+      }
       if (balance(pocket) < quote.amountStroops)
         return fail('insufficient_balance', `fixture: pocket ${pocket} holds less than the price`)
       credit(pocket, -quote.amountStroops)
@@ -460,6 +468,9 @@ export const makeFixtureChain = (options: FixtureOptions = {}): FixtureChain => 
     balanceOf: balance,
     failNext: (method, kind) => {
       failures.set(method, kind)
+    },
+    failNextSettlement: message => {
+      settlementFailure = message
     },
   }
 }

@@ -116,7 +116,14 @@ export const walletOverview = (ctx: ToolContext) =>
       value: {
         network: network.caip,
         explorer_base: network.explorerBase,
-        wallet: { id: wallet.id, name: wallet.name, contract_id: wallet.contract_id, network: wallet.network },
+        wallet: {
+          id: wallet.id,
+          name: wallet.name,
+          contract_id: wallet.contract_id,
+          network: wallet.network,
+          deploy_tx: wallet.deploy_tx ?? null,
+          fund_tx: wallet.fund_tx ?? null,
+        },
         balances,
         grant: grant === undefined ? null : toolGrantView(grant, nowMs),
         pending_approvals: pending.map(intent => paymentView(intent, undefined, grant, ctx.origin, nowMs)),
@@ -649,7 +656,12 @@ const paid = <Body>(
       price: after.quote === null ? null : fromStroops(after.quote.amountStroops),
       receipt: null,
       approval_url: null,
-      message: `Not paid: ${error.message}.${after.pull === null ? '' : ` ${fromStroops(after.pulled)} USDC was pulled into the pocket and stays available for the next purchase.`}`,
+      message: `Not paid: ${error.message}.${after.pull === null ? '' : ` ${fromStroops(after.pulled)} USDC was pulled into this AI app's pocket (transaction ${after.pull.tx}, ${after.pull.explorer}) and stays there for the next purchase.`}`,
+      pull:
+        after.pull === null
+          ? null
+          : { tx_hash: after.pull.tx, explorer_url: after.pull.explorer, amount: fromStroops(after.pulled) },
+      facilitator_message: error.kind === 'declined' ? null : error.message,
       grant_remaining: grantRemaining(fresh, yield* nowMillis),
     }
   })
@@ -689,6 +701,8 @@ export const paidResourceFetch = (ctx: ToolContext, input: PaidResourceFetchInpu
         receipt: outcome.receipt,
         approval_url: outcome.approval_url,
         message: outcome.message,
+        pull: 'pull' in outcome ? outcome.pull : null,
+        facilitator_message: 'facilitator_message' in outcome ? outcome.facilitator_message : null,
         grant_remaining: outcome.grant_remaining,
       },
     }
@@ -727,6 +741,8 @@ export const paidMcpCall = (ctx: ToolContext, input: PaidMcpCallInput) =>
         receipt: outcome.receipt,
         approval_url: outcome.approval_url,
         message: outcome.message,
+        pull: 'pull' in outcome ? outcome.pull : null,
+        facilitator_message: 'facilitator_message' in outcome ? outcome.facilitator_message : null,
         grant_remaining: outcome.grant_remaining,
       },
     }
@@ -740,6 +756,7 @@ export const connectionGrantCreate = (ctx: ToolContext, key: string) =>
     const url = `${ctx.origin}/connections`
     const value = {
       url,
+      grant: grant === undefined ? null : toolGrantView(grant, nowMs),
       message:
         'This tool never grants anything itself. The user raises or renews the allowance by reconnecting this AI app to Nod: the consent page asks for an amount and an expiry, and their passkey signs it.',
       grant_remaining: grantRemaining(grant, nowMs),

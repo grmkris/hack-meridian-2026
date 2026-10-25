@@ -70,6 +70,8 @@ export const toolGrantView = (grant: SpendingGrant, nowMs: number): GrantView =>
   valid_until: grant.valid_until,
   status: grant.status === 'active' && Date.parse(grant.valid_until) <= nowMs ? 'expired' : grant.status,
   rule_id: grant.rule_id,
+  install_tx: grant.install_tx,
+  remove_tx: grant.remove_tx ?? null,
 })
 
 export const receiptView = (receipt: ReceiptRecord): ReceiptView => ({
