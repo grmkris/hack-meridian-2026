@@ -10,7 +10,7 @@
  *   - OZ smart account (S1):    AuthPayload { context_rule_ids, signers: { External(verifier, pk) → sig(digest) } }
  *                               see scheme/smart-account.ts → ozConnectionSigner()
  *
- * Exports: SmartAccountExactStellarScheme, SignPayload, PayloadSigner, ed25519SignatureScVal.
+ * Exports: SmartAccountExactStellarScheme, authorizeEntryWithScVal, SignPayload, PayloadSigner, ed25519SignatureScVal.
  */
 import { Keypair, StrKey, authorizeEntry, contract, nativeToScVal, xdr } from "@stellar/stellar-sdk";
 import type { PaymentPayloadContext, PaymentPayloadResult, PaymentRequirements, SchemeNetworkClient } from "@x402/core/types";
@@ -51,6 +51,28 @@ export function ed25519SignatureScVal(kp: Keypair, payloadHash: Buffer): xdr.ScV
       { type: { public_key: ["symbol", null], signature: ["symbol", null] } },
     ),
   ]);
+}
+
+/**
+ * Sign one address-credential auth entry by handing stellar-sdk 16.4.1's `authorizeEntry` a ready
+ * `{ signatureScVal }` (no ed25519 assumption about the address). Sets the expiration ledger, computes
+ * payloadHash = sha256(HashIdPreimage::SorobanAuthorization), asks `signPayload` for the ScVal.
+ */
+export function authorizeEntryWithScVal(
+  entry: xdr.SorobanAuthorizationEntry,
+  signPayload: SignPayload,
+  expirationLedger: number,
+  networkPassphrase: string,
+  requirements: PaymentRequirements,
+): Promise<xdr.SorobanAuthorizationEntry> {
+  return authorizeEntry(
+    entry,
+    async (preimage: xdr.HashIdPreimage, payloadHash: Buffer) => ({
+      signatureScVal: await signPayload(payloadHash, { entry, preimage, expirationLedger, networkPassphrase, requirements }),
+    }),
+    expirationLedger,
+    networkPassphrase,
+  );
 }
 
 export class SmartAccountExactStellarScheme implements SchemeNetworkClient {
@@ -103,20 +125,7 @@ export class SmartAccountExactStellarScheme implements SchemeNetworkClient {
       address: from,
       expiration: maxLedger,
       authorizeEntry: (entry, _signer, expirationLedger, passphrase) =>
-        authorizeEntry(
-          entry,
-          async (preimage: xdr.HashIdPreimage, payloadHash: Buffer) => ({
-            signatureScVal: await this.signer.signPayload(payloadHash, {
-              entry,
-              preimage,
-              expirationLedger: expirationLedger ?? maxLedger,
-              networkPassphrase: passphrase ?? networkPassphrase,
-              requirements: paymentRequirements,
-            }),
-          }),
-          expirationLedger ?? maxLedger,
-          passphrase ?? networkPassphrase,
-        ),
+        authorizeEntryWithScVal(entry, this.signer.signPayload, expirationLedger ?? maxLedger, passphrase ?? networkPassphrase, paymentRequirements),
     });
     this.lastExpirationLedger = maxLedger;
 

@@ -21,7 +21,7 @@ let remaining = BigInt(Math.round(Number(flag("--allowance") ?? "0.25") * 1e7));
 const url = process.env.MCP_URL ?? `http://127.0.0.1:${MCP_PORT}/mcp`;
 
 const wire: unknown[] = [];
-const loggingFetch: typeof fetch = async (input, init) => {
+const loggingFetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
   const reqBody = typeof init?.body === "string" ? JSON.parse(init.body) : undefined;
   const res = await fetch(input as RequestInfo, init);
   const text = await res.clone().text();
@@ -31,7 +31,7 @@ const loggingFetch: typeof fetch = async (input, init) => {
   } catch {}
   wire.push({ request: reqBody, status: res.status, response: resBody });
   return res;
-};
+}) as typeof fetch;
 
 const { client: x402 } = buildClient({ scheme: flag("--scheme") });
 const mcp = new Client({ name: "s2-mcp-payer", version: "0.0.0" });

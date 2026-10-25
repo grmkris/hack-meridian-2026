@@ -65,12 +65,12 @@ export function buildClient(opts: { cap?: string; paymentId?: string; scheme?: s
 if (import.meta.main) {
   const { client, signedCount } = buildClient({ cap, paymentId, scheme: which });
   let sentHeader: string | undefined;
-  const recordingFetch: typeof fetch = async (input, init) => {
+  const recordingFetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
     const req = new Request(input as RequestInfo, init);
     const h = req.headers.get("payment-signature");
     if (h) sentHeader = h;
     return fetch(req);
-  };
+  }) as typeof fetch;
   const pay = wrapFetchWithPayment(recordingFetch, client);
   const t0 = performance.now();
   try {
