@@ -161,26 +161,17 @@ const paymentView = <Message>(payment: Payment, approved: boolean, h: HtmlBuilde
   )
 }
 
-/** Asking: the visitor's own Approve button, with the note that it is an example. Approved: the outcome and a replay. */
+/**
+ * Both states stay rendered, each pair in one grid cell (landing.css), so the visitor's Approve gives way to the outcome
+ * as one change and the card never changes height. The hidden half is disabled and out of the accessibility tree; the
+ * status line is empty until the nod, so a screen reader hears the outcome when it arrives.
+ */
 const approvalView = <Message>(example: Example<Message>, h: HtmlBuilder<Message>): Html =>
-  example.approved
-    ? h.div(
-        [h.Class('nod-approval'), h.DataAttribute('nod', 'approved')],
-        [
-          h.p([h.Class('nod-approved'), h.Role('status')], [icon(fingerprintPaths, h), EXAMPLE_WALLET.approved]),
-          h.button(
-            [
-              h.Type('button'),
-              h.Class('nod-replay'),
-              h.DataAttribute('testid', 'example-replay'),
-              h.OnClick(example.replay),
-            ],
-            [EXAMPLE_WALLET.replay],
-          ),
-        ],
-      )
-    : h.div(
-        [h.Class('nod-approval'), h.DataAttribute('nod', 'asking')],
+  h.div(
+    [h.Class('nod-approval'), h.DataAttribute('nod', example.approved ? 'approved' : 'asking')],
+    [
+      h.div(
+        [h.Class('nod-approval-stack')],
         [
           h.button(
             [
@@ -188,13 +179,35 @@ const approvalView = <Message>(example: Example<Message>, h: HtmlBuilder<Message
               h.Class('nod-approve'),
               h.DataAttribute('testid', 'example-approve'),
               h.AriaDescribedBy('nod-try-note'),
+              h.Disabled(example.approved),
               h.OnClick(example.approve),
             ],
             [icon(fingerprintPaths, h), EXAMPLE_WALLET.approve],
           ),
-          h.p([h.Id('nod-try-note'), h.Class('nod-try-note')], [EXAMPLE_WALLET.tryNote]),
+          h.p(
+            [h.Class('nod-approved'), h.Role('status')],
+            example.approved ? [icon(fingerprintPaths, h), EXAMPLE_WALLET.approved] : [],
+          ),
         ],
-      )
+      ),
+      h.div(
+        [h.Class('nod-approval-foot')],
+        [
+          h.p([h.Id('nod-try-note'), h.Class('nod-try-note')], [EXAMPLE_WALLET.tryNote]),
+          h.button(
+            [
+              h.Type('button'),
+              h.Class('nod-replay'),
+              h.DataAttribute('testid', 'example-replay'),
+              h.Disabled(!example.approved),
+              h.OnClick(example.replay),
+            ],
+            [EXAMPLE_WALLET.replay],
+          ),
+        ],
+      ),
+    ],
+  )
 
 const exampleWalletView = <Message>(example: Example<Message>, h: HtmlBuilder<Message>): Html =>
   h.keyed('figure')(

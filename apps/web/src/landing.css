@@ -632,7 +632,7 @@
     color: var(--lamp-ink);
   }
   .nod-replay {
-    align-self: flex-start;
+    justify-self: start;
     min-height: 2.75rem;
     padding: 0;
     border: 0;
@@ -650,6 +650,23 @@
     .nod-replay:hover {
       text-decoration-color: currentColor;
     }
+  }
+  .nod-approval-stack,
+  .nod-approval-foot {
+    display: grid;
+  }
+  .nod-approval-stack > *,
+  .nod-approval-foot > * {
+    grid-area: 1 / 1;
+  }
+  .nod-try-note {
+    align-self: start;
+  }
+  /* The half that is not this state's keeps its place for the height, out of sight, reach and the reading order. */
+  .nod-approval[data-nod='asking'] :is(.nod-approved, .nod-replay),
+  .nod-approval[data-nod='approved'] :is(.nod-approve, .nod-try-note) {
+    visibility: hidden;
+    opacity: 0;
   }
   .nod-caption {
     margin: 0.875rem 0 0;
@@ -1080,17 +1097,17 @@
     .nod-row[data-step='bob'] {
       --at: 2900ms;
     }
-    /* 5.00 until the brief is paid, 4.90 until Alice is, then 2.90. */
+    /* 5.00 until the brief is paid, 4.90 until Alice is, then 2.90: each old figure leaves as the next arrives. */
     .nod-figure-was[data-figure='0'] {
-      animation: nod-figure 1150ms linear both;
+      animation: nod-figure-out 200ms var(--ease-out) 1150ms both;
     }
     .nod-figure-was[data-figure='1'] {
       animation:
-        nod-figure 1100ms linear 1150ms forwards,
-        nod-figure-in 280ms var(--ease-out) 1150ms backwards;
+        nod-figure-show 280ms var(--ease-out) 1150ms both,
+        nod-figure-out 200ms var(--ease-out) 2250ms forwards;
     }
     .nod-figure-now {
-      animation: nod-figure-in 280ms var(--ease-out) 2250ms both;
+      animation: nod-figure-show 280ms var(--ease-out) 2250ms both;
     }
     .nod-meter-fill {
       animation: nod-meter 1650ms var(--ease-out) 1150ms both;
@@ -1105,24 +1122,35 @@
     .nod-card[data-nod='asking'] .nod-caption {
       animation: nod-enter 420ms var(--ease-out) 3800ms both;
     }
-    /* Approved: the outcome replaces the button, Bob's status turns, the replay follows. */
+    /* Approved: Approve gives way to the outcome in the same place, Bob's status turns, the replay follows. */
+    .nod-approval[data-nod='approved'] :is(.nod-approve, .nod-try-note) {
+      animation: nod-leave 160ms var(--ease-out) both;
+    }
     .nod-approval[data-nod='approved'] .nod-approved {
-      animation: nod-figure-in 280ms var(--ease-out) both;
+      animation: nod-show 280ms var(--ease-out) 60ms both;
     }
     .nod-card[data-nod='approved'] .nod-row-asked .nod-paid {
-      animation: nod-figure-in 280ms var(--ease-out) 80ms both;
+      animation: nod-show 280ms var(--ease-out) 80ms both;
     }
     .nod-approval[data-nod='approved'] .nod-replay {
-      animation: nod-enter 420ms var(--ease-out) 700ms both;
+      animation: nod-show 280ms var(--ease-out) 700ms both;
     }
     /* The window lights when Claude asks and breathes while it waits for you; your nod makes it flare once. */
     .landing-hero[data-nod='asking'] .landing-glow {
       animation:
-        nod-lamp-rise 900ms var(--ease-out) 3200ms both,
-        nod-lamp-wait 3200ms ease-in-out 4100ms infinite alternate;
+        nod-lamp-ask 4100ms var(--ease-out) both,
+        nod-lamp-wait 3200ms ease-in-out 4100ms 6 alternate;
     }
     .landing-hero[data-nod='approved'] .landing-glow {
       animation: nod-lamp-flare 1400ms var(--ease-out) both;
+    }
+  }
+
+  /* Reduced motion keeps the nod's outcome legible: an opacity fade, no movement. */
+  @media (prefers-reduced-motion: reduce) {
+    .nod-approval[data-nod='approved'] .nod-approved,
+    .nod-card[data-nod='approved'] .nod-row-asked .nod-paid {
+      animation: nod-fade 200ms ease both;
     }
   }
 
@@ -1135,21 +1163,35 @@
     @media (prefers-reduced-motion: no-preference) and (min-width: 40rem) {
       .landing-plate,
       .landing-dawn-scene {
-        animation: plate-print linear both;
-        animation-timeline: view();
+        position: relative;
+        overflow: clip;
+        view-timeline: --plate block;
+        animation: plate-ink linear both;
+        animation-timeline: --plate;
+        animation-range: entry 10% cover 40%;
+      }
+      /* The press: a sheet of the page's paper slides off the drawing, top first, on the compositor. */
+      .landing-plate::after,
+      .landing-dawn-scene::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: var(--page);
+        animation: plate-uncover linear both;
+        animation-timeline: --plate;
         animation-range: entry 10% cover 40%;
       }
     }
   }
 
-  @keyframes plate-print {
+  @keyframes plate-ink {
     from {
-      clip-path: inset(0 0 100% 0);
       opacity: 0.4;
     }
+  }
+  @keyframes plate-uncover {
     to {
-      clip-path: inset(0);
-      opacity: 1;
+      transform: translateY(101%);
     }
   }
   @keyframes nod-enter {
@@ -1158,22 +1200,60 @@
       transform: translateY(6px);
     }
   }
-  @keyframes nod-figure-in {
+  /* The odometer: a figure leaves upwards as the next comes up from below, a 2px blur masking the overlap. */
+  @keyframes nod-figure-out {
+    from {
+      opacity: 1;
+      transform: none;
+      filter: blur(0);
+    }
+    to {
+      opacity: 0;
+      transform: translateY(-0.3em);
+      filter: blur(2px);
+    }
+  }
+  @keyframes nod-figure-show {
     from {
       opacity: 0;
       transform: translateY(0.3em);
+      filter: blur(2px);
     }
-  }
-  /* A figure that was: shown from the start, gone when the next arrives. */
-  @keyframes nod-figure {
-    0%,
-    99% {
+    to {
       opacity: 1;
       transform: none;
+      filter: blur(0);
     }
-    100% {
+  }
+  /* The nod's swap: the button steps back and goes, the outcome comes up through a short blur, both in one place. */
+  @keyframes nod-leave {
+    from {
+      opacity: 1;
+      visibility: visible;
+    }
+    to {
       opacity: 0;
-      transform: translateY(-0.3em);
+      transform: scale(0.97);
+      visibility: hidden;
+    }
+  }
+  @keyframes nod-show {
+    from {
+      opacity: 0;
+      transform: translateY(0.25em);
+      filter: blur(2px);
+      visibility: hidden;
+    }
+    to {
+      opacity: 1;
+      transform: none;
+      filter: blur(0);
+      visibility: visible;
+    }
+  }
+  @keyframes nod-fade {
+    from {
+      opacity: 0;
     }
   }
   /* An entrance that also keeps the element out of reach (and out of focus order) until it arrives. */
@@ -1184,10 +1264,20 @@
       visibility: hidden;
     }
   }
-  @keyframes nod-lamp-rise {
-    from {
+  /* From wherever the lamp is (lit at the end of a run, so a replay never snaps it dark), down to 0.35, up when Claude asks. */
+  @keyframes nod-lamp-ask {
+    0% {
+      opacity: 0.8;
+      transform: none;
+    }
+    7%,
+    78% {
       opacity: 0.35;
       transform: scale(0.92);
+    }
+    100% {
+      opacity: 1;
+      transform: none;
     }
   }
   @keyframes nod-lamp-wait {

@@ -164,7 +164,7 @@ try {
     if ((await approve.count()) > 0) {
       await approve.click()
       await page.waitForTimeout(reducedMotion === 'reduce' ? 200 : 1600)
-      if ((await page.getByTestId('example-replay').count()) === 0)
+      if (!(await page.getByTestId('example-replay').isVisible()))
         problems.push('approving the example shows no replay')
       await page.screenshot({ path: join(directory, `${stage}-${label}-nod.png`) })
     }

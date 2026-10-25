@@ -1,4 +1,4 @@
-import { Effect, Option, Schema, String } from 'effect'
+import { Duration, Effect, Option, Schema, String } from 'effect'
 import { Command, Mount, Submodel, type Update } from 'foldkit'
 import type { Html, HtmlBuilder } from 'foldkit/html'
 import { defineMessageUnion } from 'foldkit/message'
@@ -163,6 +163,12 @@ const wantsNightFlight = (): boolean =>
   )
 
 /**
+ * The flight runs on the card's clock or not at all: if it has not started this soon after the landing appears (a slow
+ * connection), the etching stays still, so the window never lights twice at different moments.
+ */
+const NIGHT_FLIGHT_START_WITHIN = Duration.millis(1200)
+
+/**
  * Plays the night flight once: the swallow flies home to the lit window and the last frame stays. The video has no
  * source until this decides to play it, so a phone, reduced motion or Save-Data never downloads it; it fades in over
  * the identical etching (landing.css) once its first frame is on screen.
@@ -185,9 +191,15 @@ export const PlayNightFlight = Mount.define('PlayNightFlight', {
       element.muted = true
       element.src = src
       const playing = yield* Effect.tryPromise(() => element.play()).pipe(
-        Effect.as(true),
+        Effect.timeoutOption(NIGHT_FLIGHT_START_WITHIN),
+        Effect.map(Option.isSome),
         Effect.orElseSucceed(() => false),
       )
+      if (!playing) {
+        element.pause()
+        element.removeAttribute('src')
+        element.load()
+      }
       return Message.SettledNightFlight({ playing })
     }),
 })
