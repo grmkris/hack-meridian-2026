@@ -122,8 +122,11 @@ const inviteCodes = Config.String('INVITE_CODES').pipe(
  * per unit), a later 2 USDC payment 15.3 XLM (0.16). The multipliers leave ~50 % headroom.
  */
 const XLM_PER_RENT_UNIT = { first: 0.8, later: 0.25 }
-/** Never authorize more than this for one transfer, whatever the rent does. */
-const HARD_MAX_TRANSFER_XLM = 250
+/**
+ * Never authorize more than this for one transfer, whatever the rent does. Testnet rent reached 219× on 25 Oct, and a
+ * first transfer at 0.8 XLM per unit hits 600 XLM only past 750×; mainnet rent is ~1× and its fees stay tiny.
+ */
+const HARD_MAX_TRANSFER_XLM = { testnet: 600, pubnet: 1 } as const
 
 /**
  * The fee ceiling (stroops) for a delegated transfer: the configured ceiling (the grant's first transfer extends rent
@@ -133,7 +136,7 @@ export const transferFeeCeiling = (network: NetworkShape, firstDone: boolean) =>
   Effect.map(network.rentFactor, factor => {
     const configured = firstDone ? network.fees.laterXlm : network.fees.firstXlm
     const following = factor === null ? 0 : factor * (firstDone ? XLM_PER_RENT_UNIT.later : XLM_PER_RENT_UNIT.first)
-    const ceiling = Math.min(Math.max(configured, following), HARD_MAX_TRANSFER_XLM)
+    const ceiling = Math.min(Math.max(configured, following), HARD_MAX_TRANSFER_XLM[network.name])
     return BigInt(Math.round(ceiling * 1e7))
   })
 

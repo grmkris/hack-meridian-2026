@@ -17,6 +17,8 @@ it.effect('fee ceilings follow the rent factor upward, never below the configure
     expect(xlm(yield* transferFeeCeiling(at(10), false))).toBe(35)
     expect(xlm(yield* transferFeeCeiling(at(110), false))).toBe(88)
     expect(xlm(yield* transferFeeCeiling(at(110), true))).toBe(27.5)
-    expect(xlm(yield* transferFeeCeiling(at(5000), false))).toBe(250)
+    expect(xlm(yield* transferFeeCeiling(at(312), false))).toBeCloseTo(249.6)
+    expect(xlm(yield* transferFeeCeiling(at(5000), false))).toBe(600)
+    expect(xlm(yield* transferFeeCeiling({ ...at(5000), name: 'pubnet' as const }, false))).toBe(1)
   }),
 )
