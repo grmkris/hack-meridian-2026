@@ -6,7 +6,7 @@ Plans and queues live in the release plan (.local/brainstorm/FINAL-REVIEW.md §K
 below; mainnet only on the orchestrator's explicit go, never during a recording.
 
 Live: **testnet at `31a84de`** (19:30 UTC: C's pages in the night identity with self-hosted fonts, D's served files) on
-https://testnet.trynod.si (MCP at `/mcp`; the workers.dev host redirects there); **mainnet at `5253df0`** (19:24 UTC) on https://trynod.si. Dated sections
+https://testnet.trynod.si (MCP at `/mcp`; the workers.dev host redirects there); **mainnet at `31a84de`** (19:37 UTC) on https://trynod.si. Dated sections
 below are the history.
 
 ## The deploy worktree is the only place a testnet deploy runs
@@ -211,3 +211,10 @@ migration, no binding. Frozen install, `heavy bun run check` green in the worktr
 - probe all green, 1 warn (`evidence/probe/2026-10-25T19-35-39-964Z.json`).
 
 Rollback: re-pin `5253df0`.
+
+## 19:37 UTC: mainnet at `31a84de` (orchestrator's go)
+
+Plan `[Web] update` + `[Web/RELEASE] update` only; deploy `"deletedClasses":[]`. `https://trynod.si/api/health`: release
+`31a84de0…`, pubnet, invite off, payments on, relayers 27.0 / 10.0 XLM, treasury 0 USDC. `/llms.txt` byte-identical to the
+repository file; the three `/fonts/*.woff2` 200 `font/woff2`. Backfill: still no Worker `UPDATE … SET network` in the
+mainnet D1 analytics after the 19:24 deploy's first requests.
