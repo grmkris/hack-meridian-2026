@@ -17,16 +17,25 @@ export interface OwnerBrowser {
   close(): Promise<void>
 }
 
+const redact = (url: string) => url.replace(/([?&](code|state|code_challenge)=)[^&]+/gu, '$1<redacted>')
+
 export async function ownerBrowser(evidenceDir: string, onDocument?: (line: string) => void): Promise<OwnerBrowser> {
   const browser = await chromium.launch({ headless: true })
   const context = await browser.newContext({ viewport: { width: 1100, height: 900 } })
   const page = await context.newPage()
   if (onDocument !== undefined)
     page.on('response', response => {
-      if (response.request().resourceType() === 'document')
-        onDocument(
-          `${response.request().method()} ${response.url().replace(/([?&]code=)[^&]+/u, '$1<redacted>')} → ${response.status()}`,
-        )
+      const request = response.request()
+      const kind = request.resourceType()
+      if (kind === 'document') onDocument(`${request.method()} ${redact(response.url())} → ${response.status()}`)
+      // a failing fetch from a page (wallet creation, approval, revoke) keeps its body excerpt for the report
+      else if ((kind === 'fetch' || kind === 'xhr') && response.status() >= 400)
+        void response
+          .text()
+          .then(body =>
+            onDocument(`${request.method()} ${redact(response.url())} → ${response.status()} ${body.slice(0, 400)}`),
+          )
+          .catch(() => onDocument(`${request.method()} ${redact(response.url())} → ${response.status()}`))
     })
   const cdp = await context.newCDPSession(page)
   await cdp.send('WebAuthn.enable', { enableUI: false })

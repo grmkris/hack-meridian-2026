@@ -406,23 +406,27 @@ export const STEPS: ReadonlyArray<Step> = [
     needs: [],
     run: async ctx => {
       const before = ctx.vars.get('remaining')
+      // 4 USDC is above the 2.90 left after s4 + s5; if an earlier payment did not land, ask for 1 more than is left
+      const left = toStroops(before)
+      const ask = left !== undefined && left >= 40_000_000n ? usdcString(left + 10_000_000n) : '4'
+      if (ask !== '4') ctx.note(`allowance ${before} is not below 4 (an earlier step did not spend): asking ${ask}`)
       const out = await ctx.call('payment_prepare', {
         recipient: ctx.to('alice'),
-        amount: '4',
+        amount: ask,
         reason: 'more than the allowance left',
-        idempotency_key: key(ctx, 'alice-4'),
+        idempotency_key: key(ctx, 'alice-over'),
       })
       ctx.check(
         2,
         needsOwner(out.data) && approvalUrl(out.data) !== undefined,
-        `4 > ${before ?? '?'} → lane ${laneOf(out.data) ?? '-'}, status ${statusOf(out.data)}`,
+        `${ask} > ${before ?? '?'} → lane ${laneOf(out.data) ?? '-'}, status ${statusOf(out.data)}`,
       )
       if (ctx.tools().has('payment_execute')) {
         const id = paymentId(out.data)
         if (id !== undefined) {
           const refused = await ctx.call('payment_execute', {
             payment_id: id,
-            idempotency_key: key(ctx, 'alice-4-exec'),
+            idempotency_key: key(ctx, 'alice-over-exec'),
           })
           ctx.check(
             2,
