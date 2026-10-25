@@ -19,7 +19,7 @@ Nod
 
 Small stuff, it just pays. Big stuff needs your nod. A Stellar wallet inside your AI, with one allowance you set.
 
-### Description (Markdown, ≤ 8000 characters; this one: 7805)
+### Description (Markdown, ≤ 8000 characters; this one: 7837)
 
 **Apps are turning into conversations and agents, so wallets have to follow them into the chat.** Nod is a Stellar
 wallet that lives inside the AI you already use: one connector URL in Claude, Goblin, Claude Code or any MCP app, and in
@@ -55,8 +55,8 @@ trustline and paid in one transaction, a revoke that removed the rule and swept 
 
 - **Passkey wallet, one allowance per AI app.** Face ID creates an OpenZeppelin smart account; connecting an AI app
   and setting its allowance is one step, a context rule with a spending limit and an expiry. Nod pays every fee.
-- **Pays for APIs.** The AI buys a 0.10 USDC market brief from an x402 seller, settled by a public facilitator. No
-  prompt; 4.90 left.
+- **Pays for APIs.** The AI buys a 0.10 USDC market brief over x402 with no prompt (4.90 left), settled by a public
+  facilitator; on mainnet it also bought Stellar's own x402 demo endpoint.
 - **Pays people.** "Send Alice 2 USDC" goes out under the same allowance, signed by the app's own key; 2.90 left.
 - **Needs your nod.** "Pay Bob 5 USDC for dinner" is more than the 2.90 left, so it is never signed with the app's key.
   You get a link showing Bob's name and address, the amount and who asked; your passkey signs that payment, and the
@@ -68,7 +68,7 @@ trustline and paid in one transaction, a revoke that removed the rule and swept 
 - **Cards and notifications.** Nod's cards and the nod run live in Goblin, claude.ai and ChatGPT; notifications (MCP
   Events) arrive in Goblin and ChatGPT, and claude.ai's cards poll.
 
-Live on testnet, on the public sandbox:
+Live on testnet:
 
 - **Sign up with a deposit.** A wallet can start with nothing onchain and a `G…` address any exchange can pay; our
   deposit router sweeps what arrives into that wallet only, and the account deploys with the first USDC

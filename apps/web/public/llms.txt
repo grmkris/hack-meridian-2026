@@ -44,6 +44,7 @@ Release 9fc080f, 25 October 2026, 18:39–18:59 UTC, through the public claude.a
 - 1 USDC to Carol, who had no USDC trustline: trustline and payment in one transaction: https://stellar.expert/explorer/public/tx/1fe4e852314ea638ed53ba79acebc60a129b587e0ef80c9b051d434aa01e68c6
 - Revoke sweeps the pocket back: https://stellar.expert/explorer/public/tx/ab6d493d483f6ea5d560a9561ab7cdd2668b9d7597632023095a397ca1fd53dd
 - Revoke removes the allowance rule from the account: https://stellar.expert/explorer/public/tx/e17e15d5efd2f43e883073873ff9d5dc0333ea9dca318cea0f38a5c7678f04c9
+- Later (20:53 UTC, after reconnecting): Claude bought Stellar's own x402 demo endpoint https://stellar.org/x402-demo/api/protected/mainnet for 0.01 USDC, a seller Nod does not run, settled through OpenZeppelin Channels to Stellar's pay-to account: https://stellar.expert/explorer/public/tx/3a63573ab65fc557c86737af029bd79b0d382f3ebe78eb5911b3a597f55b596e
 
 ## Proof on testnet
 
