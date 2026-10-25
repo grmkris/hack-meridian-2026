@@ -45,7 +45,7 @@ export interface Soroban {
   readonly sequence: (address: string) => Effect.Effect<string, ChainError>
   readonly simulate: (
     tx: Transaction,
-    authMode: rpc.Api.SimulationAuthMode,
+    authMode: rpc.Api.SimulationAuthMode | undefined,
     stage: string,
   ) => Effect.Effect<SimSuccess, ChainError>
   readonly sendAndPoll: (tx: Transaction) => Effect.Effect<TxOutcome, ChainError>
@@ -83,8 +83,9 @@ export const makeSoroban = (rpcUrl: string, networkPassphrase: string): Soroban 
       .setTimeout(120)
       .build()
 
-  const simulate = (tx: Transaction, authMode: rpc.Api.SimulationAuthMode, stage: string) =>
-    read(`simulate (${authMode})`, s => s.simulateTransaction(tx, undefined, authMode)).pipe(
+  /** `authMode` only for InvokeHostFunction; the SDK refuses it for ExtendFootprintTTL and RestoreFootprint. */
+  const simulate = (tx: Transaction, authMode: rpc.Api.SimulationAuthMode | undefined, stage: string) =>
+    read(`simulate (${authMode ?? 'default'})`, s => s.simulateTransaction(tx, undefined, authMode)).pipe(
       Effect.flatMap(sim =>
         rpc.Api.isSimulationSuccess(sim)
           ? Effect.succeed(sim)

@@ -51,7 +51,7 @@ const secretList = (name: string) =>
 /**
  * Bindings read: `STELLAR_RPC_URL`, `STELLAR_NETWORK_PASSPHRASE`, `RELAYER_SECRETS` (comma-separated; or
  * `RELAYER_SECRET`), `TREASURY_SECRET`, `VAULT_KEY`, `X402_FACILITATOR_URL`, `X402_FALLBACK_FACILITATOR_URL`,
- * `OZ_CHANNELS_API_KEY`, `DEMO_RECIPIENT_SECRET`, `MAX_FEE_STROOPS`, `OWNER_AUTH_LEDGERS`, `WALLET_TTL_LEDGERS`.
+ * `OZ_FACILITATOR_KEY` (or `OZ_CHANNELS_API_KEY`), `DEMO_RECIPIENT_SECRET`, `MAX_FEE_STROOPS`, `OWNER_AUTH_LEDGERS`, `WALLET_TTL_LEDGERS`.
  */
 export const chainSettingsConfig = Config.all({
   rpcUrl: Config.String('STELLAR_RPC_URL').pipe(Config.withDefault(TESTNET_RPC_URL)),
@@ -61,7 +61,9 @@ export const chainSettingsConfig = Config.all({
   vaultKey: Config.Redacted('VAULT_KEY'),
   facilitatorUrl: Config.String('X402_FACILITATOR_URL').pipe(Config.withDefault(HOSTED_FACILITATOR_URL)),
   fallbackFacilitatorUrl: Config.String('X402_FALLBACK_FACILITATOR_URL').pipe(Config.withDefault(OZ_FACILITATOR_URL)),
-  ozApiKey: Config.option(Config.Redacted('OZ_CHANNELS_API_KEY')),
+  ozApiKey: Config.option(
+    Config.Redacted('OZ_FACILITATOR_KEY').pipe(Config.orElse(() => Config.Redacted('OZ_CHANNELS_API_KEY'))),
+  ),
   demoRecipientSecret: Config.option(Config.Redacted('DEMO_RECIPIENT_SECRET')),
   maxFeeStroops: Config.String('MAX_FEE_STROOPS').pipe(
     Config.map(s => BigInt(s)),

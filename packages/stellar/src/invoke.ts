@@ -136,7 +136,7 @@ export const makeInvoker = (soroban: Soroban, pool: RelayerPool, maxFeeStroops: 
           .setSorobanData(new SorobanDataBuilder().setReadOnly([...readOnly]).build())
           .setTimeout(120)
           .build()
-        const sim = yield* soroban.simulate(raw, 'record', 'extend simulation')
+        const sim = yield* soroban.simulate(raw, undefined, 'extend simulation')
         const tx = rpc.assembleTransaction(raw, sim).build()
         yield* checkFee(tx, ceiling)
         return yield* soroban.sendAndPoll(signWith(tx, relayer))
