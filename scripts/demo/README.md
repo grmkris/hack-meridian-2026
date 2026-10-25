@@ -3,15 +3,15 @@
 Everything here runs on **Stellar testnet** only. Secret keys live in `scripts/demo/.env` (gitignored, mode 600), one
 `<ROLE>_SECRET=S…` line per account; public ids are in [`seeds.json`](seeds.json). No script prints a secret.
 
-| Command                                    | What it does                                                                               |
-| ------------------------------------------ | ------------------------------------------------------------------------------------------ |
-| `bun scripts/demo/seed.ts`                 | creates or tops up every account below (idempotent), writes `seeds.json`, prints the table |
-| `bun scripts/demo/seed.ts --table`         | the table only (public keys and balances)                                                  |
-| `bun scripts/demo/fund.ts <C…\|G…> <usdc>` | treasury → any address, USDC SAC transfer (top up a demo wallet for the 100 USDC beat)     |
-| `bun scripts/demo/pay.ts [--mcp]`          | pays the demo seller once from `BUYER` with the stock x402 client, repeats the id (dedup)  |
-| `bun scripts/demo/ttl.ts [--extend]`       | TTLs of the shared contracts (policy, verifiers, account WASM, router); extends short ones |
-| `bun scripts/demo/oz-key.ts`               | OpenZeppelin Channels testnet key → `apps/seller/.dev.vars` (`OZ_FACILITATOR_KEY`)         |
-| `bun scripts/demo/rehearse.ts`, `probe.ts` | the nine-step rehearsal and the demo-day health probe (see their headers)                  |
+| Command                                                      | What it does                                                                                                       |
+| ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------ |
+| `bun scripts/demo/seed.ts`                                   | creates or tops up every account below (idempotent), writes `seeds.json`, prints the table                         |
+| `bun scripts/demo/seed.ts --table`                           | the table only (public keys and balances)                                                                          |
+| `bun scripts/demo/topup.ts --target testnet <C…\|G…> <usdc>` | treasury → any wallet (USDC SAC transfer); prints the tx hash and explorer link. Recording wallet: 10 welcome + 20 |
+| `bun scripts/demo/pay.ts [--mcp]`                            | pays the demo seller once from `BUYER` with the stock x402 client, repeats the id (dedup)                          |
+| `bun scripts/demo/ttl.ts [--extend]`                         | TTLs of the shared contracts (policy, verifiers, account WASM, router); extends short ones                         |
+| `bun scripts/demo/oz-key.ts`                                 | OpenZeppelin Channels testnet key → `apps/seller/.dev.vars` (`OZ_FACILITATOR_KEY`)                                 |
+| `bun scripts/demo/rehearse.ts`, `probe.ts`                   | the nine-step rehearsal and the demo-day health probe (see their headers)                                          |
 
 ## Accounts
 

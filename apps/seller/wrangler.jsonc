@@ -11,8 +11,9 @@
     "STELLAR_NETWORK": "testnet",
     // seller G with a USDC trustline (scripts/demo/seeds.json → accounts.seller)
     "PAY_TO": "GAINGRVWOM5BGQI6GQ7P2OIWTUS65H3PHTEHX365CVDB3NWHC3WVTDNI",
-    // x402org first, OpenZeppelin Channels as fallback (secret OZ_FACILITATOR_KEY from .dev.vars); "oz" flips it
-    "FACILITATOR": "x402org",
+    // OpenZeppelin Channels first (secret OZ_FACILITATOR_KEY from .dev.vars), x402.org as fallback: at testnet rent
+    // ~219x x402.org refuses with fee_exceeds_maximum (2026-10-25 15:10 UTC); "x402org" flips the order
+    "FACILITATOR": "oz",
   },
   // No KV (the deploy token lacks the permission, docs/spikes/s4.md): payment-id dedup is a SQLite Durable Object.
   "durable_objects": { "bindings": [{ "name": "PAYMENT_IDS", "class_name": "PaymentIds" }] },

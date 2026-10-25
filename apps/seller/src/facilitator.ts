@@ -22,8 +22,9 @@ const client = (f: Settings['facilitators'][number]): Named => {
 }
 
 /**
- * Primary facilitator with a fallback. A structured answer (`VerifyError`, `SettleError`, `isValid: false`) is final;
- * only transport failures (timeouts, 5xx, unparseable bodies) move on to the next facilitator. A settle retried on the
+ * Primary facilitator with a fallback. A structured answer (`VerifyError`, `SettleError`, `isValid: false`) is final,
+ * except a facilitator's own fee cap (`fee_exceeds_maximum`); transport failures (timeouts, 5xx, unparseable bodies)
+ * and fee caps move on to the next facilitator. A settle retried on the
  * fallback cannot pay twice: the payer's auth-entry nonce is consumed onchain by whichever settlement lands first.
  */
 export class FallbackFacilitator implements FacilitatorClient {
@@ -43,11 +44,28 @@ export class FallbackFacilitator implements FacilitatorClient {
 
   async #run<T>(label: string, call: (c: FacilitatorClient) => Promise<T>): Promise<T> {
     let failure: unknown = new Error('no facilitator configured')
-    for (const { name, client: c } of this.#clients) {
+    for (const [index, { name, client: c }] of this.#clients.entries()) {
       const started = Date.now()
       try {
         const result = await call(c)
-        console.log(JSON.stringify({ facilitator: name, call: label, ms: Date.now() - started, ok: true }))
+        // the verdict, not just the transport: isValid / invalidReason on verify, success / errorReason on settle
+        const verdict = Object.fromEntries(
+          Object.entries(typeof result === 'object' && result !== null ? result : {}).filter(([k]) =>
+            ['isValid', 'invalidReason', 'invalidMessage', 'success', 'errorReason', 'transaction', 'payer'].includes(
+              k,
+            ),
+          ),
+        )
+        console.log(JSON.stringify({ facilitator: name, call: label, ms: Date.now() - started, ok: true, ...verdict }))
+        // A facilitator's own fee ceiling is not a verdict on the payment: x402.org refuses testnet payments once rent
+        // pushes the simulated fee past its cap (fee_exceeds_maximum, seen at rent factor ~219 on 2026-10-25), while
+        // OpenZeppelin Channels still settles them. Nothing was submitted, so the next facilitator may try.
+        const why = verdict['invalidReason'] ?? verdict['errorReason']
+        const reason = typeof why === 'string' ? why : ''
+        if (reason.includes('fee_exceeds_maximum') && index < this.#clients.length - 1) {
+          failure = new Error(`${name}: ${reason}`)
+          continue
+        }
         return result
       } catch (error) {
         const final = error instanceof VerifyError || error instanceof SettleError
