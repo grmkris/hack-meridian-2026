@@ -1,0 +1,89 @@
+sponsor=GAZ3GB3N7EHQTKMKTAFBUU2MV3GZQYC4HBPO6KLKCU3ILOEQ5GPPARLE funder=GD3RIZ6XMFBYGT4KUYAVTC7CY2EDFPEQSPY32GBTQRMOFBWPSSJ54LN6 owner=GDTLPTGRVKABOS6YMBIDS2SWHFFJ3WGG7NE6G4IV5RJWXRRAQUOTVBG5 conn=GCEM4WKCAWO6ZZAA7SSSTG4SQWLRAI36ZM45QT7QHCPO6SB5ZLVLDH4K merchant=GDQC6YLG7NYPNKCGWXPTR3DZZZZNRSNCEUMOTYPTNRJMGSYW5LUZW4AG
+PASS  claim1 deploy → CBH5F3BSKQMJTMSOGBB5NIP55OYIMP4AAMQCBIYPBAI5UUNDIMBE5GPS
+      6c5f07ca125c1eca110b4c8fe9d1f6c063f8e5eecf38d5d2a81db15bbcbb5e83 feeCharged=37064253 {"recordSim":191,"sendToFinal":5902}
+      https://stellar.expert/explorer/testnet/contract/CBH5F3BSKQMJTMSOGBB5NIP55OYIMP4AAMQCBIYPBAI5UUNDIMBE5GPS
+PASS  claim1 fund 28 USDC (funder G → C via SAC transfer)
+      42ca0e0c938c8d8716986e6bb02959d27c6b4f35fc5050dd2d967521be245b21 ledger=5380968 feeCharged=39703731 maxFee=45663970 resourceFee=45662970 {"recordSim":159,"sign":0,"enforceSim":191,"sendToFinal":4786} sorobanCredentialsSourceAccount
+      https://stellar.expert/explorer/testnet/tx/42ca0e0c938c8d8716986e6bb02959d27c6b4f35fc5050dd2d967521be245b21
+      rule0={"context_type":["Default"],"id":0,"name":"multisig","policies":[],"policy_ids":[],"signer_ids":[0],"signers":[["External","CAAVTMCBXEIBPR64EAASKFXERVPYFZA2JYP5A3BG6PESWEFUJX5IHKN4",{"type":"Buffer","data":[230,183,204,209,170,128,23,75,216,96,80,57,106,86,57,74,157,216,198,251,73,227,113,21,236,83,107,198,32,133,29,58]}]],"valid_until":null}
+      balance C=28.0000000 USDC
+PASS  claim2 add_context_rule → rule id 1
+      7ce197bdd6e582861dddd912ed166ab713509ddfa639675e3f5652dca71ae8af feeCharged=131791816 {"recordSim":462,"sign":7,"enforceSim":373,"sendToFinal":2497}
+      https://stellar.expert/explorer/testnet/tx/7ce197bdd6e582861dddd912ed166ab713509ddfa639675e3f5652dca71ae8af
+      get_context_rules_count=2 rule={"context_type":["CallContract","CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA"],"id":1,"name":"mcp-conn-1","policies":["CABXBYJNZ7IUW4G3D6BND5YCAQF3ASSDMDAOKQQ63UYFSO7WUU2TIP5G"],"policy_ids":[0],"signer_ids":[1],"signers":[["External","CAAVTMCBXEIBPR64EAASKFXERVPYFZA2JYP5A3BG6PESWEFUJX5IHKN4",{"type":"Buffer","data":[136,206,89,66,5,157,236,228,0,252,165,41,155,146,133,151,16,35,126,203,57,216,79,240,56,158,239,72,61,202,234,177]}]],"valid_until":5398248}
+      policy(rule 1) @5380969: limit=5.0000000 period=18000 spent=0.0000000 history=[]
+REJ   resim-check: conn 2 USDC with record-mode footprint only (no enforce re-sim)
+      stage=onchain  hash=79dbb71717e10eee923fc4608a634d070c14f9845e31bba6215c6a407f5d803c feeCharged=8659 https://stellar.expert/explorer/testnet/tx/79dbb71717e10eee923fc4608a634d070c14f9845e31bba6215c6a407f5d803c
+      txFailed; invokeHostFunctionTrapped; Error(Storage, ExceededLimit)
+PASS  claim3 conn 2 USDC (cum 2)
+      e83db1d31d8679e5f81ee53bf6dabfdf41aec1be695f5bf63d2276ddcddf8a56 ledger=5380971 feeCharged=163653408 maxFee=188204947 resourceFee=188203947 {"recordSim":280,"sign":2,"enforceSim":429,"sendToFinal":3650} sorobanCredentialsAddress
+      https://stellar.expert/explorer/testnet/tx/e83db1d31d8679e5f81ee53bf6dabfdf41aec1be695f5bf63d2276ddcddf8a56
+      policy(rule 1) @5380971: limit=5.0000000 period=18000 spent=2.0000000 history=[{"amount":"20000000","ledger_sequence":5380971}]
+REJ   claim3 conn 4 USDC (cum 6 > 5) — enforce simulation
+      stage=enforce-simulate Error(Contract, #3221) 
+      HostError: Error(Auth, InvalidAction)
+REJ   claim3 conn 4 USDC (cum 6 > 5) — forced onchain submission
+      stage=onchain Error(Contract, #3221) hash=2c9dad373a8eab9f7ce4d4cba71ec4d65d3bbb97691e219679d92f41ba21e034 feeCharged=12316 https://stellar.expert/explorer/testnet/tx/2c9dad373a8eab9f7ce4d4cba71ec4d65d3bbb97691e219679d92f41ba21e034
+      txFailed; invokeHostFunctionTrapped; Error(Contract, #3221) | Error(Auth, InvalidAction)
+      policy(rule 1) @5380973: limit=5.0000000 period=18000 spent=2.0000000 history=[{"amount":"20000000","ledger_sequence":5380971}]
+PASS  claim3 conn 2.5 USDC (cum 4.5)
+      baee72486e0968199444b8d0a3504ad1f7e78ffecdd41bf8a2f3649de34ffd09 ledger=5380974 feeCharged=14200403 maxFee=16334450 resourceFee=16333450 {"recordSim":127,"sign":2,"enforceSim":169,"sendToFinal":3545} sorobanCredentialsAddress
+      https://stellar.expert/explorer/testnet/tx/baee72486e0968199444b8d0a3504ad1f7e78ffecdd41bf8a2f3649de34ffd09
+      policy(rule 1) @5380974: limit=5.0000000 period=18000 spent=4.5000000 history=[{"amount":"20000000","ledger_sequence":5380971},{"amount":"25000000","ledger_sequence":5380974}]
+REJ   claim3 conn 1 USDC (cum 5.5 > 5)
+      stage=enforce-simulate Error(Contract, #3221) 
+      HostError: Error(Auth, InvalidAction)
+PASS  claim3 boundary: conn 0.5 USDC (cum exactly 5.0)
+      fa7914994a12a2509858dae45d3ba2d1a7532ccdec58ac64cb47f3c9da07527b ledger=5380975 feeCharged=14200414 maxFee=16334455 resourceFee=16333455 {"recordSim":307,"sign":2,"enforceSim":357,"sendToFinal":3132} sorobanCredentialsAddress
+      https://stellar.expert/explorer/testnet/tx/fa7914994a12a2509858dae45d3ba2d1a7532ccdec58ac64cb47f3c9da07527b
+REJ   claim3 boundary: conn 1 stroop (cum 5.0000001)
+      stage=enforce-simulate Error(Contract, #3221) 
+      HostError: Error(Auth, InvalidAction)
+      policy(rule 1) @5380975: limit=5.0000000 period=18000 spent=5.0000000 history=[{"amount":"20000000","ledger_sequence":5380971},{"amount":"25000000","ledger_sequence":5380974},{"amount":"5000000","ledger_sequence":5380975}]
+PASS  claim5 owner 20 USDC (rule 0)
+      3214b556cd2b825bba79bac2474db39162d1e244f26e0ec5de2c5c3dbe953e58 ledger=5380976 feeCharged=20052 maxFee=27367 resourceFee=26367 {"recordSim":305,"sign":2,"enforceSim":227,"sendToFinal":2377} sorobanCredentialsAddress
+      https://stellar.expert/explorer/testnet/tx/3214b556cd2b825bba79bac2474db39162d1e244f26e0ec5de2c5c3dbe953e58
+      policy(rule 1) @5380976: limit=5.0000000 period=18000 spent=5.0000000 history=[{"amount":"20000000","ledger_sequence":5380971},{"amount":"25000000","ledger_sequence":5380974},{"amount":"5000000","ledger_sequence":5380975}]
+PASS  claim5 connection policy state unchanged by owner transfer
+REJ   neg: conn tries rule 0 (Default) for 1 USDC
+      stage=enforce-simulate Error(Contract, #3002) 
+      HostError: Error(Auth, InvalidAction)
+REJ   neg: conn tries an admin call (add_context_rule) under its rule
+      stage=enforce-simulate Error(Contract, #3002) 
+      HostError: Error(Auth, InvalidAction)
+REJ   neg: conn tries USDC approve under its rule
+      stage=enforce-simulate Error(Contract, #3223) 
+      HostError: Error(Auth, InvalidAction)
+PASS  claim4 add short rule id 2 valid_until=5381036 period=15
+      38a0812e6e28a91397597cb28c990ef70c946c28a02322e7ebc9696bbaabb1c5 https://stellar.expert/explorer/testnet/tx/38a0812e6e28a91397597cb28c990ef70c946c28a02322e7ebc9696bbaabb1c5
+PASS  claim4 window: conn 1 USDC under short rule
+      0d1e7f46df2728dcac6f763f0888936a9df843d3e7e9ea2323d82e63ab60256d ledger=5380978 feeCharged=103328044 maxFee=118830953 resourceFee=118829953 {"recordSim":312,"sign":2,"enforceSim":434,"sendToFinal":4767} sorobanCredentialsAddress
+      https://stellar.expert/explorer/testnet/tx/0d1e7f46df2728dcac6f763f0888936a9df843d3e7e9ea2323d82e63ab60256d
+      policy(rule 2) @5380978: limit=1.0000000 period=15 spent=1.0000000 history=[{"amount":"10000000","ledger_sequence":5380978}]
+REJ   claim4 window: conn 0.1 USDC within window (cum 1.1 > 1)
+      stage=enforce-simulate Error(Contract, #3221) 
+      HostError: Error(Auth, InvalidAction)
+      ledger 5380992 (spent at 5380978, period 15)
+REJ   claim4 window edge: 0.5 USDC at ≈ spentAt+14 (sim ledger = latest+1)
+      stage=enforce-simulate Error(Contract, #3221) 
+      HostError: Error(Auth, InvalidAction)
+PASS  claim4 window: 0.5 USDC after the 1 USDC aged out
+      e1711625f0bb6efef9762cc5e2c9e93c7f825fad3b7424758443b7db7dd3c8e2 ledger=5380995 feeCharged=23873 maxFee=31413 resourceFee=30413 {"recordSim":148,"sign":2,"enforceSim":148,"sendToFinal":2405} sorobanCredentialsAddress
+      https://stellar.expert/explorer/testnet/tx/e1711625f0bb6efef9762cc5e2c9e93c7f825fad3b7424758443b7db7dd3c8e2
+      policy(rule 2) @5380995: limit=1.0000000 period=15 spent=0.5000000 history=[{"amount":"5000000","ledger_sequence":5380995}]
+      waiting for valid_until 5381036 to pass…
+REJ   claim4 expiry: conn 0.1 USDC after valid_until
+      stage=enforce-simulate Error(Contract, #3002) 
+      HostError: Error(Auth, InvalidAction)
+PASS  claim4 owner removes rule 1
+      f58a7ab0a98b1203657ce14187ef30e0d335e3718e3ddcb0573bafe51350ceb3 ledger=5381039 feeCharged=23993 maxFee=31349 resourceFee=30349 {"recordSim":233,"sign":3,"enforceSim":201,"sendToFinal":5739} sorobanCredentialsAddress
+      https://stellar.expert/explorer/testnet/tx/f58a7ab0a98b1203657ce14187ef30e0d335e3718e3ddcb0573bafe51350ceb3
+REJ   claim4 revoke: conn 0.1 USDC under removed rule
+      stage=enforce-simulate Error(Contract, #3000) 
+      HostError: Error(Auth, InvalidAction)
+REJ   claim4 revoke: conn 0.1 USDC under removed rule — forced onchain
+      stage=onchain Error(Contract, #3000) hash=5b42c4efa0fc5bc4586759dc52cdf0e13786df477bb6af4b5a7c06980177b35d feeCharged=10710 https://stellar.expert/explorer/testnet/tx/5b42c4efa0fc5bc4586759dc52cdf0e13786df477bb6af4b5a7c06980177b35d
+      txFailed; invokeHostFunctionTrapped; Error(Contract, #3000) | Error(Auth, InvalidAction)
+      policy data after removal: "error: simulate: HostError: Error(Contract, #3220)\n\nEvent log (newest first):\n   0: [Diagnostic Event] contract:CABXBYJNZ7IUW4G3D6BND5YCAQF3ASSDMDAOKQQ63UYFSO7WUU2TIP5G, topics:[error, Error(Contract, #3220)"
+      final balances: C=1.5000000 merchant=26.5000000
+log → /home/kristjan/code/hack-meridian-2026/spikes/s1/out/demo-2026-10-25T11-46-28-819Z.json  (account CBH5F3BSKQMJTMSOGBB5NIP55OYIMP4AAMQCBIYPBAI5UUNDIMBE5GPS)

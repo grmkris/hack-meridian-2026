@@ -1,0 +1,18 @@
+{
+  "name": "hm26-s1-smart-account",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "setup": "bun src/setup.ts",
+    "demo": "bun src/demo.ts",
+    "webauthn": "bun src/webauthn-demo.ts"
+  },
+  "dependencies": {
+    "@stellar/stellar-sdk": "16.4.1",
+    "smart-account-kit": "0.8.0"
+  },
+  "overrides": {
+    "@stellar/stellar-sdk": "16.4.1"
+  }
+}
