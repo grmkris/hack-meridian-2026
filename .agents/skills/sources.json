@@ -139,6 +139,18 @@
       "localTreeSha256": "714b8c4d1544298615f0647b237e7ea13c6940c302417c51571ca77ba5161dad",
       "unchanged": true
     },
+    "humanizer": {
+      "repository": "blader/humanizer",
+      "commit": "8c307f367c91bd974002f10f2be2965d642c13df",
+      "path": ".",
+      "licenses": [
+        "LICENSE"
+      ],
+      "license": "MIT",
+      "treeSha256": "c1d4cb17039ded3b1fb9f9b338553e2ebe8ddb2d2ad7c954e72839c475532acf",
+      "localTreeSha256": "c1d4cb17039ded3b1fb9f9b338553e2ebe8ddb2d2ad7c954e72839c475532acf",
+      "unchanged": true
+    },
     "investigate-a-failure": {
       "repository": "joelhooks/rat-stack",
       "commit": "51964a1fa52bed2a4a36defabad1ee17d360fe23",
