@@ -1,0 +1,4 @@
+# wrangler state and local secrets (OZ_FACILITATOR_KEY lives in .dev.vars)
+.wrangler/
+.dev.vars*
+node_modules/

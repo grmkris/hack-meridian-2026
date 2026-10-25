@@ -1,0 +1,51 @@
+{
+  "at": "2026-10-25T12:24:08.460140Z",
+  "request": "GET https://hm26-seller.kristjan-grm11775.workers.dev/api/market-brief (no payment)",
+  "status": 402,
+  "body": "{}",
+  "payment_required_decoded": {
+    "x402Version": 2,
+    "error": "Payment required",
+    "resource": {
+      "url": "https://hm26-seller.kristjan-grm11775.workers.dev/api/market-brief",
+      "description": "Stellar testnet market brief (stellarmcpwallet demo seller)",
+      "mimeType": "application/json"
+    },
+    "accepts": [
+      {
+        "scheme": "exact",
+        "network": "stellar:testnet",
+        "amount": "1000000",
+        "asset": "CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA",
+        "payTo": "GAINGRVWOM5BGQI6GQ7P2OIWTUS65H3PHTEHX365CVDB3NWHC3WVTDNI",
+        "maxTimeoutSeconds": 60,
+        "extra": {
+          "areFeesSponsored": true
+        }
+      }
+    ],
+    "extensions": {
+      "payment-identifier": {
+        "info": {
+          "required": false
+        },
+        "schema": {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "type": "object",
+          "properties": {
+            "required": {
+              "type": "boolean"
+            },
+            "id": {
+              "type": "string",
+              "minLength": 16,
+              "maxLength": 128,
+              "pattern": "^[a-zA-Z0-9_-]+$"
+            }
+          },
+          "required": ["required"]
+        }
+      }
+    }
+  }
+}

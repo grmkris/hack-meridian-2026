@@ -1,0 +1,4 @@
+# Evidence is committed on purpose (public ids, tx hashes, screenshots). Never commit secrets or traces with tokens.
+*.tmp
+*.har
+trace.zip

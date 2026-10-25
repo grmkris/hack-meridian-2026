@@ -1,0 +1,4 @@
+# Secret keys of the demo accounts (RELAYER_SECRET, TREASURY_SECRET, …) and the runner's scratch state
+.env
+.env.*
+.state/

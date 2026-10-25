@@ -1,0 +1,18 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "hm26-seller",
+  "account_id": "bceaeae4788dce3493514fde194b4a7e",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-10-01",
+  "workers_dev": true,
+  "observability": { "enabled": true },
+  "vars": {
+    // seller G with a USDC trustline (scripts/demo/seeds.json → accounts.seller)
+    "PAY_TO": "GAINGRVWOM5BGQI6GQ7P2OIWTUS65H3PHTEHX365CVDB3NWHC3WVTDNI",
+    // x402org first, OpenZeppelin Channels as fallback (secret OZ_FACILITATOR_KEY from .dev.vars); "oz" flips it
+    "FACILITATOR": "x402org",
+  },
+  // No KV (the deploy token lacks the permission, docs/spikes/s4.md): payment-id dedup is a SQLite Durable Object.
+  "durable_objects": { "bindings": [{ "name": "PAYMENT_IDS", "class_name": "PaymentIds" }] },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["PaymentIds"] }],
+}
