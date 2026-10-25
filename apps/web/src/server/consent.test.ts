@@ -65,6 +65,27 @@ describe('one number on the consent page: the allowance', () => {
     expect(page).toContain('USDC</span> on its own until <select class="blank" name="lifetime"')
     expect(page).toContain('Larger payments need your passkey, every time.')
     expect(page).toContain('for any amount')
+    expect(page).not.toContain('consent-empty-wallet')
+  })
+
+  test('an empty wallet is told to add money before the AI app can pay', () => {
+    const page = consentGrantPage(
+      { nonce: 'n0nce', network: 'Testnet', explorerBase: 'https://stellar.expert/explorer/testnet' },
+      {
+        handle: 'h1',
+        clientName: 'Claude',
+        clientDomain: 'claude.ai',
+        redirectHost: 'claude.ai',
+        redirectIsLoopback: false,
+      },
+      WALLET,
+      0n,
+      Date.parse('2026-10-25T17:00:00Z'),
+      'wallet.test',
+    )
+    expect(page).toContain(
+      'Your wallet holds 0 USDC; <a href="/" target="_blank" rel="noopener">add money</a> so Claude can pay.',
+    )
   })
 
   test('nodLineOf stores the allowance, whatever an older client sends', () => {

@@ -12,6 +12,7 @@ import {
   BUTTON_DANGER,
   BUTTON_PRIMARY,
   BUTTON_SECONDARY,
+  FIGURE,
   badge,
   emptyRow,
   errorRow,
@@ -148,14 +149,53 @@ export const informEntered = (model: Model) => update(model, Message.EnteredPage
 
 const ruleLabel = (connection: GrantView): string =>
   Option.match(Option.fromNullishOr(connection.rule_status), {
-    onNone: () => 'No onchain allowance yet',
+    onNone: () => 'Not on your Stellar account yet',
     onSome: status =>
       ({
-        installed: 'Onchain rule installed',
-        removal_pending: 'Onchain rule being removed',
-        removed: 'Onchain rule removed',
+        installed: 'On your Stellar account',
+        removal_pending: 'Still on your Stellar account until your passkey removes it',
+        removed: 'Removed from your Stellar account',
       })[status],
   })
+
+const revokeSteps = (clientName: string, stopped: boolean, removed: boolean, h: HtmlBuilder<Message>): Html =>
+  h.ol(
+    [h.Class('flex flex-col gap-2 text-sm text-ink')],
+    [
+      revokeStep(
+        1,
+        stopped,
+        [
+          h.span([h.Class('font-semibold')], [`Nod stops signing for ${clientName}`]),
+          ' at once and sweeps its pocket back to your wallet.',
+        ],
+        h,
+      ),
+      revokeStep(
+        2,
+        removed,
+        [h.span([h.Class('font-semibold')], ['One passkey tap removes the allowance']), ' from your Stellar account.'],
+        h,
+      ),
+    ],
+  )
+
+const revokeStep = (number: number, done: boolean, text: ReadonlyArray<Html | string>, h: HtmlBuilder<Message>): Html =>
+  h.li(
+    [h.Class('flex items-start gap-3')],
+    [
+      h.span(
+        [
+          h.AriaHidden(true),
+          h.Class(
+            `grid size-6 shrink-0 place-items-center rounded-full text-xs font-semibold ${done ? 'bg-good text-paper' : 'bg-paper text-ink ring-1 ring-line'}`,
+          ),
+        ],
+        [done ? '✓' : String(number)],
+      ),
+      h.span([h.Class('min-w-0 pt-0.5')], [...text, ...(done ? [h.span([h.Class('sr-only')], [' Done.'])] : [])]),
+    ],
+  )
 
 const revokeControls = (connection: GrantView, revoke: Revoke, h: HtmlBuilder<Message>): ReadonlyArray<Html> => {
   const isThis = (connectionId: string) => connectionId === connection.connection_id
@@ -178,15 +218,11 @@ const revokeControls = (connection: GrantView, revoke: Revoke, h: HtmlBuilder<Me
               [
                 h.Role('group'),
                 h.AriaLabel(`Confirm revoking ${connection.client_name}`),
-                h.Class('flex flex-col gap-3'),
+                h.Class('flex flex-col gap-4 rounded-2xl bg-mist p-4'),
               ],
               [
-                h.p(
-                  [h.Class('text-sm text-ink')],
-                  [
-                    `Revoke ${connection.client_name}? The service stops signing for it immediately, and its onchain rule is removed.`,
-                  ],
-                ),
+                h.p([h.Class('text-sm font-semibold text-ink')], [`Revoke ${connection.client_name} in two steps:`]),
+                revokeSteps(connection.client_name, false, false, h),
                 h.div(
                   [h.Class('flex flex-wrap gap-2')],
                   [
@@ -212,18 +248,101 @@ const revokeControls = (connection: GrantView, revoke: Revoke, h: HtmlBuilder<Me
         : [startButton],
     Revoking: ({ connectionId }) =>
       isThis(connectionId)
-        ? [h.p([h.AriaLive('polite'), h.Class('text-sm text-muted')], ['Revoking…'])]
+        ? [h.p([h.AriaLive('polite'), h.Class('text-sm text-muted')], ['Stopping and sweeping the pocket…'])]
         : [startButton],
     Failed: ({ connectionId, error }) => (isThis(connectionId) ? [errorRow(error, h), startButton] : [startButton]),
   })
 }
 
-const connectionCard = (connection: GrantView, revoke: Revoke, h: HtmlBuilder<Message>): Html => {
+/** The Worker's own page (outside this app's routes) where the passkey removes a revoked app's allowance. */
+const ruleRemovalHref = (connectionId: string): string => Array.join(['', 'approve', 'revoke', connectionId], '/')
+
+/** A revoked AI app whose allowance is still on the account: the state between the two steps, and the way on. */
+const ruleStillOnAccount = (connection: GrantView, showLink: boolean, h: HtmlBuilder<Message>): ReadonlyArray<Html> =>
+  connection.rule_status === 'removal_pending'
+    ? [
+        h.div(
+          [h.Class('flex flex-col gap-3 rounded-2xl bg-nod-wash p-4')],
+          [
+            revokeSteps(connection.client_name, true, false, h),
+            ...(showLink
+              ? [
+                  h.a(
+                    [
+                      h.Href(ruleRemovalHref(connection.connection_id)),
+                      h.DataAttribute('connection', connection.connection_id),
+                      h.Class(`${BUTTON_PRIMARY} self-start`),
+                    ],
+                    ['Remove the rule with your passkey'],
+                  ),
+                ]
+              : []),
+          ],
+        ),
+      ]
+    : []
+
+const validity = (connection: GrantView, isActive: boolean): string =>
+  Option.match(Option.fromNullishOr(connection.valid_until), {
+    onNone: () => 'No expiry set',
+    onSome: until => (isActive ? `Until ${dateTime(until)}` : `Was valid until ${dateTime(until)}`),
+  })
+
+const activeAllowance = (connection: GrantView, h: HtmlBuilder<Message>): Html =>
+  h.div(
+    [h.Class('flex flex-col gap-2')],
+    [
+      h.p([h.Class('text-sm text-ink')], ['May still spend on its own']),
+      h.p(
+        [h.Class('flex flex-wrap items-baseline gap-x-2')],
+        [
+          h.span([h.Class(`${FIGURE} text-4xl leading-none text-accent`)], [usdc(connection.remaining)]),
+          h.span([h.Class('text-sm tabular-nums text-muted')], [`of ${usdc(connection.total)}`]),
+        ],
+      ),
+      meter(percentUsed(connection.total, connection.remaining), `${connection.client_name} allowance used`, h),
+      h.p([h.Class('text-sm text-muted')], [`${validity(connection, true)}. ${ruleLabel(connection)}.`]),
+      h.p([h.Class('text-sm text-ink')], ['Anything bigger needs your passkey, every time.']),
+    ],
+  )
+
+const pastAllowance = (connection: GrantView, h: HtmlBuilder<Message>): Html =>
+  h.div(
+    [h.Class('flex flex-col gap-1 text-sm text-muted')],
+    [
+      h.p(
+        [h.Class('tabular-nums text-ink')],
+        [`Allowance ${usdc(connection.total)}, spent ${usdc(connection.spent)}.`],
+      ),
+      h.p(
+        [],
+        [
+          [
+            validity(connection, false),
+            ...Option.match(Option.fromNullishOr(connection.revoked_at), {
+              onNone: () => [],
+              onSome: at => [`Revoked ${dateTime(at)}`],
+            }),
+            ruleLabel(connection),
+          ].join('. ') + '.',
+        ],
+      ),
+    ],
+  )
+
+const connectionCard = (
+  connection: GrantView,
+  revoke: Revoke,
+  showRuleLink: boolean,
+  h: HtmlBuilder<Message>,
+): Html => {
   const isActive = connection.connection_status === 'active'
   return h.keyed('li')(
     connection.connection_id,
     [
-      h.Class('flex flex-col gap-4 rounded-3xl border border-line bg-paper p-5 sm:p-6'),
+      h.Class(
+        'flex flex-col gap-4 rounded-3xl bg-paper p-5 shadow-[0_0_0_1px_var(--color-line),0_1px_2px_rgb(18_22_31/0.05)] sm:p-6',
+      ),
       h.DataAttribute('connection', connection.connection_id),
       ...(isActive ? [] : [h.DataAttribute('testid', 'revoked')]),
     ],
@@ -232,15 +351,18 @@ const connectionCard = (connection: GrantView, revoke: Revoke, h: HtmlBuilder<Me
         [h.Class('flex flex-wrap items-start justify-between gap-3')],
         [
           h.div(
-            [h.Class('flex flex-col gap-1')],
+            [h.Class('flex min-w-0 flex-col gap-1')],
             [
-              h.h2([h.Class('text-lg font-semibold text-ink')], [connection.client_name]),
+              h.h2(
+                [h.Class('font-display text-xl font-bold text-ink [overflow-wrap:anywhere]')],
+                [connection.client_name],
+              ),
               h.p(
-                [h.Class('text-sm text-muted')],
+                [h.Class('text-sm text-muted [overflow-wrap:anywhere]')],
                 [
                   Option.match(Option.fromNullishOr(connection.client_domain), {
                     onNone: () => `Connected ${dateTime(connection.created_at)}`,
-                    onSome: domain => `Published by ${domain} · connected ${dateTime(connection.created_at)}`,
+                    onSome: domain => `Published by ${domain}, connected ${dateTime(connection.created_at)}`,
                   }),
                 ],
               ),
@@ -249,43 +371,8 @@ const connectionCard = (connection: GrantView, revoke: Revoke, h: HtmlBuilder<Me
           isActive ? badge('Active', 'good', h) : badge('Revoked', 'quiet', h),
         ],
       ),
-      h.div(
-        [h.Class('flex flex-col gap-2')],
-        [
-          h.div(
-            [h.Class('flex items-baseline justify-between gap-4')],
-            [
-              h.span(
-                [h.Class(`text-2xl font-semibold tabular-nums ${isActive ? 'text-accent' : 'text-muted'}`)],
-                [`${usdc(connection.remaining)} left`],
-              ),
-              h.span([h.Class('text-sm tabular-nums text-muted')], [`of ${usdc(connection.total)}`]),
-            ],
-          ),
-          meter(percentUsed(connection.total, connection.remaining), `${connection.client_name} allowance used`, h),
-          h.p(
-            [h.Class('text-sm text-muted')],
-            [
-              [
-                Option.match(Option.fromNullishOr(connection.valid_until), {
-                  onNone: () => 'No expiry set',
-                  onSome: until => (isActive ? `Until ${dateTime(until)}` : `Was valid until ${dateTime(until)}`),
-                }),
-                ...Option.match(Option.fromNullishOr(connection.nod_above_usdc), {
-                  onNone: () => [],
-                  onSome: line => [`nods above ${line} USDC`],
-                }),
-                ruleLabel(connection),
-                ...Option.match(Option.fromNullishOr(connection.revoked_at), {
-                  onNone: () => [],
-                  onSome: at => [`revoked ${dateTime(at)}`],
-                }),
-              ].join(' · '),
-            ],
-          ),
-        ],
-      ),
-      ...(isActive ? revokeControls(connection, revoke, h) : []),
+      isActive ? activeAllowance(connection, h) : pastAllowance(connection, h),
+      ...(isActive ? revokeControls(connection, revoke, h) : ruleStillOnAccount(connection, showRuleLink, h)),
     ],
   )
 }
@@ -295,11 +382,17 @@ const ruleRemovalNotice = (url: string, h: HtmlBuilder<Message>): Html =>
     [
       h.Role('status'),
       h.Class(
-        'flex flex-col gap-3 rounded-3xl border border-warn/30 bg-warn/8 p-5 sm:flex-row sm:items-center sm:justify-between',
+        'flex flex-col gap-3 rounded-3xl bg-nod-wash p-5 shadow-[0_0_0_1px_rgb(153_86_0/0.2)] sm:flex-row sm:items-center sm:justify-between',
       ),
     ],
     [
-      h.p([h.Class('text-sm text-ink')], ['The connection is off. Removing its onchain rule needs your passkey.']),
+      h.p(
+        [h.Class('text-sm text-ink')],
+        [
+          h.span([h.Class('font-semibold')], ['Nod has stopped signing for this AI app']),
+          ' and swept its pocket back to your wallet. One passkey tap removes the rule from your Stellar account.',
+        ],
+      ),
       h.a(
         [h.Href(url), h.DataAttribute('testid', 'remove-rule'), h.Class(`${BUTTON_PRIMARY} shrink-0`)],
         ['Remove the rule'],
@@ -313,7 +406,7 @@ export const view = Submodel.defineView<Model, Message>((model, h): Html =>
     [
       pageHeader(
         'Connections',
-        'Each AI app you connect has its own allowance and expiry. Revoke one and its next payment is refused.',
+        'Each AI app you connect has its own allowance and expiry. Revoke one and Nod stops paying for it at once.',
         h,
       ),
       ...Option.match(model.maybeRuleRemovalUrl, {
@@ -329,7 +422,9 @@ export const view = Submodel.defineView<Model, Message>((model, h): Html =>
             onNonEmpty: list =>
               h.ul(
                 [h.Class('flex flex-col gap-4')],
-                Array.map(list, connection => connectionCard(connection, model.revoke, h)),
+                Array.map(list, connection =>
+                  connectionCard(connection, model.revoke, Option.isNone(model.maybeRuleRemovalUrl), h),
+                ),
               ),
           }),
       }),

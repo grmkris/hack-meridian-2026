@@ -26,7 +26,7 @@ body{margin:0 auto;max-width:34rem;padding:clamp(.75rem,4vh,2.5rem) 1rem calc(2.
 .top{display:flex;align-items:center;justify-content:space-between;gap:.75rem;min-height:2.75rem;margin:0 0 1.25rem}
 .mark{font:700 1.6rem/1 var(--display);letter-spacing:-.015em}
 .net{font-size:.8rem;font-weight:600;line-height:1;padding:.4rem .7rem;border-radius:999px;box-shadow:inset 0 0 0 1px var(--line);color:var(--muted);white-space:nowrap}
-.net-testnet{color:var(--nod);background:var(--nod-wash);box-shadow:inset 0 0 0 1px var(--nod-line)}.net-mainnet{color:var(--good)}
+.net-testnet{color:var(--ink)}.net-mainnet{color:var(--good)}
 h1{font:700 clamp(1.65rem,1.3rem + 1.6vw,2.1rem)/1.15 var(--display);letter-spacing:-.015em;margin:0 0 .6rem;text-wrap:balance}
 h2{font:600 1.05rem/1.3 var(--sans);margin:0 0 .4rem}
 p{margin:0 0 .75rem;text-wrap:pretty}p:last-child{margin-bottom:0}
@@ -110,7 +110,7 @@ export interface Chrome {
 const txLink = (c: Chrome, hash: string, testid: string) =>
   `<a href="${escape(`${c.explorerBase}/tx/${hash}`)}" rel="noreferrer" data-testid="${testid}"><code>${escape(hash)}</code></a>`
 
-const page = (title: string, c: Chrome, body: string, script = '', data?: unknown) =>
+export const page = (title: string, c: Chrome, body: string, script = '', data?: unknown) =>
   `<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="referrer" content="no-referrer"><meta name="theme-color" media="(prefers-color-scheme: light)" content="#f9f6f2"><meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0b152c"><title>${escape(title)} · Nod</title>${STYLE}<body><header class="top"><span class="mark">nod</span><span class="net net-${c.network === 'Mainnet' ? 'mainnet' : 'testnet'}">Stellar ${escape(c.network)}</span></header><main>${body}</main>${data === undefined ? '' : jsonBlock('ctx', data)}${script === '' ? '' : `<script nonce="${c.nonce}">${PASSKEY_JS}${script}</script>`}</body></html>`
 
 /** S4's headers (frame-deny, no-store) and a CSP that only runs this response's scripts. */
@@ -212,7 +212,8 @@ export const consentGrantPage = (
 <p class="rule">Larger payments need your passkey, every time.</p>
 <p class="muted">Each one comes to you as a link to Nod’s own page, for any amount. Your passkey now writes this allowance to your Stellar account; you can revoke it any time.</p>
 <dl class="wallet"><dt>Wallet</dt><dd>${escape(wallet.name)} · <code title="${escape(wallet.contract_id)}">${escape(shortAddress(wallet.contract_id))}</code></dd>
-<dt>Balance</dt><dd>${balance === null ? '<span class="muted">unavailable</span>' : `${escape(grouped(balance))} USDC`}</dd></dl></section>
+<dt>Balance</dt><dd>${balance === null ? '<span class="muted">unavailable</span>' : `${escape(grouped(balance))} USDC`}</dd></dl>
+${balance === 0n ? `<p class="warn" data-testid="consent-empty-wallet">Your wallet holds 0 USDC; <a href="/" target="_blank" rel="noopener">add money</a> so ${escape(view.clientName)} can pay.</p>` : ''}</section>
 <p id="status" class="muted" role="status"></p>
 <div class="actions"><button class="primary" id="allow" type="button" data-testid="consent-allow">Allow with passkey</button><button name="decision" value="deny" formnovalidate>Deny</button></div>
 </form>`,

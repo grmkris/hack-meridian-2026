@@ -20,7 +20,7 @@ import {
   receiptsRouter,
   urlToAppRoute,
 } from './route'
-import { BUTTON_SECONDARY, LINK, emptyRow } from './view/ui'
+import { LINK, emptyRow } from './view/ui'
 
 // MODEL
 
@@ -309,8 +309,10 @@ const navigationView = (route: AppRoute, h: HtmlBuilder<Message>): Html =>
                   h.Href(item.href()),
                   ...(item.isActive(route) ? [h.AriaCurrent('page')] : []),
                   h.Class(
-                    `inline-flex min-h-11 items-center whitespace-nowrap rounded-full px-3 text-sm font-medium transition sm:px-4 ${
-                      item.isActive(route) ? 'bg-ink text-paper' : 'text-muted hover:bg-mist hover:text-ink'
+                    `inline-flex min-h-11 touch-manipulation items-center whitespace-nowrap rounded-full px-3 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-starlight sm:px-4 ${
+                      item.isActive(route)
+                        ? 'bg-starlight text-night'
+                        : 'text-starlight-muted hover:bg-night-raised hover:text-starlight'
                     }`,
                   ),
                 ],
@@ -327,30 +329,34 @@ const networkBadge = (network: string, h: HtmlBuilder<Message>): Html =>
   h.span(
     [
       h.Class(
-        `rounded-full px-2 py-0.5 text-xs font-semibold ${isMainnet(network) ? 'bg-good/12 text-good' : 'bg-warn/12 text-warn'}`,
+        `whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-semibold leading-none ring-1 ring-inset ${isMainnet(network) ? 'text-starlight ring-starlight-muted/60' : 'text-starlight-muted ring-night-line'}`,
       ),
     ],
-    [networkLabel(network)],
+    [`Stellar ${networkLabel(network)}`],
   )
 
 const headerView = (wallet: WalletSummary, route: AppRoute, h: HtmlBuilder<Message>): Html =>
   h.header(
-    [h.Class('border-b border-line bg-paper')],
+    [h.Class('bg-night text-starlight')],
     [
       h.div(
-        [h.Class('mx-auto flex max-w-5xl flex-col gap-3 px-4 py-3')],
+        [h.Class('mx-auto flex max-w-5xl flex-col gap-3 px-4 pt-3 pb-3')],
         [
           h.div(
             [h.Class('flex items-center justify-between gap-3')],
             [
-              h.a(
+              h.div(
+                [h.Class('flex min-w-0 items-center gap-3')],
                 [
-                  h.Href(homeRouter()),
-                  h.Class('flex min-w-0 items-center gap-2 font-semibold tracking-tight text-ink'),
-                ],
-                [
-                  h.span([h.AriaHidden(true), h.Class('size-6 shrink-0 rounded-lg bg-ink')]),
-                  'nod',
+                  h.a(
+                    [
+                      h.Href(homeRouter()),
+                      h.Class(
+                        'rounded-md font-display text-[1.75rem] font-bold leading-none tracking-[-0.015em] text-starlight focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-starlight',
+                      ),
+                    ],
+                    ['nod'],
+                  ),
                   networkBadge(wallet.network, h),
                 ],
               ),
@@ -363,7 +369,9 @@ const headerView = (wallet: WalletSummary, route: AppRoute, h: HtmlBuilder<Messa
                       h.Target('_blank'),
                       h.Rel('noreferrer'),
                       h.Title(wallet.contract_id),
-                      h.Class(`${LINK} hidden text-sm sm:inline`),
+                      h.Class(
+                        'hidden text-sm text-starlight-muted underline decoration-starlight-muted/40 underline-offset-4 hover:text-starlight sm:inline',
+                      ),
                     ],
                     [`${wallet.name} · ${shortAddress(wallet.contract_id)}`],
                   ),
@@ -371,7 +379,9 @@ const headerView = (wallet: WalletSummary, route: AppRoute, h: HtmlBuilder<Messa
                     [
                       h.Type('button'),
                       h.OnClick(Message.ClickedSignOut()),
-                      h.Class(`${BUTTON_SECONDARY} whitespace-nowrap`),
+                      h.Class(
+                        'inline-flex min-h-11 touch-manipulation select-none items-center whitespace-nowrap rounded-full px-4 text-sm font-semibold text-starlight ring-1 ring-inset ring-night-line transition-colors hover:bg-night-raised focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-starlight active:bg-night-raised',
+                      ),
                     ],
                     ['Sign out'],
                   ),
