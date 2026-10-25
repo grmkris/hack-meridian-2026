@@ -7,7 +7,7 @@ import { modifyFields } from 'foldkit/struct'
 
 import { Backend, Passkey, type Resources, WalletSummary } from '../backend'
 import { Problem, recoverProblem } from '../problem'
-import { BUTTON_PRIMARY, BUTTON_SECONDARY, INPUT, errorRow } from '../view/ui'
+import { errorRow } from '../view/ui'
 import * as Landing from './landing'
 
 // MODEL
@@ -210,11 +210,9 @@ const ceremonyNotice = (ceremony: Ceremony, h: HtmlBuilder<Message>): ReadonlyAr
   Ceremony.match<ReadonlyArray<Html>>(ceremony, {
     Idle: () => [],
     CreatingWallet: () => [
-      h.p([h.AriaLive('polite'), h.Class('text-sm text-muted')], ['Follow your device’s passkey prompt…']),
+      h.p([h.AriaLive('polite'), h.Class('landing-hint')], ['Follow your device’s passkey prompt…']),
     ],
-    SigningIn: () => [
-      h.p([h.AriaLive('polite'), h.Class('text-sm text-muted')], ['Follow your device’s passkey prompt…']),
-    ],
+    SigningIn: () => [h.p([h.AriaLive('polite'), h.Class('landing-hint')], ['Follow your device’s passkey prompt…'])],
     Failed: ({ error }) => [errorRow(error, h)],
   })
 
@@ -222,7 +220,7 @@ const inviteFieldView = (model: Model, h: HtmlBuilder<Message>): ReadonlyArray<H
   InviteField.match<ReadonlyArray<Html>>(model.inviteField, {
     Hidden: () => [],
     Shown: () => [
-      h.label([h.For('invite-code'), h.Class('text-sm font-medium text-ink')], ['Invite code']),
+      h.label([h.For('invite-code'), h.Class('landing-label')], ['Invite code']),
       h.input([
         h.Id('invite-code'),
         h.Type('text'),
@@ -232,11 +230,11 @@ const inviteFieldView = (model: Model, h: HtmlBuilder<Message>): ReadonlyArray<H
         h.Required(true),
         h.AriaDescribedBy('invite-code-hint'),
         h.DataAttribute('testid', 'invite-code'),
-        h.Class(`${INPUT} font-mono`),
+        h.Class('landing-input landing-input-code'),
         h.OnInput(value => Message.UpdatedInviteCode({ value })),
       ]),
       h.p(
-        [h.Id('invite-code-hint'), h.Role('status'), h.Class('text-sm text-muted')],
+        [h.Id('invite-code-hint'), h.Role('status'), h.Class('landing-hint')],
         ['Nod on this network is invite-only for now. Enter your invite code, then create your wallet.'],
       ),
     ],
@@ -244,53 +242,66 @@ const inviteFieldView = (model: Model, h: HtmlBuilder<Message>): ReadonlyArray<H
 
 export const walletFormView = (model: Model, h: HtmlBuilder<Message>): Html =>
   h.div(
-    [h.Class('flex w-full max-w-md flex-col gap-4 rounded-3xl border border-line bg-paper p-6 shadow-sm')],
+    [h.Class('landing-start')],
     [
-      h.h2([h.Class('text-lg font-semibold text-ink')], ['Start with a passkey']),
+      h.h2([h.Class('landing-start-title')], ['Start with a passkey']),
       h.form(
-        [h.Class('flex flex-col gap-3'), h.OnSubmit(Message.SubmittedCreateWallet())],
+        [h.Class('landing-start-form'), h.OnSubmit(Message.SubmittedCreateWallet())],
         [
-          h.label([h.For('wallet-name'), h.Class('text-sm font-medium text-ink')], ['Wallet name']),
-          h.input([
-            h.Id('wallet-name'),
-            h.Type('text'),
-            h.Value(model.walletName),
-            h.Placeholder(DEFAULT_WALLET_NAME),
-            h.Autocomplete('off'),
-            h.Class(INPUT),
-            h.OnInput(value => Message.UpdatedWalletName({ value })),
-          ]),
           ...inviteFieldView(model, h),
-          h.button(
+          h.label([h.For('wallet-name'), h.Class('landing-label')], ['Wallet name']),
+          h.div(
+            [h.Class('landing-start-row')],
             [
-              h.Type('submit'),
-              h.Disabled(isBusy(model.ceremony) || !hasInviteIfShown(model)),
-              h.DataAttribute('testid', 'create-wallet'),
-              h.Class(BUTTON_PRIMARY),
-            ],
-            [
-              Ceremony.matchOrElse(
-                model.ceremony,
-                { CreatingWallet: () => 'Creating your wallet…' },
-                () => 'Create your wallet',
+              h.input([
+                h.Id('wallet-name'),
+                h.Type('text'),
+                h.Value(model.walletName),
+                h.Placeholder(DEFAULT_WALLET_NAME),
+                h.Autocomplete('off'),
+                h.Class('landing-input'),
+                h.OnInput(value => Message.UpdatedWalletName({ value })),
+              ]),
+              h.button(
+                [
+                  h.Type('submit'),
+                  h.Disabled(isBusy(model.ceremony) || !hasInviteIfShown(model)),
+                  h.DataAttribute('testid', 'create-wallet'),
+                  h.Class('landing-button landing-button-primary'),
+                ],
+                [
+                  Ceremony.matchOrElse(
+                    model.ceremony,
+                    { CreatingWallet: () => 'Creating your wallet…' },
+                    () => 'Create your wallet',
+                  ),
+                ],
               ),
             ],
           ),
         ],
       ),
       h.div(
-        [h.Class('flex items-center gap-3 text-xs uppercase tracking-[0.14em] text-muted')],
-        [h.span([h.Class('h-px flex-1 bg-line')]), 'or', h.span([h.Class('h-px flex-1 bg-line')])],
-      ),
-      h.button(
+        [h.Class('landing-or')],
         [
-          h.Type('button'),
-          h.Disabled(isBusy(model.ceremony)),
-          h.OnClick(Message.ClickedSignIn()),
-          h.DataAttribute('testid', 'sign-in'),
-          h.Class(BUTTON_SECONDARY),
+          'or',
+          h.button(
+            [
+              h.Type('button'),
+              h.Disabled(isBusy(model.ceremony)),
+              h.OnClick(Message.ClickedSignIn()),
+              h.DataAttribute('testid', 'sign-in'),
+              h.Class('landing-button landing-button-quiet'),
+            ],
+            [
+              Ceremony.matchOrElse(
+                model.ceremony,
+                { SigningIn: () => 'Signing in…' },
+                () => 'Sign in with your passkey',
+              ),
+            ],
+          ),
         ],
-        [Ceremony.matchOrElse(model.ceremony, { SigningIn: () => 'Signing in…' }, () => 'Sign in with your passkey')],
       ),
       ...ceremonyNotice(model.ceremony, h),
     ],
@@ -298,14 +309,14 @@ export const walletFormView = (model: Model, h: HtmlBuilder<Message>): Html =>
 
 export const addToClaudeView = (model: Model, h: HtmlBuilder<Message>): Html =>
   h.div(
-    [h.Class('flex w-full max-w-md flex-col gap-2')],
+    [h.Class('landing-connector')],
     [
       h.button(
         [
           h.Type('button'),
           h.OnClick(Message.ClickedAddToClaude()),
           h.DataAttribute('testid', 'add-to-claude'),
-          h.Class(BUTTON_SECONDARY),
+          h.Class('landing-button landing-button-quiet'),
         ],
         [
           Copy.match(model.copy, {
@@ -316,10 +327,10 @@ export const addToClaudeView = (model: Model, h: HtmlBuilder<Message>): Html =>
         ],
       ),
       h.p(
-        [h.Class('text-center text-sm text-muted')],
+        [h.Class('landing-connector-url')],
         [
           Copy.matchOrElse(model.copy, { Failed: () => 'Copy this connector URL: ' }, () => 'Connector URL: '),
-          h.code([h.Class('select-all break-all font-mono text-xs text-ink')], [model.connectorUrl]),
+          h.code([], [model.connectorUrl]),
         ],
       ),
     ],

@@ -16,17 +16,25 @@ export const HERO = {
   lede: 'Nod is a Stellar wallet you add to Claude. Small payments go through on their own, inside the allowance you set. Anything bigger waits for your nod.',
 } as const
 
+// The hero's example wallet. It plays the demo once: the allowance goes 5.00 → 4.90 → 2.90 as Claude pays on its own,
+// then Bob's 20.00 needs your nod, the passkey approves it, and the allowance stays 2.90. Numbers match docs/PITCH.md.
 export const EXAMPLE_WALLET = {
-  balanceLabel: 'Wallet balance',
-  balance: '30.00 USDC',
-  walletLine: 'Personal · Stellar testnet',
+  label: 'Example wallet: Claude paying from its allowance',
   allowanceLabel: 'Claude may spend',
-  allowance: '5.00 USDC',
-  allowanceMeterLabel: 'Claude allowance used',
-  allowanceLine: 'of 5.00 · until tomorrow 12:00 UTC',
-  askAmount: '20.00 USDC to Bob',
-  askLine: 'Claude asked · “Dinner with Bob”',
+  allowanceFigures: ['5.00', '4.90', '2.90'],
+  unit: 'USDC',
+  allowanceMeterLabel: 'Claude’s allowance left: 2.90 of 5.00',
+  allowanceLine: 'of 5.00, until tomorrow 12:00 UTC',
+  balanceLabel: 'In your wallet',
+  balance: '30.00 USDC',
+  payments: [
+    { id: 'brief', who: 'Market brief', why: 'A paid API, over x402', amount: '0.10', paid: 'Paid' },
+    { id: 'alice', who: 'Alice', why: 'Your contact', amount: '2.00', paid: 'Paid' },
+    { id: 'bob', who: 'Bob', why: 'Dinner, Claude asked', amount: '20.00', paid: 'Paid with your nod' },
+  ],
   askBadge: 'Needs your nod',
+  approve: 'Approve 20.00 USDC to Bob with your passkey',
+  approved: 'Approved with your passkey. The allowance stays 2.90.',
   caption: 'Example wallet. Two numbers that never blur: what you hold, and what your AI may spend.',
 } as const
 
@@ -137,6 +145,9 @@ export const TRY_IT = {
     'Ask Claude to buy the market brief, then to send Alice 2 USDC. Neither asks you.',
     'Ask Claude to pay Bob 5 USDC for dinner. That is more than what is left, so it needs your nod.',
   ],
+  sampleLead: 'No Claude at hand? ',
+  sample: 'Watch a sample agent run',
+  sampleHref: '/sample',
 } as const
 
 export const FOOTER = {

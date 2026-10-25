@@ -1,7 +1,6 @@
 import { Array } from 'effect'
 import type { Html, HtmlBuilder } from 'foldkit/html'
 
-import { LINK, badge, meter } from '../view/ui'
 import {
   CLAIM,
   EXAMPLE_WALLET,
@@ -17,171 +16,274 @@ import {
   TRY_IT,
 } from './landing-copy'
 
-// VIEW
+// The signed-out home: one night over Lisbon (an etched scene behind the hero, landing.css), the example wallet
+// playing the nod once, then the chapters on paper, each under its own engraving. Words come from landing-copy.ts.
 
-const sectionHeading = <Message>(title: string, lead: string, h: HtmlBuilder<Message>): Html =>
-  h.div(
-    [h.Class('flex max-w-2xl flex-col gap-2')],
+type Vignette = 'purse' | 'seal' | 'door' | 'ledger'
+
+// ICONS (Lucide, ISC)
+
+const fingerprintPaths: ReadonlyArray<string> = [
+  'M12 10a2 2 0 0 0-2 2c0 1.02-.1 2.51-.26 4',
+  'M14 13.12c0 2.38 0 6.38-1 8.88',
+  'M17.29 21.02c.12-.6.43-2.3.5-3.02',
+  'M2 12a10 10 0 0 1 18-6',
+  'M2 16h.01',
+  'M21.8 16c.2-2 .131-5.354 0-6',
+  'M5 19.5C5.5 18 6 15 6 12a6 6 0 0 1 .34-2',
+  'M8.65 22c.21-.66.45-1.32.57-2',
+  'M9 6.8a6 6 0 0 1 9 5.2v2',
+]
+
+const icon = <Message>(paths: ReadonlyArray<string>, h: HtmlBuilder<Message>): Html =>
+  h.svg(
     [
-      h.h2([h.Class('text-2xl font-semibold tracking-tight text-balance text-ink sm:text-3xl')], [title]),
-      h.p([h.Class('text-base text-pretty text-muted')], [lead]),
+      h.ViewBox('0 0 24 24'),
+      h.Fill('none'),
+      h.Stroke('currentColor'),
+      h.StrokeWidth('2'),
+      h.StrokeLinecap('round'),
+      h.StrokeLinejoin('round'),
+      h.AriaHidden(true),
+    ],
+    Array.map(paths, d => h.path([h.D(d)])),
+  )
+
+// HERO
+
+const sceneView = <Message>(h: HtmlBuilder<Message>): Html =>
+  h.div(
+    [h.Class('landing-hero-art'), h.AriaHidden(true)],
+    [h.div([h.Class('landing-scene')], [h.div([h.Class('landing-etching')]), h.div([h.Class('landing-glow')])])],
+  )
+
+const barView = <Message>(h: HtmlBuilder<Message>): Html =>
+  h.header(
+    [h.Class('landing-bar landing-width')],
+    [
+      h.p([h.Class('landing-wordmark')], [HERO.wordmark]),
+      h.span([h.Class('landing-network')], [HERO.network]),
+      h.a(
+        [h.Href(REPOSITORY_URL), h.Target('_blank'), h.Rel('noreferrer'), h.Class('landing-bar-link')],
+        [FOOTER.source],
+      ),
     ],
   )
 
-const allowanceCard = <Message>(h: HtmlBuilder<Message>): Html =>
-  h.figure(
-    [h.Class('flex w-full flex-col gap-3')],
+const [figureStart, figureMiddle, figureEnd] = EXAMPLE_WALLET.allowanceFigures
+
+const allowanceView = <Message>(h: HtmlBuilder<Message>): Html =>
+  h.div(
+    [h.Class('nod-head')],
     [
       h.div(
-        [h.Class('grid gap-px overflow-hidden rounded-3xl border border-line bg-line sm:grid-cols-2')],
+        [],
         [
-          h.div(
-            [h.Class('flex flex-col gap-2 bg-paper p-5')],
+          h.p([h.Class('nod-label')], [EXAMPLE_WALLET.allowanceLabel]),
+          h.p(
+            [h.Class('nod-allowance')],
             [
-              h.p(
-                [h.Class('text-xs font-semibold uppercase tracking-[0.14em] text-muted')],
-                [EXAMPLE_WALLET.balanceLabel],
-              ),
-              h.p([h.Class('text-3xl font-semibold tracking-tight tabular-nums text-ink')], [EXAMPLE_WALLET.balance]),
-              h.p([h.Class('text-sm text-muted')], [EXAMPLE_WALLET.walletLine]),
-            ],
-          ),
-          h.div(
-            [h.Class('flex flex-col gap-2 bg-paper p-5')],
-            [
-              h.p(
-                [h.Class('text-xs font-semibold uppercase tracking-[0.14em] text-muted')],
-                [EXAMPLE_WALLET.allowanceLabel],
-              ),
-              h.p(
-                [h.Class('text-3xl font-semibold tracking-tight tabular-nums text-accent')],
-                [EXAMPLE_WALLET.allowance],
-              ),
-              meter(0, EXAMPLE_WALLET.allowanceMeterLabel, h),
-              h.p([h.Class('text-sm text-muted')], [EXAMPLE_WALLET.allowanceLine]),
-            ],
-          ),
-          h.div(
-            [h.Class('flex flex-col gap-2 bg-paper p-5 sm:col-span-2 sm:flex-row sm:items-center sm:justify-between')],
-            [
-              h.div(
-                [h.Class('flex flex-col gap-1')],
+              h.span(
+                [h.Class('nod-figures')],
                 [
-                  h.p([h.Class('font-semibold tabular-nums text-ink')], [EXAMPLE_WALLET.askAmount]),
-                  h.p([h.Class('text-sm text-muted')], [EXAMPLE_WALLET.askLine]),
+                  h.span(
+                    [h.Class('nod-figure-was'), h.DataAttribute('figure', '0'), h.AriaHidden(true)],
+                    [figureStart],
+                  ),
+                  h.span(
+                    [h.Class('nod-figure-was'), h.DataAttribute('figure', '1'), h.AriaHidden(true)],
+                    [figureMiddle],
+                  ),
+                  h.span([h.Class('nod-figure-now')], [figureEnd]),
                 ],
               ),
-              badge(EXAMPLE_WALLET.askBadge, 'warn', h),
+              h.span([h.Class('nod-allowance-unit')], [EXAMPLE_WALLET.unit]),
             ],
           ),
         ],
       ),
-      h.figcaption([h.Class('text-sm text-muted')], [EXAMPLE_WALLET.caption]),
+      h.p([h.Class('nod-wallet')], [EXAMPLE_WALLET.balanceLabel, h.strong([], [EXAMPLE_WALLET.balance])]),
+      h.p([h.Class('nod-until')], [EXAMPLE_WALLET.allowanceLine]),
+    ],
+  )
+
+const meterView = <Message>(h: HtmlBuilder<Message>): Html =>
+  h.div(
+    [
+      h.Role('meter'),
+      h.AriaLabel(EXAMPLE_WALLET.allowanceMeterLabel),
+      h.AriaValuenow(58),
+      h.AriaValuemin(0),
+      h.AriaValuemax(100),
+      h.Class('nod-meter'),
+    ],
+    [h.div([h.Class('nod-meter-fill')])],
+  )
+
+type Payment = (typeof EXAMPLE_WALLET.payments)[number]
+
+const paymentView = <Message>(payment: Payment, h: HtmlBuilder<Message>): Html => {
+  const asked = payment.id === 'bob'
+  return h.keyed('li')(
+    payment.id,
+    [h.Class(asked ? 'nod-row nod-row-asked' : 'nod-row'), h.DataAttribute('step', payment.id)],
+    [
+      h.span([h.Class('nod-who')], [payment.who, h.span([h.Class('nod-why')], [payment.why])]),
+      h.span([h.Class('nod-amount')], [payment.amount]),
+      h.span(
+        [h.Class('nod-state')],
+        asked
+          ? [
+              h.span([h.Class('nod-asked'), h.AriaHidden(true)], [EXAMPLE_WALLET.askBadge]),
+              h.span([h.Class('nod-paid')], [payment.paid]),
+            ]
+          : [h.span([h.Class('nod-paid')], [payment.paid])],
+      ),
+    ],
+  )
+}
+
+const approvalView = <Message>(h: HtmlBuilder<Message>): Html =>
+  h.div(
+    [h.Class('nod-approval')],
+    [
+      h.p([h.Class('nod-approve'), h.AriaHidden(true)], [icon(fingerprintPaths, h), EXAMPLE_WALLET.approve]),
+      h.p([h.Class('nod-approved')], [icon(fingerprintPaths, h), EXAMPLE_WALLET.approved]),
+    ],
+  )
+
+const exampleWalletView = <Message>(h: HtmlBuilder<Message>): Html =>
+  h.figure(
+    [h.Class('nod-card'), h.AriaLabel(EXAMPLE_WALLET.label)],
+    [
+      allowanceView(h),
+      meterView(h),
+      h.ol(
+        [h.Class('nod-feed')],
+        Array.map(EXAMPLE_WALLET.payments, payment => paymentView(payment, h)),
+      ),
+      approvalView(h),
+      h.figcaption([h.Class('nod-caption')], [EXAMPLE_WALLET.caption]),
     ],
   )
 
 const heroView = <Message>(slots: Readonly<{ walletForm: Html; addToClaude: Html }>, h: HtmlBuilder<Message>): Html =>
   h.section(
-    [h.Class('grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,28rem)] lg:gap-x-16')],
+    [h.Class('landing-hero'), h.DataAttribute('scene', 'night'), h.AriaLabelledBy('landing-title')],
     [
+      barView(h),
+      sceneView(h),
       h.div(
-        [h.Class('flex min-w-0 flex-col gap-5')],
+        [h.Class('landing-hero-grid landing-width')],
         [
           h.div(
-            [h.Class('flex flex-wrap items-center gap-3')],
+            [h.Class('landing-hero-copy')],
             [
-              h.p([h.Class('text-sm font-semibold tracking-tight text-accent')], [HERO.wordmark]),
-              badge(HERO.network, 'quiet', h),
+              h.h1([h.Id('landing-title'), h.Class('landing-title')], [HERO.title]),
+              h.p([h.Class('landing-lede')], [HERO.lede]),
+              h.div([h.Class('landing-actions')], [slots.walletForm, slots.addToClaude]),
             ],
           ),
-          h.h1([h.Class('text-4xl font-semibold tracking-tight text-balance text-ink sm:text-5xl')], [HERO.title]),
-          h.p([h.Class('max-w-xl text-lg text-pretty text-muted')], [HERO.lede]),
+          exampleWalletView(h),
         ],
       ),
-      h.div(
-        [h.Class('flex min-w-0 flex-col items-stretch gap-4 lg:col-start-2 lg:row-span-2 lg:row-start-1')],
-        [slots.walletForm, slots.addToClaude],
-      ),
-      h.div([h.Class('min-w-0 lg:col-start-1 lg:row-start-2')], [allowanceCard(h)]),
     ],
   )
 
-const stepItem = <Message>(step: Point, position: number, h: HtmlBuilder<Message>): Html =>
+// CHAPTERS
+
+const vignetteView = <Message>(vignette: Vignette, h: HtmlBuilder<Message>): Html =>
+  h.div([h.Class('landing-vignette landing-etching'), h.DataAttribute('vignette', vignette), h.AriaHidden(true)])
+
+const headingView = <Message>(id: string, title: string, lead: string, h: HtmlBuilder<Message>): Html =>
+  h.div([h.Class('landing-heading')], [h.h2([h.Id(id)], [title]), h.p([], [lead])])
+
+const chapterView = <Message>(
+  id: string,
+  vignette: Vignette | undefined,
+  body: ReadonlyArray<Html>,
+  h: HtmlBuilder<Message>,
+): Html =>
+  h.section(
+    [h.Class('landing-chapter landing-width'), h.AriaLabelledBy(id)],
+    [
+      vignette === undefined ? h.div([h.AriaHidden(true)]) : vignetteView(vignette, h),
+      h.div([h.Class('landing-chapter-body')], body),
+    ],
+  )
+
+const stepView = <Message>(step: Point, position: number, h: HtmlBuilder<Message>): Html =>
   h.keyed('li')(
     step.id,
-    [h.Class('flex flex-col gap-2 border-t border-line pt-4')],
+    [h.Class('landing-step')],
     [
-      h.span([h.Class('text-sm font-semibold tabular-nums text-accent')], [`${position}`]),
-      h.span([h.Class('text-lg font-semibold text-ink')], [step.title]),
-      h.span([h.Class('text-sm text-pretty text-muted')], [step.body]),
+      h.span([h.Class('landing-step-number')], [`${position}`]),
+      h.span([h.Class('landing-step-title')], [step.title]),
+      h.span([h.Class('landing-step-body')], [step.body]),
     ],
   )
 
 const howItWorksView = <Message>(h: HtmlBuilder<Message>): Html =>
-  h.section(
-    [h.Class('flex flex-col gap-6')],
+  chapterView(
+    'how-it-works',
+    'purse',
     [
-      sectionHeading(HOW_IT_WORKS.title, HOW_IT_WORKS.lead, h),
+      headingView('how-it-works', HOW_IT_WORKS.title, HOW_IT_WORKS.lead, h),
       h.ol(
-        [h.Class('grid gap-6 sm:grid-cols-3')],
-        Array.map(HOW_IT_WORKS.steps, (step, index) => stepItem(step, index + 1, h)),
+        [h.Class('landing-steps')],
+        Array.map(HOW_IT_WORKS.steps, (step, index) => stepView(step, index + 1, h)),
       ),
     ],
+    h,
   )
 
-const trustItem = <Message>(point: Point, h: HtmlBuilder<Message>): Html =>
+const pointView = <Message>(point: Point, h: HtmlBuilder<Message>): Html =>
   h.keyed('li')(
     point.id,
-    [h.Class('flex flex-col gap-1')],
-    [
-      h.span([h.Class('font-semibold text-ink')], [point.title]),
-      h.span([h.Class('text-sm text-pretty text-muted')], [point.body]),
-    ],
+    [h.Class('landing-point')],
+    [h.span([h.Class('landing-point-title')], [point.title]), h.span([h.Class('landing-point-body')], [point.body])],
   )
 
 const trustView = <Message>(h: HtmlBuilder<Message>): Html =>
-  h.section(
-    [h.Class('flex flex-col gap-6')],
+  chapterView(
+    'trust',
+    'seal',
     [
-      sectionHeading(TRUST.title, TRUST.lead, h),
+      headingView('trust', TRUST.title, TRUST.lead, h),
       h.ul(
-        [h.Class('grid gap-6 sm:grid-cols-2')],
-        Array.map(TRUST.points, point => trustItem(point, h)),
+        [h.Class('landing-points')],
+        Array.map(TRUST.points, point => pointView(point, h)),
       ),
     ],
+    h,
   )
 
 const claimView = <Message>(h: HtmlBuilder<Message>): Html =>
-  h.section(
-    [h.Class('flex flex-col gap-4 rounded-3xl border border-line bg-paper p-6 sm:p-8')],
+  chapterView(
+    'claim',
+    'door',
     [
       h.div(
-        [h.Class('flex flex-wrap items-center gap-3')],
-        [
-          h.h2([h.Class('text-2xl font-semibold tracking-tight text-balance text-ink')], [CLAIM.title]),
-          badge(CLAIM.badge, 'warn', h),
-        ],
+        [h.Class('landing-heading')],
+        [h.h2([h.Id('claim')], [CLAIM.title]), h.span([h.Class('landing-tag')], [CLAIM.badge])],
       ),
-      h.p([h.Class('max-w-2xl text-base text-pretty text-muted')], [CLAIM.body]),
+      h.p([h.Class('landing-claim-body')], [CLAIM.body]),
     ],
+    h,
   )
 
-const proofItem = <Message>(proof: Proof, h: HtmlBuilder<Message>): Html =>
+const proofRowView = <Message>(proof: Proof, h: HtmlBuilder<Message>): Html =>
   h.keyed('li')(
     proof.hash,
+    [h.Class('landing-ledger-row')],
     [
-      h.Class(
-        'flex flex-col gap-1 py-3 first:pt-0 last:pb-0 sm:flex-row sm:items-baseline sm:justify-between sm:gap-6',
-      ),
-    ],
-    [
-      h.span([h.Class('min-w-0 text-sm text-pretty text-ink')], [proof.claim]),
+      h.span([h.Class('landing-ledger-claim')], [proof.claim]),
       h.a(
         [
           h.Href(`${EXPLORER_TX_URL}${proof.hash}`),
           h.Target('_blank'),
           h.Rel('noreferrer'),
-          h.Class(`${LINK} shrink-0 font-mono text-sm`),
+          h.Class('landing-ledger-tx'),
         ],
         [proof.hash.slice(0, 8)],
       ),
@@ -189,56 +291,46 @@ const proofItem = <Message>(proof: Proof, h: HtmlBuilder<Message>): Html =>
   )
 
 const proofView = <Message>(h: HtmlBuilder<Message>): Html =>
-  h.section(
-    [h.Class('flex flex-col gap-6')],
+  chapterView(
+    'proof',
+    'ledger',
     [
-      sectionHeading(PROOF.title, PROOF.lead, h),
+      headingView('proof', PROOF.title, PROOF.lead, h),
       h.ul(
-        [h.Class('divide-y divide-line rounded-3xl border border-line bg-paper p-5 sm:p-6')],
-        Array.map(PROOF.items, proof => proofItem(proof, h)),
+        [h.Class('landing-ledger')],
+        Array.map(PROOF.items, proof => proofRowView(proof, h)),
       ),
     ],
+    h,
   )
 
 const tryItView = <Message>(connectorUrl: string, h: HtmlBuilder<Message>): Html =>
-  h.section(
-    [h.Class('flex flex-col gap-6')],
+  chapterView(
+    'try-it',
+    undefined,
     [
-      sectionHeading(TRY_IT.title, TRY_IT.lead, h),
+      headingView('try-it', TRY_IT.title, TRY_IT.lead, h),
       h.ol(
-        [h.Class('flex max-w-2xl list-decimal flex-col gap-3 pl-5 text-base text-pretty text-ink marker:text-muted')],
+        [h.Class('landing-try')],
         [
-          h.li(
-            [],
-            [
-              TRY_IT.connectorStep,
-              h.code([h.Class('select-all break-all font-mono text-sm text-ink')], [connectorUrl]),
-            ],
-          ),
+          h.li([], [TRY_IT.connectorStep, h.code([], [connectorUrl])]),
           ...Array.map(TRY_IT.steps, step => h.li([], [step])),
         ],
       ),
+      h.p([h.Class('landing-sample')], [TRY_IT.sampleLead, h.a([h.Href(TRY_IT.sampleHref)], [TRY_IT.sample])]),
     ],
+    h,
   )
-
-const builtWithItem = <Message>(name: string, h: HtmlBuilder<Message>): Html =>
-  h.keyed('li')(name, [h.Class('rounded-full bg-mist px-3 py-1 text-sm text-ink')], [name])
 
 const footerView = <Message>(h: HtmlBuilder<Message>): Html =>
   h.footer(
-    [h.Class('flex flex-col gap-4 border-t border-line pt-8')],
+    [h.Class('landing-footer landing-width')],
     [
       h.ul(
-        [h.Class('flex flex-wrap gap-2')],
-        Array.map(FOOTER.builtWith, name => builtWithItem(name, h)),
+        [h.Class('landing-built')],
+        Array.map(FOOTER.builtWith, name => h.keyed('li')(name, [], [name])),
       ),
-      h.p(
-        [h.Class('max-w-2xl text-sm text-pretty text-muted')],
-        [
-          FOOTER.note,
-          h.a([h.Href(REPOSITORY_URL), h.Target('_blank'), h.Rel('noreferrer'), h.Class(LINK)], [FOOTER.source]),
-        ],
-      ),
+      h.p([], [FOOTER.note, h.a([h.Href(REPOSITORY_URL), h.Target('_blank'), h.Rel('noreferrer')], [FOOTER.source])]),
     ],
   )
 
@@ -247,14 +339,12 @@ export const view = <Message>(
   h: HtmlBuilder<Message>,
 ): Html =>
   h.div(
-    [h.Class('mx-auto flex max-w-5xl flex-col gap-16 px-4 py-12 sm:gap-20 sm:py-16')],
+    [h.Class('landing')],
     [
       heroView(slots, h),
-      howItWorksView(h),
-      trustView(h),
-      claimView(h),
-      proofView(h),
-      tryItView(slots.connectorUrl, h),
-      footerView(h),
+      h.div(
+        [h.Class('landing-page')],
+        [howItWorksView(h), trustView(h), claimView(h), proofView(h), tryItView(slots.connectorUrl, h), footerView(h)],
+      ),
     ],
   )

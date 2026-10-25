@@ -1,0 +1,1073 @@
+/* Hallmark · v2.0.0 · redesign: full · custom direction · genre editorial · built: the project · copy: verbatim (landing-copy.ts, a3) · signature: the nod card plays once over an etched night in Lisbon */
+/* Critique: the old landing was the SaaS card kit on cream (Inter named but never loaded, tracked caps labels, middle-dot meta lines); this one tells the product as one night: a swallow carries the allowance, and one lit window is the person who gives the nod. */
+
+/*
+ * Nod's signed-out landing (page/landing.ts, words in page/landing-copy.ts). The drawings are etchings
+ * (scripts/landing-art.ts): grey maps of how much ink each pixel holds, used as luminance masks over a token, so the
+ * night scene carries starlight lines and the chapters the page's intaglio blue. The only warm colour is lamplight,
+ * the colour of the nod. Nothing moves except the hero's one sequence, and only without reduced motion. A browser
+ * without luminance masks shows no drawings, never a filled box.
+ */
+@layer components {
+  :root {
+    --night: oklch(0.2 0.048 264);
+    --night-raised: oklch(0.25 0.05 264);
+    --starlight: oklch(0.95 0.018 250);
+    --starlight-muted: oklch(0.82 0.03 255);
+    --etch-night: oklch(0.88 0.035 250 / 0.42);
+    --lamp: oklch(0.84 0.13 80);
+    --lamp-soft: oklch(0.84 0.13 80 / 0.16);
+    --lamp-ink: oklch(0.52 0.12 62);
+    --intaglio: oklch(0.38 0.085 262);
+    --etch-page: oklch(0.38 0.085 262 / 0.9);
+    --card-edge: oklch(0 0 0 / 0.08);
+    --card-drop: oklch(0.12 0.05 264 / 0.7);
+    --alert-line: oklch(0.7 0.16 27 / 0.6);
+    --alert-fill: oklch(0.3 0.08 27 / 0.55);
+    --alert-ink: oklch(0.93 0.04 27);
+    /* Mask stops: how much of a drawing shows, not colours. */
+    --mask-solid: rgb(0 0 0 / 1);
+    --mask-faint: rgb(0 0 0 / 0.3);
+    --mask-clear: rgb(0 0 0 / 0);
+  }
+
+  .landing {
+    --page: var(--color-canvas);
+    --sheet: var(--color-paper);
+    --ink: var(--color-ink);
+    --muted: var(--color-muted);
+    --rule: var(--color-line);
+    --good: var(--color-good);
+    --link: var(--color-accent);
+    --font-display: 'Besley', ui-serif, Georgia, serif;
+    --font-body: 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;
+    --font-code: 'IBM Plex Mono', ui-monospace, monospace;
+    --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+    --measure: 75rem;
+    --gutter: clamp(1rem, 4vw, 2.5rem);
+
+    display: block;
+    container-type: inline-size;
+    background: var(--page);
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-synthesis: none;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .landing :focus-visible {
+    outline: 2px solid var(--link);
+    outline-offset: 2px;
+  }
+
+  .landing-width {
+    width: min(100% - 2 * var(--gutter), var(--measure));
+    margin-inline: auto;
+  }
+
+  /* ─── The night ─────────────────────────────────────────────────────────── */
+
+  .landing-hero {
+    position: relative;
+    isolation: isolate;
+    overflow: clip;
+    background: var(--night);
+    color: var(--starlight);
+    /* Below the words the roofs stand clear: the scene's foot, as a share of its own height. */
+    padding-block-end: calc(100cqw / var(--scene-ratio) * var(--scene-foot) * var(--scene-zoom));
+    /* 2000 / 1129, as one number so it divides once inside calc(). */
+    --scene-ratio: 1.7715;
+    /* Under the words the scene's lower part stands clear: the swallow passes just below the wallet name. */
+    --scene-foot: 0.36;
+    --scene-zoom: 1;
+  }
+  .landing-hero :focus-visible {
+    outline-color: var(--lamp);
+  }
+
+  .landing-hero-art {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+  }
+
+  /* The scene spans the field's width from the bottom, its drawing's own proportions kept; zoomed on a phone. */
+  .landing-scene {
+    position: absolute;
+    bottom: 0;
+    left: var(--scene-left, 0);
+    width: calc(100cqw * var(--scene-zoom));
+    aspect-ratio: var(--scene-ratio);
+    /* The stars thin out where the words sit; the roofs, the swallow and the window stay whole. */
+    mask-image: linear-gradient(to bottom, var(--mask-faint), var(--mask-solid) 46%);
+  }
+  .landing-hero[data-scene='night'] {
+    --glow-x: 25.8%;
+    --glow-y: 83%;
+    --glow-size: 24%;
+  }
+
+  .landing-etching {
+    display: none;
+  }
+  @supports (mask-mode: luminance) {
+    .landing-etching {
+      display: block;
+      mask-mode: luminance;
+      mask-position: center;
+      mask-repeat: no-repeat;
+      mask-size: 100% 100%;
+    }
+  }
+  .landing-scene > .landing-etching {
+    position: absolute;
+    inset: 0;
+    background: var(--etch-night);
+    mask-image: url('./assets/landing/etching-night-1200.jpg');
+  }
+  @media (min-width: 48rem) {
+    .landing-scene > .landing-etching {
+      mask-image: url('./assets/landing/etching-night-2000.jpg');
+    }
+  }
+
+  /* Lamplight in the one lit window: the person who gives the nod. */
+  .landing-glow {
+    position: absolute;
+    top: var(--glow-y);
+    left: var(--glow-x);
+    width: var(--glow-size);
+    aspect-ratio: 1;
+    translate: -50% -50%;
+    border-radius: 50%;
+    background: radial-gradient(
+      closest-side,
+      color-mix(in oklch, var(--lamp) 55%, transparent),
+      color-mix(in oklch, var(--lamp) 16%, transparent) 45%,
+      transparent
+    );
+    mix-blend-mode: screen;
+    opacity: 0.8;
+  }
+
+  .landing-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding-block: 1.25rem;
+  }
+  .landing-wordmark {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: 1.75rem;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: -0.02em;
+    color: var(--starlight);
+  }
+  .landing-network {
+    display: inline-flex;
+    align-items: center;
+    min-height: 1.75rem;
+    padding-inline: 0.625rem;
+    border: 1px solid oklch(from var(--starlight) l c h / 0.28);
+    border-radius: 999px;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--starlight-muted);
+  }
+  .landing-bar-link {
+    margin-inline-start: auto;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    color: var(--starlight-muted);
+    text-decoration: underline;
+    text-decoration-color: oklch(from var(--starlight) l c h / 0.35);
+    text-underline-offset: 0.25em;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .landing-bar-link:hover {
+      color: var(--starlight);
+      text-decoration-color: currentColor;
+    }
+  }
+
+  .landing-hero-grid {
+    display: grid;
+    gap: 2.5rem;
+    padding-block: clamp(1.5rem, 5vw, 4rem) 2rem;
+  }
+  @media (min-width: 64rem) {
+    .landing-hero-grid {
+      grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+      column-gap: clamp(3rem, 6vw, 6rem);
+      align-items: start;
+    }
+  }
+
+  .landing-hero-copy {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 1.5rem;
+    /* A halo of night behind every line, so the etching never runs through a word. */
+    text-shadow:
+      0 0 2px var(--night),
+      0 0 14px var(--night),
+      0 0 28px var(--night);
+  }
+  .landing-title {
+    margin: 0;
+    max-width: 12ch;
+    font-family: var(--font-display);
+    font-size: clamp(2.75rem, 1.6rem + 4.4vw, 5rem);
+    font-weight: 700;
+    line-height: 0.98;
+    letter-spacing: -0.025em;
+    text-wrap: balance;
+    overflow-wrap: break-word;
+    min-width: 0;
+    color: var(--starlight);
+  }
+  .landing-lede {
+    margin: 0;
+    max-width: 34rem;
+    font-size: clamp(1.0625rem, 1rem + 0.3vw, 1.25rem);
+    line-height: 1.55;
+    text-wrap: pretty;
+    color: var(--starlight-muted);
+  }
+
+  /* ─── Starting: the wallet form and the connector, on the night ─────────── */
+
+  .landing-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    max-width: 34rem;
+  }
+  .landing-start {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  .landing-start-title {
+    margin: 0;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: var(--starlight);
+  }
+  .landing-start-form {
+    display: grid;
+    gap: 0.5rem;
+  }
+  .landing-start-row {
+    display: grid;
+    gap: 0.5rem;
+  }
+  @media (min-width: 30rem) {
+    .landing-start-row {
+      grid-template-columns: minmax(0, 1fr) auto;
+    }
+  }
+  .landing-label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--starlight-muted);
+  }
+  .landing-input {
+    min-height: 2.875rem;
+    width: 100%;
+    min-width: 0;
+    padding-inline: 0.875rem;
+    border: 1px solid oklch(from var(--starlight) l c h / 0.3);
+    border-radius: 0.75rem;
+    background: oklch(from var(--night) calc(l - 0.04) c h);
+    color: var(--starlight);
+    font: inherit;
+    font-size: 1rem;
+  }
+  .landing-input::placeholder {
+    color: oklch(from var(--starlight) l c h / 0.5);
+  }
+  .landing-input:focus-visible {
+    border-color: var(--lamp);
+    outline: 2px solid var(--lamp);
+    outline-offset: 0;
+  }
+  .landing-hint {
+    margin: 0;
+    font-size: 0.875rem;
+    color: var(--starlight-muted);
+  }
+
+  .landing-button {
+    display: inline-flex;
+    min-height: 2.875rem;
+    align-items: center;
+    justify-content: center;
+    padding-inline: 1.25rem;
+    border: 1px solid transparent;
+    border-radius: 999px;
+    font: inherit;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+    transition:
+      background-color 160ms ease,
+      border-color 160ms ease,
+      transform 120ms var(--ease-out);
+  }
+  .landing-button:active:not(:disabled) {
+    transform: scale(0.97);
+  }
+  .landing-button:disabled {
+    cursor: not-allowed;
+    opacity: 0.45;
+  }
+  .landing-button-primary {
+    background: var(--starlight);
+    color: var(--night);
+  }
+  .landing-button-quiet {
+    border-color: oklch(from var(--starlight) l c h / 0.32);
+    background: oklch(from var(--night) l c h / 0.88);
+    color: var(--starlight);
+  }
+  .landing-button {
+    text-shadow: none;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .landing-button-primary:hover:not(:disabled) {
+      background: oklch(from var(--starlight) calc(l + 0.03) c h);
+    }
+    .landing-button-quiet:hover:not(:disabled) {
+      border-color: oklch(from var(--starlight) l c h / 0.6);
+      background: var(--night-raised);
+    }
+  }
+
+  .landing-or {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 0.9375rem;
+    color: var(--starlight-muted);
+  }
+
+  .landing-connector {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+  .landing-connector-url {
+    margin: 0;
+    font-size: 0.875rem;
+    color: var(--starlight-muted);
+    overflow-wrap: anywhere;
+  }
+  .landing-connector-url code {
+    font-family: var(--font-code);
+    font-size: 0.8125rem;
+    color: var(--starlight);
+    user-select: all;
+  }
+
+  .landing-start [role='status'],
+  .landing-start [aria-live] {
+    margin: 0;
+    color: var(--starlight-muted);
+  }
+  .landing-input-code {
+    font-family: var(--font-code);
+  }
+
+  /* ─── The nod: the hero's one moment ────────────────────────────────────── */
+
+  .nod-card {
+    position: relative;
+    margin: 0;
+    padding: 1.25rem 1.25rem 1rem;
+    border-radius: 1.25rem;
+    background: var(--sheet);
+    color: var(--ink);
+    box-shadow:
+      0 0 0 1px var(--card-edge),
+      0 24px 48px -16px var(--card-drop);
+  }
+  @media (max-width: 63.99rem) {
+    .nod-card {
+      max-width: 30rem;
+    }
+  }
+  @media (min-width: 64rem) {
+    .nod-card {
+      margin-block-start: 0.75rem;
+    }
+  }
+
+  .nod-head {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: end;
+    gap: 0.25rem 1rem;
+  }
+  .nod-label {
+    margin: 0;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--muted);
+  }
+  .nod-allowance {
+    display: flex;
+    align-items: baseline;
+    gap: 0.375rem;
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: 2.5rem;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums lining-nums;
+  }
+  .nod-allowance-unit {
+    font-family: var(--font-body);
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: 0;
+    color: var(--muted);
+  }
+  /* The allowance as an odometer: each figure in one cell, only the last one shown when nothing moves. */
+  .nod-figures {
+    display: inline-grid;
+  }
+  .nod-figures > span {
+    grid-area: 1 / 1;
+  }
+  .nod-figure-was {
+    opacity: 0;
+  }
+  .nod-wallet {
+    margin: 0;
+    text-align: end;
+    font-size: 0.875rem;
+    color: var(--muted);
+  }
+  .nod-wallet strong {
+    display: block;
+    font-size: 1.0625rem;
+    font-weight: 600;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+  }
+  .nod-until {
+    grid-column: 1 / -1;
+    margin: 0;
+    font-size: 0.875rem;
+    color: var(--muted);
+  }
+
+  .nod-meter {
+    height: 0.375rem;
+    margin-block: 0.875rem 1rem;
+    overflow: hidden;
+    border-radius: 999px;
+    background: var(--color-mist);
+  }
+  .nod-meter-fill {
+    /* What is left of the allowance at the end: 2.90 of 5.00. */
+    --left: 0.58;
+    height: 100%;
+    border-radius: inherit;
+    background: var(--intaglio);
+    transform: scaleX(var(--left));
+    transform-origin: left center;
+  }
+
+  .nod-feed {
+    display: grid;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    border-top: 1px solid var(--rule);
+  }
+  .nod-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    align-items: center;
+    gap: 0.25rem 0.875rem;
+    padding-block: 0.75rem;
+    border-bottom: 1px solid var(--rule);
+  }
+  .nod-who {
+    min-width: 0;
+    font-weight: 600;
+  }
+  .nod-why {
+    display: block;
+    font-size: 0.8125rem;
+    font-weight: 400;
+    color: var(--muted);
+  }
+  .nod-amount {
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+  .nod-state {
+    display: inline-grid;
+    justify-items: end;
+    font-size: 0.8125rem;
+    font-weight: 600;
+  }
+  .nod-state > span {
+    grid-area: 1 / 1;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    white-space: nowrap;
+  }
+  .nod-paid {
+    color: var(--good);
+  }
+  .nod-asked {
+    padding: 0.125rem 0.5rem;
+    border-radius: 999px;
+    background: var(--lamp-soft);
+    color: var(--lamp-ink);
+    box-shadow: inset 0 0 0 1px oklch(from var(--lamp-ink) l c h / 0.3);
+    opacity: 0;
+  }
+  .nod-row-asked .nod-paid {
+    color: var(--lamp-ink);
+  }
+
+  /* The nod itself: a passkey prompt that resolves. */
+  .nod-approval {
+    display: grid;
+    margin-block-start: 0.875rem;
+  }
+  .nod-approval > p {
+    grid-area: 1 / 1;
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    margin: 0;
+    min-height: 2.75rem;
+    padding: 0.5rem 0.875rem;
+    border-radius: 0.875rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+  }
+  .nod-approval svg {
+    flex: none;
+    width: 1.25rem;
+    height: 1.25rem;
+  }
+  .nod-approve {
+    background: var(--ink);
+    color: var(--sheet);
+    opacity: 0;
+  }
+  .nod-approved {
+    background: var(--lamp-soft);
+    color: var(--lamp-ink);
+  }
+  .nod-caption {
+    margin: 0.875rem 0 0;
+    font-size: 0.8125rem;
+    line-height: 1.5;
+    color: var(--muted);
+    text-wrap: pretty;
+  }
+
+  /* ─── The page ──────────────────────────────────────────────────────────── */
+
+  .landing-page {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(4rem, 9vw, 7rem);
+    padding-block: clamp(3.5rem, 8vw, 6rem) 3rem;
+  }
+
+  /* A chapter: its drawing in the margin like an engraved initial, its words beside it. */
+  .landing-chapter {
+    display: grid;
+    gap: 1.5rem 2.5rem;
+  }
+  @media (min-width: 48rem) {
+    .landing-chapter {
+      grid-template-columns: 11rem minmax(0, 1fr);
+    }
+  }
+  .landing-chapter-body {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 1.75rem;
+  }
+  .landing-vignette {
+    height: 7.5rem;
+    aspect-ratio: var(--vignette-ratio);
+    background: var(--etch-page);
+  }
+  @media (min-width: 48rem) {
+    .landing-vignette {
+      justify-self: end;
+      height: auto;
+      width: 100%;
+      max-height: 12rem;
+    }
+  }
+  .landing-vignette[data-vignette='purse'] {
+    --vignette-ratio: 672 / 608;
+    mask-image: url('./assets/landing/etching-purse.jpg');
+  }
+  .landing-vignette[data-vignette='door'] {
+    --vignette-ratio: 672 / 1037;
+    mask-image: url('./assets/landing/etching-door.jpg');
+  }
+  .landing-vignette[data-vignette='seal'] {
+    --vignette-ratio: 672 / 683;
+    mask-image: url('./assets/landing/etching-seal.jpg');
+  }
+  .landing-vignette[data-vignette='ledger'] {
+    --vignette-ratio: 672 / 559;
+    mask-image: url('./assets/landing/etching-ledger.jpg');
+  }
+  @media (min-width: 48rem) {
+    .landing-vignette[data-vignette='door'] {
+      width: auto;
+      height: 12rem;
+    }
+  }
+
+  .landing-heading {
+    display: flex;
+    max-width: 40rem;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  .landing-heading h2 {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: clamp(1.875rem, 1.4rem + 1.6vw, 2.75rem);
+    font-weight: 700;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+    color: var(--ink);
+  }
+  .landing-heading p {
+    margin: 0;
+    font-size: 1.0625rem;
+    line-height: 1.6;
+    text-wrap: pretty;
+    color: var(--muted);
+  }
+
+  .landing-steps {
+    display: grid;
+    gap: 1.75rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    counter-reset: step;
+  }
+  @media (min-width: 48rem) {
+    .landing-steps {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+  .landing-step {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+    padding-block-start: 1rem;
+    border-top: 1px solid var(--ink);
+  }
+  .landing-step-number {
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    font-weight: 700;
+    line-height: 1;
+    color: var(--intaglio);
+    font-variant-numeric: lining-nums;
+  }
+  .landing-step-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+  }
+  .landing-step-body,
+  .landing-point-body {
+    font-size: 0.9375rem;
+    line-height: 1.6;
+    text-wrap: pretty;
+    color: var(--muted);
+  }
+
+  .landing-points {
+    display: grid;
+    gap: 1.75rem 2.5rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  @media (min-width: 48rem) {
+    .landing-points {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  .landing-point {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+  }
+  .landing-point-title {
+    font-size: 1.0625rem;
+    font-weight: 600;
+    text-wrap: balance;
+  }
+
+  .landing-tag {
+    align-self: flex-start;
+    padding: 0.125rem 0.625rem;
+    border-radius: 999px;
+    background: var(--lamp-soft);
+    color: var(--lamp-ink);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    box-shadow: inset 0 0 0 1px oklch(from var(--lamp-ink) l c h / 0.3);
+  }
+  .landing-claim-body {
+    margin: 0;
+    max-width: 40rem;
+    font-size: 1.0625rem;
+    line-height: 1.6;
+    text-wrap: pretty;
+  }
+
+  /* The proof as a ledger page: ruled lines, a double rule at the head and the foot. */
+  .landing-ledger {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    border-block: 3px double var(--ink);
+  }
+  .landing-ledger-row {
+    display: grid;
+    gap: 0.25rem 2rem;
+    padding-block: 0.75rem;
+    border-bottom: 1px solid var(--rule);
+  }
+  .landing-ledger-row:last-child {
+    border-bottom: 0;
+  }
+  @media (min-width: 40rem) {
+    .landing-ledger-row {
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: baseline;
+    }
+  }
+  .landing-ledger-claim {
+    font-size: 0.9375rem;
+    line-height: 1.5;
+    text-wrap: pretty;
+  }
+  .landing-ledger-tx {
+    font-family: var(--font-code);
+    font-size: 0.875rem;
+    color: var(--link);
+    text-decoration: underline;
+    text-decoration-color: oklch(from var(--link) l c h / 0.35);
+    text-underline-offset: 0.25em;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .landing-ledger-tx:hover {
+      text-decoration-color: currentColor;
+    }
+  }
+
+  .landing-try {
+    display: flex;
+    max-width: 44rem;
+    flex-direction: column;
+    gap: 1rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    counter-reset: try;
+  }
+  .landing-try li {
+    position: relative;
+    padding-inline-start: 2.5rem;
+    font-size: 1.0625rem;
+    line-height: 1.6;
+    text-wrap: pretty;
+    counter-increment: try;
+  }
+  .landing-try li::before {
+    content: counter(try);
+    position: absolute;
+    inset-inline-start: 0;
+    top: -0.1em;
+    font-family: var(--font-display);
+    font-size: 1.375rem;
+    font-weight: 700;
+    color: var(--intaglio);
+  }
+  .landing-try code {
+    display: block;
+    margin-block-start: 0.5rem;
+    padding: 0.625rem 0.875rem;
+    border-radius: 0.625rem;
+    background: var(--sheet);
+    box-shadow: inset 0 0 0 1px var(--rule);
+    font-family: var(--font-code);
+    font-size: 0.875rem;
+    overflow-wrap: anywhere;
+    user-select: all;
+  }
+
+  .landing-footer {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding-block: 2rem 3rem;
+    border-top: 1px solid var(--rule);
+    font-size: 0.9375rem;
+    color: var(--muted);
+  }
+  .landing-built {
+    display: flex;
+    flex-wrap: wrap;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    color: var(--ink);
+  }
+  .landing-built li:not(:last-child)::after {
+    content: ',\00a0';
+  }
+  .landing-footer p {
+    margin: 0;
+    max-width: 44rem;
+    text-wrap: pretty;
+  }
+  .landing-sample {
+    margin: 0;
+    font-size: 1.0625rem;
+    color: var(--muted);
+  }
+  .landing-sample a,
+  .landing-footer a {
+    color: var(--link);
+    text-decoration: underline;
+    text-decoration-color: oklch(from var(--link) l c h / 0.35);
+    text-underline-offset: 0.25em;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .landing-sample a:hover,
+    .landing-footer a:hover {
+      text-decoration-color: currentColor;
+    }
+  }
+
+  /*
+   * ─── Phone and tablet: the scene as a storybook band above the title ─────
+   * Zoomed on the window and the swallow (the drawing's 10% to 62%), its roofs fading into the night.
+   */
+  @media (max-width: 63.99rem) {
+    .landing-hero {
+      --scene-zoom: 1.92;
+      --scene-left: -19cqw;
+      --band: 0.6;
+      padding-block-end: 2.5rem;
+    }
+    .landing-hero-art {
+      position: relative;
+      inset: auto;
+      z-index: 0;
+      height: calc(100cqw * var(--scene-zoom) / var(--scene-ratio) * var(--band));
+      margin-block-end: -1rem;
+      overflow: clip;
+    }
+    .landing-scene {
+      mask-image: linear-gradient(to bottom, var(--mask-solid) 78%, var(--mask-clear));
+    }
+    .landing-hero-grid {
+      padding-block-start: 0;
+    }
+  }
+  @media (min-width: 40rem) and (max-width: 63.99rem) {
+    .landing-hero {
+      --scene-zoom: 1.45;
+      --scene-left: -8cqw;
+      --band: 0.62;
+    }
+  }
+
+  /* ─── Motion: the nod plays once, only for those who want motion ───────── */
+
+  @media (prefers-reduced-motion: no-preference) {
+    .nod-row {
+      animation: nod-enter 420ms var(--ease-out) var(--at) both;
+    }
+    .nod-row[data-step='brief'] {
+      --at: 650ms;
+    }
+    .nod-row[data-step='alice'] {
+      --at: 1750ms;
+    }
+    .nod-row[data-step='bob'] {
+      --at: 2900ms;
+    }
+    /* 5.00 until the brief is paid, 4.90 until Alice is, then 2.90. */
+    .nod-figure-was[data-figure='0'] {
+      animation: nod-figure 1150ms linear both;
+    }
+    .nod-figure-was[data-figure='1'] {
+      animation:
+        nod-figure 1100ms linear 1150ms forwards,
+        nod-figure-in 280ms var(--ease-out) 1150ms backwards;
+    }
+    .nod-figure-now {
+      animation: nod-figure-in 280ms var(--ease-out) 2250ms both;
+    }
+    .nod-meter-fill {
+      animation: nod-meter 1650ms var(--ease-out) 1150ms both;
+    }
+    .nod-asked {
+      animation: nod-hold 1900ms var(--ease-out) 3200ms both;
+    }
+    .nod-row-asked .nod-paid {
+      animation: nod-figure-in 280ms var(--ease-out) 5100ms both;
+    }
+    .nod-approve {
+      animation: nod-press 1500ms var(--ease-out) 3550ms both;
+    }
+    .nod-approved {
+      animation: nod-figure-in 320ms var(--ease-out) 5000ms both;
+    }
+    .nod-caption {
+      animation: nod-enter 420ms var(--ease-out) 5400ms both;
+    }
+    .landing-glow {
+      animation: nod-lamp 6200ms var(--ease-out) both;
+    }
+  }
+
+  @keyframes nod-enter {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+  }
+  @keyframes nod-figure-in {
+    from {
+      opacity: 0;
+      transform: translateY(0.3em);
+    }
+  }
+  /* A figure that was: shown from the start, gone when the next arrives. */
+  @keyframes nod-figure {
+    0%,
+    99% {
+      opacity: 1;
+      transform: none;
+    }
+    100% {
+      opacity: 0;
+      transform: translateY(-0.3em);
+    }
+  }
+  /* "Needs your nod": in, held while the passkey asks, then gone. */
+  @keyframes nod-hold {
+    0% {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+    12%,
+    88% {
+      opacity: 1;
+      transform: none;
+    }
+    100% {
+      opacity: 0;
+    }
+  }
+  /* The passkey prompt: in, pressed, then it gives way to the approval. */
+  @keyframes nod-press {
+    0% {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+    20% {
+      opacity: 1;
+      transform: none;
+    }
+    80% {
+      opacity: 1;
+      transform: scale(1);
+    }
+    86% {
+      opacity: 1;
+      transform: scale(0.97);
+    }
+    100% {
+      opacity: 0;
+      transform: scale(0.99);
+    }
+  }
+  @keyframes nod-meter {
+    0% {
+      transform: scaleX(1);
+    }
+    14%,
+    70% {
+      transform: scaleX(0.98);
+    }
+    100% {
+      transform: scaleX(var(--left));
+    }
+  }
+  /* The window brightens when Claude asks, and settles once the nod is given. */
+  @keyframes nod-lamp {
+    0%,
+    52% {
+      opacity: 0.35;
+      transform: scale(0.92);
+    }
+    66%,
+    84% {
+      opacity: 1;
+      transform: scale(1.06);
+    }
+    100% {
+      opacity: 0.8;
+      transform: none;
+    }
+  }
+}
+
+/*
+ * Outside the layer on purpose: the shared errorRow (view/ui.ts) is styled with utilities, which beat any component
+ * rule, and its paper-coloured alert would be unreadable on the night. Floor 4 also wants no sideways page scroll.
+ */
+.landing-start [role='alert'] {
+  margin: 0;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--alert-line);
+  border-radius: 0.75rem;
+  background: var(--alert-fill);
+  color: var(--alert-ink);
+  font-size: 0.875rem;
+}
+
+html,
+body {
+  overflow-x: clip;
+}

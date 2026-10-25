@@ -74,8 +74,8 @@ const LOOKS: ReadonlyArray<Look> = [
   wide.light,
 ]
 
-/** How long entrance motion may run before the first screen is taken. */
-const SETTLE_MS = 1600
+/** How long entrance motion may run before the first screen is taken: the hero's nod plays for about six seconds. */
+const SETTLE_MS = 6800
 
 /** A signed-out visit asks the Worker for a session and gets 401; the browser logs that, and it is not a failure. */
 const isSignedOutProbe = (text: string, url: string): boolean =>
