@@ -101,3 +101,10 @@ The SHA must have passed on testnet: `heavy bun run check`, the automated rehear
 - **`/sample` on mainnet: off by default**; enable only with cents-level amounts after the first real flow, if at all.
 - **Zone `trynod.si` active at 17:12 UTC.** The mainnet stage ships on `trynod.si` from its first deploy; the testnet
   cutover to `testnet.trynod.si` happens tonight after the MCP-Apps combined deploy verifies.
+
+## 17:40 UTC: testnet is on the domain; rent anomaly over
+
+`https://testnet.trynod.si` is live (release 20963b3); the workers.dev host redirects. Testnet validators raised the Soroban
+state-size target from 4 GB to 7 GB, so live state (~4.1 GB) is below target and rent is at the floor; `/api/health`
+reports `rent_factor` 0.1 (floor vs at-target rate) and the fee ceilings sit at their configured 100 / 40 XLM. The
+day's fee numbers in the spike docs are history. Mainnet unchanged: waiting for Kristjan's XLM.

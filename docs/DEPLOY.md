@@ -1,13 +1,9 @@
 # Deploying the testnet stage
 
 Handed over by the foundation session (stream B) on 2026-10-25 15:35 UTC to the orchestrator session. Live: testnet at
-`0659ad8` (deployed 17:21 UTC by the MCP-Apps session: MCP Apps cards, MCP Events, payment requests, the 2026-07-28 lane,
-migrations 0004/0005, landing parts 1–2, the mainnet agent's four fixes; pre-deploy in the worktree: heavy check green,
-local real-chain rehearsal s1–s11 pass `evidence/demo/2026-10-25T17-14-09-199Z`, local /sample run, events-check 8/8;
-post-deploy: release = SHA, smoke 9/9, GET /sample 200, public /sample run `evidence/sample/sr_24d2441b134baf79f93871c4.json`
-all steps, events-check testnet 8/8, Claude Code check 7/7). Before that, `4dd5d42` (deployed 15:53 UTC: the sample runner's Carol reset, e6's polish 459fd24, the judge-path Carol note; before it
-`0ca5495` brought the landing redesign, a3's llms.txt with the /sample link and the /sample page with the 600 XLM hard
-ceiling; smoke 9/9; rent factor ~290). Queue: empty; the stage is frozen unless something breaks. The stage URL is https://hack-meridian-testnet.kristjan-grm11775.workers.dev (MCP at `/mcp`).
+`20963b3` on **https://testnet.trynod.si** (cutover 17:32 UTC at 3a63bd5: custom domain attached, ORIGIN/RP_ID bindings set,
+URL sweep and W1 included; 17:39 UTC: every path worker-first so the old workers.dev host 301-redirects the landing and client
+routes too; smoke 9/9 against the new host). The stage URL is https://testnet.trynod.si (MCP at `/mcp`); https://hack-meridian-testnet.kristjan-grm11775.workers.dev redirects there.
 
 ## The deploy worktree is the only place a testnet deploy runs
 
@@ -21,12 +17,12 @@ checkout's `.env.testnet`, copy the file again the same way and never read it.
 
 ```sh
 W=/srv/cache/hm26/deploy-testnet
-test -z "$(git -C $W status --porcelain)" && git -C $W switch -q --detach <SHA>   # 1. pin (not `checkout --detach`: a deny rule catches it)
+test -z "$(git -C $W status --porcelain)" && git -C $W switch -q --detach <SHA>   # 1. pin (not `checkout --detach`: a deny rule catches it); .env.testnet in the worktree already carries ORIGIN/RP_ID = testnet.trynod.si
 cd $W && bun install --frozen-lockfile                                            # 2.
 heavy bun run check                                                               # 3. retry on exit 75; never pipe heavy
 bun run plan:testnet                                                              # 4. stop on any delete or replace
 bun run deploy:testnet                                                            # 5. log must show "deletedClasses":[]
-curl -s https://hack-meridian-testnet.kristjan-grm11775.workers.dev/api/health   # 6. .release equals the SHA
+curl -s https://testnet.trynod.si/api/health                                      # 6. .release equals the SHA
 bun run smoke:testnet                                                             # 7. 9 checks → .local/smoke-testnet.json
 ```
 
