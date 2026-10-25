@@ -44,7 +44,7 @@ const { entries, latestLedger } = await simulateUnsigned(
   server,
   buildTx(relayer.publicKey(), seq, func, [], PASSPHRASE),
 )
-const validUntil = latestLedger + 720 // ~1 hour for the link
+const validUntil = latestLedger + Number(arg('valid-ledgers', '720')) // default ~1 hour for the link
 const recipientEntry = entries.find(e => describeEntry(e).who === recipient.publicKey())
 const senderEntry = entries.find(e => describeEntry(e).who === sender.publicKey())
 if (!recipientEntry || !senderEntry)
