@@ -4,7 +4,7 @@
  * Every JSON-RPC body on the wire is logged, so `params._meta["x402/payment"]` and `result._meta["x402/payment-response"]`
  * are captured verbatim into .logs/mcp-wire.json.
  *
- *   bun mcp/client.ts [--allowance 0.25]
+ *   bun mcp/client.ts [--allowance 0.25] [--pocket]   # --pocket: pay from G(K) after a pull (lib/pocket.ts)
  */
 import { writeFileSync } from "node:fs";
 import { join } from "node:path";
@@ -14,6 +14,8 @@ import { wrapMCPClientWithPayment } from "@x402/mcp";
 import { MCP_PORT } from "../lib/env";
 import { txFacts } from "../lib/tx";
 import { buildClient } from "../client/pay";
+import { key } from "../lib/env";
+import { attachPocketPull, ensurePocket } from "../lib/pocket";
 
 const args = process.argv.slice(2);
 const flag = (n: string) => (args.indexOf(n) >= 0 ? args[args.indexOf(n) + 1] : undefined);
@@ -33,7 +35,10 @@ const loggingFetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
   return res;
 }) as typeof fetch;
 
-const { client: x402 } = buildClient();
+const pocket = args.includes("--pocket") ? key("POCKET") : undefined;
+if (pocket) await ensurePocket(pocket);
+const { client: x402 } = buildClient(pocket ? { payerSecret: pocket.secret() } : {});
+if (pocket) attachPocketPull(x402, pocket, () => {});
 const mcp = new Client({ name: "s2-mcp-payer", version: "0.0.0" });
 const paying = wrapMCPClientWithPayment(mcp, x402, {
   autoPayment: true,
