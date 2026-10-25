@@ -1,0 +1,2 @@
+GET https://hm26-s4-mcp.kristjan-grm11775.workers.dev/approve/pi_d9d1fa759f1ab44135ccd720 → 200  h1: Approve this payment?
+POST https://hm26-s4-mcp.kristjan-grm11775.workers.dev/approve/pi_d9d1fa759f1ab44135ccd720 → 200  h1: Payment submitted

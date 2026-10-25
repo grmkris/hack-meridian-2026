@@ -1,0 +1,10 @@
+[stdout] Starting authentication for "stellarmcpwallet"…
+[stdout] Visit this URL to authorize:
+  ]8;;https://hm26-s4-mcp.kristjan-grm11775.workers.dev/authorize?response_type=code&client_id=https%3A%2F%2Fclaude.ai%2Foauth%2Fclaude-code-client-metadata&code_challenge=<redacted>&code_challenge_method=S256&redirect_uri=http%3A%2F%2Flocalhost%3A52804%2Fcallback&state=<redacted>&scope=wallet+offline_access&prompt=consent&resource=https%3A%2F%2Fhm26-s4-mcp.kristjan-grm11775.workers.dev%2Fmcp[94mhttps://hm26-s4-mcp.kristjan-grm11775.workers.dev/authorize?response_type=code&client_id=https%3A%2F%2Fclaude.ai%2Foauth%2Fclaude-code-client-metadata&code_challenge=<redacted>&code_challenge_method=S256&redirect_uri=http%3A%2F%2Flocalhost%3A52804%2Fcallback&state=<redacted>&scope=wallet+offline_access&prompt=consent&resource=https%3A%2F%2Fhm26-s4-mcp.kristjan-grm11775.workers.dev%2Fmcp[39m]8;;
+
+Waiting for authorization… (^C to cancel)
+[1G[0JOr paste the redirect URL here: [33G[stdout] 
+[stdout] Authenticated with "stellarmcpwallet". Its tools are now available in Claude Code.
+[stdout] [?25h
+[driver] params {"response_type":"code","client_id":"https://claude.ai/oauth/claude-code-client-metadata","code_challenge":"<redacted>","code_challenge_method":"S256","redirect_uri":"http://localhost:52804/callback","state":"<redacted>","scope":"wallet offline_access","prompt":"consent","resource":"https://hm26-s4-mcp.kristjan-grm11775.workers.dev/mcp"}
+[driver] exit 0

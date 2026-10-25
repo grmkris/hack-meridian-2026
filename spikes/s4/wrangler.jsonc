@@ -4,8 +4,9 @@
   "account_id": "bceaeae4788dce3493514fde194b4a7e",
   "main": "src/worker.ts",
   "compatibility_date": "2026-10-01",
-  // global_fetch_strictly_public: required by workers-oauth-provider to fetch Client ID Metadata Documents (CIMD).
-  "compatibility_flags": ["global_fetch_strictly_public"],
+  // nodejs_compat: not needed by stellar-sdk 16.4.1 or 17.3.0 (both proven without it, evidence/deploy-3.log), kept
+  // because the build (apps/web) sets it. global_fetch_strictly_public: workers-oauth-provider fetches CIMD documents.
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
   "workers_dev": true,
   "observability": { "enabled": true },
   // No kv_namespaces: the deploy token lacks Workers KV permission, so OAUTH_KV is a shim over the OAuthStore DO.
