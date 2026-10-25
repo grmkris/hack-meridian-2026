@@ -122,7 +122,7 @@ async function credited(
 export const STEPS: ReadonlyArray<Step> = [
   {
     id: 's1',
-    title: 'Connect: DCR + PKCE, consent page, passkey, allowance',
+    title: 'Connect the AI app: DCR + PKCE, consent page, passkey, allowance',
     tests: [],
     needs: [],
     run: async ctx => {
@@ -132,7 +132,7 @@ export const STEPS: ReadonlyArray<Step> = [
   },
   {
     id: 's2',
-    title: 'Grant installed: allowance and expiry on the connection',
+    title: 'Allowance installed onchain: amount and expiry for this AI app',
     tests: [],
     needs: [],
     run: async ctx => {
@@ -162,7 +162,7 @@ export const STEPS: ReadonlyArray<Step> = [
   },
   {
     id: 's3',
-    title: 'wallet_overview: balance and allowance are two numbers',
+    title: 'wallet_overview: wallet balance and allowance are two numbers',
     tests: [],
     needs: [],
     run: async ctx => {
@@ -217,7 +217,7 @@ export const STEPS: ReadonlyArray<Step> = [
   },
   {
     id: 's5',
-    title: 'Send Alice 2 USDC: payment_prepare → payment_execute (autonomous lane)',
+    title: 'Send Alice 2 USDC inside the allowance: payment_prepare → payment_execute',
     tests: [7, 9],
     needs: ['autonomous'],
     run: async ctx => {
@@ -253,7 +253,7 @@ export const STEPS: ReadonlyArray<Step> = [
   },
   {
     id: 's6',
-    title: 'Ask for 100 USDC to Bob for dinner → requires_approval + link',
+    title: 'Ask for 100 USDC to Bob for dinner → needs your nod (approval link)',
     tests: [4, 7],
     needs: [],
     run: async ctx => {
@@ -297,7 +297,7 @@ export const STEPS: ReadonlyArray<Step> = [
   },
   {
     id: 's7',
-    title: 'Owner opens the link, sees recipient and amount, approves with the passkey; agent polls',
+    title: 'Owner opens the link, sees recipient and amount, nods with the passkey; the AI app polls',
     tests: [4, 7, 9],
     needs: [],
     run: async ctx => {
@@ -366,7 +366,7 @@ export const STEPS: ReadonlyArray<Step> = [
   },
   {
     id: 's8b',
-    title: 'Ask for 4 USDC with 2.90 left → owner lane, not an onchain revert',
+    title: 'Ask for 4 USDC with 2.90 left → needs your nod, not an onchain revert',
     tests: [2],
     needs: [],
     run: async ctx => {
@@ -444,7 +444,7 @@ export const STEPS: ReadonlyArray<Step> = [
   },
   {
     id: 's9',
-    title: 'Owner revokes the connection on the site → next delegated payment refused, rule gone onchain',
+    title: 'Owner revokes the AI app on the site → its next payment is refused, allowance gone onchain',
     tests: [6],
     needs: [],
     run: async ctx => {
@@ -480,7 +480,7 @@ export const STEPS: ReadonlyArray<Step> = [
   },
   {
     id: 's11',
-    title: 'Fee audit: the relayer paid every fee, the owner account holds no XLM',
+    title: 'Fee audit: Nod paid every network fee, the owner account holds no XLM',
     tests: [3, 9],
     needs: [],
     run: async ctx => {

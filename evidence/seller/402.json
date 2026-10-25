@@ -1,5 +1,5 @@
 {
-  "at": "2026-10-25T12:24:08.460140Z",
+  "at": "2026-10-25T12:57:43.641720Z",
   "request": "GET https://hm26-seller.kristjan-grm11775.workers.dev/api/market-brief (no payment)",
   "status": 402,
   "body": "{}",
@@ -8,7 +8,7 @@
     "error": "Payment required",
     "resource": {
       "url": "https://hm26-seller.kristjan-grm11775.workers.dev/api/market-brief",
-      "description": "Stellar testnet market brief (stellarmcpwallet demo seller)",
+      "description": "Stellar testnet market brief (demo x402 seller for Nod)",
       "mimeType": "application/json"
     },
     "accepts": [

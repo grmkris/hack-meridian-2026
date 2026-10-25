@@ -62,6 +62,6 @@ export async function marketBrief(settings: Settings, context: BriefContext) {
         ? `The ${settings.stellar} DEX order book for XLM/USDC is unavailable right now; ledgers keep closing every ~5 s.`
         : `1 XLM ≈ ${mid} USDC on the ${settings.stellar} DEX (best bid ${facts.xlm_in_usdc.bid}, best ask ${facts.xlm_in_usdc.ask}).`,
     ...facts,
-    seller: 'hm26-seller (stellarmcpwallet demo)',
+    seller: 'hm26-seller, the demo x402 seller for Nod',
   }
 }

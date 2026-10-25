@@ -71,7 +71,7 @@ function build(s: Settings): Hono<AppEnv> {
               maxTimeoutSeconds: MAX_TIMEOUT_SECONDS,
             },
           ],
-          description: `Stellar ${s.stellar} market brief (stellarmcpwallet demo seller)`,
+          description: `Stellar ${s.stellar} market brief (demo x402 seller for Nod)`,
           mimeType: 'application/json',
           extensions: { [PAYMENT_IDENTIFIER]: declarePaymentIdentifierExtension(false) },
         },

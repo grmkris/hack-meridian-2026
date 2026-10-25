@@ -303,7 +303,7 @@ const ctx: Ctx = {
 }
 
 // ---------------------------------------------------------------- run
-console.log(`rehearsal ${runId} on ${NETWORK} against ${target.name} ${mcpUrl.href}; evidence ${dir}`)
+console.log(`Nod rehearsal ${runId} on ${NETWORK} against ${target.name} ${mcpUrl.href}; evidence ${dir}`)
 for (const step of STEPS) {
   current = step.id
   const always = ['s1', 's2', 's3'].includes(step.id)
@@ -406,15 +406,15 @@ const acceptance = Object.fromEntries(
   }),
 )
 const TITLES: Record<number, string> = {
-  1: '0.10 x402 purchase settles and consumes the grant',
-  2: 'above the remaining allowance → owner lane, not signed',
+  1: '0.10 x402 purchase settles and comes out of the allowance',
+  2: 'above the allowance left → needs your nod, never signed by the AI app',
   3: 'forced over-limit transfer rejected onchain',
-  4: '100 USDC needs the passkey; approval binds recipient + amount',
+  4: '100 USDC needs your nod (passkey); it binds recipient + amount',
   5: 'repeating the same request does not pay twice',
-  6: 'revoking blocks the next delegated payment',
+  6: 'revoking the AI app blocks its next payment',
   7: 'receipt only after confirmed settlement',
   8: 'G without trustline: trust + transfer in one invocation',
-  9: 'relayer paid every fee; owner holds no XLM',
+  9: 'Nod paid every network fee; the owner holds no XLM',
 }
 const run = {
   run_id: runId,
