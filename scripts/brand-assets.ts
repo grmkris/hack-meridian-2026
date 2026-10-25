@@ -46,7 +46,7 @@ const OG = page(
   630,
   `<div class="scene"><div class="etching lines"></div><div class="glow"></div></div>
    <div class="copy">
-     <p class="mark"><span class="wordmark">nod</span><span class="pill">Stellar testnet</span></p>
+     <p class="mark"><span class="wordmark">nod</span><span class="pill">Stellar</span></p>
      <h1>Give your AI an allowance.</h1>
      <p class="line">Small stuff, it just pays. Big stuff needs your nod.</p>
    </div>`,
