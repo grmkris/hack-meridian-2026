@@ -25,3 +25,18 @@ text says nothing was paid (4a233ba returns the plain awaiting_approval result i
 Carol's claim landed, Claude still said "Nod lists Carol as not ready" because the post-nod result does not restate the
 recipient's new readiness. Copy: the approval page says "they accept on the claim link first", the claim page says it
 "opens once the wallet owner approves"; the claim page is right.
+
+## 20:54 UTC: a third-party x402 seller on mainnet
+
+Claude reconnected (new allowance 5 USDC, rule install `0d97069d8a8be49cf0444fc8d89a83a45464b16fc016a0bfc2a56d0c5dcbe747`) and
+bought **Stellar's own x402 demo endpoint** `https://stellar.org/x402-demo/api/protected/mainnet` for 0.01 USDC with
+`paid_resource_fetch`, typed by Kristjan in claude.ai: pull `aa20431d6bebcfb8b4bfa9f33bc38855bbd17e12bc149277d9a8380ab8041348`
+(1.00 USDC from the wallet into the pocket), settlement
+`3a63573ab65fc557c86737af029bd79b0d382f3ebe78eb5911b3a597f55b596e` to Stellar's pay-to account `GCGUB2W3…`, fee paid by
+the seller's facilitator `GA5SXMFJ…`, allowance 4.99, pocket 0.99, wallet 0.80 USDC. Nothing on the seller side knows Nod.
+
+Other Stellar x402 sellers checked the same evening: Nulucre Agents (`agents.nulucre.com`, reputation and fact-check,
+x402 v1) advertises `stellar:pubnet` but names the **testnet** USDC contract `CBIELTK6…` as the asset, so a mainnet
+payment cannot settle; RouteDock (`api-a.routedock.xyz`) answers 402 with an MPP challenge, not x402; StellarSight's
+discovery index holds example entries on testnet; TollPay sells MCP tools (no HTTP 402 at its root); ApiCharge's mainnet
+host did not answer. `paid_resource_fetch` takes a URL (GET) only.
