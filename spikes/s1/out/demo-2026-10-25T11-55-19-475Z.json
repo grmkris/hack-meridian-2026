@@ -1,0 +1,999 @@
+{
+  "account": "CD4B4YAP7BCINBT6CKGA3ADE2IOBUAGMH5NZGL2XTQGHTCLF2V4UA753",
+  "durationMs": 371919,
+  "log": [
+    {
+      "step": "claim1 deploy",
+      "at": "2026-10-25T11:49:12.721Z",
+      "ok": true,
+      "account": "CD4B4YAP7BCINBT6CKGA3ADE2IOBUAGMH5NZGL2XTQGHTCLF2V4UA753",
+      "label": "deploy account",
+      "hash": "824929839e8dd85c758a1ad92ae4924ebf28d6765753f119c2ebec3c2e91e55b",
+      "maxFee": "44759791",
+      "resourceFee": "44758791",
+      "timings": {
+        "recordSim": 163,
+        "sendToFinal": 4811
+      },
+      "explorer": "https://stellar.expert/explorer/testnet/tx/824929839e8dd85c758a1ad92ae4924ebf28d6765753f119c2ebec3c2e91e55b",
+      "status": "SUCCESS",
+      "ledger": 5381073,
+      "feeCharged": "38917803",
+      "resultCode": "txSuccess",
+      "returnValue": "CD4B4YAP7BCINBT6CKGA3ADE2IOBUAGMH5NZGL2XTQGHTCLF2V4UA753",
+      "contractId": "CD4B4YAP7BCINBT6CKGA3ADE2IOBUAGMH5NZGL2XTQGHTCLF2V4UA753"
+    },
+    {
+      "step": "claim1 fund 28 USDC (funder G → C via SAC transfer)",
+      "at": "2026-10-25T11:49:17.958Z",
+      "expected": "PASS",
+      "ok": true,
+      "label": "fund",
+      "hash": "7140380201fc683f40eedce4631d05a77282b3149d17ec0dd79b45128a017c19",
+      "maxFee": "47947812",
+      "resourceFee": "47946812",
+      "timings": {
+        "recordSim": 271,
+        "sign": 0,
+        "enforceSim": 149,
+        "sendToFinal": 4680
+      },
+      "explorer": "https://stellar.expert/explorer/testnet/tx/7140380201fc683f40eedce4631d05a77282b3149d17ec0dd79b45128a017c19",
+      "status": "SUCCESS",
+      "ledger": 5381074,
+      "feeCharged": "41689681",
+      "resultCode": "txSuccess",
+      "returnValue": null,
+      "credentialTypes": "sorobanCredentialsSourceAccount"
+    },
+    {
+      "step": "rule 0",
+      "at": "2026-10-25T11:49:18.354Z",
+      "rule0": {
+        "context_type": [
+          "Default"
+        ],
+        "id": 0,
+        "name": "multisig",
+        "policies": [],
+        "policy_ids": [],
+        "signer_ids": [
+          0
+        ],
+        "signers": [
+          [
+            "External",
+            "CAAVTMCBXEIBPR64EAASKFXERVPYFZA2JYP5A3BG6PESWEFUJX5IHKN4",
+            {
+              "type": "Buffer",
+              "data": [
+                230,
+                183,
+                204,
+                209,
+                170,
+                128,
+                23,
+                75,
+                216,
+                96,
+                80,
+                57,
+                106,
+                86,
+                57,
+                74,
+                157,
+                216,
+                198,
+                251,
+                73,
+                227,
+                113,
+                21,
+                236,
+                83,
+                107,
+                198,
+                32,
+                133,
+                29,
+                58
+              ]
+            }
+          ]
+        ],
+        "valid_until": null
+      }
+    },
+    {
+      "step": "claim2 add_context_rule",
+      "at": "2026-10-25T11:49:23.230Z",
+      "ok": true,
+      "label": "add_context_rule mcp-conn-1",
+      "hash": "9122563937e18c49370f3e9b13644e4f6182cac773aa3e801df19b0bc5e43ee5",
+      "maxFee": "159144082",
+      "resourceFee": "159143082",
+      "timings": {
+        "recordSim": 221,
+        "sign": 4,
+        "enforceSim": 266,
+        "sendToFinal": 3526
+      },
+      "explorer": "https://stellar.expert/explorer/testnet/tx/9122563937e18c49370f3e9b13644e4f6182cac773aa3e801df19b0bc5e43ee5",
+      "status": "SUCCESS",
+      "ledger": 5381075,
+      "feeCharged": "138383739",
+      "resultCode": "txSuccess",
+      "returnValue": {
+        "context_type": [
+          "CallContract",
+          "CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA"
+        ],
+        "id": 1,
+        "name": "mcp-conn-1",
+        "policies": [
+          "CABXBYJNZ7IUW4G3D6BND5YCAQF3ASSDMDAOKQQ63UYFSO7WUU2TIP5G"
+        ],
+        "policy_ids": [
+          0
+        ],
+        "signer_ids": [
+          1
+        ],
+        "signers": [
+          [
+            "External",
+            "CAAVTMCBXEIBPR64EAASKFXERVPYFZA2JYP5A3BG6PESWEFUJX5IHKN4",
+            {
+              "type": "Buffer",
+              "data": [
+                136,
+                206,
+                89,
+                66,
+                5,
+                157,
+                236,
+                228,
+                0,
+                252,
+                165,
+                41,
+                155,
+                146,
+                133,
+                151,
+                16,
+                35,
+                126,
+                203,
+                57,
+                216,
+                79,
+                240,
+                56,
+                158,
+                239,
+                72,
+                61,
+                202,
+                234,
+                177
+              ]
+            }
+          ]
+        ],
+        "valid_until": 5398354
+      },
+      "credentialTypes": "sorobanCredentialsAddress",
+      "ruleId": 1
+    },
+    {
+      "step": "claim2 rule",
+      "at": "2026-10-25T11:49:23.807Z",
+      "count": 2,
+      "rule": {
+        "context_type": [
+          "CallContract",
+          "CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA"
+        ],
+        "id": 1,
+        "name": "mcp-conn-1",
+        "policies": [
+          "CABXBYJNZ7IUW4G3D6BND5YCAQF3ASSDMDAOKQQ63UYFSO7WUU2TIP5G"
+        ],
+        "policy_ids": [
+          0
+        ],
+        "signer_ids": [
+          1
+        ],
+        "signers": [
+          [
+            "External",
+            "CAAVTMCBXEIBPR64EAASKFXERVPYFZA2JYP5A3BG6PESWEFUJX5IHKN4",
+            {
+              "type": "Buffer",
+              "data": [
+                136,
+                206,
+                89,
+                66,
+                5,
+                157,
+                236,
+                228,
+                0,
+                252,
+                165,
+                41,
+                155,
+                146,
+                133,
+                151,
+                16,
+                35,
+                126,
+                203,
+                57,
+                216,
+                79,
+                240,
+                56,
+                158,
+                239,
+                72,
+                61,
+                202,
+                234,
+                177
+              ]
+            }
+          ]
+        ],
+        "valid_until": 5398354
+      }
+    },
+    {
+      "step": "policy before any spend",
+      "at": "2026-10-25T11:49:24.428Z",
+      "ruleId": 1,
+      "ledger": 5381075,
+      "cached_total_spent": "0",
+      "period_ledgers": 18000,
+      "spending_history": [],
+      "spending_limit": "50000000"
+    },
+    {
+      "step": "resim-check: conn 2 USDC with record-mode footprint only (no enforce re-sim)",
+      "at": "2026-10-25T11:49:28.254Z",
+      "expected": "REJECT",
+      "ok": true,
+      "stage": "onchain",
+      "detail": "txFailed; invokeHostFunctionTrapped; Error(Storage, ExceededLimit)",
+      "label": "transfer 20000000 by conn (rule 1)",
+      "hash": "bd14ea4e568d05b4fd11fc52e4128ee672bdca3d1ef9d50913e735f949fa7f84",
+      "maxFee": "46237089",
+      "resourceFee": "46236089",
+      "timings": {
+        "recordSim": 137,
+        "sign": 5,
+        "sendToFinal": 3553
+      },
+      "explorer": "https://stellar.expert/explorer/testnet/tx/bd14ea4e568d05b4fd11fc52e4128ee672bdca3d1ef9d50913e735f949fa7f84",
+      "status": "FAILED",
+      "ledger": 5381076,
+      "feeCharged": "8660",
+      "resultCode": "txFailed",
+      "diagnostic": "txFailed; invokeHostFunctionTrapped; Error(Storage, ExceededLimit)"
+    },
+    {
+      "step": "claim3 conn→pocket 2 USDC (cum 2)",
+      "at": "2026-10-25T11:49:32.536Z",
+      "expected": "PASS",
+      "ok": true,
+      "label": "transfer 20000000 by conn (rule 1)",
+      "hash": "eec0e64ffb3626391387893e9a06b127b7876491655b7d369f2fc7d834176e49",
+      "maxFee": "197619541",
+      "resourceFee": "197618541",
+      "timings": {
+        "recordSim": 143,
+        "sign": 3,
+        "enforceSim": 220,
+        "sendToFinal": 3758
+      },
+      "explorer": "https://stellar.expert/explorer/testnet/tx/eec0e64ffb3626391387893e9a06b127b7876491655b7d369f2fc7d834176e49",
+      "status": "SUCCESS",
+      "ledger": 5381077,
+      "feeCharged": "171840031",
+      "resultCode": "txSuccess",
+      "returnValue": null,
+      "credentialTypes": "sorobanCredentialsAddress"
+    },
+    {
+      "step": "policy after 2",
+      "at": "2026-10-25T11:49:33.279Z",
+      "ruleId": 1,
+      "ledger": 5381077,
+      "cached_total_spent": "20000000",
+      "period_ledgers": 18000,
+      "spending_history": [
+        {
+          "amount": "20000000",
+          "ledger_sequence": 5381077
+        }
+      ],
+      "spending_limit": "50000000"
+    },
+    {
+      "step": "claim3 conn→pocket 4 USDC (cum 6 > 5) — enforce simulation",
+      "at": "2026-10-25T11:49:34.393Z",
+      "expected": "REJECT",
+      "ok": true,
+      "stage": "enforce-simulate",
+      "contractError": "Error(Contract, #3221)",
+      "detail": "HostError: Error(Auth, InvalidAction)\n\nEvent log (newest first):\n   0: [Diagnostic Event] contract:CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA, topics:[error, Error(Auth, InvalidAction)], data:[\"failed account authentication with error\", CD4B4YAP7BCINBT6CKGA3ADE2IOBUAGMH5NZGL2XTQGHTCLF2V4UA753, Error(Contract, #3221)]\n   1: [Failed Diagnostic Event (not emitted)] contract:CD4B4YAP7BCINBT6CKGA3ADE2IOBUAGMH5NZGL2XTQGHTCLF2V4UA753, topics:[log], data:[\"VM call trapped with HostError\", __check_auth, Error(Contract, #3221)]\n   2: [Failed Diagnostic Event (not emitted)] contract:CD4B4YAP7BCINBT6CKGA3ADE2IOBUAGMH5NZGL2XTQGHTCLF2V4UA753, topics:[error, Error(Contract, #3221)], data:\"escalating error to VM trap from failed host function call: call\"\n   3: [Failed Diagnostic Event (not emitted)] contract:CD4B4YAP7BCINBT6CKGA3ADE2IOBUAGMH5NZGL2XTQGHTCLF2V4UA753, topics:[error, Error(Contract, #3221)], data:[\"contract call failed\", enforce, [[Contract, {args: [CD4B4YAP7BCINBT6CKGA3ADE2IOBUAGMH5NZGL2XTQGHTCLF2V4UA753, GCEM4WKCAWO6ZZAA7SSSTG4SQWLRAI36ZM45QT7QHCPO6SB5ZLVLDH4K, 40000000], contract: CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA, fn_name: transfer}], [[External, CAAVTMCBXEIBPR64EAASKFXERVPYFZA2JYP5A3BG6PESWEFUJX5IHKN4, Bytes(88ce5942059dece400fca5299b92859710237ecb39d84ff0389eef483dcaeab1)]], {context_type: [CallContract, CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA], id: 1, name: \"mcp-conn-1\", policies: [CABXBYJNZ7IUW4G3D6BND5YCAQF3ASSDMDAOKQQ63UYFSO7WUU2TIP5G], policy_ids: [0], signer_ids: [1], signers: [[External, CAAVTMCBXEIBPR64EAASKFXERVPYFZA2JYP5A3BG6PESWEFUJX5IHKN4, Bytes(88ce5942059dece400fca5299b92859710237ecb39d84ff0389eef483dcaeab1)]], valid_until: 5398354}, CD4B4YAP7BCINBT6CKGA3ADE2IOBUAGMH5NZGL2XTQGHTCLF2V4UA753]]\n   4: [Failed Diagnostic Event (not emitted)] contract:CABXBYJNZ7IUW4G3D6BND5YCAQF3ASSDMDAOKQQ63UYFSO7WUU2TIP5G, topics:[log], data:[\"VM call trapped with HostError\", enforce, Error(Contract, #3221)]\n   5: [Failed Diagnostic Event (not emitted)] contract:CABXBYJNZ7IUW4G3D6BND5YCAQF3ASSDMDAOKQQ63UYFSO7WUU2TIP5G, topics:[error, Error(Contract, #3221)], data:\"escalating error to VM trap from failed host function call: fail_with_error\"\n   6: [Failed Diagnostic Event (not emitted)] contract:CABXBYJNZ7IUW4G3D6BND5YCAQF3ASSDMDAOKQQ63UYFSO7WUU2TIP5G, topics:[error, Error(Contract, #3221)], data:[\"failing with contract error\", 3221]\n   7: [Failed Diagnostic Event (not emitted)] contract:CD4B4YAP7BCINBT6CKGA3ADE2IOBUAGMH5NZGL2XTQGHTCLF2V4UA753, topics:[fn_call, CABXBYJNZ7IUW4G3D6BND5YCAQF3ASSDMDAOKQQ63UYFSO7WUU2TIP5G, enforce], data:[[Contract, {args: [CD4B4YAP7BCINBT6CKGA3ADE2IOBUAGMH5NZGL2XTQGHTCLF2V4UA753, GCEM4WKCAWO6ZZAA7SSSTG4SQWLRAI36ZM45QT7QHCPO6SB5ZLVLDH4K, 40000000], contract: CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA, fn_name: transfer}], [[External, CAAVTMCBXEIBPR64EAASKFXERVPYFZA2JYP5A3BG6PESWEFUJX5IHKN4, Bytes(88ce5942059dece400fca5299b92859710237ecb39d84ff0389eef483dcaeab1)]], {context_type: [CallContract, CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA], id: 1, name: \"mcp-conn-1\", policies: [CABXBYJNZ7IUW4G3D6BND5YCAQF3ASSDMDAOKQQ63UYFSO7WUU2TIP5G], policy_ids: [0], signer_ids: [1], signers: [[External, CAAVTMCBXEIBPR64EAASKFXERVPYFZA2JYP5A3BG6PESWEFUJX5IHKN4, Bytes(88ce5942059dece400fca5299b92859710237ecb39d84ff0389eef483dcaeab1)]], valid_until: 5398354}, CD4B4YAP7BCINBT6CKGA3ADE2IOBUAGMH5NZGL2XTQGHTCLF2V4UA753]\n   8: [Failed Diagnostic Event (not emitted)] contract:CAAVTMCBXEIBPR64EAASKFXERVPYFZA2JYP5A3BG6PESWEFUJX5IHKN4, topics:[fn_return, verify], data:true\n   9: [Failed Diagnostic Event (not emitted)] contract:CD4B4YAP7BCINBT6CKGA3ADE2IOBUAGMH5NZGL2XTQGHTCLF2V4UA753, topics:[fn_call, CAAVTMCBXEIBPR64EAASKFXERVPYFZA2JYP5A3BG6PESWEFUJX5IHKN4, verify], data:[Bytes(b9466e108307164557387f4572a809661faa4d69a966f2640c2d37d703440e92), Bytes(88ce5942059dece400fca5299b92859710237ecb39d84ff0389eef483dcaeab1), Bytes(bb4cd1de0b8fef8b339d31b86df8c4d",
+      "label": "transfer 40000000 by conn (rule 1)",
+      "timings": {
+        "recordSim": 296,
+        "sign": 2,
+        "enforceSim": 156
+      }
+    },
+    {
+      "step": "claim3 conn→pocket 4 USDC (cum 6 > 5) — forced onchain submission",
+      "at": "2026-10-25T11:49:37.384Z",
+      "expected": "REJECT",
+      "ok": true,
+      "stage": "onchain",
+      "contractError": "Error(Contract, #3221)",
+      "detail": "txFailed; invokeHostFunctionTrapped; Error(Contract, #3221) | Error(Auth, InvalidAction)",
+      "simError": "HostError: Error(Auth, InvalidAction)\n\nEvent log (newest first):\n   0: [Diagnostic Event] contract:CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA, topics:[error, Error(Auth, InvalidAction)], data:[\"failed account authentication with error\", CD4B4YAP7BCINBT6CKGA3ADE2IOBUAGMH5NZGL2XTQGHTCLF2V4UA753, Error(Contract, #3221)]\n   1: [Failed Diagnostic Event (not emitted)] contract:CD4B4YAP7BCINBT6CKGA3ADE2IOBUAGMH5NZGL2XTQGHTCLF2V4UA753, topics:[log], data:[\"VM call trapped with HostError\", __check_auth, Error(Contract, #3221)]\n   2: [Failed Diagnostic Event (not emitted)] contract:CD4B4YAP7BCINBT6CKGA3ADE2IOBUAGMH5NZGL2XTQGHTCLF2V4UA753, topics:[error, Error(Contract, #3221)], data:\"escalating error to VM trap from failed host function call: call\"\n   3: [Failed Diagnostic Event (not emitted)] contract:CD4B4YAP7BCINBT6CKGA3ADE2IOBUAGMH5NZGL2XTQGHTCLF2V4UA753, topics:[error, Error(Contract, #3221)], data:[\"contract call failed\", enforce, [[Contract, {args: [CD4B4YAP7BCINBT6CKGA3ADE2IOBUAGMH5NZGL2XTQGHTCLF2V4UA753, GCEM4WKCAWO6ZZAA7SSSTG4SQWLRAI36ZM45QT7QHCPO6SB5ZLVLDH4K, 40000000], contract: CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA, fn_name: transfer}], [[External, CAAVTMCBXEIBPR64EAASKFXERVPYFZA2JYP5A3BG6PESWEFUJX5IHKN4, Bytes(88ce5942059dece400fca5299b92859710237ecb39d84ff0389eef483dcaeab1)]], {context_type: [CallContract, CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA], id: 1, name: \"mcp-conn-1\", policies: [CABXBYJNZ7IUW4G3D6BND5YCAQF3ASSDMDAOKQQ63UYFSO7WUU2TIP5G], policy_ids: [0], signer_ids: [1], signers: [[External, CAAVTMCBXEIBPR64EAASKFXERVPYFZA2JYP5A3BG6PESWEFUJX5IHKN4, Bytes(88ce5942059dece400fca5299b92859710237ecb39d84ff0389eef483dcaeab1)]], valid_until: 5398354}, CD4B4YAP7BCINBT6CKGA3ADE2IOBUAGMH5NZGL2XTQGHTCLF2V4UA753]]\n   4: [Failed Diagnostic Event (not emitted)] contract:CABXBYJNZ7IUW4G3D6BND5YCAQF3ASSDMDAOKQQ63UYFSO7WUU2TIP5G, topics:[log], data:[\"VM call trapped with HostError\", enforce, Error(Contract, #3221)]\n   5: [Failed Diagnostic Event (not emitted)] contract:CABXBYJNZ7IUW4G3D6BND5YCAQF3ASSDMDAOKQQ63UYFSO7WUU2TIP5G, topics:[error, Error(Contract, #3221)], data:\"escalating error to VM trap from failed host function call: fail_with_error\"\n   6: [Failed Diagnostic Event (not emitted)] contract:CABXBYJNZ7IUW4G3D6BND5YCAQF3ASSDMDAOKQQ63UYFSO7WUU2TIP5G, topics:[error, Error(Contract, #3221)], data:[\"failing with contract error\", 3221]\n   7: [Failed Diagnostic Event (not emitted)] contract:CD4B4YAP7BCINBT6CKGA3ADE2IOBUAGMH5NZGL2XTQGHTCLF2V4UA753, topics:[fn_call, CABXBYJNZ7IUW4G3D6BND5YCAQF3ASSDMDAOKQQ63UYFSO7WUU2TIP5G, enforce], data:[[Contract, {args: [CD4B4YAP7BCINBT6CKGA3ADE2IOBUAGMH5NZGL2XTQGHTCLF2V4UA753, GCEM4WKCAWO6ZZAA7SSSTG4SQWLRAI36ZM45QT7QHCPO6SB5ZLVLDH4K, 40000000], contract: CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA, fn_name: transfer}], [[External, CAAVTMCBXEIBPR64EAASKFXERVPYFZA2JYP5A3BG6PESWEFUJX5IHKN4, Bytes(88ce5942059dece400fca5299b92859710237ecb39d84ff0389eef483dcaeab1)]], {context_type: [CallContract, CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA], id: 1, name: \"mcp-conn-1\", policies: [CABXBYJNZ7IUW4G3D6BND5YCAQF3ASSDMDAOKQQ63UYFSO7WUU2TIP5G], policy_ids: [0], signer_ids: [1], signers: [[External, CAAVTMCBXEIBPR64EAASKFXERVPYFZA2JYP5A3BG6PESWEFUJX5IHKN4, Bytes(88ce5942059dece400fca5299b92859710237ecb39d84ff0389eef483dcaeab1)]], valid_until: 5398354}, CD4B4YAP7BCINBT6CKGA3ADE2IOBUAGMH5NZGL2XTQGHTCLF2V4UA753]\n   8: [Failed Diagnostic Event (not emitted)] contract:CAAVTMCBXEIBPR64EAASKFXERVPYFZA2JYP5A3BG6PESWEFUJX5IHKN4, topics:[fn_return, verify], data:true\n   9: [Failed Diagnostic Event (not emitted)] contract:CD4B4YAP7BCINBT6CKGA3ADE2IOBUAGMH5NZGL2XTQGHTCLF2V4UA753, topics:[fn_call, CAAVTMCBXEIBPR64EAASKFXERVPYFZA2JYP5A3BG6PESWEFUJX5IHKN4, verify], data:[Bytes(80a8ebf400c12722eb5bcbd4ed180bdbfb1ff620d4e7d534dd840a54408ef95d), Bytes(88ce5942059dece400fca5299b92859710237ecb39d84ff0389eef483dcaeab1), Bytes(f7667fd3f283dd897c8df30e8aa2afa",
+      "label": "transfer 40000000 by conn (rule 1)",
+      "hash": "3daf4b000cb58ad1bbef3629c13a02d44403c4b690dd51815020cbc89723b42a",
+      "maxFee": "184945356",
+      "resourceFee": "92472178",
+      "timings": {
+        "recordSim": 142,
+        "sign": 2,
+        "enforceSim": 209,
+        "sendToFinal": 2500
+      },
+      "explorer": "https://stellar.expert/explorer/testnet/tx/3daf4b000cb58ad1bbef3629c13a02d44403c4b690dd51815020cbc89723b42a",
+      "status": "FAILED",
+      "ledger": 5381078,
+      "feeCharged": "12316",
+      "resultCode": "txFailed",
+      "diagnostic": "txFailed; invokeHostFunctionTrapped; Error(Contract, #3221) | Error(Auth, InvalidAction)"
+    },
+    {
+      "step": "policy after rejected 4",
+      "at": "2026-10-25T11:49:38.043Z",
+      "ruleId": 1,
+      "ledger": 5381078,
+      "cached_total_spent": "20000000",
+      "period_ledgers": 18000,
+      "spending_history": [
+        {
+          "amount": "20000000",
+          "ledger_sequence": 5381077
+        }
+      ],
+      "spending_limit": "50000000"
+    },
+    {
+      "step": "claim3 conn→pocket 2.5 USDC (cum 4.5)",
+      "at": "2026-10-25T11:49:42.232Z",
+      "expected": "PASS",
+      "ok": true,
+      "label": "transfer 25000000 by conn (rule 1)",
+      "hash": "764f1d11b2fa8803390a7267895968b3e001ba2f039e81ca29c56425f6784adb",
+      "maxFee": "17150647",
+      "resourceFee": "17149647",
+      "timings": {
+        "recordSim": 147,
+        "sign": 3,
+        "enforceSim": 150,
+        "sendToFinal": 3737
+      },
+      "explorer": "https://stellar.expert/explorer/testnet/tx/764f1d11b2fa8803390a7267895968b3e001ba2f039e81ca29c56425f6784adb",
+      "status": "SUCCESS",
+      "ledger": 5381079,
+      "feeCharged": "14910139",
+      "resultCode": "txSuccess",
+      "returnValue": null,
+      "credentialTypes": "sorobanCredentialsAddress"
+    },
+    {
+      "step": "policy after 2.5",
+      "at": "2026-10-25T11:49:42.955Z",
+      "ruleId": 1,
+      "ledger": 5381079,
+      "cached_total_spent": "45000000",
+      "period_ledgers": 18000,
+      "spending_history": [
+        {
+          "amount": "20000000",
+          "ledger_sequence": 5381077
+        },
+        {
+          "amount": "25000000",
+          "ledger_sequence": 5381079
+        }
+      ],
+      "spending_limit": "50000000"
+    },
+    {
+      "step": "claim3 conn→pocket 1 USDC (cum 5.5 > 5)",
+      "at": "2026-10-25T11:49:43.605Z",
+      "expected": "REJECT",
+      "ok": true,
+      "stage": "enforce-simulate",
+      "contractError": "Error(Contract, #3221)",
+      "detail": "HostError: Error(Auth, InvalidAction)\n\nEvent log (newest first):\n   0: [Diagnostic Event] contract:CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA, topics:[error, Error(Auth, InvalidAction)], data:[\"failed account authentication with error\", CD4B4YAP7BCINBT6CKGA3ADE2IOBUAGMH5NZGL2XTQGHTCLF2V4UA753, Error(Contract, #3221)]\n   1: [Failed Diagnostic Event (not emitted)] contract:CD4B4YAP7BCINBT6CKGA3ADE2IOBUAGMH5NZGL2XTQGHTCLF2V4UA753, topics:[log], data:[\"VM call trapped with HostError\", __check_auth, Error(Contract, #3221)]\n   2: [Failed Diagnostic Event (not emitted)] contract:CD4B4YAP7BCINBT6CKGA3ADE2IOBUAGMH5NZGL2XTQGHTCLF2V4UA753, topics:[error, Error(Contract, #3221)], data:\"escalating error to VM trap from failed host function call: call\"\n   3: [Failed Diagnostic Event (not emitted)] contract:CD4B4YAP7BCINBT6CKGA3ADE2IOBUAGMH5NZGL2XTQGHTCLF2V4UA753, topics:[error, Error(Contract, #3221)], data:[\"contract call failed\", enforce, [[Contract, {args: [CD4B4YAP7BCINBT6CKGA3ADE2IOBUAGMH5NZGL2XTQGHTCLF2V4UA753, GCEM4WKCAWO6ZZAA7SSSTG4SQWLRAI36ZM45QT7QHCPO6SB5ZLVLDH4K, 10000000], contract: CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA, fn_name: transfer}], [[External, CAAVTMCBXEIBPR64EAASKFXERVPYFZA2JYP5A3BG6PESWEFUJX5IHKN4, Bytes(88ce5942059dece400fca5299b92859710237ecb39d84ff0389eef483dcaeab1)]], {context_type: [CallContract, CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA], id: 1, name: \"mcp-conn-1\", policies: [CABXBYJNZ7IUW4G3D6BND5YCAQF3ASSDMDAOKQQ63UYFSO7WUU2TIP5G], policy_ids: [0], signer_ids: [1], signers: [[External, CAAVTMCBXEIBPR64EAASKFXERVPYFZA2JYP5A3BG6PESWEFUJX5IHKN4, Bytes(88ce5942059dece400fca5299b92859710237ecb39d84ff0389eef483dcaeab1)]], valid_until: 5398354}, CD4B4YAP7BCINBT6CKGA3ADE2IOBUAGMH5NZGL2XTQGHTCLF2V4UA753]]\n   4: [Failed Diagnostic Event (not emitted)] contract:CABXBYJNZ7IUW4G3D6BND5YCAQF3ASSDMDAOKQQ63UYFSO7WUU2TIP5G, topics:[log], data:[\"VM call trapped with HostError\", enforce, Error(Contract, #3221)]\n   5: [Failed Diagnostic Event (not emitted)] contract:CABXBYJNZ7IUW4G3D6BND5YCAQF3ASSDMDAOKQQ63UYFSO7WUU2TIP5G, topics:[error, Error(Contract, #3221)], data:\"escalating error to VM trap from failed host function call: fail_with_error\"\n   6: [Failed Diagnostic Event (not emitted)] contract:CABXBYJNZ7IUW4G3D6BND5YCAQF3ASSDMDAOKQQ63UYFSO7WUU2TIP5G, topics:[error, Error(Contract, #3221)], data:[\"failing with contract error\", 3221]\n   7: [Failed Diagnostic Event (not emitted)] contract:CD4B4YAP7BCINBT6CKGA3ADE2IOBUAGMH5NZGL2XTQGHTCLF2V4UA753, topics:[fn_call, CABXBYJNZ7IUW4G3D6BND5YCAQF3ASSDMDAOKQQ63UYFSO7WUU2TIP5G, enforce], data:[[Contract, {args: [CD4B4YAP7BCINBT6CKGA3ADE2IOBUAGMH5NZGL2XTQGHTCLF2V4UA753, GCEM4WKCAWO6ZZAA7SSSTG4SQWLRAI36ZM45QT7QHCPO6SB5ZLVLDH4K, 10000000], contract: CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA, fn_name: transfer}], [[External, CAAVTMCBXEIBPR64EAASKFXERVPYFZA2JYP5A3BG6PESWEFUJX5IHKN4, Bytes(88ce5942059dece400fca5299b92859710237ecb39d84ff0389eef483dcaeab1)]], {context_type: [CallContract, CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA], id: 1, name: \"mcp-conn-1\", policies: [CABXBYJNZ7IUW4G3D6BND5YCAQF3ASSDMDAOKQQ63UYFSO7WUU2TIP5G], policy_ids: [0], signer_ids: [1], signers: [[External, CAAVTMCBXEIBPR64EAASKFXERVPYFZA2JYP5A3BG6PESWEFUJX5IHKN4, Bytes(88ce5942059dece400fca5299b92859710237ecb39d84ff0389eef483dcaeab1)]], valid_until: 5398354}, CD4B4YAP7BCINBT6CKGA3ADE2IOBUAGMH5NZGL2XTQGHTCLF2V4UA753]\n   8: [Failed Diagnostic Event (not emitted)] contract:CAAVTMCBXEIBPR64EAASKFXERVPYFZA2JYP5A3BG6PESWEFUJX5IHKN4, topics:[fn_return, verify], data:true\n   9: [Failed Diagnostic Event (not emitted)] contract:CD4B4YAP7BCINBT6CKGA3ADE2IOBUAGMH5NZGL2XTQGHTCLF2V4UA753, topics:[fn_call, CAAVTMCBXEIBPR64EAASKFXERVPYFZA2JYP5A3BG6PESWEFUJX5IHKN4, verify], data:[Bytes(05cb773812cf9cd8932893f7fe712151d22c04f5f85aaace158a73931fdf367f), Bytes(88ce5942059dece400fca5299b92859710237ecb39d84ff0389eef483dcaeab1), Bytes(cba24b87f711a02a8cff02bd9b1c2cb",
+      "label": "transfer 10000000 by conn (rule 1)",
+      "timings": {
+        "recordSim": 217,
+        "sign": 2,
+        "enforceSim": 293
+      }
+    },
+    {
+      "step": "claim3 boundary: conn 0.5 USDC (cum exactly 5.0)",
+      "at": "2026-10-25T11:49:47.961Z",
+      "expected": "PASS",
+      "ok": true,
+      "label": "transfer 5000000 by conn (rule 1)",
+      "hash": "c0f6f923936b7dc4d716454ba3e3d3f43f21ddcf353e49e3e083d054bf5f9c57",
+      "maxFee": "17150652",
+      "resourceFee": "17149652",
+      "timings": {
+        "recordSim": 266,
+        "sign": 2,
+        "enforceSim": 164,
+        "sendToFinal": 3754
+      },
+      "explorer": "https://stellar.expert/explorer/testnet/tx/c0f6f923936b7dc4d716454ba3e3d3f43f21ddcf353e49e3e083d054bf5f9c57",
+      "status": "SUCCESS",
+      "ledger": 5381080,
+      "feeCharged": "14910148",
+      "resultCode": "txSuccess",
+      "returnValue": null,
+      "credentialTypes": "sorobanCredentialsAddress"
+    },
+    {
+      "step": "claim3 boundary: conn 1 stroop (cum 5.0000001)",
+      "at": "2026-10-25T11:49:48.504Z",
+      "expected": "REJECT",
+      "ok": true,
+      "stage": "enforce-simulate",
+      "contractError": "Error(Contract, #3221)",
+      "detail": "HostError: Error(Auth, InvalidAction)\n\nEvent log (newest first):\n   0: [Diagnostic Event] contract:CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA, topics:[error, Error(Auth, InvalidAction)], data:[\"failed account authentication with error\", CD4B4YAP7BCINBT6CKGA3ADE2IOBUAGMH5NZGL2XTQGHTCLF2V4UA753, Error(Contract, #3221)]\n   1: [Failed Diagnostic Event (not emitted)] contract:CD4B4YAP7BCINBT6CKGA3ADE2IOBUAGMH5NZGL2XTQGHTCLF2V4UA753, topics:[log], data:[\"VM call trapped with HostError\", __check_auth, Error(Contract, #3221)]\n   2: [Failed Diagnostic Event (not emitted)] contract:CD4B4YAP7BCINBT6CKGA3ADE2IOBUAGMH5NZGL2XTQGHTCLF2V4UA753, topics:[error, Error(Contract, #3221)], data:\"escalating error to VM trap from failed host function call: call\"\n   3: [Failed Diagnostic Event (not emitted)] contract:CD4B4YAP7BCINBT6CKGA3ADE2IOBUAGMH5NZGL2XTQGHTCLF2V4UA753, topics:[error, Error(Contract, #3221)], data:[\"contract call failed\", enforce, [[Contract, {args: [CD4B4YAP7BCINBT6CKGA3ADE2IOBUAGMH5NZGL2XTQGHTCLF2V4UA753, GCEM4WKCAWO6ZZAA7SSSTG4SQWLRAI36ZM45QT7QHCPO6SB5ZLVLDH4K, 1], contract: CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA, fn_name: transfer}], [[External, CAAVTMCBXEIBPR64EAASKFXERVPYFZA2JYP5A3BG6PESWEFUJX5IHKN4, Bytes(88ce5942059dece400fca5299b92859710237ecb39d84ff0389eef483dcaeab1)]], {context_type: [CallContract, CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA], id: 1, name: \"mcp-conn-1\", policies: [CABXBYJNZ7IUW4G3D6BND5YCAQF3ASSDMDAOKQQ63UYFSO7WUU2TIP5G], policy_ids: [0], signer_ids: [1], signers: [[External, CAAVTMCBXEIBPR64EAASKFXERVPYFZA2JYP5A3BG6PESWEFUJX5IHKN4, Bytes(88ce5942059dece400fca5299b92859710237ecb39d84ff0389eef483dcaeab1)]], valid_until: 5398354}, CD4B4YAP7BCINBT6CKGA3ADE2IOBUAGMH5NZGL2XTQGHTCLF2V4UA753]]\n   4: [Failed Diagnostic Event (not emitted)] contract:CABXBYJNZ7IUW4G3D6BND5YCAQF3ASSDMDAOKQQ63UYFSO7WUU2TIP5G, topics:[log], data:[\"VM call trapped with HostError\", enforce, Error(Contract, #3221)]\n   5: [Failed Diagnostic Event (not emitted)] contract:CABXBYJNZ7IUW4G3D6BND5YCAQF3ASSDMDAOKQQ63UYFSO7WUU2TIP5G, topics:[error, Error(Contract, #3221)], data:\"escalating error to VM trap from failed host function call: fail_with_error\"\n   6: [Failed Diagnostic Event (not emitted)] contract:CABXBYJNZ7IUW4G3D6BND5YCAQF3ASSDMDAOKQQ63UYFSO7WUU2TIP5G, topics:[error, Error(Contract, #3221)], data:[\"failing with contract error\", 3221]\n   7: [Failed Diagnostic Event (not emitted)] contract:CD4B4YAP7BCINBT6CKGA3ADE2IOBUAGMH5NZGL2XTQGHTCLF2V4UA753, topics:[fn_call, CABXBYJNZ7IUW4G3D6BND5YCAQF3ASSDMDAOKQQ63UYFSO7WUU2TIP5G, enforce], data:[[Contract, {args: [CD4B4YAP7BCINBT6CKGA3ADE2IOBUAGMH5NZGL2XTQGHTCLF2V4UA753, GCEM4WKCAWO6ZZAA7SSSTG4SQWLRAI36ZM45QT7QHCPO6SB5ZLVLDH4K, 1], contract: CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA, fn_name: transfer}], [[External, CAAVTMCBXEIBPR64EAASKFXERVPYFZA2JYP5A3BG6PESWEFUJX5IHKN4, Bytes(88ce5942059dece400fca5299b92859710237ecb39d84ff0389eef483dcaeab1)]], {context_type: [CallContract, CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA], id: 1, name: \"mcp-conn-1\", policies: [CABXBYJNZ7IUW4G3D6BND5YCAQF3ASSDMDAOKQQ63UYFSO7WUU2TIP5G], policy_ids: [0], signer_ids: [1], signers: [[External, CAAVTMCBXEIBPR64EAASKFXERVPYFZA2JYP5A3BG6PESWEFUJX5IHKN4, Bytes(88ce5942059dece400fca5299b92859710237ecb39d84ff0389eef483dcaeab1)]], valid_until: 5398354}, CD4B4YAP7BCINBT6CKGA3ADE2IOBUAGMH5NZGL2XTQGHTCLF2V4UA753]\n   8: [Failed Diagnostic Event (not emitted)] contract:CAAVTMCBXEIBPR64EAASKFXERVPYFZA2JYP5A3BG6PESWEFUJX5IHKN4, topics:[fn_return, verify], data:true\n   9: [Failed Diagnostic Event (not emitted)] contract:CD4B4YAP7BCINBT6CKGA3ADE2IOBUAGMH5NZGL2XTQGHTCLF2V4UA753, topics:[fn_call, CAAVTMCBXEIBPR64EAASKFXERVPYFZA2JYP5A3BG6PESWEFUJX5IHKN4, verify], data:[Bytes(9320157ee5534d1a2d10d6e844f6ec79e80ff1a979690240e0c0fcb98d2d8640), Bytes(88ce5942059dece400fca5299b92859710237ecb39d84ff0389eef483dcaeab1), Bytes(a07a2274af75e7e205528f2495a3b1dac3c5135319cc0",
+      "label": "transfer 1 by conn (rule 1)",
+      "timings": {
+        "recordSim": 171,
+        "sign": 3,
+        "enforceSim": 148
+      }
+    },
+    {
+      "step": "policy after boundary",
+      "at": "2026-10-25T11:49:49.055Z",
+      "ruleId": 1,
+      "ledger": 5381080,
+      "cached_total_spent": "50000000",
+      "period_ledgers": 18000,
+      "spending_history": [
+        {
+          "amount": "20000000",
+          "ledger_sequence": 5381077
+        },
+        {
+          "amount": "25000000",
+          "ledger_sequence": 5381079
+        },
+        {
+          "amount": "5000000",
+          "ledger_sequence": 5381080
+        }
+      ],
+      "spending_limit": "50000000"
+    },
+    {
+      "step": "claim5 owner 20 USDC (rule 0)",
+      "at": "2026-10-25T11:49:53.085Z",
+      "expected": "PASS",
+      "ok": true,
+      "label": "transfer 200000000 by owner (rule 0)",
+      "hash": "b1a8f6af32671a01d8d96a2f3f644ccb14949008be920ee34fb812fab135109f",
+      "maxFee": "27876",
+      "resourceFee": "26876",
+      "timings": {
+        "recordSim": 226,
+        "sign": 2,
+        "enforceSim": 177,
+        "sendToFinal": 3502
+      },
+      "explorer": "https://stellar.expert/explorer/testnet/tx/b1a8f6af32671a01d8d96a2f3f644ccb14949008be920ee34fb812fab135109f",
+      "status": "SUCCESS",
+      "ledger": 5381081,
+      "feeCharged": "20494",
+      "resultCode": "txSuccess",
+      "returnValue": null,
+      "credentialTypes": "sorobanCredentialsAddress"
+    },
+    {
+      "step": "policy after owner 20",
+      "at": "2026-10-25T11:49:53.638Z",
+      "ruleId": 1,
+      "ledger": 5381081,
+      "cached_total_spent": "50000000",
+      "period_ledgers": 18000,
+      "spending_history": [
+        {
+          "amount": "20000000",
+          "ledger_sequence": 5381077
+        },
+        {
+          "amount": "25000000",
+          "ledger_sequence": 5381079
+        },
+        {
+          "amount": "5000000",
+          "ledger_sequence": 5381080
+        }
+      ],
+      "spending_limit": "50000000"
+    },
+    {
+      "step": "claim5 unchanged",
+      "at": "2026-10-25T11:49:53.638Z",
+      "ok": true
+    },
+    {
+      "step": "neg: conn tries rule 0 (Default) for 1 USDC",
+      "at": "2026-10-25T11:49:54.191Z",
+      "expected": "REJECT",
+      "ok": true,
+      "stage": "enforce-simulate",
+      "contractError": "Error(Contract, #3002)",
+      "detail": "HostError: Error(Auth, InvalidAction)\n\nEvent log (newest first):\n   0: [Diagnostic Event] contract:CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA, topics:[error, Error(Auth, InvalidAction)], data:[\"failed account authentication with error\", CD4B4YAP7BCINBT6CKGA3ADE2IOBUAGMH5NZGL2XTQGHTCLF2V4UA753, Error(Contract, #3002)]\n   1: [Failed Diagnostic Event (not emitted)] contract:CD4B4YAP7BCINBT6CKGA3ADE2IOBUAGMH5NZGL2XTQGHTCLF2V4UA753, topics:[log], data:[\"VM call trapped with HostError\", __check_auth, Error(Contract, #3002)]\n   2: [Failed Diagnostic Event (not emitted)] contract:CD4B4YAP7BCINBT6CKGA3ADE2IOBUAGMH5NZGL2XTQGHTCLF2V4UA753, topics:[error, Error(Contract, #3002)], data:\"escalating error to VM trap from failed host function call: fail_with_error\"\n   3: [Failed Diagnostic Event (not emitted)] contract:CD4B4YAP7BCINBT6CKGA3ADE2IOBUAGMH5NZGL2XTQGHTCLF2V4UA753, topics:[error, Error(Contract, #3002)], data:[\"failing with contract error\", 3002]\n   4: [Diagnostic Event] contract:CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA, topics:[fn_call, CD4B4YAP7BCINBT6CKGA3ADE2IOBUAGMH5NZGL2XTQGHTCLF2V4UA753, __check_auth], data:[Bytes(367140dec6038dadbc13971279cce37cbaa2df632c5952409ca0c1ae2cdb10d3), {context_rule_ids: [0], signers: {[External, CAAVTMCBXEIBPR64EAASKFXERVPYFZA2JYP5A3BG6PESWEFUJX5IHKN4, Bytes(88ce5942059dece400fca5299b92859710237ecb39d84ff0389eef483dcaeab1)]: Bytes(0c7c47cc96f195656c47bb4681dbaf30907f33c5042b090b4db6e4b5fbee183ab2ad3d31c04c2ebc8543fed42e4805f2b2a9639417e6ee10c69449a0f5208c03)}}, [[Contract, {args: [CD4B4YAP7BCINBT6CKGA3ADE2IOBUAGMH5NZGL2XTQGHTCLF2V4UA753, GCEM4WKCAWO6ZZAA7SSSTG4SQWLRAI36ZM45QT7QHCPO6SB5ZLVLDH4K, 10000000], contract: CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA, fn_name: transfer}]]]\n   5: [Diagnostic Event] topics:[fn_call, CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA, transfer], data:[CD4B4YAP7BCINBT6CKGA3ADE2IOBUAGMH5NZGL2XTQGHTCLF2V4UA753, GCEM4WKCAWO6ZZAA7SSSTG4SQWLRAI36ZM45QT7QHCPO6SB5ZLVLDH4K, 10000000]\n",
+      "label": "transfer 10000000 by conn (rule 0)",
+      "timings": {
+        "recordSim": 134,
+        "sign": 2,
+        "enforceSim": 297
+      }
+    },
+    {
+      "step": "neg: conn tries an admin call (add_context_rule) under its rule",
+      "at": "2026-10-25T11:49:54.713Z",
+      "expected": "REJECT",
+      "ok": true,
+      "stage": "enforce-simulate",
+      "contractError": "Error(Contract, #3002)",
+      "detail": "HostError: Error(Auth, InvalidAction)\n\nEvent log (newest first):\n   0: [Diagnostic Event] contract:CD4B4YAP7BCINBT6CKGA3ADE2IOBUAGMH5NZGL2XTQGHTCLF2V4UA753, topics:[error, Error(Auth, InvalidAction)], data:\"escalating error to VM trap from failed host function call: require_auth\"\n   1: [Diagnostic Event] contract:CD4B4YAP7BCINBT6CKGA3ADE2IOBUAGMH5NZGL2XTQGHTCLF2V4UA753, topics:[error, Error(Auth, InvalidAction)], data:[\"failed account authentication with error\", CD4B4YAP7BCINBT6CKGA3ADE2IOBUAGMH5NZGL2XTQGHTCLF2V4UA753, Error(Contract, #3002)]\n   2: [Failed Diagnostic Event (not emitted)] contract:CD4B4YAP7BCINBT6CKGA3ADE2IOBUAGMH5NZGL2XTQGHTCLF2V4UA753, topics:[log], data:[\"VM call trapped with HostError\", __check_auth, Error(Contract, #3002)]\n   3: [Failed Diagnostic Event (not emitted)] contract:CD4B4YAP7BCINBT6CKGA3ADE2IOBUAGMH5NZGL2XTQGHTCLF2V4UA753, topics:[error, Error(Contract, #3002)], data:\"escalating error to VM trap from failed host function call: fail_with_error\"\n   4: [Failed Diagnostic Event (not emitted)] contract:CD4B4YAP7BCINBT6CKGA3ADE2IOBUAGMH5NZGL2XTQGHTCLF2V4UA753, topics:[error, Error(Contract, #3002)], data:[\"failing with contract error\", 3002]\n   5: [Diagnostic Event] contract:CD4B4YAP7BCINBT6CKGA3ADE2IOBUAGMH5NZGL2XTQGHTCLF2V4UA753, topics:[fn_call, CD4B4YAP7BCINBT6CKGA3ADE2IOBUAGMH5NZGL2XTQGHTCLF2V4UA753, __check_auth], data:[Bytes(edbd984546f0c57c2c6be03c8b8ba753864382722fca5b10ab29118c02f7402f), {context_rule_ids: [1], signers: {[External, CAAVTMCBXEIBPR64EAASKFXERVPYFZA2JYP5A3BG6PESWEFUJX5IHKN4, Bytes(88ce5942059dece400fca5299b92859710237ecb39d84ff0389eef483dcaeab1)]: Bytes(dafbfcd1d9d5a4515a189b419aabb571580d7e66c0f3d6e17a3c4b778be8310f91b75d0dd52d2d5824fc1db2f082ac0e4d9506f5c44f256460644f6dfe4e4603)}}, [[Contract, {args: [1, \"pwned\"], contract: CD4B4YAP7BCINBT6CKGA3ADE2IOBUAGMH5NZGL2XTQGHTCLF2V4UA753, fn_name: update_context_rule_name}]]]\n   6: [Diagnostic Event] topics:[fn_call, CD4B4YAP7BCINBT6CKGA3ADE2IOBUAGMH5NZGL2XTQGHTCLF2V4UA753, update_context_rule_name], data:[1, \"pwned\"]\n",
+      "label": "conn admin",
+      "timings": {
+        "recordSim": 207,
+        "sign": 1,
+        "enforceSim": 197
+      }
+    },
+    {
+      "step": "neg: conn tries USDC approve under its rule",
+      "at": "2026-10-25T11:49:55.314Z",
+      "expected": "REJECT",
+      "ok": true,
+      "stage": "enforce-simulate",
+      "contractError": "Error(Contract, #3223)",
+      "detail": "HostError: Error(Auth, InvalidAction)\n\nEvent log (newest first):\n   0: [Diagnostic Event] contract:CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA, topics:[error, Error(Auth, InvalidAction)], data:[\"failed account authentication with error\", CD4B4YAP7BCINBT6CKGA3ADE2IOBUAGMH5NZGL2XTQGHTCLF2V4UA753, Error(Contract, #3223)]\n   1: [Failed Diagnostic Event (not emitted)] contract:CD4B4YAP7BCINBT6CKGA3ADE2IOBUAGMH5NZGL2XTQGHTCLF2V4UA753, topics:[log], data:[\"VM call trapped with HostError\", __check_auth, Error(Contract, #3223)]\n   2: [Failed Diagnostic Event (not emitted)] contract:CD4B4YAP7BCINBT6CKGA3ADE2IOBUAGMH5NZGL2XTQGHTCLF2V4UA753, topics:[error, Error(Contract, #3223)], data:\"escalating error to VM trap from failed host function call: call\"\n   3: [Failed Diagnostic Event (not emitted)] contract:CD4B4YAP7BCINBT6CKGA3ADE2IOBUAGMH5NZGL2XTQGHTCLF2V4UA753, topics:[error, Error(Contract, #3223)], data:[\"contract call failed\", enforce, [[Contract, {args: [CD4B4YAP7BCINBT6CKGA3ADE2IOBUAGMH5NZGL2XTQGHTCLF2V4UA753, GDQC6YLG7NYPNKCGWXPTR3DZZZZNRSNCEUMOTYPTNRJMGSYW5LUZW4AG, 10000000, 5382081], contract: CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA, fn_name: approve}], [[External, CAAVTMCBXEIBPR64EAASKFXERVPYFZA2JYP5A3BG6PESWEFUJX5IHKN4, Bytes(88ce5942059dece400fca5299b92859710237ecb39d84ff0389eef483dcaeab1)]], {context_type: [CallContract, CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA], id: 1, name: \"mcp-conn-1\", policies: [CABXBYJNZ7IUW4G3D6BND5YCAQF3ASSDMDAOKQQ63UYFSO7WUU2TIP5G], policy_ids: [0], signer_ids: [1], signers: [[External, CAAVTMCBXEIBPR64EAASKFXERVPYFZA2JYP5A3BG6PESWEFUJX5IHKN4, Bytes(88ce5942059dece400fca5299b92859710237ecb39d84ff0389eef483dcaeab1)]], valid_until: 5398354}, CD4B4YAP7BCINBT6CKGA3ADE2IOBUAGMH5NZGL2XTQGHTCLF2V4UA753]]\n   4: [Failed Diagnostic Event (not emitted)] contract:CABXBYJNZ7IUW4G3D6BND5YCAQF3ASSDMDAOKQQ63UYFSO7WUU2TIP5G, topics:[log], data:[\"VM call trapped with HostError\", enforce, Error(Contract, #3223)]\n   5: [Failed Diagnostic Event (not emitted)] contract:CABXBYJNZ7IUW4G3D6BND5YCAQF3ASSDMDAOKQQ63UYFSO7WUU2TIP5G, topics:[error, Error(Contract, #3223)], data:\"escalating error to VM trap from failed host function call: fail_with_error\"\n   6: [Failed Diagnostic Event (not emitted)] contract:CABXBYJNZ7IUW4G3D6BND5YCAQF3ASSDMDAOKQQ63UYFSO7WUU2TIP5G, topics:[error, Error(Contract, #3223)], data:[\"failing with contract error\", 3223]\n   7: [Failed Diagnostic Event (not emitted)] contract:CD4B4YAP7BCINBT6CKGA3ADE2IOBUAGMH5NZGL2XTQGHTCLF2V4UA753, topics:[fn_call, CABXBYJNZ7IUW4G3D6BND5YCAQF3ASSDMDAOKQQ63UYFSO7WUU2TIP5G, enforce], data:[[Contract, {args: [CD4B4YAP7BCINBT6CKGA3ADE2IOBUAGMH5NZGL2XTQGHTCLF2V4UA753, GDQC6YLG7NYPNKCGWXPTR3DZZZZNRSNCEUMOTYPTNRJMGSYW5LUZW4AG, 10000000, 5382081], contract: CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA, fn_name: approve}], [[External, CAAVTMCBXEIBPR64EAASKFXERVPYFZA2JYP5A3BG6PESWEFUJX5IHKN4, Bytes(88ce5942059dece400fca5299b92859710237ecb39d84ff0389eef483dcaeab1)]], {context_type: [CallContract, CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA], id: 1, name: \"mcp-conn-1\", policies: [CABXBYJNZ7IUW4G3D6BND5YCAQF3ASSDMDAOKQQ63UYFSO7WUU2TIP5G], policy_ids: [0], signer_ids: [1], signers: [[External, CAAVTMCBXEIBPR64EAASKFXERVPYFZA2JYP5A3BG6PESWEFUJX5IHKN4, Bytes(88ce5942059dece400fca5299b92859710237ecb39d84ff0389eef483dcaeab1)]], valid_until: 5398354}, CD4B4YAP7BCINBT6CKGA3ADE2IOBUAGMH5NZGL2XTQGHTCLF2V4UA753]\n   8: [Failed Diagnostic Event (not emitted)] contract:CAAVTMCBXEIBPR64EAASKFXERVPYFZA2JYP5A3BG6PESWEFUJX5IHKN4, topics:[fn_return, verify], data:true\n   9: [Failed Diagnostic Event (not emitted)] contract:CD4B4YAP7BCINBT6CKGA3ADE2IOBUAGMH5NZGL2XTQGHTCLF2V4UA753, topics:[fn_call, CAAVTMCBXEIBPR64EAASKFXERVPYFZA2JYP5A3BG6PESWEFUJX5IHKN4, verify], data:[Bytes(e79bff035b0483e410cefed237ebe3a4b73c7b49949485c3de0e0b56cf4705cf), Bytes(88ce5942059dece400fca5299b92859710237ecb39d84ff0389eef483dcaeab1), Bytes(445ec0939e2a143",
+      "label": "conn approve",
+      "timings": {
+        "recordSim": 142,
+        "sign": 5,
+        "enforceSim": 154
+      }
+    },
+    {
+      "step": "claim4 add short rule",
+      "at": "2026-10-25T11:50:02.205Z",
+      "ok": true,
+      "validUntil": 5381141,
+      "period": 15,
+      "label": "add_context_rule short-lived",
+      "hash": "29caa034d8e1f1307e1240fe9f70e9681beb43e589f59c021890e86c7f0b2067",
+      "maxFee": "77420512",
+      "resourceFee": "77419512",
+      "timings": {
+        "recordSim": 154,
+        "sign": 3,
+        "enforceSim": 290,
+        "sendToFinal": 6187
+      },
+      "explorer": "https://stellar.expert/explorer/testnet/tx/29caa034d8e1f1307e1240fe9f70e9681beb43e589f59c021890e86c7f0b2067",
+      "status": "SUCCESS",
+      "ledger": 5381083,
+      "feeCharged": "67319438",
+      "resultCode": "txSuccess",
+      "returnValue": {
+        "context_type": [
+          "CallContract",
+          "CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA"
+        ],
+        "id": 2,
+        "name": "short-lived",
+        "policies": [
+          "CABXBYJNZ7IUW4G3D6BND5YCAQF3ASSDMDAOKQQ63UYFSO7WUU2TIP5G"
+        ],
+        "policy_ids": [
+          0
+        ],
+        "signer_ids": [
+          1
+        ],
+        "signers": [
+          [
+            "External",
+            "CAAVTMCBXEIBPR64EAASKFXERVPYFZA2JYP5A3BG6PESWEFUJX5IHKN4",
+            {
+              "type": "Buffer",
+              "data": [
+                136,
+                206,
+                89,
+                66,
+                5,
+                157,
+                236,
+                228,
+                0,
+                252,
+                165,
+                41,
+                155,
+                146,
+                133,
+                151,
+                16,
+                35,
+                126,
+                203,
+                57,
+                216,
+                79,
+                240,
+                56,
+                158,
+                239,
+                72,
+                61,
+                202,
+                234,
+                177
+              ]
+            }
+          ]
+        ],
+        "valid_until": 5381141
+      },
+      "credentialTypes": "sorobanCredentialsAddress",
+      "ruleId": 2
+    },
+    {
+      "step": "claim4 window: conn 1 USDC under short rule",
+      "at": "2026-10-25T11:50:07.528Z",
+      "expected": "PASS",
+      "ok": true,
+      "label": "transfer 10000000 by conn (rule 2)",
+      "hash": "29c68e3b75582dae21ea0c7eb39ef1d7570b928bbd54ea98a3e6169cc55b96a8",
+      "maxFee": "124774895",
+      "resourceFee": "124773895",
+      "timings": {
+        "recordSim": 230,
+        "sign": 1,
+        "enforceSim": 277,
+        "sendToFinal": 4647
+      },
+      "explorer": "https://stellar.expert/explorer/testnet/tx/29c68e3b75582dae21ea0c7eb39ef1d7570b928bbd54ea98a3e6169cc55b96a8",
+      "status": "SUCCESS",
+      "ledger": 5381084,
+      "feeCharged": "108496702",
+      "resultCode": "txSuccess",
+      "returnValue": null,
+      "credentialTypes": "sorobanCredentialsAddress"
+    },
+    {
+      "step": "policy short after 1",
+      "at": "2026-10-25T11:50:08.294Z",
+      "ruleId": 2,
+      "ledger": 5381084,
+      "cached_total_spent": "10000000",
+      "period_ledgers": 15,
+      "spending_history": [
+        {
+          "amount": "10000000",
+          "ledger_sequence": 5381084
+        }
+      ],
+      "spending_limit": "10000000"
+    },
+    {
+      "step": "claim4 window: conn 0.1 USDC within window (cum 1.1 > 1)",
+      "at": "2026-10-25T11:50:08.804Z",
+      "expected": "REJECT",
+      "ok": true,
+      "stage": "enforce-simulate",
+      "contractError": "Error(Contract, #3221)",
+      "detail": "HostError: Error(Auth, InvalidAction)\n\nEvent log (newest first):\n   0: [Diagnostic Event] contract:CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA, topics:[error, Error(Auth, InvalidAction)], data:[\"failed account authentication with error\", CD4B4YAP7BCINBT6CKGA3ADE2IOBUAGMH5NZGL2XTQGHTCLF2V4UA753, Error(Contract, #3221)]\n   1: [Failed Diagnostic Event (not emitted)] contract:CD4B4YAP7BCINBT6CKGA3ADE2IOBUAGMH5NZGL2XTQGHTCLF2V4UA753, topics:[log], data:[\"VM call trapped with HostError\", __check_auth, Error(Contract, #3221)]\n   2: [Failed Diagnostic Event (not emitted)] contract:CD4B4YAP7BCINBT6CKGA3ADE2IOBUAGMH5NZGL2XTQGHTCLF2V4UA753, topics:[error, Error(Contract, #3221)], data:\"escalating error to VM trap from failed host function call: call\"\n   3: [Failed Diagnostic Event (not emitted)] contract:CD4B4YAP7BCINBT6CKGA3ADE2IOBUAGMH5NZGL2XTQGHTCLF2V4UA753, topics:[error, Error(Contract, #3221)], data:[\"contract call failed\", enforce, [[Contract, {args: [CD4B4YAP7BCINBT6CKGA3ADE2IOBUAGMH5NZGL2XTQGHTCLF2V4UA753, GCEM4WKCAWO6ZZAA7SSSTG4SQWLRAI36ZM45QT7QHCPO6SB5ZLVLDH4K, 1000000], contract: CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA, fn_name: transfer}], [[External, CAAVTMCBXEIBPR64EAASKFXERVPYFZA2JYP5A3BG6PESWEFUJX5IHKN4, Bytes(88ce5942059dece400fca5299b92859710237ecb39d84ff0389eef483dcaeab1)]], {context_type: [CallContract, CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA], id: 2, name: \"short-lived\", policies: [CABXBYJNZ7IUW4G3D6BND5YCAQF3ASSDMDAOKQQ63UYFSO7WUU2TIP5G], policy_ids: [0], signer_ids: [1], signers: [[External, CAAVTMCBXEIBPR64EAASKFXERVPYFZA2JYP5A3BG6PESWEFUJX5IHKN4, Bytes(88ce5942059dece400fca5299b92859710237ecb39d84ff0389eef483dcaeab1)]], valid_until: 5381141}, CD4B4YAP7BCINBT6CKGA3ADE2IOBUAGMH5NZGL2XTQGHTCLF2V4UA753]]\n   4: [Failed Diagnostic Event (not emitted)] contract:CABXBYJNZ7IUW4G3D6BND5YCAQF3ASSDMDAOKQQ63UYFSO7WUU2TIP5G, topics:[log], data:[\"VM call trapped with HostError\", enforce, Error(Contract, #3221)]\n   5: [Failed Diagnostic Event (not emitted)] contract:CABXBYJNZ7IUW4G3D6BND5YCAQF3ASSDMDAOKQQ63UYFSO7WUU2TIP5G, topics:[error, Error(Contract, #3221)], data:\"escalating error to VM trap from failed host function call: fail_with_error\"\n   6: [Failed Diagnostic Event (not emitted)] contract:CABXBYJNZ7IUW4G3D6BND5YCAQF3ASSDMDAOKQQ63UYFSO7WUU2TIP5G, topics:[error, Error(Contract, #3221)], data:[\"failing with contract error\", 3221]\n   7: [Failed Diagnostic Event (not emitted)] contract:CD4B4YAP7BCINBT6CKGA3ADE2IOBUAGMH5NZGL2XTQGHTCLF2V4UA753, topics:[fn_call, CABXBYJNZ7IUW4G3D6BND5YCAQF3ASSDMDAOKQQ63UYFSO7WUU2TIP5G, enforce], data:[[Contract, {args: [CD4B4YAP7BCINBT6CKGA3ADE2IOBUAGMH5NZGL2XTQGHTCLF2V4UA753, GCEM4WKCAWO6ZZAA7SSSTG4SQWLRAI36ZM45QT7QHCPO6SB5ZLVLDH4K, 1000000], contract: CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA, fn_name: transfer}], [[External, CAAVTMCBXEIBPR64EAASKFXERVPYFZA2JYP5A3BG6PESWEFUJX5IHKN4, Bytes(88ce5942059dece400fca5299b92859710237ecb39d84ff0389eef483dcaeab1)]], {context_type: [CallContract, CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA], id: 2, name: \"short-lived\", policies: [CABXBYJNZ7IUW4G3D6BND5YCAQF3ASSDMDAOKQQ63UYFSO7WUU2TIP5G], policy_ids: [0], signer_ids: [1], signers: [[External, CAAVTMCBXEIBPR64EAASKFXERVPYFZA2JYP5A3BG6PESWEFUJX5IHKN4, Bytes(88ce5942059dece400fca5299b92859710237ecb39d84ff0389eef483dcaeab1)]], valid_until: 5381141}, CD4B4YAP7BCINBT6CKGA3ADE2IOBUAGMH5NZGL2XTQGHTCLF2V4UA753]\n   8: [Failed Diagnostic Event (not emitted)] contract:CAAVTMCBXEIBPR64EAASKFXERVPYFZA2JYP5A3BG6PESWEFUJX5IHKN4, topics:[fn_return, verify], data:true\n   9: [Failed Diagnostic Event (not emitted)] contract:CD4B4YAP7BCINBT6CKGA3ADE2IOBUAGMH5NZGL2XTQGHTCLF2V4UA753, topics:[fn_call, CAAVTMCBXEIBPR64EAASKFXERVPYFZA2JYP5A3BG6PESWEFUJX5IHKN4, verify], data:[Bytes(f557c1a47f8f084d508a138767ff6c680e560e9bb19234e778780b44589eae00), Bytes(88ce5942059dece400fca5299b92859710237ecb39d84ff0389eef483dcaeab1), Bytes(3ad6f413aa174d885f3d2354b7374ee",
+      "label": "transfer 1000000 by conn (rule 2)",
+      "timings": {
+        "recordSim": 146,
+        "sign": 2,
+        "enforceSim": 193
+      }
+    },
+    {
+      "step": "claim4 window edge: 0.5 USDC at ≈ spentAt+14 (sim ledger = latest+1)",
+      "at": "2026-10-25T11:51:20.131Z",
+      "expected": "REJECT",
+      "ok": true,
+      "stage": "enforce-simulate",
+      "contractError": "Error(Contract, #3221)",
+      "detail": "HostError: Error(Auth, InvalidAction)\n\nEvent log (newest first):\n   0: [Diagnostic Event] contract:CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA, topics:[error, Error(Auth, InvalidAction)], data:[\"failed account authentication with error\", CD4B4YAP7BCINBT6CKGA3ADE2IOBUAGMH5NZGL2XTQGHTCLF2V4UA753, Error(Contract, #3221)]\n   1: [Failed Diagnostic Event (not emitted)] contract:CD4B4YAP7BCINBT6CKGA3ADE2IOBUAGMH5NZGL2XTQGHTCLF2V4UA753, topics:[log], data:[\"VM call trapped with HostError\", __check_auth, Error(Contract, #3221)]\n   2: [Failed Diagnostic Event (not emitted)] contract:CD4B4YAP7BCINBT6CKGA3ADE2IOBUAGMH5NZGL2XTQGHTCLF2V4UA753, topics:[error, Error(Contract, #3221)], data:\"escalating error to VM trap from failed host function call: call\"\n   3: [Failed Diagnostic Event (not emitted)] contract:CD4B4YAP7BCINBT6CKGA3ADE2IOBUAGMH5NZGL2XTQGHTCLF2V4UA753, topics:[error, Error(Contract, #3221)], data:[\"contract call failed\", enforce, [[Contract, {args: [CD4B4YAP7BCINBT6CKGA3ADE2IOBUAGMH5NZGL2XTQGHTCLF2V4UA753, GCEM4WKCAWO6ZZAA7SSSTG4SQWLRAI36ZM45QT7QHCPO6SB5ZLVLDH4K, 5000000], contract: CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA, fn_name: transfer}], [[External, CAAVTMCBXEIBPR64EAASKFXERVPYFZA2JYP5A3BG6PESWEFUJX5IHKN4, Bytes(88ce5942059dece400fca5299b92859710237ecb39d84ff0389eef483dcaeab1)]], {context_type: [CallContract, CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA], id: 2, name: \"short-lived\", policies: [CABXBYJNZ7IUW4G3D6BND5YCAQF3ASSDMDAOKQQ63UYFSO7WUU2TIP5G], policy_ids: [0], signer_ids: [1], signers: [[External, CAAVTMCBXEIBPR64EAASKFXERVPYFZA2JYP5A3BG6PESWEFUJX5IHKN4, Bytes(88ce5942059dece400fca5299b92859710237ecb39d84ff0389eef483dcaeab1)]], valid_until: 5381141}, CD4B4YAP7BCINBT6CKGA3ADE2IOBUAGMH5NZGL2XTQGHTCLF2V4UA753]]\n   4: [Failed Diagnostic Event (not emitted)] contract:CABXBYJNZ7IUW4G3D6BND5YCAQF3ASSDMDAOKQQ63UYFSO7WUU2TIP5G, topics:[log], data:[\"VM call trapped with HostError\", enforce, Error(Contract, #3221)]\n   5: [Failed Diagnostic Event (not emitted)] contract:CABXBYJNZ7IUW4G3D6BND5YCAQF3ASSDMDAOKQQ63UYFSO7WUU2TIP5G, topics:[error, Error(Contract, #3221)], data:\"escalating error to VM trap from failed host function call: fail_with_error\"\n   6: [Failed Diagnostic Event (not emitted)] contract:CABXBYJNZ7IUW4G3D6BND5YCAQF3ASSDMDAOKQQ63UYFSO7WUU2TIP5G, topics:[error, Error(Contract, #3221)], data:[\"failing with contract error\", 3221]\n   7: [Failed Diagnostic Event (not emitted)] contract:CD4B4YAP7BCINBT6CKGA3ADE2IOBUAGMH5NZGL2XTQGHTCLF2V4UA753, topics:[fn_call, CABXBYJNZ7IUW4G3D6BND5YCAQF3ASSDMDAOKQQ63UYFSO7WUU2TIP5G, enforce], data:[[Contract, {args: [CD4B4YAP7BCINBT6CKGA3ADE2IOBUAGMH5NZGL2XTQGHTCLF2V4UA753, GCEM4WKCAWO6ZZAA7SSSTG4SQWLRAI36ZM45QT7QHCPO6SB5ZLVLDH4K, 5000000], contract: CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA, fn_name: transfer}], [[External, CAAVTMCBXEIBPR64EAASKFXERVPYFZA2JYP5A3BG6PESWEFUJX5IHKN4, Bytes(88ce5942059dece400fca5299b92859710237ecb39d84ff0389eef483dcaeab1)]], {context_type: [CallContract, CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA], id: 2, name: \"short-lived\", policies: [CABXBYJNZ7IUW4G3D6BND5YCAQF3ASSDMDAOKQQ63UYFSO7WUU2TIP5G], policy_ids: [0], signer_ids: [1], signers: [[External, CAAVTMCBXEIBPR64EAASKFXERVPYFZA2JYP5A3BG6PESWEFUJX5IHKN4, Bytes(88ce5942059dece400fca5299b92859710237ecb39d84ff0389eef483dcaeab1)]], valid_until: 5381141}, CD4B4YAP7BCINBT6CKGA3ADE2IOBUAGMH5NZGL2XTQGHTCLF2V4UA753]\n   8: [Failed Diagnostic Event (not emitted)] contract:CAAVTMCBXEIBPR64EAASKFXERVPYFZA2JYP5A3BG6PESWEFUJX5IHKN4, topics:[fn_return, verify], data:true\n   9: [Failed Diagnostic Event (not emitted)] contract:CD4B4YAP7BCINBT6CKGA3ADE2IOBUAGMH5NZGL2XTQGHTCLF2V4UA753, topics:[fn_call, CAAVTMCBXEIBPR64EAASKFXERVPYFZA2JYP5A3BG6PESWEFUJX5IHKN4, verify], data:[Bytes(18840e87960742a76812d5f3ff8cc0981913af03b7cb717fad51eb60ff6b9d38), Bytes(88ce5942059dece400fca5299b92859710237ecb39d84ff0389eef483dcaeab1), Bytes(cd0a4babdc99bc4bf3c428ae1cd1e7d",
+      "label": "transfer 5000000 by conn (rule 2)",
+      "timings": {
+        "recordSim": 137,
+        "sign": 4,
+        "enforceSim": 151
+      }
+    },
+    {
+      "step": "claim4 window: 0.5 USDC after the 1 USDC aged out",
+      "at": "2026-10-25T11:51:32.167Z",
+      "expected": "PASS",
+      "ok": true,
+      "label": "transfer 5000000 by conn (rule 2)",
+      "hash": "9f989385e78e6e9dafd009bc8317819de247ca7c6f1e9d87dad62a7a08e0b6ae",
+      "maxFee": "31676",
+      "resourceFee": "30676",
+      "timings": {
+        "recordSim": 181,
+        "sign": 2,
+        "enforceSim": 421,
+        "sendToFinal": 2543
+      },
+      "explorer": "https://stellar.expert/explorer/testnet/tx/9f989385e78e6e9dafd009bc8317819de247ca7c6f1e9d87dad62a7a08e0b6ae",
+      "status": "SUCCESS",
+      "ledger": 5381101,
+      "feeCharged": "24102",
+      "resultCode": "txSuccess",
+      "returnValue": null,
+      "credentialTypes": "sorobanCredentialsAddress"
+    },
+    {
+      "step": "policy short after aging",
+      "at": "2026-10-25T11:51:32.683Z",
+      "ruleId": 2,
+      "ledger": 5381101,
+      "cached_total_spent": "5000000",
+      "period_ledgers": 15,
+      "spending_history": [
+        {
+          "amount": "5000000",
+          "ledger_sequence": 5381101
+        }
+      ],
+      "spending_limit": "10000000"
+    },
+    {
+      "step": "claim4 expiry: conn 0.1 USDC after valid_until",
+      "at": "2026-10-25T11:54:58.981Z",
+      "expected": "REJECT",
+      "ok": true,
+      "stage": "enforce-simulate",
+      "contractError": "Error(Contract, #3002)",
+      "detail": "HostError: Error(Auth, InvalidAction)\n\nEvent log (newest first):\n   0: [Diagnostic Event] contract:CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA, topics:[error, Error(Auth, InvalidAction)], data:[\"failed account authentication with error\", CD4B4YAP7BCINBT6CKGA3ADE2IOBUAGMH5NZGL2XTQGHTCLF2V4UA753, Error(Contract, #3002)]\n   1: [Failed Diagnostic Event (not emitted)] contract:CD4B4YAP7BCINBT6CKGA3ADE2IOBUAGMH5NZGL2XTQGHTCLF2V4UA753, topics:[log], data:[\"VM call trapped with HostError\", __check_auth, Error(Contract, #3002)]\n   2: [Failed Diagnostic Event (not emitted)] contract:CD4B4YAP7BCINBT6CKGA3ADE2IOBUAGMH5NZGL2XTQGHTCLF2V4UA753, topics:[error, Error(Contract, #3002)], data:\"escalating error to VM trap from failed host function call: fail_with_error\"\n   3: [Failed Diagnostic Event (not emitted)] contract:CD4B4YAP7BCINBT6CKGA3ADE2IOBUAGMH5NZGL2XTQGHTCLF2V4UA753, topics:[error, Error(Contract, #3002)], data:[\"failing with contract error\", 3002]\n   4: [Diagnostic Event] contract:CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA, topics:[fn_call, CD4B4YAP7BCINBT6CKGA3ADE2IOBUAGMH5NZGL2XTQGHTCLF2V4UA753, __check_auth], data:[Bytes(8b4b84f79a3aae825b44ce795893c07cf87fe9dfb056a950c0ff71ef09ae0b54), {context_rule_ids: [2], signers: {[External, CAAVTMCBXEIBPR64EAASKFXERVPYFZA2JYP5A3BG6PESWEFUJX5IHKN4, Bytes(88ce5942059dece400fca5299b92859710237ecb39d84ff0389eef483dcaeab1)]: Bytes(0e2626c7251e195f65d7a35da4c2b639cf1c8c17cbf067ada325a9840493bc6865d17a2c9a04643f25c0d524098375c45382de523cfc76dd9cb39ea87b645b0c)}}, [[Contract, {args: [CD4B4YAP7BCINBT6CKGA3ADE2IOBUAGMH5NZGL2XTQGHTCLF2V4UA753, GCEM4WKCAWO6ZZAA7SSSTG4SQWLRAI36ZM45QT7QHCPO6SB5ZLVLDH4K, 1000000], contract: CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA, fn_name: transfer}]]]\n   5: [Diagnostic Event] topics:[fn_call, CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA, transfer], data:[CD4B4YAP7BCINBT6CKGA3ADE2IOBUAGMH5NZGL2XTQGHTCLF2V4UA753, GCEM4WKCAWO6ZZAA7SSSTG4SQWLRAI36ZM45QT7QHCPO6SB5ZLVLDH4K, 1000000]\n",
+      "label": "transfer 1000000 by conn (rule 2)",
+      "timings": {
+        "recordSim": 198,
+        "sign": 8,
+        "enforceSim": 211
+      }
+    },
+    {
+      "step": "claim4 owner removes rule 1",
+      "at": "2026-10-25T11:55:03.035Z",
+      "expected": "PASS",
+      "ok": true,
+      "label": "remove_context_rule 1",
+      "hash": "152285dd648a624a95467d0d93190a440e923872b8e3722f4959b96c0f9184c6",
+      "maxFee": "31916",
+      "resourceFee": "30916",
+      "timings": {
+        "recordSim": 223,
+        "sign": 6,
+        "enforceSim": 509,
+        "sendToFinal": 2515
+      },
+      "explorer": "https://stellar.expert/explorer/testnet/tx/152285dd648a624a95467d0d93190a440e923872b8e3722f4959b96c0f9184c6",
+      "status": "SUCCESS",
+      "ledger": 5381143,
+      "feeCharged": "24486",
+      "resultCode": "txSuccess",
+      "returnValue": null,
+      "credentialTypes": "sorobanCredentialsAddress"
+    },
+    {
+      "step": "claim4 revoke: conn 0.1 USDC under removed rule",
+      "at": "2026-10-25T11:55:03.471Z",
+      "expected": "REJECT",
+      "ok": true,
+      "stage": "enforce-simulate",
+      "contractError": "Error(Contract, #3000)",
+      "detail": "HostError: Error(Auth, InvalidAction)\n\nEvent log (newest first):\n   0: [Diagnostic Event] contract:CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA, topics:[error, Error(Auth, InvalidAction)], data:[\"failed account authentication with error\", CD4B4YAP7BCINBT6CKGA3ADE2IOBUAGMH5NZGL2XTQGHTCLF2V4UA753, Error(Contract, #3000)]\n   1: [Failed Diagnostic Event (not emitted)] contract:CD4B4YAP7BCINBT6CKGA3ADE2IOBUAGMH5NZGL2XTQGHTCLF2V4UA753, topics:[log], data:[\"VM call trapped with HostError\", __check_auth, Error(Contract, #3000)]\n   2: [Failed Diagnostic Event (not emitted)] contract:CD4B4YAP7BCINBT6CKGA3ADE2IOBUAGMH5NZGL2XTQGHTCLF2V4UA753, topics:[error, Error(Contract, #3000)], data:\"escalating error to VM trap from failed host function call: fail_with_error\"\n   3: [Failed Diagnostic Event (not emitted)] contract:CD4B4YAP7BCINBT6CKGA3ADE2IOBUAGMH5NZGL2XTQGHTCLF2V4UA753, topics:[error, Error(Contract, #3000)], data:[\"failing with contract error\", 3000]\n   4: [Diagnostic Event] contract:CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA, topics:[fn_call, CD4B4YAP7BCINBT6CKGA3ADE2IOBUAGMH5NZGL2XTQGHTCLF2V4UA753, __check_auth], data:[Bytes(78e0f880003b1df4f7bd420308f435cce80e379787a679392dfb98d6b16f1ce2), {context_rule_ids: [1], signers: {[External, CAAVTMCBXEIBPR64EAASKFXERVPYFZA2JYP5A3BG6PESWEFUJX5IHKN4, Bytes(88ce5942059dece400fca5299b92859710237ecb39d84ff0389eef483dcaeab1)]: Bytes(4b16ed5fe74ff7ca53a84da259c5e03fdfacaad2fd99b240947cbf963b4d5fcc2d9fa81c16598299bcfa24fe61e62fb335d9032e45bd5579ee578f5da2308c07)}}, [[Contract, {args: [CD4B4YAP7BCINBT6CKGA3ADE2IOBUAGMH5NZGL2XTQGHTCLF2V4UA753, GCEM4WKCAWO6ZZAA7SSSTG4SQWLRAI36ZM45QT7QHCPO6SB5ZLVLDH4K, 1000000], contract: CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA, fn_name: transfer}]]]\n   5: [Diagnostic Event] topics:[fn_call, CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA, transfer], data:[CD4B4YAP7BCINBT6CKGA3ADE2IOBUAGMH5NZGL2XTQGHTCLF2V4UA753, GCEM4WKCAWO6ZZAA7SSSTG4SQWLRAI36ZM45QT7QHCPO6SB5ZLVLDH4K, 1000000]\n",
+      "label": "transfer 1000000 by conn (rule 1)",
+      "timings": {
+        "recordSim": 151,
+        "sign": 10,
+        "enforceSim": 152
+      }
+    },
+    {
+      "step": "claim4 revoke: conn 0.1 USDC under removed rule — forced onchain",
+      "at": "2026-10-25T11:55:07.445Z",
+      "expected": "REJECT",
+      "ok": true,
+      "stage": "onchain",
+      "contractError": "Error(Contract, #3000)",
+      "detail": "txFailed; invokeHostFunctionTrapped; Error(Contract, #3000) | Error(Auth, InvalidAction)",
+      "simError": "HostError: Error(Auth, InvalidAction)\n\nEvent log (newest first):\n   0: [Diagnostic Event] contract:CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA, topics:[error, Error(Auth, InvalidAction)], data:[\"failed account authentication with error\", CD4B4YAP7BCINBT6CKGA3ADE2IOBUAGMH5NZGL2XTQGHTCLF2V4UA753, Error(Contract, #3000)]\n   1: [Failed Diagnostic Event (not emitted)] contract:CD4B4YAP7BCINBT6CKGA3ADE2IOBUAGMH5NZGL2XTQGHTCLF2V4UA753, topics:[log], data:[\"VM call trapped with HostError\", __check_auth, Error(Contract, #3000)]\n   2: [Failed Diagnostic Event (not emitted)] contract:CD4B4YAP7BCINBT6CKGA3ADE2IOBUAGMH5NZGL2XTQGHTCLF2V4UA753, topics:[error, Error(Contract, #3000)], data:\"escalating error to VM trap from failed host function call: fail_with_error\"\n   3: [Failed Diagnostic Event (not emitted)] contract:CD4B4YAP7BCINBT6CKGA3ADE2IOBUAGMH5NZGL2XTQGHTCLF2V4UA753, topics:[error, Error(Contract, #3000)], data:[\"failing with contract error\", 3000]\n   4: [Diagnostic Event] contract:CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA, topics:[fn_call, CD4B4YAP7BCINBT6CKGA3ADE2IOBUAGMH5NZGL2XTQGHTCLF2V4UA753, __check_auth], data:[Bytes(72cec29610178b993e4e19e387b0457c1fe3e1154dd55b8b2a93088726343382), {context_rule_ids: [1], signers: {[External, CAAVTMCBXEIBPR64EAASKFXERVPYFZA2JYP5A3BG6PESWEFUJX5IHKN4, Bytes(88ce5942059dece400fca5299b92859710237ecb39d84ff0389eef483dcaeab1)]: Bytes(dc0f600a2f68359b7baf42a9174bfbafc35630fab89abbe42b4ffc07db29ddb6ae7aa54f60b97aaf6cc628b391403e447ef981d5d3985be77a649e201fd7df05)}}, [[Contract, {args: [CD4B4YAP7BCINBT6CKGA3ADE2IOBUAGMH5NZGL2XTQGHTCLF2V4UA753, GCEM4WKCAWO6ZZAA7SSSTG4SQWLRAI36ZM45QT7QHCPO6SB5ZLVLDH4K, 1000000], contract: CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA, fn_name: transfer}]]]\n   5: [Diagnostic Event] topics:[fn_call, CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA, transfer], data:[CD4B4YAP7BCINBT6CKGA3ADE2IOBUAGMH5NZGL2XTQGHTCLF2V4UA753, GCEM4WKCAWO6ZZAA7SSSTG4SQWLRAI36ZM45QT7QHCPO6SB5ZLVLDH4K, 1000000]\n",
+      "label": "transfer 1000000 by conn (rule 1)",
+      "hash": "bab838272b8c401cf065655d7675e764daa09d311ad6dfabb4a98449ddb57693",
+      "maxFee": "190189492",
+      "resourceFee": "95094246",
+      "timings": {
+        "recordSim": 138,
+        "sign": 1,
+        "enforceSim": 177,
+        "sendToFinal": 3515
+      },
+      "explorer": "https://stellar.expert/explorer/testnet/tx/bab838272b8c401cf065655d7675e764daa09d311ad6dfabb4a98449ddb57693",
+      "status": "FAILED",
+      "ledger": 5381144,
+      "feeCharged": "10710",
+      "resultCode": "txFailed",
+      "diagnostic": "txFailed; invokeHostFunctionTrapped; Error(Contract, #3000) | Error(Auth, InvalidAction)"
+    },
+    {
+      "step": "policy after removal",
+      "at": "2026-10-25T11:55:07.734Z",
+      "after": "error: simulate: HostError: Error(Contract, #3220)\n\nEvent log (newest first):\n   0: [Diagnostic Event] contract:CABXBYJNZ7IUW4G3D6BND5YCAQF3ASSDMDAOKQQ63UYFSO7WUU2TIP5G, topics:[error, Error(Contract, #3220)"
+    },
+    {
+      "step": "rule numbering",
+      "at": "2026-10-25T11:55:12.706Z",
+      "ok": true,
+      "countAfterRemove": 2,
+      "newRuleId": 3,
+      "countAfterAdd": 3,
+      "label": "add_context_rule mcp-conn-1-renewed",
+      "hash": "a97b9f72466ec4be9875090595e57c97066edb68482bd06960375bd5821d28bc",
+      "maxFee": "34133647",
+      "resourceFee": "34132647",
+      "timings": {
+        "recordSim": 167,
+        "sign": 4,
+        "enforceSim": 168,
+        "sendToFinal": 3562
+      },
+      "explorer": "https://stellar.expert/explorer/testnet/tx/a97b9f72466ec4be9875090595e57c97066edb68482bd06960375bd5821d28bc",
+      "status": "SUCCESS",
+      "ledger": 5381145,
+      "feeCharged": "29678497",
+      "resultCode": "txSuccess",
+      "returnValue": {
+        "context_type": [
+          "CallContract",
+          "CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA"
+        ],
+        "id": 3,
+        "name": "mcp-conn-1-renewed",
+        "policies": [
+          "CABXBYJNZ7IUW4G3D6BND5YCAQF3ASSDMDAOKQQ63UYFSO7WUU2TIP5G"
+        ],
+        "policy_ids": [
+          0
+        ],
+        "signer_ids": [
+          1
+        ],
+        "signers": [
+          [
+            "External",
+            "CAAVTMCBXEIBPR64EAASKFXERVPYFZA2JYP5A3BG6PESWEFUJX5IHKN4",
+            {
+              "type": "Buffer",
+              "data": [
+                136,
+                206,
+                89,
+                66,
+                5,
+                157,
+                236,
+                228,
+                0,
+                252,
+                165,
+                41,
+                155,
+                146,
+                133,
+                151,
+                16,
+                35,
+                126,
+                203,
+                57,
+                216,
+                79,
+                240,
+                56,
+                158,
+                239,
+                72,
+                61,
+                202,
+                234,
+                177
+              ]
+            }
+          ]
+        ],
+        "valid_until": 5398424
+      },
+      "credentialTypes": "sorobanCredentialsAddress",
+      "ruleId": 3
+    },
+    {
+      "step": "renewed grant: conn→pocket 0.5 USDC under rule 3",
+      "at": "2026-10-25T11:55:18.018Z",
+      "expected": "PASS",
+      "ok": true,
+      "label": "transfer 5000000 by conn (rule 3)",
+      "hash": "6c9893a1027f2c83ad7a1bae4f2f33cdbe18abd13b65ca3f607e49ea990791e6",
+      "maxFee": "129663065",
+      "resourceFee": "129662065",
+      "timings": {
+        "recordSim": 380,
+        "sign": 2,
+        "enforceSim": 172,
+        "sendToFinal": 4635
+      },
+      "explorer": "https://stellar.expert/explorer/testnet/tx/6c9893a1027f2c83ad7a1bae4f2f33cdbe18abd13b65ca3f607e49ea990791e6",
+      "status": "SUCCESS",
+      "ledger": 5381146,
+      "feeCharged": "112747294",
+      "resultCode": "txSuccess",
+      "returnValue": null,
+      "credentialTypes": "sorobanCredentialsAddress"
+    },
+    {
+      "step": "policy renewed after 0.5",
+      "at": "2026-10-25T11:55:18.650Z",
+      "ruleId": 3,
+      "ledger": 5381146,
+      "cached_total_spent": "5000000",
+      "period_ledgers": 18000,
+      "spending_history": [
+        {
+          "amount": "5000000",
+          "ledger_sequence": 5381146
+        }
+      ],
+      "spending_limit": "10000000"
+    }
+  ]
+}

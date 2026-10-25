@@ -63,8 +63,10 @@ async function hasTrust(kp: Keypair) {
 
 const names = ['SPONSOR', 'FUNDER', 'OWNER', 'CONN', 'MERCHANT'] as const
 const keys = Object.fromEntries(names.map(n => [n, key(n)])) as Record<(typeof names)[number], Keypair>
-for (const n of ['SPONSOR', 'FUNDER', 'MERCHANT'] as const) await friendbot(keys[n])
-for (const n of ['FUNDER', 'MERCHANT'] as const) {
+// CONN doubles as the connection's own classic "pocket" G account (same key as its smart-account rule signer):
+// the build pulls grant money into it and pays hosted x402 facilitators from it.
+for (const n of ['SPONSOR', 'FUNDER', 'MERCHANT', 'CONN'] as const) await friendbot(keys[n])
+for (const n of ['FUNDER', 'MERCHANT', 'CONN'] as const) {
   if (!(await hasTrust(keys[n])))
     await submit(keys[n], [Operation.changeTrust({ asset: usdc })], `${n} changeTrust USDC`)
 }

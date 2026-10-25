@@ -1,0 +1,24 @@
+passkey pubkey=04a3f60cb063d9e093ae9a1e8ad37d80e808ce5ea45c74e4f07e706dfaf8a836444f1fed15418551e013dd3db4a93e074d793430ff0185e5f76561660cd4c552a5 credId=ZgMMf13MQ03epDZhsFRS9g rpId=localhost
+      rule0={"context_type":["Default"],"id":0,"name":"multisig","policies":[],"policy_ids":[],"signer_ids":[0],"signers":[["External","CC7EKIHQP3TN4CARQDND6CEOY2UXLWWC2X5GHTD5NLAT7BG5GPZIOM3F",{"type":"Buffer","data":[4,163,246,12,176,99,217,224,147,174,154,30,138,211,125,128,232,8,206,94,164,92,116,228,240,126,112,109,250,248,168,54,68,79,31,237,21,65,133,81,224,19,221,61,180,169,62,7,77,121,52,48,255,1,133,229,247,101,97,102,12,212,197,82,165,102,3,12,127,93,204,67,77,222,164,54,97,176,84,82,246]}]],"valid_until":null}
+      approval-page wire payload: {"challenge":"J1fRWSkuyKwvIk3ZfFM5cSVGyzwKabpgrzHNHouJvyw","validUntilLedger":5381210,"authenticatorData":"SZYN5YgOjGh0NBcPZHZgW4_krrmihjLHmVzzuoMdl2MFAAAAAQ","clientDataJSON":"{\"type\":\"webauthn.get\",\"challenge\":\"J1fRWSkuyKwvIk3ZfFM5cSVGyzwKabpgrzHNHouJvyw\",\"origin\":\"http://localhost:5173\",\"crossOrigin\":false}","signatureDER":"MEUCIBvGyDTASBm22ZBF736CU-WkQFGUOcYkLG3b_99rIkxzAiEA89JsFrllFIkwsaCvz8_F55p9l3R06niyymom-gagWV8","sigDataXdrBase64":"AAAAEQAAAAEAAAADAAAADwAAABJhdXRoZW50aWNhdG9yX2RhdGEAAAAAAA0AAAAlSZYN5YgOjGh0NBcPZHZgW4/krrmihjLHmVzzuoMdl2MFAAAAAQAAAAAAAA8AAAALY2xpZW50X2RhdGEAAAAADQAAAIZ7InR5cGUiOiJ3ZWJhdXRobi5nZXQiLCJjaGFsbGVuZ2UiOiJKMWZSV1NrdXlLd3ZJazNaZkZNNWNTVkd5endLYWJwZ3J6SE5Ib3VKdnl3Iiwib3JpZ2luIjoiaHR0cDovL2xvY2FsaG9zdDo1MTczIiwiY3Jvc3NPcmlnaW4iOmZhbHNlfQAAAAAADwAAAAlzaWduYXR1cmUAAAAAAAANAAAAQBvGyDTASBm22ZBF736CU+WkQFGUOcYkLG3b/99rIkxzDC2T6Eaa63fPTl9QMDA6GCJpYzkyLSXSKU+jyPXCy/I="}
+      relayer sent an unrelated tx between prepare and finalize: cc8eb04a830f11781c9de020a023316a627b893db7d7def839eeb9c7a155378e
+PASS  claim6 passkey (rule 0) transfers 1 USDC to merchant
+      e5332a24a0a8cf29bd33157c70544a33d055b2b8b799b0859f5b398c5411d779 ledger=5381152 feeCharged=22449 resourceFee=28868 {"recordSim":153,"enforceSim":261,"sendToFinal":4723} sorobanCredentialsAddress
+      https://stellar.expert/explorer/testnet/tx/e5332a24a0a8cf29bd33157c70544a33d055b2b8b799b0859f5b398c5411d779
+REJ   claim6 neg: assertion over a different challenge
+      stage=enforce-simulate Error(Contract, #3114) HostError: Error(Auth, InvalidAction)
+REJ   claim6 neg: UV flag not set
+      stage=enforce-simulate Error(Contract, #3117) HostError: Error(Auth, InvalidAction)
+REJ   claim6 neg: signature from a different P-256 key
+      stage=enforce-simulate  HostError: Error(Auth, InvalidAction)
+PASS  claim6 passkey installs connection rule → id 2
+      744a928db9c48b894fe5535391d86bed36c1a413a43ba1fcfccdb34e882908ca ledger=5381153 feeCharged=69413969 resourceFee=79828044 {"recordSim":361,"sign":5,"enforceSim":177,"sendToFinal":2350} sorobanCredentialsAddress
+      https://stellar.expert/explorer/testnet/tx/744a928db9c48b894fe5535391d86bed36c1a413a43ba1fcfccdb34e882908ca
+PASS  claim6 conn pulls 0.5 USDC into pocket under rule 2
+      6abb717c2c568f16d0c9f0d799e823240d0a95dedeb3a46687d493f5cdd4ef79 ledger=5381154 feeCharged=112160473 resourceFee=128987222 {"recordSim":125,"sign":9,"enforceSim":142,"sendToFinal":4597} sorobanCredentialsAddress
+      https://stellar.expert/explorer/testnet/tx/6abb717c2c568f16d0c9f0d799e823240d0a95dedeb3a46687d493f5cdd4ef79
+      policy(rule 2) spent=0.5000000 limit=1.0000000 history=[{"amount":"5000000","ledger_sequence":5381154}]
+REJ   claim6 conn 0.6 USDC (cum 1.1 > 1)
+      stage=simulate Error(Contract, #10) HostError: Error(Contract, #10)
+      balances: C=0.0000000 pocket=8.0000000
+log → /home/kristjan/code/hack-meridian-2026/spikes/s1/out/webauthn-2026-10-25T11-55-59-352Z.json  (account CAMYLBER4PRTYFDYMOUP7PYPSRNN7ZKNFPEMU643LWK4E2EXOWYTN34J)

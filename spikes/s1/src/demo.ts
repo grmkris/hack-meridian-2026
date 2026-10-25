@@ -43,6 +43,8 @@ const funder = Keypair.fromSecret(env('FUNDER_SECRET'))
 const ownerKp = Keypair.fromSecret(env('OWNER_SECRET'))
 const connKp = Keypair.fromSecret(env('CONN_SECRET'))
 const merchant = Keypair.fromSecret(env('MERCHANT_SECRET')).publicKey()
+// The connection key's own classic G account ("pocket"): delegated pulls land here (see setup.ts).
+const pocket = connKp.publicKey()
 const owner = ed25519Signer(ownerKp, 'owner')
 const conn = ed25519Signer(connKp, 'conn')
 
@@ -105,7 +107,7 @@ const started = Date.now()
 let account = process.env.ACCOUNT_ID ?? ''
 try {
   console.log(
-    `sponsor=${sponsor.publicKey()} funder=${funder.publicKey()} owner=${ownerKp.publicKey()} conn=${connKp.publicKey()} merchant=${merchant}`,
+    `sponsor=${sponsor.publicKey()} funder=${funder.publicKey()} owner=${ownerKp.publicKey()} conn(=pocket G)=${connKp.publicKey()} merchant=${merchant}`,
   )
 
   // ---- Claim 1: deploy with Ed25519 owner in rule 0, sponsor pays; fund via SAC transfer ----
@@ -159,32 +161,32 @@ try {
 
   // ---- Is the enforce-mode re-simulation required? Submit with the record-mode footprint. ----
   await reject('resim-check: conn 2 USDC with record-mode footprint only (no enforce re-sim)', () =>
-    transferAs(sponsor, account, conn, ruleId, merchant, USDC(2), { skipEnforceSim: true }),
+    transferAs(sponsor, account, conn, ruleId, pocket, USDC(2), { skipEnforceSim: true }),
   )
 
   // ---- Claim 3: cumulative limit ----
-  await pass('claim3 conn 2 USDC (cum 2)', () => transferAs(sponsor, account, conn, ruleId, merchant, USDC(2)))
+  await pass('claim3 conn→pocket 2 USDC (cum 2)', () => transferAs(sponsor, account, conn, ruleId, pocket, USDC(2)))
   await spend('after 2', ruleId, account)
   const template = await footprintTemplate(sponsor, account, [conn], [ruleId], USDC_SAC, 'transfer', [
     addr(account),
-    addr(merchant),
+    addr(pocket),
     i128(1n),
   ])
-  await reject('claim3 conn 4 USDC (cum 6 > 5) — enforce simulation', () =>
-    transferAs(sponsor, account, conn, ruleId, merchant, USDC(4)),
+  await reject('claim3 conn→pocket 4 USDC (cum 6 > 5) — enforce simulation', () =>
+    transferAs(sponsor, account, conn, ruleId, pocket, USDC(4)),
   )
-  await reject('claim3 conn 4 USDC (cum 6 > 5) — forced onchain submission', () =>
-    transferAs(sponsor, account, conn, ruleId, merchant, USDC(4), { forceOnchainOnReject: template }),
+  await reject('claim3 conn→pocket 4 USDC (cum 6 > 5) — forced onchain submission', () =>
+    transferAs(sponsor, account, conn, ruleId, pocket, USDC(4), { forceOnchainOnReject: template }),
   )
   await spend('after rejected 4', ruleId, account)
-  await pass('claim3 conn 2.5 USDC (cum 4.5)', () => transferAs(sponsor, account, conn, ruleId, merchant, USDC(2.5)))
+  await pass('claim3 conn→pocket 2.5 USDC (cum 4.5)', () => transferAs(sponsor, account, conn, ruleId, pocket, USDC(2.5)))
   await spend('after 2.5', ruleId, account)
-  await reject('claim3 conn 1 USDC (cum 5.5 > 5)', () => transferAs(sponsor, account, conn, ruleId, merchant, USDC(1)))
+  await reject('claim3 conn→pocket 1 USDC (cum 5.5 > 5)', () => transferAs(sponsor, account, conn, ruleId, pocket, USDC(1)))
   await pass('claim3 boundary: conn 0.5 USDC (cum exactly 5.0)', () =>
-    transferAs(sponsor, account, conn, ruleId, merchant, USDC(0.5)),
+    transferAs(sponsor, account, conn, ruleId, pocket, USDC(0.5)),
   )
   await reject('claim3 boundary: conn 1 stroop (cum 5.0000001)', () =>
-    transferAs(sponsor, account, conn, ruleId, merchant, 1n),
+    transferAs(sponsor, account, conn, ruleId, pocket, 1n),
   )
   const beforeOwner = await spend('after boundary', ruleId, account)
 
@@ -197,7 +199,7 @@ try {
 
   // ---- Escalation negatives: the connection key cannot leave its lane ----
   await reject('neg: conn tries rule 0 (Default) for 1 USDC', () =>
-    transferAs(sponsor, account, conn, 0, merchant, USDC(1)),
+    transferAs(sponsor, account, conn, 0, pocket, USDC(1)),
   )
   await reject('neg: conn tries an admin call (add_context_rule) under its rule', () =>
     invokeAs(sponsor, account, [conn], [ruleId], account, 'update_context_rule_name', [u32(ruleId), str('pwned')], {
@@ -236,11 +238,11 @@ try {
   )
   record('claim4 add short rule', { ok: true, validUntil: n2 + 60, period: PERIOD, ...short })
   const s1 = await pass('claim4 window: conn 1 USDC under short rule', () =>
-    transferAs(sponsor, account, conn, short.ruleId, merchant, USDC(1)),
+    transferAs(sponsor, account, conn, short.ruleId, pocket, USDC(1)),
   )
   await spend('short after 1', short.ruleId, account)
   await reject('claim4 window: conn 0.1 USDC within window (cum 1.1 > 1)', () =>
-    transferAs(sponsor, account, conn, short.ruleId, merchant, USDC(0.1)),
+    transferAs(sponsor, account, conn, short.ruleId, pocket, USDC(0.1)),
   )
   // Eviction rule per source: entries with ledger_sequence <= now - period roll off.
   const spentAt = s1.ledger!
@@ -248,39 +250,59 @@ try {
   await waitForLedger(edge)
   console.log(`      ledger ${await latestLedger()} (spent at ${spentAt}, period ${PERIOD})`)
   await reject(`claim4 window edge: 0.5 USDC at ≈ spentAt+${PERIOD - 1} (sim ledger = latest+1)`, () =>
-    transferAs(sponsor, account, conn, short.ruleId, merchant, USDC(0.5)),
+    transferAs(sponsor, account, conn, short.ruleId, pocket, USDC(0.5)),
   ).catch(() => undefined)
   await waitForLedger(spentAt + PERIOD + 1)
   await pass('claim4 window: 0.5 USDC after the 1 USDC aged out', () =>
-    transferAs(sponsor, account, conn, short.ruleId, merchant, USDC(0.5)),
+    transferAs(sponsor, account, conn, short.ruleId, pocket, USDC(0.5)),
   )
   await spend('short after aging', short.ruleId, account)
   console.log(`      waiting for valid_until ${n2 + 60} to pass…`)
   await waitForLedger(n2 + 61)
   await reject('claim4 expiry: conn 0.1 USDC after valid_until', () =>
-    transferAs(sponsor, account, conn, short.ruleId, merchant, USDC(0.1)),
+    transferAs(sponsor, account, conn, short.ruleId, pocket, USDC(0.1)),
   )
 
   // ---- Claim 4b: revoke (remove rule) ----
   const revokeTemplate = await footprintTemplate(sponsor, account, [conn], [ruleId], USDC_SAC, 'transfer', [
     addr(account),
-    addr(merchant),
+    addr(pocket),
     i128(0n),
   ]).catch(() => template)
   await pass(`claim4 owner removes rule ${ruleId}`, () => removeRule(sponsor, account, owner, ruleId))
   await reject('claim4 revoke: conn 0.1 USDC under removed rule', () =>
-    transferAs(sponsor, account, conn, ruleId, merchant, USDC(0.1)),
+    transferAs(sponsor, account, conn, ruleId, pocket, USDC(0.1)),
   )
   await reject('claim4 revoke: conn 0.1 USDC under removed rule — forced onchain', () =>
-    transferAs(sponsor, account, conn, ruleId, merchant, USDC(0.1), { forceOnchainOnReject: revokeTemplate }),
+    transferAs(sponsor, account, conn, ruleId, pocket, USDC(0.1), { forceOnchainOnReject: revokeTemplate }),
   )
   const after = await readSpendingLimit(sponsor.publicKey(), account, ruleId).catch(
     (e: Error) => `error: ${e.message.slice(0, 200)}`,
   )
   console.log(`      policy data after removal: ${json(after)}`)
   record('policy after removal', { after })
+
+  // ---- Rule-id numbering after a removal: reused or monotonic? ----
+  const countAfterRemove = await view(sponsor.publicKey(), account, 'get_context_rules_count')
+  const again = await addConnectionRule(sponsor, account, owner, {
+    token: USDC_SAC,
+    connection: conn,
+    name: 'mcp-conn-1-renewed',
+    spendingLimit: USDC(1),
+    periodLedgers: LEDGERS_PER_DAY + 720,
+    validUntilLedger: (await latestLedger()) + LEDGERS_PER_DAY,
+  })
+  const countAfterAdd = await view(sponsor.publicKey(), account, 'get_context_rules_count')
   console.log(
-    `      final balances: C=${fmt(await tokenBalance(sponsor.publicKey(), account))} merchant=${fmt(await tokenBalance(sponsor.publicKey(), merchant))}`,
+    `PASS  rule numbering: count after removing rule ${ruleId} = ${countAfterRemove}; next add_context_rule → id ${again.ruleId}; count = ${countAfterAdd}\n      ${again.hash} feeCharged=${again.feeCharged} ${again.explorer}`,
+  )
+  record('rule numbering', { ok: true, countAfterRemove, newRuleId: again.ruleId, countAfterAdd, ...again })
+  await pass(`renewed grant: conn→pocket 0.5 USDC under rule ${again.ruleId}`, () =>
+    transferAs(sponsor, account, conn, again.ruleId, pocket, USDC(0.5)),
+  )
+  await spend('renewed after 0.5', again.ruleId, account)
+  console.log(
+    `      final balances: C=${fmt(await tokenBalance(sponsor.publicKey(), account))} merchant=${fmt(await tokenBalance(sponsor.publicKey(), merchant))} pocket=${fmt(await tokenBalance(sponsor.publicKey(), pocket))}`,
   )
 } finally {
   mkdirSync(join(import.meta.dir, '..', 'out'), { recursive: true })

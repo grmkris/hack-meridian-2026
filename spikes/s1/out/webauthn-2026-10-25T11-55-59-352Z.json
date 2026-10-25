@@ -1,0 +1,295 @@
+{
+  "account": "CAMYLBER4PRTYFDYMOUP7PYPSRNN7ZKNFPEMU643LWK4E2EXOWYTN34J",
+  "durationMs": 21819,
+  "log": [
+    {
+      "step": "rule0",
+      "rule0": {
+        "context_type": [
+          "Default"
+        ],
+        "id": 0,
+        "name": "multisig",
+        "policies": [],
+        "policy_ids": [],
+        "signer_ids": [
+          0
+        ],
+        "signers": [
+          [
+            "External",
+            "CC7EKIHQP3TN4CARQDND6CEOY2UXLWWC2X5GHTD5NLAT7BG5GPZIOM3F",
+            {
+              "type": "Buffer",
+              "data": [
+                4,
+                163,
+                246,
+                12,
+                176,
+                99,
+                217,
+                224,
+                147,
+                174,
+                154,
+                30,
+                138,
+                211,
+                125,
+                128,
+                232,
+                8,
+                206,
+                94,
+                164,
+                92,
+                116,
+                228,
+                240,
+                126,
+                112,
+                109,
+                250,
+                248,
+                168,
+                54,
+                68,
+                79,
+                31,
+                237,
+                21,
+                65,
+                133,
+                81,
+                224,
+                19,
+                221,
+                61,
+                180,
+                169,
+                62,
+                7,
+                77,
+                121,
+                52,
+                48,
+                255,
+                1,
+                133,
+                229,
+                247,
+                101,
+                97,
+                102,
+                12,
+                212,
+                197,
+                82,
+                165,
+                102,
+                3,
+                12,
+                127,
+                93,
+                204,
+                67,
+                77,
+                222,
+                164,
+                54,
+                97,
+                176,
+                84,
+                82,
+                246
+              ]
+            }
+          ]
+        ],
+        "valid_until": null
+      }
+    },
+    {
+      "step": "assertion wire shape",
+      "wire": {
+        "challenge": "J1fRWSkuyKwvIk3ZfFM5cSVGyzwKabpgrzHNHouJvyw",
+        "validUntilLedger": 5381210,
+        "authenticatorData": "SZYN5YgOjGh0NBcPZHZgW4_krrmihjLHmVzzuoMdl2MFAAAAAQ",
+        "clientDataJSON": "{\"type\":\"webauthn.get\",\"challenge\":\"J1fRWSkuyKwvIk3ZfFM5cSVGyzwKabpgrzHNHouJvyw\",\"origin\":\"http://localhost:5173\",\"crossOrigin\":false}",
+        "signatureDER": "MEUCIBvGyDTASBm22ZBF736CU-WkQFGUOcYkLG3b_99rIkxzAiEA89JsFrllFIkwsaCvz8_F55p9l3R06niyymom-gagWV8",
+        "sigDataXdrBase64": "AAAAEQAAAAEAAAADAAAADwAAABJhdXRoZW50aWNhdG9yX2RhdGEAAAAAAA0AAAAlSZYN5YgOjGh0NBcPZHZgW4/krrmihjLHmVzzuoMdl2MFAAAAAQAAAAAAAA8AAAALY2xpZW50X2RhdGEAAAAADQAAAIZ7InR5cGUiOiJ3ZWJhdXRobi5nZXQiLCJjaGFsbGVuZ2UiOiJKMWZSV1NrdXlLd3ZJazNaZkZNNWNTVkd5endLYWJwZ3J6SE5Ib3VKdnl3Iiwib3JpZ2luIjoiaHR0cDovL2xvY2FsaG9zdDo1MTczIiwiY3Jvc3NPcmlnaW4iOmZhbHNlfQAAAAAADwAAAAlzaWduYXR1cmUAAAAAAAANAAAAQBvGyDTASBm22ZBF736CU+WkQFGUOcYkLG3b/99rIkxzDC2T6Eaa63fPTl9QMDA6GCJpYzkyLSXSKU+jyPXCy/I="
+      }
+    },
+    {
+      "step": "interleaved relayer tx",
+      "hash": "cc8eb04a830f11781c9de020a023316a627b893db7d7def839eeb9c7a155378e"
+    },
+    {
+      "step": "claim6 passkey (rule 0) transfers 1 USDC to merchant",
+      "ok": true,
+      "label": "passkey transfer 1 USDC",
+      "hash": "e5332a24a0a8cf29bd33157c70544a33d055b2b8b799b0859f5b398c5411d779",
+      "maxFee": "29868",
+      "resourceFee": "28868",
+      "timings": {
+        "recordSim": 153,
+        "enforceSim": 261,
+        "sendToFinal": 4723
+      },
+      "explorer": "https://stellar.expert/explorer/testnet/tx/e5332a24a0a8cf29bd33157c70544a33d055b2b8b799b0859f5b398c5411d779",
+      "status": "SUCCESS",
+      "ledger": 5381152,
+      "feeCharged": "22449",
+      "resultCode": "txSuccess",
+      "returnValue": null,
+      "credentialTypes": "sorobanCredentialsAddress"
+    },
+    {
+      "step": "claim6 neg: assertion over a different challenge",
+      "expected": "REJECT",
+      "ok": true,
+      "stage": "enforce-simulate",
+      "contractError": "Error(Contract, #3114)",
+      "detail": "HostError: Error(Auth, InvalidAction)\n\nEvent log (newest first):\n   0: [Diagnostic Event] contract:CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA, topics:[error, Error(Auth, InvalidAction)], data:[\"failed account authentication with error\", CAMYLBER4PRTYFDYMOUP7PYPSRNN7ZKNFPEMU643LWK4E2EXOWYTN34J, Error(Contract, #3114)]\n   1: [Failed Diagnostic Event (not emitted)] contract:CAMYLBER4PRTYFDYMOUP7PYPSRNN7ZKNFPEMU643LWK4E2EXOWYTN34J, topics:[log], data:[\"VM call trapped with HostError\", __check_auth, Error(Contract, #3114)]\n   2: [Failed Diagnostic Event (not emitted)] contract:CAMYLBER4PRTYFDYMOUP7PYPSRNN7ZKNFPEMU643LWK4E2EXOWYTN34J, topics:[error, Error(Contract, #3114)], data:\"escalating error to VM trap from failed host function call: call\"\n   3: [Failed Diagnostic Event (not emitted)] contract:CAMYLBER4PRTYFDYMOUP7PYPSRNN7ZKNFPEMU643LWK4E2EXOWYTN34J, topics:[error, Error(Contract, #3114)], data:[\"contract call failed\", verify, [Bytes(19df95d7e6f105cd3e41d196da79fd816111e5a7d86a454dcbd485e1e839ec37), Bytes(04a3f60cb063d9e093ae9a1e8ad37d80e808ce5ea45c74e4f07e706dfaf8a836444f1fed15418551e013dd3db4a93e074d793430ff0185e5f76561660cd4c552a566030c7f5dcc434ddea43661b05452f6), Bytes(0000001100000001000000030000000f0000001261757468656e74696361746f725f6461746100000000000d0000002549960de5880e8c687434170f6476605b8fe4aeb9a28632c7995cf3ba831d976305000000020000000000000f0000000b636c69656e745f64617461000000000d000000867b2274797065223a22776562617574686e2e676574222c226368616c6c656e6765223a224e2d7735364f4746314d744e52577259702d555259594839656471573055452d7a5158783574655633786b222c226f726967696e223a22687474703a2f2f6c6f63616c686f73743a35313733222c2263726f73734f726967696e223a66616c73657d00000000000f000000097369676e61747572650000000000000d00000040f0b28cab95b857d94e9839e691c37b3e7b6d0c2c497a2de4189d460ffc87acc0391300c78584ff5043a6c0cb99194bf681492c04fd165762adf6b8071bfbfd8d)]]\n   4: [Failed Diagnostic Event (not emitted)] contract:CC7EKIHQP3TN4CARQDND6CEOY2UXLWWC2X5GHTD5NLAT7BG5GPZIOM3F, topics:[log], data:[\"VM call trapped with HostError\", verify, Error(Contract, #3114)]\n   5: [Failed Diagnostic Event (not emitted)] contract:CC7EKIHQP3TN4CARQDND6CEOY2UXLWWC2X5GHTD5NLAT7BG5GPZIOM3F, topics:[error, Error(Contract, #3114)], data:\"escalating error to VM trap from failed host function call: fail_with_error\"\n   6: [Failed Diagnostic Event (not emitted)] contract:CC7EKIHQP3TN4CARQDND6CEOY2UXLWWC2X5GHTD5NLAT7BG5GPZIOM3F, topics:[error, Error(Contract, #3114)], data:[\"failing with contract error\", 3114]\n   7: [Failed Diagnostic Event (not emitted)] contract:CAMYLBER4PRTYFDYMOUP7PYPSRNN7ZKNFPEMU643LWK4E2EXOWYTN34J, topics:[fn_call, CC7EKIHQP3TN4CARQDND6CEOY2UXLWWC2X5GHTD5NLAT7BG5GPZIOM3F, verify], data:[Bytes(19df95d7e6f105cd3e41d196da79fd816111e5a7d86a454dcbd485e1e839ec37), Bytes(04a3f60cb063d9e093ae9a1e8ad37d80e808ce5ea45c74e4f07e706dfaf8a836444f1fed15418551e013dd3db4a93e074d793430ff0185e5f76561660cd4c552a566030c7f5dcc434ddea43661b05452f6), Bytes(0000001100000001000"
+    },
+    {
+      "step": "claim6 neg: UV flag not set",
+      "expected": "REJECT",
+      "ok": true,
+      "stage": "enforce-simulate",
+      "contractError": "Error(Contract, #3117)",
+      "detail": "HostError: Error(Auth, InvalidAction)\n\nEvent log (newest first):\n   0: [Diagnostic Event] contract:CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA, topics:[error, Error(Auth, InvalidAction)], data:[\"failed account authentication with error\", CAMYLBER4PRTYFDYMOUP7PYPSRNN7ZKNFPEMU643LWK4E2EXOWYTN34J, Error(Contract, #3117)]\n   1: [Failed Diagnostic Event (not emitted)] contract:CAMYLBER4PRTYFDYMOUP7PYPSRNN7ZKNFPEMU643LWK4E2EXOWYTN34J, topics:[log], data:[\"VM call trapped with HostError\", __check_auth, Error(Contract, #3117)]\n   2: [Failed Diagnostic Event (not emitted)] contract:CAMYLBER4PRTYFDYMOUP7PYPSRNN7ZKNFPEMU643LWK4E2EXOWYTN34J, topics:[error, Error(Contract, #3117)], data:\"escalating error to VM trap from failed host function call: call\"\n   3: [Failed Diagnostic Event (not emitted)] contract:CAMYLBER4PRTYFDYMOUP7PYPSRNN7ZKNFPEMU643LWK4E2EXOWYTN34J, topics:[error, Error(Contract, #3117)], data:[\"contract call failed\", verify, [Bytes(d51dc71962a75911c4646f1fe92a79c86680c3067d190fa7c8b6bb2ad7a4e2a2), Bytes(04a3f60cb063d9e093ae9a1e8ad37d80e808ce5ea45c74e4f07e706dfaf8a836444f1fed15418551e013dd3db4a93e074d793430ff0185e5f76561660cd4c552a566030c7f5dcc434ddea43661b05452f6), Bytes(0000001100000001000000030000000f0000001261757468656e74696361746f725f6461746100000000000d0000002549960de5880e8c687434170f6476605b8fe4aeb9a28632c7995cf3ba831d976301000000030000000000000f0000000b636c69656e745f64617461000000000d000000867b2274797065223a22776562617574686e2e676574222c226368616c6c656e6765223a223152334847574b6e575248455a473866365370357947614177775a3947512d6e794c61374b74656b347149222c226f726967696e223a22687474703a2f2f6c6f63616c686f73743a35313733222c2263726f73734f726967696e223a66616c73657d00000000000f000000097369676e61747572650000000000000d00000040a6c42a545d6a9463e22c6c467d8320d983ed2662fe5368d10592e46cad74098827c8c44a90d1c04730dc36f4284d6264819315bae1149873d40ebc3a314e8895)]]\n   4: [Failed Diagnostic Event (not emitted)] contract:CC7EKIHQP3TN4CARQDND6CEOY2UXLWWC2X5GHTD5NLAT7BG5GPZIOM3F, topics:[log], data:[\"VM call trapped with HostError\", verify, Error(Contract, #3117)]\n   5: [Failed Diagnostic Event (not emitted)] contract:CC7EKIHQP3TN4CARQDND6CEOY2UXLWWC2X5GHTD5NLAT7BG5GPZIOM3F, topics:[error, Error(Contract, #3117)], data:\"escalating error to VM trap from failed host function call: fail_with_error\"\n   6: [Failed Diagnostic Event (not emitted)] contract:CC7EKIHQP3TN4CARQDND6CEOY2UXLWWC2X5GHTD5NLAT7BG5GPZIOM3F, topics:[error, Error(Contract, #3117)], data:[\"failing with contract error\", 3117]\n   7: [Failed Diagnostic Event (not emitted)] contract:CAMYLBER4PRTYFDYMOUP7PYPSRNN7ZKNFPEMU643LWK4E2EXOWYTN34J, topics:[fn_call, CC7EKIHQP3TN4CARQDND6CEOY2UXLWWC2X5GHTD5NLAT7BG5GPZIOM3F, verify], data:[Bytes(d51dc71962a75911c4646f1fe92a79c86680c3067d190fa7c8b6bb2ad7a4e2a2), Bytes(04a3f60cb063d9e093ae9a1e8ad37d80e808ce5ea45c74e4f07e706dfaf8a836444f1fed15418551e013dd3db4a93e074d793430ff0185e5f76561660cd4c552a566030c7f5dcc434ddea43661b05452f6), Bytes(0000001100000001000"
+    },
+    {
+      "step": "claim6 neg: signature from a different P-256 key",
+      "expected": "REJECT",
+      "ok": true,
+      "stage": "enforce-simulate",
+      "detail": "HostError: Error(Auth, InvalidAction)\n\nEvent log (newest first):\n   0: [Diagnostic Event] contract:CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA, topics:[error, Error(Auth, InvalidAction)], data:[\"failed account authentication with error\", CAMYLBER4PRTYFDYMOUP7PYPSRNN7ZKNFPEMU643LWK4E2EXOWYTN34J, Error(Crypto, InvalidInput)]\n   1: [Failed Diagnostic Event (not emitted)] contract:CAMYLBER4PRTYFDYMOUP7PYPSRNN7ZKNFPEMU643LWK4E2EXOWYTN34J, topics:[log], data:[\"VM call trapped with HostError\", __check_auth, Error(Crypto, InvalidInput)]\n   2: [Failed Diagnostic Event (not emitted)] contract:CAMYLBER4PRTYFDYMOUP7PYPSRNN7ZKNFPEMU643LWK4E2EXOWYTN34J, topics:[error, Error(Crypto, InvalidInput)], data:\"escalating error to VM trap from failed host function call: call\"\n   3: [Failed Diagnostic Event (not emitted)] contract:CAMYLBER4PRTYFDYMOUP7PYPSRNN7ZKNFPEMU643LWK4E2EXOWYTN34J, topics:[error, Error(Crypto, InvalidInput)], data:[\"contract call failed\", verify, [Bytes(64c765289a4f6c23c5d33daf4a45debbfa4ad35954274947d7f1ce7aba7fdcf3), Bytes(04a3f60cb063d9e093ae9a1e8ad37d80e808ce5ea45c74e4f07e706dfaf8a836444f1fed15418551e013dd3db4a93e074d793430ff0185e5f76561660cd4c552a566030c7f5dcc434ddea43661b05452f6), Bytes(0000001100000001000000030000000f0000001261757468656e74696361746f725f6461746100000000000d0000002549960de5880e8c687434170f6476605b8fe4aeb9a28632c7995cf3ba831d976305000000010000000000000f0000000b636c69656e745f64617461000000000d000000867b2274797065223a22776562617574686e2e676574222c226368616c6c656e6765223a225a4d646c4b4a705062435046307a3276536b5865755f704b30316c554a306c48315f484f6572705f33504d222c226f726967696e223a22687474703a2f2f6c6f63616c686f73743a35313733222c2263726f73734f726967696e223a66616c73657d00000000000f000000097369676e61747572650000000000000d00000040316817cbb89e35dc9c6ff12ef7bddd81d9e2b6eb0af7b05f84af7ac7bb0c0a7d3228e6c7a40e9c7c390a4b5a26550a6faaca4267a226a90fb46b364cc13ec4c0)]]\n   4: [Failed Diagnostic Event (not emitted)] contract:CC7EKIHQP3TN4CARQDND6CEOY2UXLWWC2X5GHTD5NLAT7BG5GPZIOM3F, topics:[log], data:[\"VM call trapped with HostError\", verify, Error(Crypto, InvalidInput)]\n   5: [Failed Diagnostic Event (not emitted)] contract:CC7EKIHQP3TN4CARQDND6CEOY2UXLWWC2X5GHTD5NLAT7BG5GPZIOM3F, topics:[error, Error(Crypto, InvalidInput)], data:\"escalating error to VM trap from failed host function call: verify_sig_ecdsa_secp256r1\"\n   6: [Failed Diagnostic Event (not emitted)] contract:CC7EKIHQP3TN4CARQDND6CEOY2UXLWWC2X5GHTD5NLAT7BG5GPZIOM3F, topics:[error, Error(Crypto, InvalidInput)], data:\"failed secp256r1 verification\"\n   7: [Failed Diagnostic Event (not emitted)] contract:CAMYLBER4PRTYFDYMOUP7PYPSRNN7ZKNFPEMU643LWK4E2EXOWYTN34J, topics:[fn_call, CC7EKIHQP3TN4CARQDND6CEOY2UXLWWC2X5GHTD5NLAT7BG5GPZIOM3F, verify], data:[Bytes(64c765289a4f6c23c5d33daf4a45debbfa4ad35954274947d7f1ce7aba7fdcf3), Bytes(04a3f60cb063d9e093ae9a1e8ad37d80e808ce5ea45c74e4f07e706dfaf8a836444f1fed15418551e013dd3db4a93e074d793430ff0185e5f76561660cd4c552a566030c7f5dcc434ddea4"
+    },
+    {
+      "step": "claim6 passkey installs connection rule → id 2",
+      "ok": true,
+      "label": "add_context_rule mcp-conn-passkey",
+      "hash": "744a928db9c48b894fe5535391d86bed36c1a413a43ba1fcfccdb34e882908ca",
+      "maxFee": "79829044",
+      "resourceFee": "79828044",
+      "timings": {
+        "recordSim": 361,
+        "sign": 5,
+        "enforceSim": 177,
+        "sendToFinal": 2350
+      },
+      "explorer": "https://stellar.expert/explorer/testnet/tx/744a928db9c48b894fe5535391d86bed36c1a413a43ba1fcfccdb34e882908ca",
+      "status": "SUCCESS",
+      "ledger": 5381153,
+      "feeCharged": "69413969",
+      "resultCode": "txSuccess",
+      "returnValue": {
+        "context_type": [
+          "CallContract",
+          "CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA"
+        ],
+        "id": 2,
+        "name": "mcp-conn-passkey",
+        "policies": [
+          "CABXBYJNZ7IUW4G3D6BND5YCAQF3ASSDMDAOKQQ63UYFSO7WUU2TIP5G"
+        ],
+        "policy_ids": [
+          0
+        ],
+        "signer_ids": [
+          1
+        ],
+        "signers": [
+          [
+            "External",
+            "CAAVTMCBXEIBPR64EAASKFXERVPYFZA2JYP5A3BG6PESWEFUJX5IHKN4",
+            {
+              "type": "Buffer",
+              "data": [
+                136,
+                206,
+                89,
+                66,
+                5,
+                157,
+                236,
+                228,
+                0,
+                252,
+                165,
+                41,
+                155,
+                146,
+                133,
+                151,
+                16,
+                35,
+                126,
+                203,
+                57,
+                216,
+                79,
+                240,
+                56,
+                158,
+                239,
+                72,
+                61,
+                202,
+                234,
+                177
+              ]
+            }
+          ]
+        ],
+        "valid_until": 5398432
+      },
+      "credentialTypes": "sorobanCredentialsAddress",
+      "ruleId": 2
+    },
+    {
+      "step": "claim6 conn pulls 0.5 USDC into pocket under rule 2",
+      "ok": true,
+      "label": "transfer 5000000 by conn (rule 2)",
+      "hash": "6abb717c2c568f16d0c9f0d799e823240d0a95dedeb3a46687d493f5cdd4ef79",
+      "maxFee": "128988222",
+      "resourceFee": "128987222",
+      "timings": {
+        "recordSim": 125,
+        "sign": 9,
+        "enforceSim": 142,
+        "sendToFinal": 4597
+      },
+      "explorer": "https://stellar.expert/explorer/testnet/tx/6abb717c2c568f16d0c9f0d799e823240d0a95dedeb3a46687d493f5cdd4ef79",
+      "status": "SUCCESS",
+      "ledger": 5381154,
+      "feeCharged": "112160473",
+      "resultCode": "txSuccess",
+      "returnValue": null,
+      "credentialTypes": "sorobanCredentialsAddress"
+    },
+    {
+      "step": "policy",
+      "cached_total_spent": "5000000",
+      "period_ledgers": 18000,
+      "spending_history": [
+        {
+          "amount": "5000000",
+          "ledger_sequence": 5381154
+        }
+      ],
+      "spending_limit": "10000000"
+    },
+    {
+      "step": "claim6 conn 0.6 USDC (cum 1.1 > 1)",
+      "expected": "REJECT",
+      "ok": true,
+      "stage": "simulate",
+      "contractError": "Error(Contract, #10)",
+      "detail": "HostError: Error(Contract, #10)\n\nEvent log (newest first):\n   0: [Diagnostic Event] contract:CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA, topics:[error, Error(Contract, #10)], data:[\"balance is not sufficient to spend\", {amount: 0, authorized: true, clawback: false}, 6000000]\n   1: [Diagnostic Event] topics:[fn_call, CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA, transfer], data:[CAMYLBER4PRTYFDYMOUP7PYPSRNN7ZKNFPEMU643LWK4E2EXOWYTN34J, GCEM4WKCAWO6ZZAA7SSSTG4SQWLRAI36ZM45QT7QHCPO6SB5ZLVLDH4K, 6000000]\n"
+    }
+  ]
+}

@@ -501,7 +501,10 @@ export async function finalizeInvocation(
   opts: { skipEnforceSim?: boolean; forceOnchainOnReject?: xdr.SorobanTransactionData } = {},
 ): Promise<TxReport> {
   const timings = prep.timings
-  const signed = buildTx(sponsor, prep.seq, Operation.invokeHostFunction({ func: prep.func, auth: signedEntries }))
+  // Re-read the sponsor sequence: an approval may be finalized minutes after prepare, and the auth entries
+  // do not bind the envelope (source, sequence, fee), so only the envelope is rebuilt.
+  const seq = (await server.getAccount(sponsor.publicKey())).sequenceNumber()
+  const signed = buildTx(sponsor, seq, Operation.invokeHostFunction({ func: prep.func, auth: signedEntries }))
   let tx: ReturnType<TransactionBuilder['build']>
   if (opts.skipEnforceSim) {
     // Deliberately wrong path (to prove re-simulation is required): record-mode footprint + signed auth.
