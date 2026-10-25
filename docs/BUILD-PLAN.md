@@ -216,3 +216,14 @@ vault test fix), then the optional `/sample` page.
 Public `/sample` run sr_0f181309 on the deployed Worker, 70 s, every step ok including Carol's claim (needs the nod, then
 paid in one transaction) and her reset afterwards; the visitor rate limit answered 429 with a retry time as designed.
 Evidence `evidence/sample/`. Landing verified by e6 at this release (9/9 viewport and theme shots). Deploy queue empty.
+
+## Status 17:15 UTC
+
+- Hand-over: session a3 (pitch, README, deck, video, submission) closes; a Fable session takes that seat from
+  `.local/brainstorm/HANDOFF.md` (with the orchestrator's section) and `FINALISATION.md`. b7 keeps deploys, domain,
+  mainnet and coordination.
+- Combined testnet deploy by `nod-mcp-apps-wallet` at 3330356 announced for 17:16 UTC (cards, events, requests, the
+  2026-07-28 lane, landing pass 2, a3's copy and og meta, the mainnet fixes); gate green with a local real-chain rehearsal
+  and a sample run. The domain cutover is a separate deploy right after it verifies (zone active 17:12 UTC).
+- W1 (user-definable autonomous line, default 1 USDC) starts now under a dedicated agent; it rides the next scheduled
+  deploy before the 04:00 freeze only if its gate is green.

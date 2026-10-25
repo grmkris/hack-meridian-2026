@@ -260,3 +260,7 @@ Show the explorer for two transactions (a delegated one and the owner-approved o
 - 2026-10-25 13:05 UTC, Kristjan: demo amounts are **5 USDC allowance, 20 USDC dinner, 5 USDC to Carol**, same on testnet
   and mainnet. Outflow from the video wallet is 28 USDC (1 USDC pocket pull, 2 to Alice, 20 to Bob, 5 to Carol); the pocket's
   0.90 leftover is swept back on revoke. Mainnet funding: ~50 XLM and ~30 USDC, all to our own accounts.
+- 2026-10-25 17:10 UTC, Kristjan: **the autonomous line is user-definable per allowance**, default 1 USDC. Within the
+  allowance, payments under the line go alone; at or above it the AI app asks for the nod. The chain still enforces the
+  total; the service enforces the line. Demo uses 1 (beats: brief 0.10 and Alice 0.50 alone; Bob 5, the repeat, 2 USDC and
+  Carol 1 need the nod). Work item W1; copy changes only after it is deployed.

@@ -80,3 +80,24 @@ The SHA must have passed on testnet: `heavy bun run check`, the automated rehear
   `ORIGIN=https://testnet.trynod.si` and `RP_ID=testnet.trynod.si` (not deleting them), then deploys.
 - After the cutover, wallets and Claude connectors made on workers.dev stop working (redirects drop bearer tokens):
   Kristjan re-adds the connector at `https://testnet.trynod.si/mcp` before recording.
+
+## Decisions 17:10 UTC (Kristjan, via the orchestrator)
+
+- **Full roster funded** (44 XLM + 30 USDC, `docs/mainnet-funding.md`) so every flow is tested on mainnet; the demo itself
+  is "just USDC and a clean UX". Onboarding and use on mainnet must work without friction: today that is Kristjan paying
+  USDC to the treasury `G…` and `scripts/demo/topup.ts` moving it into his `C…` wallet (classic wallets cannot pay a
+  contract address). The non-custodial pattern to adopt later is Nido's nidohq/nido#165: a sponsored burner `G…` per
+  wallet with a preauthorized sweep policy on the `C…`, permissionless sweep, teardown by merge (their policy is on
+  testnet, wiring in their PR #199).
+- **Autonomous line user-definable per allowance**, default 1 USDC; the demo uses 1 (work item W1 in the orchestrator's
+  plan; copy changes only after it is deployed).
+- **Account WASM on mainnet: open**, Kristjan wants the brainstorm. Facts: the same `1b5f4534…` build exists on mainnet and
+  is what Smart Account Kit targets; current OpenZeppelin `stellar-accounts` 0.8.0 (2026-10-20) has a new signing digest,
+  needs soroban-sdk ^28 (workspace is 29), ships no WASM, so verifiers and policy would be ours to build and deploy and
+  the signer rewritten: 4–6 h plus a new authority test; the advisory fixed in 0.7.3 concerns Delegated signers only,
+  never used here. Default: same WASM, disclosed, upgrade after the deadline.
+- **OpenZeppelin Channels as fee payer: later** (pays fees only; reserves, account creation and Alice's deploy still need
+  our ops account; its fee cap is below testnet's rent-driven costs today, fine on mainnet).
+- **`/sample` on mainnet: off by default**; enable only with cents-level amounts after the first real flow, if at all.
+- **Zone `trynod.si` active at 17:12 UTC.** The mainnet stage ships on `trynod.si` from its first deploy; the testnet
+  cutover to `testnet.trynod.si` happens tonight after the MCP-Apps combined deploy verifies.
