@@ -55,3 +55,14 @@ rehearsal or a recording is in flight. `scripts/stage.ts` appends `-dirty` to th
   `src/view/**`, `styles.css`, `scripts/{smoke,shots,site-e2e,stage,typecheck,contract}.ts`. e6 edits the `welcome.ts`
   views for the restyle. Open optional item: show the invite field up front when `/api/health` reports
   `invite_required` (mainnet only).
+
+## Stream "nod-mcp-apps-wallet" (session -14, Kristjan's go 16:00 UTC)
+
+Adds MCP Apps cards, MCP Events, payment requests and a 2026-07-28 MCP lane. Owns `apps/web/src/server/{mcp,mcp-tools,
+mcp-apps,mcp-modern,requests}.ts`, `server/events/**`, `server/cards/**`, `src/card/**`, `vite.cards.config.ts`,
+migrations `0004_events.sql` + `0005_requests.sql`, `plugins/nod/**`, `scripts/events-check.ts`; additive hunks in the
+shared service files, protocol and stellar packages, root `package.json` (cards scripts in `check`). No bindings, secrets,
+crons or route prefixes. Deploys testnet itself per this document, twice (~23:00 UTC and 05:00–07:00 UTC), announced 15
+minutes before; holds for a recording or a rehearsal; final deploy verified by 07:00 UTC, rollback = re-pin `4dd5d42`.
+Before each deploy: gate green, local real-chain rehearsal s1–s11 and sample tests; after: release, smoke 9/9, `/sample`
+run or testnet rehearsal with hashes.
