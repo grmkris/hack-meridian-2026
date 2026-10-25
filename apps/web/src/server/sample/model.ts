@@ -4,22 +4,22 @@
  */
 
 /**
- * The demo beats (docs/SPEC.md, decisions 2026-10-25 17:10 UTC), the same as the judge path: the allowance and its nod
- * line, the x402 price and Alice (below the line: alone), the dinner (at or above the line: needs the nod), the ask at
- * or above the line with plenty left, Carol through the claim link.
+ * The demo beats, the same as the judge path and sized to a 10 USDC wallet (one number, Kristjan 18:20 UTC: the
+ * allowance is the agent's total; past what is left, the owner's nod each time): the allowance, the x402 price and
+ * Alice (inside it: alone), the dinner (above the 2.90 left, so it needs the nod), the ask above what is left, Carol
+ * through the claim link (the owner's lane, because she cannot take USDC yet).
  */
 export const SAMPLE_AMOUNTS = {
   allowance: '5',
-  nodAbove: '1',
   brief: '0.10',
-  alice: '0.50',
+  alice: '2',
   dinner: '5',
-  aboveLine: '2',
+  tooMuch: '4',
   carol: '1',
-  /** At most 1.00 (pocket pull) + 0.50 + 5 + 1; the pocket's 0.90 comes back on revoke. */
-  runSpend: '7.50',
+  /** At most 1.00 (pocket pull) + 2 + 5 + 1; the pocket's 0.90 comes back on revoke. */
+  runSpend: '9',
   /** The treasury tops the demo wallet up to this before a run. */
-  walletFloor: '15',
+  walletFloor: '10',
 } as const
 
 /** Stream C's seller (apps/seller): a 0.10 USDC market brief behind x402 on Stellar testnet. */

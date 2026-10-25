@@ -13,13 +13,11 @@ export interface Target {
   readonly mcpPath: string
   readonly clientName: string
   readonly allowance: string
-  /** The nod line set on the consent page (W1): below it the AI app pays alone, at or above it asks. */
-  readonly nodAbove?: string
   /** What this server can do; steps that need a missing feature are skipped, not failed. */
   readonly features: ReadonlySet<'onchain' | 'x402' | 'autonomous' | 'claim' | 'fund'>
   /** Owner sign-in for the S4 stub (a shared dev password read from a gitignored file; never printed). */
   readonly passwordFile?: string
-  /** Top the new wallet up from the TREASURY to this many USDC (Kristjan's video wallet: 30; outflow 28). */
+  /** Top the new wallet up from the TREASURY to this many USDC (10; a run pays out at most 9: pull 1, 2, 5, 1). */
   readonly fundTo?: number
   /** What the agent says for each contact (`payment_prepare.recipient`). */
   readonly recipients: { readonly alice: string; readonly bob: string; readonly carol: string }
@@ -76,9 +74,8 @@ const service = (name: string, base: string): Target => ({
   mcpPath: '/mcp',
   clientName: `hm26 rehearse (${name})`,
   allowance: '5',
-  nodAbove: '1',
   features: new Set(['onchain', 'x402', 'autonomous', 'claim', 'fund']),
-  fundTo: 30,
+  fundTo: 10,
   recipients: { alice: 'Alice', bob: 'Bob', carol: 'Carol' },
   consent: [
     { do: 'goto', url: '{{auth_url}}' },
@@ -91,7 +88,8 @@ const service = (name: string, base: string): Target => ({
       value: '{{allowance}}',
       optional: true,
     },
-    { do: 'fill', selector: '[data-testid="nod-above"]', value: '{{nod_above}}', optional: true },
+    // W1's nod line, while a consent page still has one: at the allowance, so it never decides a lane (skipped when absent)
+    { do: 'fill', selector: '[data-testid="nod-above"]', value: '{{allowance}}', optional: true },
     { do: 'shot', name: 'consent' },
     { do: 'click', selector: '[data-testid="consent-allow"], button[value=approve]', timeoutMs: 120_000 },
   ],

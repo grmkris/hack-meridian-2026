@@ -141,8 +141,7 @@ describe('the /sample run on the fixture chain', () => {
     expect(run?.status).toBe('done')
     expect(states(run)).toEqual([
       '0:ok', // demo wallet created (passkey registration → deploy → welcome USDC)
-      '0:ok', // allowance installed by the soft passkey, pocket created
-      '0:ok', // treasury top-up to 15
+      '0:ok', // allowance installed by the soft passkey, pocket created (the 10 USDC welcome meets the floor: no top-up)
       '1:ok',
       '2:paid',
       '3:paid',
@@ -161,14 +160,13 @@ describe('the /sample run on the fixture chain', () => {
     expect(resets).toHaveLength(1)
     const line = (step: string, state: string) => run?.lines.find(l => l.step === step && l.state === state)
     expect(line('2', 'paid')?.amount).toBe('0.10 USDC')
-    // W1 beats: 0.10 and 0.50 go alone below the 1.00 line; 5 and 2 are at or above it and need the nod.
-    expect(line('3', 'paid')?.amount).toBe('0.50 USDC')
-    expect(line('3', 'paid')?.detail).toContain('4.40 USDC left')
-    expect(line('4', 'needs_nod')?.detail).toContain('At or above the 1.00 USDC nod line')
+    expect(line('3', 'paid')?.amount).toBe('2.00 USDC')
+    expect(line('3', 'paid')?.detail).toContain('2.90 USDC left')
+    expect(line('4', 'needs_nod')?.detail).toContain('More than the 2.90 USDC left')
     expect(line('5', 'nodded')?.amount).toBe('5.00 USDC')
-    expect(line('5', 'nodded')?.detail).toContain('4.40 USDC left')
-    expect(line('7', 'left_pending')?.amount).toBe('2.00 USDC')
-    expect(line('7', 'left_pending')?.detail).toContain('at or above the 1.00 USDC nod line, with 4.40 left')
+    expect(line('5', 'nodded')?.detail).toContain('2.90 USDC left')
+    expect(line('7', 'left_pending')?.amount).toBe('4.00 USDC')
+    expect(line('7', 'left_pending')?.detail).toContain('2.90')
     expect(line('9', 'refused')?.detail).toContain('revoked')
     expect(fixture.balanceOf(BOB)).toBe(toStroops('5'))
     expect(fixture.callsOf('payX402')).toHaveLength(1)

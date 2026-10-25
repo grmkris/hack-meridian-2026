@@ -86,13 +86,11 @@ export const toStroops = (decimal: string | undefined) => {
 const usdcString = (s: bigint) => `${s / 10_000_000n}.${(s % 10_000_000n).toString().padStart(7, '0')}`
 
 /**
- * Kristjan's demo beats (docs/SPEC.md, decisions 2026-10-25 17:10 UTC; same on testnet and mainnet): allowance 5 with the
- * nod line at 1 (the consent page's default), x402 0.10 and Alice 0.50 alone, Bob 5 needs the nod, the repeat, 2 USDC at
- * or above the line needs the nod, Carol 1 by claim link.
+ * Kristjan's demo beats (one number, 18:20 UTC; same on testnet and mainnet; sized to a 10 USDC wallet): allowance 5,
+ * x402 0.10 and Alice 2 alone, Bob 5 over the 2.90 left needs the nod, the repeat, 4 over what is left needs the nod,
+ * Carol 1 by claim link.
  */
-const ALICE = '0.50'
 const DINNER = '5'
-const ABOVE_LINE = '2'
 const CAROL = '1'
 
 const key = (ctx: Ctx, name: string) => `rh-${ctx.runId}-${name}`
@@ -262,23 +260,23 @@ export const STEPS: ReadonlyArray<Step> = [
   },
   {
     id: 's5',
-    title: 'Send Alice 0.50 USDC, below the nod line: payment_prepare → payment_execute',
+    title: 'Send Alice 2 USDC inside the allowance: payment_prepare → payment_execute',
     tests: [7, 9],
     needs: ['autonomous'],
     run: async ctx => {
       const before = need(ctx, 'remaining')
       const prepared = await ctx.call('payment_prepare', {
         recipient: ctx.to('alice'),
-        amount: ALICE,
+        amount: '2',
         reason: 'demo: pay a saved contact',
-        idempotency_key: key(ctx, 'alice-050'),
+        idempotency_key: key(ctx, 'alice-2'),
       })
       ctx.check(null, laneOf(prepared.data) === 'autonomous', `lane ${laneOf(prepared.data)}`)
       const id = paymentId(prepared.data)
       if (id === undefined) throw new Error('payment_prepare returned no payment_id')
       const alice = str(pick(prepared.data, 'recipient.address'))
       const aliceBefore = alice !== undefined ? await ctx.usdcOf(alice) : undefined
-      await ctx.call('payment_execute', { payment_id: id, idempotency_key: key(ctx, 'alice-050-exec') })
+      await ctx.call('payment_execute', { payment_id: id, idempotency_key: key(ctx, 'alice-2-exec') })
       const done = await ctx.waitConfirmed(id)
       const tx = receiptTx(done)
       ctx.check(
@@ -287,15 +285,15 @@ export const STEPS: ReadonlyArray<Step> = [
         `payment_status ${statusOf(done)} with receipt ${tx?.slice(0, 8)}`,
       )
       if (tx !== undefined) await settled(ctx, 7, 'payment to Alice inside the allowance', tx, 'relayer')
-      await credited(ctx, 7, alice, aliceBefore, toStroops(ALICE) ?? 0n, `Alice received ${ALICE}`)
+      await credited(ctx, 7, alice, aliceBefore, 20_000_000n, 'Alice received 2')
       const after = remaining(done)
-      allowanceMoved(ctx, 7, before, after, -(toStroops(ALICE) ?? 0n), 'delegated payment consumed the grant')
+      allowanceMoved(ctx, 7, before, after, -20_000_000n, 'delegated payment consumed the grant')
       if (after !== undefined) ctx.vars.set('remaining', after)
     },
   },
   {
     id: 's6',
-    title: 'Ask for 5 USDC to Bob for dinner → at or above the nod line, needs your nod (approval link)',
+    title: 'Ask for 5 USDC to Bob for dinner (2.90 left) → needs your nod (approval link)',
     tests: [4, 7],
     needs: [],
     run: async ctx => {
@@ -314,10 +312,6 @@ export const STEPS: ReadonlyArray<Step> = [
         `lane ${laneOf(prepared.data) ?? '-'}, status ${statusOf(prepared.data)}, approval_url ${url}`,
       )
       ctx.check(4, prepared.text.includes(url ?? '\u0000'), 'the approval link is in the tool result text too')
-      // the nod line (W1) is the wallet service's; the S4 stub has none
-      const why = str(pick(prepared.data, 'approval_reason'))
-      if (ctx.target.features.has('autonomous'))
-        ctx.check(4, why === 'above_nod_line', `approval_reason ${why ?? '-'} (5 is at or above the 1.00 line)`)
       const id = paymentId(prepared.data)
       if (id === undefined || url === undefined) throw new Error('no payment_id / approval_url')
       ctx.vars.set('dinner_id', id)
@@ -413,31 +407,32 @@ export const STEPS: ReadonlyArray<Step> = [
   },
   {
     id: 's8b',
-    title: 'Ask for 2 USDC with 4.40 left → at or above the nod line, needs your nod, never signed by the AI app',
+    title: 'Ask for 4 USDC with 2.90 left → needs your nod, not an onchain revert',
     tests: [2],
     needs: [],
     run: async ctx => {
       const before = ctx.vars.get('remaining')
-      // 2 USDC fits the 4.40 left after s4 + s5, but it is at or above the 1.00 nod line: the service asks the owner
+      // 4 USDC is above the 2.90 left after s4 + s5; if an earlier payment did not land, ask for 1 more than is left
+      const left = toStroops(before)
+      const ask = left !== undefined && left >= 40_000_000n ? usdcString(left + 10_000_000n) : '4'
+      if (ask !== '4') ctx.note(`allowance ${before} is not below 4 (an earlier step did not spend): asking ${ask}`)
       const out = await ctx.call('payment_prepare', {
         recipient: ctx.to('alice'),
-        amount: ABOVE_LINE,
-        reason: 'at or above the nod line',
-        idempotency_key: key(ctx, 'alice-above-line'),
+        amount: ask,
+        reason: 'more than the allowance left',
+        idempotency_key: key(ctx, 'alice-over'),
       })
-      const why = str(pick(out.data, 'approval_reason'))
-      const lined = !ctx.target.features.has('autonomous') || why === 'above_nod_line'
       ctx.check(
         2,
-        needsOwner(out.data) && approvalUrl(out.data) !== undefined && lined,
-        `${ABOVE_LINE} with ${before ?? '?'} left → lane ${laneOf(out.data) ?? '-'}, status ${statusOf(out.data)}, approval_reason ${why ?? '-'}`,
+        needsOwner(out.data) && approvalUrl(out.data) !== undefined,
+        `${ask} > ${before ?? '?'} → lane ${laneOf(out.data) ?? '-'}, status ${statusOf(out.data)}`,
       )
       if (ctx.tools().has('payment_execute')) {
         const id = paymentId(out.data)
         if (id !== undefined) {
           const refused = await ctx.call('payment_execute', {
             payment_id: id,
-            idempotency_key: key(ctx, 'alice-above-line-exec'),
+            idempotency_key: key(ctx, 'alice-over-exec'),
           })
           ctx.check(
             2,

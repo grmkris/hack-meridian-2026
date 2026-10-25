@@ -58,10 +58,10 @@ export const samplePage = (c: Chrome, view: { readonly unavailable: string | nul
     'reads the wallet: the balance and the allowance are two different numbers',
     `buys a market brief for ${SAMPLE_AMOUNTS.brief} USDC from a paid API over x402`,
     `pays Alice ${SAMPLE_AMOUNTS.alice} USDC on its own`,
-    `asks for ${SAMPLE_AMOUNTS.dinner} USDC to Bob for dinner: at or above the ${SAMPLE_AMOUNTS.nodAbove} USDC line, so it needs your nod`,
+    `asks for ${SAMPLE_AMOUNTS.dinner} USDC to Bob for dinner: more than the 2.90 left, so it needs your nod`,
     'the demo owner nods with its passkey and the agent gets the receipt',
     'repeats the dinner request: same receipt, nothing paid twice',
-    `asks for ${SAMPLE_AMOUNTS.aboveLine} USDC with 4.40 left: at or above the line, so it comes back to the owner instead of paying alone`,
+    `asks for ${SAMPLE_AMOUNTS.tooMuch} USDC with 2.90 left: it comes back to the owner instead of failing`,
     `sends Carol, who has never held USDC, ${SAMPLE_AMOUNTS.carol} USDC through a claim link (the run removes her trustline before and after, so every run onboards her for real)`,
     'the owner revokes the agent; its next payment is refused and the allowance is gone from Stellar',
   ]
@@ -73,7 +73,7 @@ export const samplePage = (c: Chrome, view: { readonly unavailable: string | nul
 <h1>Watch an AI app spend from an allowance</h1>
 <p>No Claude needed. Press the button and a sample agent runs Nod's demo on Stellar ${escape(c.network.toLowerCase())}, on our server, calling the same tools Claude calls over MCP. Every line below is a real transaction or a real answer from Nod.</p>
 <div class="card warn"><p><strong>This is Nod's own demo wallet.</strong> Its owner is a software passkey that the Nod service holds, so the service can nod for the owner in this demo. A real Nod wallet belongs to your own passkey (Face ID, fingerprint), which never leaves your device: nothing above the allowance moves without it.</p></div>
-<div class="card"><p>The sample agent gets an allowance of ${SAMPLE_AMOUNTS.allowance} USDC that pays alone below ${SAMPLE_AMOUNTS.nodAbove} USDC and asks for a nod at ${SAMPLE_AMOUNTS.nodAbove} USDC or more, then:</p><ol>${steps.map(text => `<li>${escape(text)}</li>`).join('')}</ol></div>
+<div class="card"><p>The sample agent gets an allowance of ${SAMPLE_AMOUNTS.allowance} USDC, then:</p><ol>${steps.map(text => `<li>${escape(text)}</li>`).join('')}</ol></div>
 <div class="row">${button}<span id="note" class="muted">${escape(view.unavailable ?? 'Takes a few minutes on testnet.')}</span></div>
 <ol id="log" aria-live="polite"></ol>
 <div class="card muted"><p>Nod pays the network fee for every transaction, never the wallet. Each run installs a new allowance (the last step revokes it), and at today's testnet rent (over 200 times normal) a new allowance and its first payment cost Nod tens of XLM, so runs are limited: one at a time, ${SAMPLE_LIMITS.perHour} an hour, one per visitor every ${SAMPLE_LIMITS.perVisitorMs / 60_000} minutes. Amounts and recipients are fixed; nothing you send reaches the chain.</p>
