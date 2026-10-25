@@ -407,6 +407,23 @@ try {
   )
   assert(afterRevoke.status === 401, 'revoked token → 401')
 
+  say('after RFC 7009 on the access token: does its refresh token still work?')
+  const refreshAfterRevoke = await raw(
+    'POST',
+    `${BASE}/oauth/token`,
+    {
+      headers: { 'content-type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        grant_type: 'refresh_token',
+        refresh_token: newTokens.refresh_token!,
+        client_id: provider.client!.client_id,
+      }),
+    },
+    'refresh after the access token was revoked',
+  )
+  results.refresh_after_access_token_revocation = refreshAfterRevoke.status
+  console.log(`   · refresh after RFC 7009 access-token revocation → ${refreshAfterRevoke.status}`)
+
   say('second connection (another DCR client): own connection_id and allowance, cannot see the first one’s payment')
   const providerB = new MemoryAuthProvider(redirect, 'Claude-like client (s4 e2e)')
   const paramsB = await authorize(providerB, '2.50', false)
@@ -492,6 +509,44 @@ try {
   )
   results.wrong_verifier = { status: badVerifier.status, body: await badVerifier.json() }
   assert(badVerifier.status === 400, 'wrong PKCE verifier refused')
+
+  say('owner revokes a connection on /connections → all of its tokens die (demo step 9)')
+  const providerD = new MemoryAuthProvider(redirect, 'Revoke target (s4 e2e)')
+  await authorize(providerD, '1.00', false)
+  const clientD = new Client({ name: 'revoke-target-s4', version: '0.0.1' })
+  await clientD.connect(new StreamableHTTPClientTransport(MCP_URL, { authProvider: providerD, fetch: sdkFetch }))
+  const overviewD = structured(await clientD.callTool({ name: 'wallet_overview', arguments: {} }))
+  const connectionD = (overviewD.connection as { id: string }).id
+  const tokensD = providerD.tokens()!
+  await page.goto(`${BASE}/connections`)
+  const listed = await page.locator('body').innerText()
+  assert(listed.includes('Revoke target (s4 e2e)'), 'connection D listed on /connections')
+  const formD = page.locator(`form:has(button[data-connection="${connectionD}"])`)
+  await formD.locator('input[name=password]').fill(PASSWORD!)
+  await formD.locator('button').click()
+  await shot(page, 'connections-revoked')
+  assert((await page.locator('body').innerText()).includes('Revoked Revoke target'), 'owner revoke confirmed')
+  const deadAccess = await raw(
+    'POST',
+    MCP_URL.href,
+    { headers: { ...mcpHeaders, authorization: `Bearer ${tokensD.access_token}` }, body: mcpBody },
+    'D access token after owner revoke',
+  )
+  assert(deadAccess.status === 401, 'D access token → 401 after owner revoke')
+  const deadRefresh = await raw(
+    'POST',
+    `${BASE}/oauth/token`,
+    {
+      headers: { 'content-type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        grant_type: 'refresh_token',
+        refresh_token: tokensD.refresh_token!,
+        client_id: providerD.client!.client_id,
+      }),
+    },
+    'D refresh after owner revoke',
+  )
+  assert(deadRefresh.status === 400, 'D refresh token → 400 after owner revoke')
 
   results.verdict = 'PASS'
   console.log('\nPASS')

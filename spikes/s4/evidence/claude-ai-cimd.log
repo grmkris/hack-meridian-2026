@@ -1,0 +1,7 @@
+GET /authorize (client_id=https://claude.ai/oauth/mcp-oauth-client-metadata) → 200
+consent h1: Connect Claude to your wallet?
+consent says "Published by claude.ai": true; tokens to claude.ai: true
+POST /authorize → 302 Location https://claude.ai/api/mcp/auth_callback (state matches: true, iss=https://hm26-s4-mcp.kristjan-grm11775.workers.dev)
+POST /oauth/token (public client, no secret) → 200 token_type=bearer scope=wallet offline_access expires_in=3600
+POST /mcp initialize → 200 protocolVersion=2025-06-18
+POST /mcp tools/call wallet_overview → 200 connection.client_name=Claude

@@ -3,7 +3,7 @@ import { AuthorizationError, CimdFetchError, OAuthProvider } from '@cloudflare/w
 import type { ConnectionProps, Env } from './env.ts'
 import { durableKv } from './kv-shim.ts'
 import { mcpHandler } from './mcp.ts'
-import { approvalPage, consentPage, escape, html, messagePage } from './pages.ts'
+import { approvalPage, type ConnectionRow, connectionsPage, consentPage, escape, html, messagePage } from './pages.ts'
 import { ledger, statusOf } from './payments.ts'
 import { probe } from './probe.ts'
 
@@ -84,7 +84,14 @@ async function authorize(request: Request, env: Env): Promise<Response> {
     const { redirectTo } = await oauth.completeAuthorization({
       request: approved.request,
       userId: OWNER_ID,
-      metadata: { connection_id: props.connection_id, client_name: props.client_name, grant_id: props.grant.grant_id },
+      // metadata is stored in clear (props are encrypted with the token): just enough to list and revoke connections.
+      metadata: {
+        connection_id: props.connection_id,
+        client_name: props.client_name,
+        grant_id: props.grant.grant_id,
+        allowance: props.grant.allowance,
+        valid_until: props.grant.valid_until,
+      },
       scope,
       props,
       revokeExistingGrants: false,
@@ -115,12 +122,54 @@ async function approve(request: Request, env: Env, paymentId: string): Promise<R
   return html(approvalPage(result, statusOf(result)))
 }
 
+async function connectionRows(env: Env): Promise<(ConnectionRow & { oauth_grant_id: string })[]> {
+  const rows: (ConnectionRow & { oauth_grant_id: string })[] = []
+  let cursor: string | undefined
+  do {
+    const page = await env.OAUTH_PROVIDER.listUserGrants(OWNER_ID, cursor === undefined ? {} : { cursor })
+    for (const grant of page.items) {
+      const meta = (grant.metadata ?? {}) as Partial<ConnectionRow>
+      rows.push({
+        oauth_grant_id: grant.id,
+        grant_id: meta.grant_id ?? '?',
+        connection_id: meta.connection_id ?? grant.id,
+        client_name: meta.client_name ?? grant.clientId,
+        allowance: meta.allowance ?? '?',
+        valid_until: meta.valid_until ?? '?',
+        created_at: new Date(grant.createdAt * 1000).toISOString(),
+      })
+    }
+    cursor = page.cursor
+  } while (cursor !== undefined)
+  return rows
+}
+
+/** Owner site stand-in: list connections; revoking one revokes its OAuth grant, so every token it holds dies. */
+async function connections(request: Request, env: Env, path: string): Promise<Response> {
+  if (path === '/connections' && request.method === 'GET') return html(connectionsPage(await connectionRows(env)))
+  if (path === '/connections/revoke' && request.method === 'POST') {
+    const form = await request.formData()
+    if (!(await passwordOk(env, form.get('password'))))
+      return html(messagePage('Wrong password', 'Go back and try again.'), { status: 401 })
+    const target = String(form.get('connection_id') ?? '')
+    const row = (await connectionRows(env)).find(r => r.connection_id === target)
+    if (row === undefined) return html(messagePage('Not found', `No connection ${target}`), { status: 404 })
+    await env.OAUTH_PROVIDER.revokeGrant(row.oauth_grant_id, OWNER_ID)
+    return html(
+      connectionsPage(await connectionRows(env), `Revoked ${row.client_name} (connection ${target.slice(0, 8)}).`),
+    )
+  }
+  return new Response('Method Not Allowed', { status: 405 })
+}
+
 const defaultHandler = {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url)
     if (url.pathname === '/authorize') return authorize(request, env)
     const approval = /^\/approve\/(pi_[0-9a-f]{24})$/u.exec(url.pathname)
     if (approval) return approve(request, env, approval[1]!)
+    if (url.pathname === '/connections' || url.pathname === '/connections/revoke')
+      return connections(request, env, url.pathname)
     if (url.pathname === '/api/probe') return probe(url)
     if (url.pathname === '/api/health') return Response.json({ ok: true, worker: 'hm26-s4-mcp' })
     if (url.pathname === '/')

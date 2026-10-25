@@ -92,6 +92,32 @@ ${
   )
 }
 
+export interface ConnectionRow {
+  grant_id: string
+  connection_id: string
+  client_name: string
+  allowance: string
+  valid_until: string
+  created_at: string
+}
+
+/** The owner's connections (one per OAuth grant) with a Revoke button each. */
+export function connectionsPage(rows: ConnectionRow[], notice?: string): string {
+  const items = rows
+    .map(
+      row => `<div class="card"><p><strong>${escape(row.client_name)}</strong> <span class="muted">connection ${escape(row.connection_id.slice(0, 8))} · since ${escape(row.created_at)}</span></p>
+<p>Allowance ${escape(row.allowance)} USDC until ${escape(row.valid_until)}</p>
+<form method="post" action="/connections/revoke"><input type="hidden" name="connection_id" value="${escape(row.connection_id)}">
+<input type="password" name="password" placeholder="Owner sign-in (dev password)" required>
+<p><button name="decision" value="revoke" data-connection="${escape(row.connection_id)}">Revoke</button></p></form></div>`,
+    )
+    .join('')
+  return page(
+    'Connections',
+    `<h1>Connections</h1>${notice ? `<p class="card">${escape(notice)}</p>` : ''}${items || '<p class="muted">No active connections.</p>'}`,
+  )
+}
+
 export const messagePage = (title: string, message: string) =>
   page(title, `<h1>${escape(title)}</h1><p>${escape(message)}</p>`)
 

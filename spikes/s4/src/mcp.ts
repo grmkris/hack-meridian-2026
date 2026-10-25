@@ -155,6 +155,26 @@ export const mcpHandler = {
     if (request.method !== 'POST')
       return new Response('Method Not Allowed', { status: 405, headers: { Allow: 'POST' } })
     const origin = new URL(request.url).origin
+    // Evidence: what each host declares (protocol version, capabilities such as elicitation) — visible in `wrangler tail`.
+    const body: unknown = await request
+      .clone()
+      .json()
+      .catch(() => undefined)
+    for (const message of Array.isArray(body) ? body : [body]) {
+      const m = message as { method?: string; params?: Record<string, unknown> } | undefined
+      if (m?.method === 'initialize')
+        console.log(
+          JSON.stringify({
+            initialize: {
+              protocolVersion: m.params?.protocolVersion,
+              clientInfo: m.params?.clientInfo,
+              capabilities: m.params?.capabilities,
+            },
+            client_name: ctx.props.client_name,
+            accept: request.headers.get('accept'),
+          }),
+        )
+    }
     const server = buildServer(env, ctx.props, origin)
     const transport = new WebStandardStreamableHTTPServerTransport({
       sessionIdGenerator: undefined,

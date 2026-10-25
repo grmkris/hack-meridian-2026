@@ -1,0 +1,2 @@
+{"initialize":{"protocolVersion":"2025-11-25","clientInfo":{"name":"claude-code","title":"Claude Code","version":"2.1.310","description":"Anthropic's agentic coding tool","websiteUrl":"https://claude.com/claude-code"},"capabilities":{"roots":{"listChanged":true},"elicitation":{"form":{},"url":{}}}},"client_name":"Claude Code","accept":"application/json, text/event-stream"}
+{"initialize":{"protocolVersion":"2025-06-18","clientInfo":{"name":"claude-ai-replay","version":"0"},"capabilities":{}},"client_name":"Claude","accept":"application/json, text/event-stream"}
