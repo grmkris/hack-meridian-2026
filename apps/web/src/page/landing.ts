@@ -317,7 +317,13 @@ const tryItView = <Message>(connectorUrl: string, h: HtmlBuilder<Message>): Html
           ...Array.map(TRY_IT.steps, step => h.li([], [step])),
         ],
       ),
-      h.p([h.Class('landing-sample')], [TRY_IT.sampleLead, h.a([h.Href(TRY_IT.sampleHref)], [TRY_IT.sample])]),
+      h.div(
+        [h.Class('landing-sample')],
+        [
+          h.p([], [TRY_IT.sampleLead, h.a([h.Href(TRY_IT.sampleHref)], [TRY_IT.sample])]),
+          h.p([h.Class('landing-sample-note')], [TRY_IT.sampleNote]),
+        ],
+      ),
     ],
     h,
   )

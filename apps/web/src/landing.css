@@ -178,6 +178,9 @@
     color: var(--starlight-muted);
   }
   .landing-bar-link {
+    display: inline-flex;
+    min-height: 2.75rem;
+    align-items: center;
     margin-inline-start: auto;
     font-size: 0.9375rem;
     font-weight: 500;
@@ -321,7 +324,7 @@
       transform 120ms var(--ease-out);
   }
   .landing-button:active:not(:disabled) {
-    transform: scale(0.97);
+    transform: scale(0.96);
   }
   .landing-button:disabled {
     cursor: not-allowed;
@@ -778,6 +781,8 @@
     text-wrap: pretty;
   }
   .landing-ledger-tx {
+    /* Inline padding widens the tap target to about 44px without moving the row. */
+    padding-block: 0.625rem;
     font-family: var(--font-code);
     font-size: 0.875rem;
     color: var(--link);
@@ -858,8 +863,20 @@
     text-wrap: pretty;
   }
   .landing-sample {
-    margin: 0;
+    display: flex;
+    max-width: 44rem;
+    flex-direction: column;
+    gap: 0.375rem;
     font-size: 1.0625rem;
+    color: var(--ink);
+  }
+  .landing-sample p {
+    margin: 0;
+    text-wrap: pretty;
+  }
+  .landing-sample-note {
+    font-size: 0.9375rem;
+    line-height: 1.55;
     color: var(--muted);
   }
   .landing-sample a,
@@ -941,7 +958,7 @@
       animation: nod-meter 1650ms var(--ease-out) 1150ms both;
     }
     .nod-asked {
-      animation: nod-hold 1900ms var(--ease-out) 3200ms both;
+      animation: nod-hold 2200ms var(--ease-out) 2900ms both;
     }
     .nod-row-asked .nod-paid {
       animation: nod-figure-in 280ms var(--ease-out) 5100ms both;
