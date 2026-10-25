@@ -1,0 +1,5 @@
+[facilitator:oz] supported #1 520 ms {"kinds":[{"x402Version":2,"scheme":"exact","network":"stellar:testnet","extra":{"areFeesSponsored":true}}],"extensions":[],"signers":{"stellar:testnet":["GCNJB6V5YIODDSSCWXZ2VOKMRPRVZ2V723RRQS6STXE6NWTGVOJY35CN"]}}
+[mcp-seller] oz facilitator, http://127.0.0.1:4052/mcp payTo GCEKVZO7QV5AC6JLDNWXEYQQ7CS5DSWRDCK3VEQWXGHI6XJN3F4UOANH
+[facilitator:oz] verify #1 410 ms {"isValid":true,"payer":"GCEM4WKCAWO6ZZAA7SSSTG4SQWLRAI36ZM45QT7QHCPO6SB5ZLVLDH4K"}
+[facilitator:oz] settle #1 6605 ms {"success":true,"payer":"GCEM4WKCAWO6ZZAA7SSSTG4SQWLRAI36ZM45QT7QHCPO6SB5ZLVLDH4K","transaction":"4ddef672157938a4af086bffbf67b66a1e37c8bf7ec8352300019c0398b65671","network":"stellar:testnet"}
+[mcp-seller] settled {"success":true,"payer":"GCEM4WKCAWO6ZZAA7SSSTG4SQWLRAI36ZM45QT7QHCPO6SB5ZLVLDH4K","transaction":"4ddef672157938a4af086bffbf67b66a1e37c8bf7ec8352300019c0398b65671","network":"stellar:testnet"}

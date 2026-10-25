@@ -1,0 +1,13 @@
+[seller] hosted facilitator, payTo GCEKVZO7QV5AC6JLDNWXEYQQ7CS5DSWRDCK3VEQWXGHI6XJN3F4UOANH, http://127.0.0.1:4051/paid/{quote,report}
+Started development server: http://localhost:4051
+[facilitator:hosted] supported #1 379 ms {"kinds":[{"x402Version":2,"scheme":"exact","network":"eip155:84532"},{"x402Version":2,"scheme":"upto","network":"eip155:84532","extra":{"facilitatorAddress":"0xd407e409E34E0b9afb99EcCeb609bDbcD5e7f1bf"}},{"x402Version":2,"scheme":"batch-settlement","network":"eip155:84532"},{"x402Version":2,"scheme
+[facilitator:hosted] verify #1 404 ms {"isValid":true,"payer":"GCEM4WKCAWO6ZZAA7SSSTG4SQWLRAI36ZM45QT7QHCPO6SB5ZLVLDH4K"}
+[facilitator:hosted] settle #1 3824 ms {"success":true,"payer":"GCEM4WKCAWO6ZZAA7SSSTG4SQWLRAI36ZM45QT7QHCPO6SB5ZLVLDH4K","transaction":"f2d4b987428d4b2a8390e4fd3d54d19c9da4f1bbed54e1d1312ad93894e7c784","network":"stellar:testnet"}
+[facilitator:hosted] verify #2 321 ms {"isValid":true,"payer":"GCEM4WKCAWO6ZZAA7SSSTG4SQWLRAI36ZM45QT7QHCPO6SB5ZLVLDH4K"}
+[facilitator:hosted] settle #2 3540 ms {"success":true,"payer":"GCEM4WKCAWO6ZZAA7SSSTG4SQWLRAI36ZM45QT7QHCPO6SB5ZLVLDH4K","transaction":"fddabc1a36dad771150117b5044fc3874c6e00cca809f69bba92a8a0a2a84af6","network":"stellar:testnet"}
+[facilitator:hosted] verify #3 411 ms {"isValid":true,"payer":"GCEM4WKCAWO6ZZAA7SSSTG4SQWLRAI36ZM45QT7QHCPO6SB5ZLVLDH4K"}
+[facilitator:hosted] settle #3 3571 ms {"success":true,"payer":"GCEM4WKCAWO6ZZAA7SSSTG4SQWLRAI36ZM45QT7QHCPO6SB5ZLVLDH4K","transaction":"66ab89314f32b4d49b45f0560c119c122de3209bcc2e2d2756662604fc632557","network":"stellar:testnet"}
+[facilitator:hosted] verify #4 350 ms {"isValid":true,"payer":"GCEM4WKCAWO6ZZAA7SSSTG4SQWLRAI36ZM45QT7QHCPO6SB5ZLVLDH4K"}
+[facilitator:hosted] settle #4 6502 ms {"success":true,"payer":"GCEM4WKCAWO6ZZAA7SSSTG4SQWLRAI36ZM45QT7QHCPO6SB5ZLVLDH4K","transaction":"0bf6369215b5f3cd1adbd84ee1b951cb14b29aab52119cede6b37d33faf81437","network":"stellar:testnet"}
+[facilitator:hosted] verify #5 372 ms {"isValid":true,"payer":"GCEM4WKCAWO6ZZAA7SSSTG4SQWLRAI36ZM45QT7QHCPO6SB5ZLVLDH4K"}
+[facilitator:hosted] settle #5 3344 ms {"success":true,"payer":"GCEM4WKCAWO6ZZAA7SSSTG4SQWLRAI36ZM45QT7QHCPO6SB5ZLVLDH4K","transaction":"0c25bd5827071631e1b5d00037af028c6a379b8b8a03f3180596b4f35d744d2a","network":"stellar:testnet"}

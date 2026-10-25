@@ -1,0 +1,10 @@
+{"liveStateBytes":"4015269406","targetBytes":"4000000000","overTargetPct":"0.382","rentFeePer1KbNow":"525447","rentFeePer1KbAtTarget":"10000","multiplier":"52.5","persistentRentRateDenominator":"1215","predicted80BytesFor518400Ledgers":{"now":"17514900","atTarget":"333333"}}
+
+594e5b6a ledger 5381337 feeCharged 122637883
+  d57940 temp nonce                                                                size new→64 (+0) ttl -→5382056 (+0, remaining 719)
+  a53534 pers ["AccountContext","CD4B4YAP7BCINBT6CKGA3ADE2IOBUAGMH5NZGL2XT         size 304→384 (+80) ttl 5502127→5899737 (+397610, remaining 518400)
+  ttl 2c8cef7e                                                                     size 0→- (+0) ttl 5502127→5899737 (+397610, remaining 518400)
+
+ed8407b4 ledger 5381341 feeCharged 16934697
+  d57940 temp nonce                                                                size new→64 (+0) ttl -→5382060 (+0, remaining 719)
+  a53534 pers ["AccountContext","CD4B4YAP7BCINBT6CKGA3ADE2IOBUAGMH5NZGL2XT         size 384→464 (+80) ttl -→- (+0, remaining -)

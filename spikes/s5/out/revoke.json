@@ -1,0 +1,90 @@
+{
+  "step": "revoke",
+  "startedAt": "2026-10-25T12:14:05.296Z",
+  "before": {
+    "ledger": 5381371,
+    "policy": {
+      "limit": "5.00",
+      "spent": "4.95",
+      "remaining": "0.05",
+      "history": [
+        "0.10@5381337",
+        "0.10@5381341",
+        "0.10@5381350",
+        "1.00@5381355",
+        "3.65@5381366"
+      ]
+    },
+    "pocketUsdc": "0.70",
+    "accountUsdc": "19.05"
+  },
+  "remove": {
+    "hash": "c8b6720f90105c3dff899dabccdb179e6a14b9b5ef81776f19cd1d35e4319bc0",
+    "feeCharged": "25487",
+    "timings": {
+      "recordSim": 134,
+      "recordSimMinResourceFee": 52521824,
+      "sign": 5,
+      "enforceSim": 148,
+      "enforceSimMinResourceFee": 32068,
+      "sendToFinal": 5725
+    },
+    "explorer": "https://stellar.expert/explorer/testnet/tx/c8b6720f90105c3dff899dabccdb179e6a14b9b5ef81776f19cd1d35e4319bc0"
+  },
+  "policyAfterRemove": {
+    "error": "Error(Contract, #3220)"
+  },
+  "pullAfterRevoke": {
+    "stage": "enforce-simulate",
+    "contractError": "Error(Contract, #3000)",
+    "detail": "HostError: Error(Auth, InvalidAction)\n\nEvent log (newest first):\n   0: [Diagnostic Event] contract:CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA, topics:[error, Error(Auth, InvalidAction)], data:[\"failed account authentication with error\", CD4B4YAP7BCINBT6CKGA3ADE2IOBUAGMH5NZGL2XTQGHTCLF2"
+  },
+  "sweep": {
+    "amount": "0.70",
+    "hash": "b233c0ccb8ee244602b8fa891c6415062de9be4f2816a23ec87fb5302b4820dd",
+    "feeCharged": "21960",
+    "timings": {
+      "recordSim": 183,
+      "recordSimMinResourceFee": 55435867,
+      "sign": 6,
+      "enforceSim": 258,
+      "enforceSimMinResourceFee": 28619,
+      "sendToFinal": 3491
+    },
+    "explorer": "https://stellar.expert/explorer/testnet/tx/b233c0ccb8ee244602b8fa891c6415062de9be4f2816a23ec87fb5302b4820dd"
+  },
+  "close": {
+    "label": "close G(K) GCEM4W: trustline 0 + merge",
+    "hash": "d1775eca650df858e694869b5ab9026035f1f592a971b2bd77ff0126f000933b",
+    "ms": 4115,
+    "explorer": "https://stellar.expert/explorer/testnet/tx/d1775eca650df858e694869b5ab9026035f1f592a971b2bd77ff0126f000933b"
+  },
+  "relayerAroundClose": {
+    "before": {
+      "exists": true,
+      "xlm": "19980.9554628",
+      "subentries": 0,
+      "numSponsored": 0,
+      "numSponsoring": 3
+    },
+    "after": {
+      "exists": true,
+      "xlm": "19980.9554428",
+      "subentries": 0,
+      "numSponsored": 0,
+      "numSponsoring": 0
+    }
+  },
+  "after": {
+    "ledger": 5381375,
+    "policy": {
+      "error": "Error(Contract, #3220)"
+    },
+    "pocketUsdc": "0.00",
+    "accountUsdc": "19.75",
+    "pocket": {
+      "exists": false
+    }
+  },
+  "finishedAt": "2026-10-25T12:14:23.780Z"
+}

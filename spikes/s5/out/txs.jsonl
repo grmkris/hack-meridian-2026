@@ -14,3 +14,7 @@
 {"kind":"settlement","label":"x402 settle 0.10 via http (int_mvnsg7pg_0002_707a03f2)","hash":"0bf6369215b5f3cd1adbd84ee1b951cb14b29aab52119cede6b37d33faf81437","step":"chunk","at":"2026-10-25T12:12:59.778Z"}
 {"kind":"settlement","label":"x402 settle 0.10 via http (int_mvnsggs5_0003_cacf262e)","hash":"0c25bd5827071631e1b5d00037af028c6a379b8b8a03f3180596b4f35d744d2a","step":"chunk","at":"2026-10-25T12:13:08.588Z"}
 {"kind":"delegated-pay","label":"delegated payment 3.65 C → merchant (rule 4)","hash":"de3d12f35a73613396984dbcd4e3cef5edf4ed8de8a2646d92ad2eeb16ddf3d4","step":"drain","at":"2026-10-25T12:13:37.690Z"}
+{"kind":"owner","label":"remove_context_rule 4","hash":"c8b6720f90105c3dff899dabccdb179e6a14b9b5ef81776f19cd1d35e4319bc0","step":"revoke","at":"2026-10-25T12:14:12.450Z"}
+{"kind":"sweep","label":"sweep 7000000 G(K) → C","hash":"b233c0ccb8ee244602b8fa891c6415062de9be4f2816a23ec87fb5302b4820dd","step":"revoke","at":"2026-10-25T12:14:17.859Z"}
+{"kind":"pocket","label":"close G(K) GCEM4W: trustline 0 + merge","hash":"d1775eca650df858e694869b5ab9026035f1f592a971b2bd77ff0126f000933b","step":"revoke","at":"2026-10-25T12:14:22.431Z"}
+{"kind":"owner","label":"S1 add_context_rule s5-grant (rule 4), reference","hash":"f4d8c312c6f809afbdc33c715035e8f6c23e6bb4e3545157d06516bb3fd7bdf8","step":"s1-ref","at":"2026-10-25T11:58:00.000Z"}
