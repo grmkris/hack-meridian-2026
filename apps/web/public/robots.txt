@@ -1,4 +1,6 @@
 User-agent: *
 Allow: /
 
+# One site, two hosts: the product on Stellar mainnet and the judges' sandbox on testnet.
+Sitemap: https://trynod.si/sitemap.xml
 Sitemap: https://testnet.trynod.si/sitemap.xml

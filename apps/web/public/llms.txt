@@ -1,65 +1,96 @@
 # Nod
 
-> Nod is a Stellar wallet that AI apps spend from inside an allowance the owner sets. You add it to Claude, or any MCP app, with one connector URL. Each AI app gets its own allowance, for example 5 USDC until tomorrow, which your passkey signs onto your Stellar account. Inside it, the app pays for APIs over x402 and pays your contacts on its own. Anything bigger comes back as a link, and one passkey tap approves that exact recipient and amount. Small stuff, it just pays. Big stuff needs your nod.
+> Nod is a Stellar wallet that lives inside the AI you already use. Apps are turning into conversations and agents, so the wallet sits in the chat: one connector URL in Claude, Goblin, Claude Code or any MCP app, and in ChatGPT as a developer-mode connector. You sign up with a passkey and hold USDC; you never meet XLM, a seed phrase or a trustline. You give each AI app one allowance, say 5 USDC until tomorrow. Inside it, the app pays for APIs over x402 and pays people on its own. Anything past it needs your passkey, every time, for any amount. The allowance is an OpenZeppelin spending-limit policy on your own Stellar account, so the most Nod's service could ever spend for an AI app is the allowance you set, pocket included. Small stuff, it just pays. Big stuff needs your nod.
 
-Built at HackMeridian 2026 (Lisbon, 25–26 October 2026), Genesis builder track, Stellar Composed thematic track. Runs on Stellar testnet only; no real money moves.
+Built at HackMeridian 2026 (Lisbon, 25–26 October 2026), Genesis builder track, Stellar Composed thematic track. The full flow runs on Stellar mainnet at trynod.si, in claude.ai, on the founder's own wallet: an x402 purchase settled by OpenZeppelin Channels, a payment inside the allowance, one that needed the nod, a claim link that created a trustline and paid in one transaction, a revoke that removed the rule and swept the pocket.
 
-## Try it
+## Hosts
 
-- Site: https://testnet.trynod.si/ (also reachable at https://hack-meridian-testnet.kristjan-grm11775.workers.dev/)
-- Claude connector (Settings → Connectors → Add custom connector): https://testnet.trynod.si/mcp
-- Steps: add the connector, create a passkey wallet on the page that opens (new wallets get 10 testnet USDC), approve the 5 USDC allowance, then ask Claude "Buy the market brief", "Send Alice 2 USDC" and "Pay Bob 5 USDC for dinner". The last one is more than the 2.90 left, so it needs your passkey.
-- No Claude needed: watch a sample agent run the same steps on Nod's own demo wallet, with a live log and explorer links: https://testnet.trynod.si/sample
-- Full judge test path: https://github.com/grmkris/hack-meridian-2026/blob/main/evidence/JUDGE-TEST-PATH.md
+- https://trynod.si/ is the product on Stellar mainnet. Signup is open; the wallet holds USDC only. MCP connector: https://trynod.si/mcp
+- https://testnet.trynod.si/ is the judges' sandbox on Stellar testnet. New wallets get 10 testnet USDC; no real money moves. MCP connector: https://testnet.trynod.si/mcp
+- https://testnet.trynod.si/sample runs a sample agent through the same tools on Nod's own demo wallet, with a live log and explorer links. No Claude needed.
+- The old host hack-meridian-testnet.kristjan-grm11775.workers.dev redirects to testnet.trynod.si.
+
+## Try it on the sandbox
+
+- In Claude: Settings → Connectors → Add custom connector, URL https://testnet.trynod.si/mcp. In Claude Code: `claude mcp add --transport http -s user nod https://testnet.trynod.si/mcp`.
+- On the page that opens, create a passkey wallet and set Claude's allowance: 5 USDC until tomorrow 12:00 UTC.
+- Ask Claude "Buy the market brief" (0.10 USDC over x402, no prompt; 4.90 left), "Send Alice 2 USDC" (paid on its own; 2.90 left), "Pay Bob 5 USDC for dinner" (more than what is left, so it needs your nod: open the link and approve with your passkey; the allowance stays 2.90), the same request again (the same receipt; Bob is paid once), "Send Alice 4 USDC" (needs your nod), "Send Carol 1 USDC" (Carol has never held USDC: after your nod she gets a claim link, and her trustline and the payment land in one transaction). Then revoke Claude under Connections.
+- Full judge test path with expected results: https://github.com/grmkris/hack-meridian-2026/blob/main/evidence/JUDGE-TEST-PATH.md
 
 ## How it works
 
-- Passkey wallet: Face ID or a fingerprint creates an OpenZeppelin smart account (a Stellar contract account). No seed phrase. The owner never needs XLM; Nod's relayer account is the transaction source and pays every fee.
-- An allowance per AI app: connecting an app over OAuth 2.1 and approving its allowance is one step. Each allowance is a context rule on the account, scoped to USDC transfers, with OpenZeppelin's spending-limit policy and an expiry.
-- The limit lives on Stellar, not on Nod's server: the service holds only the app's key, and the account rejects anything over the allowance. Even if the server were compromised, the most it could spend for an app is what the owner allowed.
-- Pays for APIs: x402 sellers are paid through public facilitators (x402.org, OpenZeppelin Channels), never one Nod runs. Hosted facilitators do not accept smart-account payers yet, so each app key also owns a small account with sponsored reserves that it fills from the wallet under the same policy, then pays from with the stock x402 client.
-- Needs your nod: a payment above what is left is never signed with the app's key. It becomes a link showing the recipient's name and address, the amount and which app asked; the passkey signs exactly that payment.
-- Ask twice, pay once: repeated requests return the same receipt. Receipts come only after settlement.
-- Pays people who have never held USDC: a claim link. The recipient signs once, and a small router calls the USDC contract's trust function (CAP-73) and the transfer in one transaction.
-- Revoke: Nod stops signing at once and sweeps the app's leftover balance back; one passkey tap then removes the rule from the account (until then the service refuses to sign).
+- Passkey wallet: Face ID or a fingerprint creates an OpenZeppelin smart account (a Stellar contract account). Nod's relayer accounts are the transaction source and pay every network fee, so the owner holds no XLM.
+- One allowance per AI app: connecting an app over OAuth 2.1 and setting its allowance with the passkey is one step. Each allowance is a context rule on the account: the app's own Ed25519 key, OpenZeppelin's spending-limit policy (the total the app may spend on its own) and an expiry.
+- Past the allowance: the payment is never signed with the app's key. It becomes a link showing the recipient's name and address, the amount and which app asked; the passkey signs that payment on Nod's own page, never in the chat, whatever the amount. Approved payments do not use the allowance.
+- Cards and notifications: Nod serves MCP Apps cards (ui://nod/card/v1, ui://nod/home/v1) and MCP Events (payment.received, payment.settled, approval.needed, allowance.changed, request.received, request.answered) by webhook or poll, on the 2025 MCP protocol and on 2026-07-28, where the nod is a native URL request. Cards and the nod are shown live in Goblin, claude.ai and ChatGPT (developer-mode connector; not listed in ChatGPT's app store, whose policy bars crypto transfers). Events arrive in Goblin and ChatGPT; claude.ai and Claude Code do not implement MCP Events, so there the cards poll.
+- Paid APIs: x402 sellers are paid through public facilitators (x402.org, OpenZeppelin Channels), never one Nod runs. Hosted facilitators do not take smart-account payers yet, so each AI app's key also owns a small pocket account with sponsored reserves, filled from the wallet under the same policy in 1 USDC steps, which pays with the stock x402 client. Both transactions are on the receipt. Ask twice, pay once.
+- Claim link: a recipient with no USDC trustline gets a link. The sender nods once; the recipient accepts with Freighter within 30 minutes (their account needs about 0.5 XLM for the trustline reserve), and a small router calls the USDC contract's trust function (CAP-73) and the transfer in one transaction.
+- Revoke: Nod stops signing at once and sweeps the pocket back; one passkey tap removes the allowance from the account.
+- Deposit addresses (testnet only): a sponsored G… account bound to one wallet by Nod's deposit router; anyone can sweep what arrives, and it can only go to that wallet. Off on mainnet.
 
-## Stellar building blocks (testnet ids)
+## Proof on mainnet (stellar.expert, public network)
 
-- OpenZeppelin smart account WASM: 1b5f4534a76322da2ad7c745f6900857a6802b0ca79850c35a03561df997785a
-- OpenZeppelin spending-limit policy: CABXBYJNZ7IUW4G3D6BND5YCAQF3ASSDMDAOKQQ63UYFSO7WUU2TIP5G
-- WebAuthn (secp256r1) verifier: CC7EKIHQP3TN4CARQDND6CEOY2UXLWWC2X5GHTD5NLAT7BG5GPZIOM3F
-- Ed25519 verifier: CAAVTMCBXEIBPR64EAASKFXERVPYFZA2JYP5A3BG6PESWEFUJX5IHKN4
-- Circle USDC, Stellar Asset Contract: CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA
-- Trust-and-pay router (CAP-73 SAC trust + transfer): CCLFB4I4CNGWHHL53UO33CSWKKXJBANMDGOGL43J7RBT7SWK2H2BPGN4 (source: contracts/onboard; `stellar contract build` with stellar-cli 28.1.0 and rustc 1.98.1 reproduces the deployed WASM, sha256 39c97734…)
-- Relayer pool (fee payers on the testnet stage, listed at /api/health): GBCALSA3XQAWW24AXGFWJIGNUCDBCMUPPWC5XHMZ22VY4HMX6XCFYWBR, GAWYWVMHLTRN6N7DXKV3XYCLAFPCPPUXPDFC7J5KL3LNKO26YNJSYE4I
-- x402 network: stellar:testnet; facilitators: x402.org and OpenZeppelin Channels
-- Demo x402 seller (0.10 USDC market brief from the Stellar DEX order book): https://hm26-seller.kristjan-grm11775.workers.dev/api/market-brief
+Release 9fc080f, 25 October 2026, 18:39–18:59 UTC, through the public claude.ai connector on the founder's wallet CDOTWV7AICM5WKEIKQ7HTJWIPJJVZDND55VK7NOLPB7BDC76YLTNY4HC with his passkey. Record: https://github.com/grmkris/hack-meridian-2026/blob/main/evidence/mainnet/claude-run-2026-10-25.md
+- Allowance of 5 USDC installed on the account: https://stellar.expert/explorer/public/tx/f803994b1f0313b0c9fe81c51355eb51296b86992c65c70e2e04effa8d73d7eb
+- x402: 1.00 USDC pulled into Claude's pocket under the allowance: https://stellar.expert/explorer/public/tx/6485e55cd8f69d51b60f608bdc253d40c3d7ee02f9b86bcccd6cefbeeb08c7bb
+- x402: 0.10 USDC settled to the seller by OpenZeppelin Channels: https://stellar.expert/explorer/public/tx/cb296cc3a539cfaf966d79fa3662e48e83e3f1fb01fe9be24b767d3c3c8dea58
+- 2 USDC to Alice inside the allowance: https://stellar.expert/explorer/public/tx/c8ee8b5ad7599b9db13a4dd551a918d55ecafc6de2f31c79a61fcc7edb1032cb
+- 5 USDC to Bob, past the 2.90 left, approved with the passkey (the same request again returned the same receipt): https://stellar.expert/explorer/public/tx/0339b8dd088b46d500de425d0afe8707ff6922186ef70070396323f2d3312e4f
+- 1 USDC to Carol, who had no USDC trustline: trustline and payment in one transaction: https://stellar.expert/explorer/public/tx/1fe4e852314ea638ed53ba79acebc60a129b587e0ef80c9b051d434aa01e68c6
+- Revoke sweeps the pocket back: https://stellar.expert/explorer/public/tx/ab6d493d483f6ea5d560a9561ab7cdd2668b9d7597632023095a397ca1fd53dd
+- Revoke removes the allowance rule from the account: https://stellar.expert/explorer/public/tx/e17e15d5efd2f43e883073873ff9d5dc0333ea9dca318cea0f38a5c7678f04c9
 
 ## Proof on testnet
 
-One rehearsal on the live site (release 19e1c13, 25 October 2026, 15:12 UTC): acceptance tests 1, 2 and 4–9 passed live; test 3 (a forced over-limit transfer, not reachable through MCP by design) is proven in spike S1:
-- The passkey wallet this run created: https://stellar.expert/explorer/testnet/contract/CA357ZQSG54XPLIZF4NTNOYUU7R3IBOKZ7UALM5WVZCT5C2GJZWD45W2
-- x402: the AI app's key pulls 1.00 USDC into its pocket under the allowance: https://stellar.expert/explorer/testnet/tx/978479126c9339de3a2cf4140dcef4958aa13d95ea39408b50cbf4ae413ed702
-- x402: the pocket pays the seller 0.10 USDC, settled by OpenZeppelin Channels: https://stellar.expert/explorer/testnet/tx/e3e62e07dbf11f0bd75ac795a3bef5a50fcc6ffd64e610c98a70dc9676890990
-- 2 USDC to Alice inside the allowance, signed by the AI app's key: https://stellar.expert/explorer/testnet/tx/fb77bd0f01aeb515b967e7bf5f7d0b1f8ec5c4c6af7889263ed3172a0a8ebefe
-- 20 USDC to Bob, over the allowance, approved with the passkey: https://stellar.expert/explorer/testnet/tx/fbfd200cc85525ee65a0a55f4b3dc338eedf37c1c8273abcc0ac7701f09e97da
-- Carol's trustline and 5 USDC in one transaction (CAP-73 claim link): https://stellar.expert/explorer/testnet/tx/565b7f0740d2cb73975939107c6b3329a03d60d26925101ba7e9a7ae5660735c
-- Revoke removes the allowance rule: https://stellar.expert/explorer/testnet/tx/55beab6dd2866dd95f6bfcc7209d4c3c7e8a423d4955de5607a6009da1003279
-- Revoke sweeps the pocket back to the wallet: https://stellar.expert/explorer/testnet/tx/00129674edaed2fcce96c73745587f2c599704850c182c38f7d7c12ab5ee55a6
+One rehearsal on the live site (release 5253df0, 25 October 2026, 19:14 UTC) passed acceptance tests 1, 2 and 4–9; test 3, a forced over-limit transfer, cannot be sent through MCP by design and is proven onchain in spike S1. Record: https://github.com/grmkris/hack-meridian-2026/blob/main/evidence/demo/2026-10-25T19-14-24-616Z/run.json
+- x402 pull into the pocket: https://stellar.expert/explorer/testnet/tx/2ecaef088b748c3de3d3cf70b37699cbe4a934f384c44742f53056def49dcdad
+- x402 settlement by OpenZeppelin Channels: https://stellar.expert/explorer/testnet/tx/0fbbbed63eec68b2c3d68860b2555d1fe0c94614e4af317a1d4130791b515e1c
+- 2 USDC to Alice inside the allowance: https://stellar.expert/explorer/testnet/tx/21d29908d5e68047c6ed9faba198c9d3760b02bdf8bce66a9dac2570f88bb3b9
+- 5 USDC to Bob, approved with the passkey: https://stellar.expert/explorer/testnet/tx/d5ea13b1f9263888c8b9795d1383200bdbc6f5d5ec70182b5876dbf57a0202aa
+- Carol's trustline and 1 USDC in one transaction: https://stellar.expert/explorer/testnet/tx/13d1b05fb6a69e488b924b5a354fa33a43bd1211f03041ace384feeb5485e263
+- Revoke removes the allowance rule: https://stellar.expert/explorer/testnet/tx/c24b051f845a31345f4fc28c74bb4fd5308ada1fed4ef3d2abb6e84480cf0ea7
+- Revoke sweeps the pocket back: https://stellar.expert/explorer/testnet/tx/9c3e9b1e61ed1ec7a3037c72da4b566a441a45f812207c461f233b0acea11df5
 
 Spikes:
 - An allowance spends exactly 5.0 USDC; one stroop more is rejected: https://stellar.expert/explorer/testnet/tx/c0f6f923936b7dc4d716454ba3e3d3f43f21ddcf353e49e3e083d054bf5f9c57
 - An over-allowance transfer forced onchain is rejected by the account (#3221): https://stellar.expert/explorer/testnet/tx/3daf4b000cb58ad1bbef3629c13a02d44403c4b690dd51815020cbc89723b42a
+- A deposit address's USDC swept into the wallet by the router, with no signature: https://stellar.expert/explorer/testnet/tx/efcbcc48ba6860d72243ff97eaa7d3e082218b312438d8b5969282936e9d2017
+
+Shown in real hosts (testnet): https://github.com/grmkris/hack-meridian-2026/blob/main/evidence/mcp-apps/README.md
+
+## Stellar building blocks
+
+Mainnet (pubnet):
+- OpenZeppelin smart account WASM: 1b5f4534a76322da2ad7c745f6900857a6802b0ca79850c35a03561df997785a (same on both networks)
+- OpenZeppelin spending-limit policy: CBCGTERZ6W2M6SMKVKQDTNKWFQXEPXEQO6ZCEKNZHT3QMA4X7Z2IYUS4
+- WebAuthn (secp256r1) verifier: CB7HENHJ7NF34I5FFXQK7D5I3WWQRGB5O5XO77D3NXMT7LM7LOKRQ5YR
+- Ed25519 verifier: CBOOZV2BK5OETGL4Q4KGEBESPRLJFN7DOFWDT7OZGLD7EQEZUVOWUEMC
+- Circle USDC, Stellar Asset Contract: CCW67TSZV3SSS2HXMBQ5JFGCKJNXKZM7UQUWUZPUTHXSTZLEO7SJMI75
+- Trust-and-pay router (CAP-73 SAC trust + transfer): CBWYFI6XWQI5C43GISIIUFXTJXBUI52QSNKKYC55GWMPLQRL2RAXT6TM
+- Relayers (fee payers, listed at https://trynod.si/api/health): GBVYA2V4SMVPXFRPVB5FEFCADW7RXFIACR2HBLN2WP3RHAZKL267YG5X, GDMYACRM646Z4QIUPIAQZ2W3HSKAO2LESWCME73RSCCETSQKSL6HCAGP
+- x402 network stellar:pubnet; facilitator OpenZeppelin Channels; demo seller https://hm26-seller-mainnet.kristjan-grm11775.workers.dev/api/market-brief
+
+Testnet:
+- OpenZeppelin spending-limit policy: CABXBYJNZ7IUW4G3D6BND5YCAQF3ASSDMDAOKQQ63UYFSO7WUU2TIP5G
+- WebAuthn (secp256r1) verifier: CC7EKIHQP3TN4CARQDND6CEOY2UXLWWC2X5GHTD5NLAT7BG5GPZIOM3F
+- Ed25519 verifier: CAAVTMCBXEIBPR64EAASKFXERVPYFZA2JYP5A3BG6PESWEFUJX5IHKN4
+- Circle USDC, Stellar Asset Contract: CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA
+- Trust-and-pay router: CCLFB4I4CNGWHHL53UO33CSWKKXJBANMDGOGL43J7RBT7SWK2H2BPGN4 (source: contracts/onboard; `stellar contract build` with stellar-cli 28.1.0 and rustc 1.98.1 reproduces the deployed WASM, sha256 39c97734…, on both networks)
+- Deposit router: CAFLFU5GH7QZ6KF3FBKRV7VW5XFYUKQPCFFTCPTKVEUG4TDT5B2ZOXGL (source: contracts/deposit; testnet only)
+- Relayers (listed at https://testnet.trynod.si/api/health): GBCALSA3XQAWW24AXGFWJIGNUCDBCMUPPWC5XHMZ22VY4HMX6XCFYWBR, GAWYWVMHLTRN6N7DXKV3XYCLAFPCPPUXPDFC7J5KL3LNKO26YNJSYE4I, GBGNYETYEEWM5RIRE6KWUUZKD3X4DBZZ72M2LHQJNUGYO3D6ZYADBPT6
+- x402 network stellar:testnet; facilitators x402.org and OpenZeppelin Channels; demo seller https://hm26-seller.kristjan-grm11775.workers.dev/api/market-brief
 
 ## Docs
 
 - README: https://github.com/grmkris/hack-meridian-2026#readme
+- Pitch, wording and demo beats: https://github.com/grmkris/hack-meridian-2026/blob/main/docs/PITCH.md
 - Product spec: https://github.com/grmkris/hack-meridian-2026/blob/main/docs/SPEC.md
-- Build plan and architecture decisions: https://github.com/grmkris/hack-meridian-2026/blob/main/docs/BUILD-PLAN.md
 - Spike results with every transaction: https://github.com/grmkris/hack-meridian-2026/blob/main/docs/SPIKES.md
+- Deposit addresses (spike S8): https://github.com/grmkris/hack-meridian-2026/blob/main/docs/spikes/s8-deposit.md
 - Source: https://github.com/grmkris/hack-meridian-2026
 
 ## Optional
 
 - Mainnet readiness check (read-only): https://github.com/grmkris/hack-meridian-2026/blob/main/docs/research/mainnet.md
-- Pitch, vocabulary and demo script: https://github.com/grmkris/hack-meridian-2026/blob/main/docs/PITCH.md
+- Build plan and architecture decisions: https://github.com/grmkris/hack-meridian-2026/blob/main/docs/BUILD-PLAN.md

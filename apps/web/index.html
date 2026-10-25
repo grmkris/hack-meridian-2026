@@ -16,7 +16,7 @@
     <title>Nod</title>
     <meta
       name="description"
-      content="Give your AI an allowance. Nod is a Stellar wallet you add to Claude: small payments go through on their own inside the allowance you set, and anything bigger waits for your nod."
+      content="Give your AI an allowance. Nod is a Stellar wallet that lives inside Claude and other AI apps: you set one allowance, the AI pays on its own inside it, and anything past it needs your passkey, every time."
     />
     <meta name="theme-color" content="#faf8f4" />
     <meta property="og:type" content="website" />
@@ -24,7 +24,7 @@
     <meta property="og:title" content="Nod: give your AI an allowance" />
     <meta
       property="og:description"
-      content="A Stellar wallet you add to Claude. Small payments go through on their own inside the allowance you set; anything bigger waits for your nod. Built at HackMeridian 2026."
+      content="A Stellar wallet that lives inside your AI. One allowance per AI app: inside it, the AI pays on its own; past it, your passkey nods, every time. Live on Stellar mainnet. Built at HackMeridian 2026."
     />
     <meta property="og:image" content="https://testnet.trynod.si/og.png" />
     <meta property="og:image:width" content="1200" />
@@ -55,10 +55,11 @@
       >
         <h1>Nod: give your AI an allowance</h1>
         <p>
-          Nod is a Stellar wallet you add to Claude. Give each AI app an allowance, such as 5 USDC until tomorrow, and
-          it pays for APIs and pays people on its own. Anything bigger comes to you, and one passkey tap approves that
-          exact payment. The allowance is an OpenZeppelin spending-limit policy on your Stellar account, not a setting
-          on our server. Stellar testnet. Built at HackMeridian 2026.
+          Nod is a Stellar wallet that lives inside the AI you already use. You give each AI app one allowance, say 5
+          USDC until tomorrow. Inside it, the app pays for APIs and pays people on its own. Anything past it needs your
+          passkey, every time, for any amount. The allowance is an OpenZeppelin spending-limit policy on your own
+          Stellar account. The product runs on Stellar mainnet at trynod.si; the sandbox at testnet.trynod.si runs on
+          testnet. Built at HackMeridian 2026.
         </p>
         <p>
           This page needs JavaScript. For a plain-text summary read <a href="/llms.txt">/llms.txt</a>; the source is on
