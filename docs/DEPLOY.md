@@ -5,8 +5,8 @@ Plans and queues live in the release plan (.local/brainstorm/FINAL-REVIEW.md §K
 **Deploys: session A ("ops and hardening") only, since 19:10 UTC 2026-10-25**, testnet and mainnet, from the worktree
 below; mainnet only on the orchestrator's explicit go, never during a recording.
 
-Live: **testnet at `3473ee4`** (20:05 UTC: B's six MCP tools and migration 0010, C's rebuilt card, D's og.png) on
-https://testnet.trynod.si (MCP at `/mcp`; the workers.dev host redirects there); **mainnet at `3d4364f`** (20:04 UTC) on https://trynod.si. Dated sections
+Live: **testnet at `2a86e7e`** (20:28 UTC: four relayers, K5 memo / network label / claim demo line) on
+https://testnet.trynod.si (MCP at `/mcp`; the workers.dev host redirects there); **mainnet at `2a86e7e`** (20:33 UTC, deposit router bound) on https://trynod.si. Dated sections
 below are the history.
 
 ## The deploy worktree is the only place a testnet deploy runs
@@ -305,3 +305,40 @@ RELEASE, deploy `"deletedClasses":[]`, 0010 applied 20:05:21 UTC (`contacts.adde
   this time (one new wallet per deploy until the faucet top-up).
 
 Rollback: re-pin `3d4364f` (0010 additive).
+
+## 20:25–20:34 UTC: the pubnet deposit router; testnet and mainnet at `2a86e7e` (orchestrator's goes)
+
+**Deposit router v2 on pubnet** (`scripts/mainnet/deposit-router-deploy.ts`, relayer A): WASM `7bc3752b…` built
+locally and byte-identical to testnet's `CAFLFU5G…`; id `CBWDC7KRPOHSUIPADS6NHXHPYZ2KXHUZ7TONHBPVK7AKIWYXNLRFI6YX`, token
+the pubnet USDC SAC `CCW67TSZ…MI75` (read back through `token()`); upload
+https://stellar.expert/explorer/public/tx/b377e2f572fb35b7a58f2e299247b9d5036baad691a2b84837038a93d20f88c4 (7.07 XLM:
+the code entry's first rent, not the 2.5 estimated), deploy
+https://stellar.expert/explorer/public/tx/dec00d0b244719ba7ccd7c3d638f54f6b3e0e8fbdf7d175cb04058fa04690d1e, code and
+instance extended to 3,000,000 ledgers
+https://stellar.expert/explorer/public/tx/f835c763b05ab3c84da2249cf0b538313e5af47e11f41f3465c55a9febb7e8f6 (3.17 XLM;
+live until ledger 68,134,834). Recorded in `contracts/deployments/mainnet.json`. `DEPOSIT_ROUTER_ID` is a switch in
+`alchemy.run.ts` and set in both `.env.mainnet` copies (one key, unread file, backup `.env.mainnet.pre-deposit-router`).
+
+**Two more testnet relayers** (the 20:06 "not final after 60 s" under load): `GA5YBU72TGS3JHEAEZN3RBIGAMH4FJOYXXYHM5EOYQMACBO2GOC4TU7O`
+and `GAGS2XHDLMBPOH2ZRAYEOTQNVDCULIIWCJHWVEVRRPLPPSMVJ7WLBDKT`, 10,000 XLM each from friendbot, appended to
+`RELAYER_SECRET` in both `.env.testnet` copies (one line, unread file, backup `.env.testnet.pre-relayers`). The 60 s wait
+is the shared poll for every transaction in `packages/stellar/src/soroban.ts`, not a wallet-creation constant, so it stays.
+
+**Testnet `2a86e7e`** (K5 memo `19f19b8`, network label `5179cc0`, claim demo line `2a86e7e`, the router script and the
+switch): gate green, plan `[Web] update` + `[Web/RELAYER_SECRET] update` + RELEASE, deploy `"deletedClasses":[]`; health
+lists four relayers. smoke 9/9 (`evidence/probe/smoke-testnet-2026-10-25T20-28-29Z.json`); events-check 8/8; `payment_prepare` with a memo on the public
+host answers "Nod cannot pay exchange deposit addresses that need a memo yet. Nothing was prepared…"; `initialize` says
+"Always mention the network (Stellar Testnet)", both resources end "Stellar Testnet."; rehearsal s1–s11 green, acceptance
+1, 2, 4–9 PASS, 3 REF, transactions from all four relayers (`evidence/demo/2026-10-25T20-28-59-043Z/`; the claim receipt
+shows "This is Nod's own demo contact: Nod's demo key signed this acceptance on the server…"; claim
+https://stellar.expert/explorer/testnet/tx/94a462ac5e8069358d55a9778230cc3b5aa850eb1301576a4537af09e86501ff); probe all
+green, 1 warn (`evidence/probe/2026-10-25T20-32-55-219Z.json`). Treasury 67.5 USDC.
+
+**Mainnet `2a86e7e`**: plan `[WalletDb] update` (0010) + `[Web] update` + `[Web/DEPOSIT_ROUTER_ID] create` + RELEASE, no
+delete or replace; deploy `"deletedClasses":[]`; 0010 applied 20:33:28 UTC; the Worker's `DEPOSIT_ROUTER_ID` binding
+reads `CBWDC7KR…I6YX`; health release `2a86e7e0…`, pubnet, invite off, payments on, relayers 91.7 / 50.0 XLM, treasury
+30 USDC; anonymous `GET /api/wallet/deposit-address` still 401; still one wallet. From now on a new mainnet signup is
+deposit-first. The real deposit test waits for the orchestrator's go.
+
+Rollback: testnet re-pin `3473ee4` (restore `.env.testnet.pre-relayers` to drop the relayers); mainnet re-pin
+`3d4364f` after `sed -i '/^DEPOSIT_ROUTER_ID=/d'` on both `.env.mainnet` copies.
