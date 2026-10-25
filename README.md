@@ -9,8 +9,8 @@ policy on your Stellar account, not a setting on our server: the most our servic
 you allowed it.
 
 Built at [HackMeridian 2026](https://www.hackmeridian.com/) (Lisbon, 25–26 October 2026): Genesis builder track,
-**Stellar Composed** thematic track. **Live on Stellar testnet:** [hack-meridian-testnet.kristjan-grm11775.workers.dev](https://hack-meridian-testnet.kristjan-grm11775.workers.dev) · Claude
-connector `https://hack-meridian-testnet.kristjan-grm11775.workers.dev/mcp`. Product spec: [docs/SPEC.md](docs/SPEC.md).
+**Stellar Composed** thematic track. **Live on Stellar testnet:** [testnet.trynod.si](https://testnet.trynod.si) · Claude
+connector `https://testnet.trynod.si/mcp`. Also reachable at `hack-meridian-testnet.kristjan-grm11775.workers.dev`. Product spec: [docs/SPEC.md](docs/SPEC.md).
 
 ## Problem
 
@@ -46,8 +46,8 @@ exceptions.
 Everything below runs on Stellar testnet with testnet USDC. You need Claude (claude.ai, Claude Desktop or Claude Code)
 and a device that can create a passkey. New wallets receive 10 testnet USDC.
 
-1. **Connect.** In claude.ai: Settings → Connectors → Add custom connector, name `Nod`, URL `https://hack-meridian-testnet.kristjan-grm11775.workers.dev/mcp`, leave the
-   OAuth client fields empty, then Connect. In Claude Code: `claude mcp add --transport http -s user nod https://hack-meridian-testnet.kristjan-grm11775.workers.dev/mcp`,
+1. **Connect.** In claude.ai: Settings → Connectors → Add custom connector, name `Nod`, URL `https://testnet.trynod.si/mcp`, leave the
+   OAuth client fields empty, then Connect. In Claude Code: `claude mcp add --transport http -s user nod https://testnet.trynod.si/mcp`,
    then `/mcp` → nod → Authenticate.
 2. **Create your wallet and allowance.** The consent page opens: create a passkey wallet, read "Allow Claude to spend up
    to 5 USDC … until tomorrow", and approve with your passkey.
@@ -60,7 +60,7 @@ and a device that can create a passkey. New wallets receive 10 testnet USDC.
 
 Expected results for every step, with reference transactions: [evidence/JUDGE-TEST-PATH.md](evidence/JUDGE-TEST-PATH.md).
 
-**No Claude at hand?** [hack-meridian-testnet.kristjan-grm11775.workers.dev/sample](https://hack-meridian-testnet.kristjan-grm11775.workers.dev/sample) runs a sample agent: the same nine
+**No Claude at hand?** [testnet.trynod.si/sample](https://testnet.trynod.si/sample) runs a sample agent: the same nine
 steps, through the same tool handlers Claude calls over MCP, on Nod's own demo wallet (held by a software passkey on the
 service), with a live log of amounts, nods, fees and stellar.expert links. It shows Nod working; it is not your wallet.
 
@@ -143,12 +143,12 @@ The router is our one product contract. `stellar contract build` in `contracts/`
 
 Deployed:
 
-| What                         | Where                                                                |
-| ---------------------------- | -------------------------------------------------------------------- |
-| Site and wallet service      | https://hack-meridian-testnet.kristjan-grm11775.workers.dev          |
-| MCP connector                | `https://hack-meridian-testnet.kristjan-grm11775.workers.dev/mcp`    |
-| Demo x402 seller (0.10 USDC) | https://hm26-seller.kristjan-grm11775.workers.dev/api/market-brief   |
-| Machine-readable summary     | https://hack-meridian-testnet.kristjan-grm11775.workers.dev/llms.txt |
+| What                         | Where                                                              |
+| ---------------------------- | ------------------------------------------------------------------ |
+| Site and wallet service      | https://testnet.trynod.si                                          |
+| MCP connector                | `https://testnet.trynod.si/mcp`                                    |
+| Demo x402 seller (0.10 USDC) | https://hm26-seller.kristjan-grm11775.workers.dev/api/market-brief |
+| Machine-readable summary     | https://testnet.trynod.si/llms.txt                                 |
 
 Software: one TypeScript program from the browser to the edge. **[Foldkit](https://foldkit.dev)** (Elm architecture on
 Effect) for the site; **[Effect](https://effect.website) 4** for the Worker, with an `HttpApi` contract in

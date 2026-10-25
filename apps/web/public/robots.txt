@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://hack-meridian-testnet.kristjan-grm11775.workers.dev/sitemap.xml
+Sitemap: https://testnet.trynod.si/sitemap.xml

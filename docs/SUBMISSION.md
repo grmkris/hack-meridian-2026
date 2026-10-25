@@ -61,7 +61,7 @@ as a link, and one passkey tap approves that exact recipient and amount. The lim
 policy on your account, not a setting on our server: even if our server were compromised, the most it could spend for an
 AI app is what you allowed.
 
-**Live on Stellar testnet:** https://hack-meridian-testnet.kristjan-grm11775.workers.dev · connector `https://hack-meridian-testnet.kristjan-grm11775.workers.dev/mcp`
+**Live on Stellar testnet:** https://testnet.trynod.si · connector `https://testnet.trynod.si/mcp`
 
 #### What works today
 
@@ -112,9 +112,9 @@ reachable through MCP by design) is proven onchain in a spike:
 
 #### Try it in three minutes
 
-Add `https://hack-meridian-testnet.kristjan-grm11775.workers.dev/mcp` as a custom connector in Claude, create a passkey wallet on the page that opens, approve the 5 USDC
+Add `https://testnet.trynod.si/mcp` as a custom connector in Claude, create a passkey wallet on the page that opens, approve the 5 USDC
 allowance, then ask: "Buy the market brief", "Send Alice 2 USDC", "Pay Bob 5 USDC for dinner" (more than the 2.90 left, so it needs your passkey). Full steps:
-`evidence/JUDGE-TEST-PATH.md` in the repository. No Claude at hand? [https://hack-meridian-testnet.kristjan-grm11775.workers.dev/sample](https://hack-meridian-testnet.kristjan-grm11775.workers.dev/sample) runs a sample agent through
+`evidence/JUDGE-TEST-PATH.md` in the repository. No Claude at hand? [https://testnet.trynod.si/sample](https://testnet.trynod.si/sample) runs a sample agent through
 the same tools on Nod's own demo wallet, with a live log and explorer links.
 
 #### Built at HackMeridian
@@ -175,7 +175,7 @@ https://github.com/grmkris/hack-meridian-2026
 
 ### Demo link
 
-https://hack-meridian-testnet.kristjan-grm11775.workers.dev
+https://testnet.trynod.si
 
 ### Video link
 
@@ -210,7 +210,7 @@ testnet and links to stellar.expert.
 
 ## Judge test path
 
-Live since 13:43 UTC: site https://hack-meridian-testnet.kristjan-grm11775.workers.dev, MCP connector
-https://hack-meridian-testnet.kristjan-grm11775.workers.dev/mcp. Steps for a judge: `evidence/JUDGE-TEST-PATH.md` (Claude
+Live since 13:43 UTC: site https://testnet.trynod.si, MCP connector
+https://testnet.trynod.si/mcp. Steps for a judge: `evidence/JUDGE-TEST-PATH.md` (Claude
 connector first). A fresh wallet is auto-funded with 10 testnet USDC. Reference run with explorer links:
 `evidence/demo/2026-10-25T13-38-30-890Z/`.

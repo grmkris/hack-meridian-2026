@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://hack-meridian-testnet.kristjan-grm11775.workers.dev/</loc>
+    <loc>https://testnet.trynod.si/</loc>
     <lastmod>2026-10-25</lastmod>
   </url>
   <url>
-    <loc>https://hack-meridian-testnet.kristjan-grm11775.workers.dev/llms.txt</loc>
+    <loc>https://testnet.trynod.si/llms.txt</loc>
     <lastmod>2026-10-25</lastmod>
   </url>
 </urlset>
