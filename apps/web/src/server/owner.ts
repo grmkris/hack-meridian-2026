@@ -15,6 +15,7 @@ import {
   walletByCredential,
   walletOfOwner,
 } from './store.ts'
+import { WalletCaps } from './wallet-caps.ts'
 import { WalletSettings, type Site } from './wallet-settings.ts'
 import { b64url, b64urlDecode, readClientData, verifyAssertion, verifyRegistration, WebAuthnError } from './webauthn.ts'
 
@@ -48,9 +49,15 @@ const checkInvite = (code: string | undefined) =>
     return undefined
   })
 
-export const registrationOptions = (site: Site, name: string, inviteCode?: string) =>
+/**
+ * `visitor` (a hash of cf-connecting-ip, wallet-caps.ts) counts the creation against the hourly caps: the options only
+ * check, so the passkey prompt never opens when no wallet would be created; createWallet takes the slot before the
+ * deploy. Without one (Nod's own /sample demo wallet) no cap applies.
+ */
+export const registrationOptions = (site: Site, name: string, inviteCode?: string, visitor?: string) =>
   Effect.gen(function* () {
     yield* checkInvite(inviteCode)
+    if (visitor !== undefined) yield* WalletCaps.use(caps => caps.check(visitor))
     const challenge = yield* createChallenge('register')
     return {
       challenge,
@@ -67,6 +74,8 @@ export interface NewWalletInput {
   readonly publicKey: string
   readonly clientDataJSON: string
   readonly inviteCode?: string | undefined
+  /** Counts against the hourly wallet caps (see registrationOptions). */
+  readonly visitor?: string | undefined
 }
 
 /** Registration → the relayer deploys the smart account with the passkey as admin → treasury sends welcome USDC. */
@@ -86,6 +95,8 @@ export const createWallet = (site: Site, input: NewWalletInput) =>
     const credentialId = yield* b64urlDecode(input.credentialId).pipe(Effect.mapError(badRequest))
     if ((yield* walletByCredential(input.credentialId)) !== undefined)
       return yield* new OwnerError({ kind: 'bad_request', message: 'this passkey already has a wallet; sign in' })
+    const visitor = input.visitor
+    if (visitor !== undefined) yield* WalletCaps.use(caps => caps.take(visitor))
     const chain = yield* Chain
     const deployed = yield* chain.deployAccount({ pubkey: publicKey, credentialId })
     const settings = yield* WalletSettings

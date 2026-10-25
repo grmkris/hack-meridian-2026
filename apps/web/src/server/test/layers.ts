@@ -8,6 +8,7 @@ import { Ledger, makeLocalLedger } from '../ledger.ts'
 import { Network, type NetworkShape } from '../network.ts'
 import { OAuthGrants } from '../oauth-grants.ts'
 import { Settings } from '../settings.ts'
+import { DEFAULT_CREATE_LIMITS, WalletCaps, type WalletCapsShape, memoryWalletCaps } from '../wallet-caps.ts'
 import { WalletSettings } from '../wallet-settings.ts'
 import { sqliteEngine } from './sqlite.ts'
 
@@ -56,6 +57,7 @@ export const testServices = (
   fixture: FixtureChain = makeFixtureChain(),
   counter?: Counter['Service'],
   network: NetworkShape = testNetwork,
+  caps: WalletCapsShape = memoryWalletCaps(DEFAULT_CREATE_LIMITS),
 ) => {
   const db = Layer.unwrap(Effect.promise(async () => Db.fromEngine(await sqliteEngine())))
   const ledger = Layer.effect(Ledger, makeLocalLedger)
@@ -65,6 +67,7 @@ export const testServices = (
     Layer.succeed(Chain, fixture.chain),
     OAuthGrants.none,
     Layer.succeed(Network, network),
+    Layer.succeed(WalletCaps, caps),
     Layer.succeed(Counter, counter ?? { read: Effect.die('no counter in this test') }),
     ledger,
   ).pipe(Layer.provideMerge(db))

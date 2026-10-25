@@ -10,6 +10,7 @@ import type { Ledger } from './ledger.ts'
 import { Network } from './network.ts'
 import { type GrantHelpers, OAuthGrants } from './oauth-grants.ts'
 import { Settings } from './settings.ts'
+import { WalletCaps } from './wallet-caps.ts'
 import { ledgerViaObject, type WalletObject } from './wallet-object.ts'
 import { parseDemoContacts, stringBindings, WalletSettings } from './wallet-settings.ts'
 
@@ -25,7 +26,7 @@ export interface WorkerEnv {
   readonly DEMO_CONTACTS?: string
 }
 
-export type AppServices = Settings | Counter | WalletSettings | Db | Chain | Ledger | OAuthGrants | Network
+export type AppServices = Settings | Counter | WalletSettings | Db | Chain | Ledger | OAuthGrants | Network | WalletCaps
 export type AppRuntime = ManagedRuntime.ManagedRuntime<AppServices, unknown>
 
 /** `CHAIN=testnet` (or `stellar`): the real chain, on the network STELLAR_NETWORK picks; anything else: the fixture. */
@@ -67,6 +68,12 @@ const eventsHost = (env: WorkerEnv) => {
   })
 }
 
+/** The wallet-creation caps: the log in the OAuthStore Durable Object, limits from the bindings (wallet-caps.ts). */
+const walletCaps = (env: WorkerEnv) =>
+  WalletCaps.fromStore((visitor, limits, take) =>
+    env.OAUTH_STORE.getByName('oauth').walletCreation(visitor, limits, take),
+  ).pipe(Layer.provide(ConfigProvider.layer(ConfigProvider.fromEnvRecord(stringBindings(env)))))
+
 export const appLayer = (env: WorkerEnv, helpers: GrantHelpers) =>
   Layer.mergeAll(
     Counter.layer,
@@ -76,6 +83,7 @@ export const appLayer = (env: WorkerEnv, helpers: GrantHelpers) =>
     chainLayer(env),
     OAuthGrants.fromHelpers(helpers),
     eventsHost(env),
+    walletCaps(env),
   ).pipe(Layer.provideMerge(Settings.fromBindings(env)))
 
 export const makeRuntime = (env: WorkerEnv, helpers: GrantHelpers): AppRuntime =>

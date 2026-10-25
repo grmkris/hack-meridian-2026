@@ -1,5 +1,7 @@
 import { DurableObject } from 'cloudflare:workers'
 
+import { type Admission, admitCreation, type CreateLimits, parseLog } from './wallet-caps.ts'
+
 /**
  * The subset of Workers KV that @cloudflare/workers-oauth-provider 1.2.4 calls (get text/json, put with
  * expiration/expirationTtl/metadata, delete, list by prefix with cursor), in one SQLite-backed Durable Object. Ported
@@ -17,6 +19,23 @@ export class OAuthStore extends DurableObject<object> {
   constructor(ctx: DurableObjectState, env: object) {
     super(ctx, env)
     ctx.storage.sql.exec('CREATE TABLE IF NOT EXISTS kv (k TEXT PRIMARY KEY, v TEXT NOT NULL, exp INTEGER, meta TEXT)')
+    ctx.storage.sql.exec('CREATE TABLE IF NOT EXISTS caps (k TEXT PRIMARY KEY, v TEXT NOT NULL)')
+  }
+
+  /**
+   * The wallet-creation caps (wallet-caps.ts): read the last hour's log, decide, and with `take` record the creation,
+   * all in one turn, so two creations arriving together cannot both take the last slot. Not part of the KV shim.
+   */
+  walletCreation(visitor: string, limits: CreateLimits, take: boolean): Admission {
+    const row = this.ctx.storage.sql.exec<{ v: string }>('SELECT v FROM caps WHERE k = ?', 'wallet-create').toArray()[0]
+    const result = admitCreation(parseLog(row?.v), Date.now(), visitor, limits)
+    if (take && result.admission.ok)
+      this.ctx.storage.sql.exec(
+        'INSERT OR REPLACE INTO caps (k, v) VALUES (?, ?)',
+        'wallet-create',
+        JSON.stringify(result.log),
+      )
+    return result.admission
   }
 
   kvGet(key: string): string | null {

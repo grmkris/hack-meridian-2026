@@ -11,6 +11,7 @@ import { OAuthGrants } from '../oauth-grants.ts'
 import type { AppRuntime } from '../runtime.ts'
 import { testNetwork, testSettings } from '../test/layers.ts'
 import { sqliteEngine } from '../test/sqlite.ts'
+import { WalletCaps } from '../wallet-caps.ts'
 import { WalletSettings } from '../wallet-settings.ts'
 import { noRecipientReset, type RecipientReset } from './demo-recipient.ts'
 import { type DeskStorage, SampleDesk } from './desk.ts'
@@ -49,6 +50,7 @@ const services = (chain: ChainShape) => {
     Layer.succeed(Chain, chain),
     OAuthGrants.none,
     Layer.succeed(Network, testNetwork),
+    WalletCaps.memory(),
     Layer.succeed(Counter, { read: Effect.die('no counter in this test') }),
     Layer.effect(Ledger, makeLocalLedger),
   ).pipe(Layer.provideMerge(db))

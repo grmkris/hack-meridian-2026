@@ -84,6 +84,17 @@ const Errors = [
   Unavailable.pipe(HttpApiSchema.status(503)),
 ]
 
+/**
+ * 429: Nod's hourly wallet-creation cap answered no (WALLET_CREATE_PER_VISITOR_HOUR for this visitor, or
+ * WALLET_CREATE_PER_HOUR in all); a new wallet can be created after `retry_after_s` seconds.
+ */
+export class TooManyWallets extends Schema.TaggedError<TooManyWallets>()('TooManyWallets', {
+  error: Schema.Literal('too_many_wallets'),
+  retry_after_s: Schema.Int,
+}) {}
+
+const CreateErrors = [...Errors, TooManyWallets.pipe(HttpApiSchema.status(429))]
+
 /** The owner session: an HttpOnly, SameSite=Lax cookie (Secure on https) set after a passkey registration or assertion. */
 export const OwnerSession = HttpApiSecurity.apiKey({ in: 'cookie', key: 'hm_owner' })
 
@@ -224,14 +235,14 @@ export class Api extends HttpApi.make('hack-meridian')
           /** `invite_code` is required on mainnet. */
           payload: Schema.Struct({ name: Schema.String, invite_code: Schema.optionalKey(Schema.String) }),
           success: RegistrationOptions,
-          error: Errors,
+          error: CreateErrors,
         }),
       )
       .add(
         HttpApiEndpoint.post('createWallet', '/api/wallets', {
           payload: NewWallet,
           success: WalletReply,
-          error: Errors,
+          error: CreateErrors,
         }),
       )
       .add(

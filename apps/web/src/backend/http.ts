@@ -14,6 +14,16 @@ const UNREADABLE = 'Nod answered in a way this page cannot read. Reload it.'
 const sentenceOf = (error: object): string =>
   Predicate.hasProperty(error, 'error') && Predicate.isString(error.error) ? error.error : UNREACHABLE
 
+/** The Worker's 429 `too_many_wallets` as a sentence: when the next wallet can be created. */
+export const tooManyWalletsSentence = (error: object): string => {
+  const seconds =
+    Predicate.hasProperty(error, 'retry_after_s') && Predicate.isNumber(error.retry_after_s)
+      ? error.retry_after_s
+      : 3600
+  const minutes = Math.max(1, Math.ceil(seconds / 60))
+  return `Nod opens only a few new wallets each hour. Try again in ${minutes} minute${minutes === 1 ? '' : 's'}.`
+}
+
 const toBackendError = (error: { readonly _tag: string }): BackendError =>
   Match.value(error._tag).pipe(
     Match.withReturnType<BackendError>(),
@@ -22,6 +32,7 @@ const toBackendError = (error: { readonly _tag: string }): BackendError =>
       sentenceOf(error) === INVITE_REQUIRED ? new InviteRequired() : new BackendFailed({ error: sentenceOf(error) }),
     ),
     Match.whenOr('NotFound', 'Unavailable', () => new BackendFailed({ error: sentenceOf(error) })),
+    Match.when('TooManyWallets', () => new BackendFailed({ error: tooManyWalletsSentence(error) })),
     Match.when('SchemaError', () => new BackendFailed({ error: UNREADABLE })),
     Match.orElse(() => new BackendFailed({ error: UNREACHABLE })),
   )

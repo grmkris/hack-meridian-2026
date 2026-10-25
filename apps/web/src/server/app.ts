@@ -2,7 +2,16 @@ import { Effect, Layer, Option, Redacted } from 'effect'
 import { HttpRouter, HttpServer, HttpServerRequest } from 'effect/http'
 import { HttpApiBuilder } from 'effect/http-api'
 
-import { Api, BadRequest, NotFound, OwnerSession, Unauthorized, Unavailable, type ChainStatus } from '@hm/api'
+import {
+  Api,
+  BadRequest,
+  NotFound,
+  OwnerSession,
+  TooManyWallets,
+  Unauthorized,
+  Unavailable,
+  type ChainStatus,
+} from '@hm/api'
 import { Chain, type ChainHealth, type Wallet } from '@hm/protocol'
 
 import { Counter } from './counter.ts'
@@ -26,6 +35,7 @@ import {
   replaceDestination,
 } from './store.ts'
 import { apiGrantView, pendingApproval, revokeUrl } from './views.ts'
+import { visitorOf, type WalletCapReached, WalletCaps } from './wallet-caps.ts'
 import { WalletSettings, type Site } from './wallet-settings.ts'
 
 /** The request's own URL (the Worker hands HttpApi the web Request). */
@@ -65,6 +75,17 @@ const fromOwner = (error: OwnerError) =>
     : error.kind === 'bad_request'
       ? new BadRequest({ error: error.message })
       : new Unavailable({ error: error.message })
+/** Wallet creation: the owner errors, or 429 when the hourly cap answered no. */
+const fromCreate = (error: OwnerError | WalletCapReached) =>
+  error._tag === 'WalletCapReached'
+    ? new TooManyWallets({ error: 'too_many_wallets', retry_after_s: error.retryAfterS })
+    : fromOwner(error)
+
+/** The visitor this request counts against for the wallet caps (a hash of cf-connecting-ip). */
+const visitor = Effect.flatMap(HttpServerRequest.HttpServerRequest, request =>
+  visitorOf(request.headers['cf-connecting-ip']),
+)
+
 const fromStorage = (error: DbError | LedgerError) =>
   new Unavailable({ error: error._tag === 'DbError' ? `storage: ${error.operation}` : error.message })
 
@@ -154,7 +175,7 @@ const SessionHandlers = HttpApiBuilder.group(
   Api,
   'session',
   Effect.fn(function* (handlers) {
-    const context = yield* Effect.context<Db | Chain | WalletSettings | Network>()
+    const context = yield* Effect.context<Db | Chain | WalletSettings | Network | WalletCaps>()
     const run = <A, E, R>(effect: Effect.Effect<A, E, R>) => Effect.provide(effect, context)
     return handlers
       .handle('current', () =>
@@ -164,23 +185,28 @@ const SessionHandlers = HttpApiBuilder.group(
         ),
       )
       .handle('registrationOptions', ({ payload }) =>
-        run(Effect.flatMap(site, here => registrationOptions(here, payload.name, payload.invite_code))).pipe(
-          Effect.mapError(fromOwner),
-        ),
+        run(
+          Effect.gen(function* () {
+            const here = yield* site
+            return yield* registrationOptions(here, payload.name, payload.invite_code, yield* visitor)
+          }),
+        ).pipe(Effect.mapError(fromCreate)),
       )
       .handle('createWallet', ({ payload }) =>
         run(
-          Effect.flatMap(site, here =>
-            createWallet(here, {
+          Effect.gen(function* () {
+            const here = yield* site
+            return yield* createWallet(here, {
               name: payload.name,
               credentialId: payload.credential_id,
               publicKey: payload.public_key,
               clientDataJSON: payload.client_data_json,
               inviteCode: payload.invite_code,
-            }),
-          ),
+              visitor: yield* visitor,
+            })
+          }),
         ).pipe(
-          Effect.mapError(fromOwner),
+          Effect.mapError(fromCreate),
           Effect.tap(created => setSession(created.token)),
           Effect.map(created => ({ wallet: summary(created.wallet) })),
         ),
@@ -338,7 +364,7 @@ const WalletHandlers = HttpApiBuilder.group(
   }),
 )
 
-export type ApiServices = Settings | Counter | WalletSettings | Db | Chain | Ledger | OAuthGrants | Network
+export type ApiServices = Settings | Counter | WalletSettings | Db | Chain | Ledger | OAuthGrants | Network | WalletCaps
 
 /**
  * The typed API as a fetch handler over the given services. Build it once per isolate. Services that fail to build

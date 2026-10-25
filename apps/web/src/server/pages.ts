@@ -38,7 +38,8 @@ const PASSKEY_JS = `
 const b64u={enc:b=>btoa(String.fromCharCode(...new Uint8Array(b))).replace(/\\+/g,'-').replace(/\\//g,'_').replace(/=+$/,''),
 dec:s=>Uint8Array.from(atob(s.replace(/-/g,'+').replace(/_/g,'/')+'==='.slice((s.length+3)%4)),c=>c.charCodeAt(0))};
 async function post(url,body){const r=await fetch(url,{method:'POST',headers:{'content-type':'application/json'},credentials:'same-origin',body:JSON.stringify(body??{})});
-const t=await r.text();let j=null;try{j=t?JSON.parse(t):null}catch{};if(!r.ok)throw new Error((j&&j.error)||t||r.statusText);return j}
+const t=await r.text();let j=null;try{j=t?JSON.parse(t):null}catch{};if(!r.ok)throw new Error(j&&j.error==='too_many_wallets'?tooManyWallets(j.retry_after_s):(j&&j.error)||t||r.statusText);return j}
+function tooManyWallets(s){const m=Math.max(1,Math.ceil((Number(s)||3600)/60));return'Nod opens only a few new wallets each hour. Try again in '+m+' minute'+(m===1?'':'s')+'.'}
 async function createWallet(name,invite){const o=await post('/api/wallets/options',invite?{name,invite_code:invite}:{name});
 const c=await navigator.credentials.create({publicKey:{challenge:b64u.dec(o.challenge),rp:{id:o.rp_id,name:o.rp_name},user:{id:b64u.dec(o.user_id),name:o.user_name,displayName:o.user_name},
 pubKeyCredParams:[{type:'public-key',alg:-7}],authenticatorSelection:{residentKey:'required',userVerification:'required'},attestation:'none',timeout:120000}});
