@@ -20,8 +20,16 @@ import { insert, write } from './rows.ts'
 import type { AppRuntime } from './runtime.ts'
 import { createContact, createSession, receiptOfIntent } from './store.ts'
 import { testServices } from './test/layers.ts'
+import { testNetwork } from './test/layers.ts'
 import { BOB } from './test/seed.ts'
-import { paymentExecute, paymentPrepare, paymentStatus, ToolError, type ToolContext } from './tools.ts'
+import {
+  paidResourceFetch,
+  paymentExecute,
+  paymentPrepare,
+  paymentStatus,
+  ToolError,
+  type ToolContext,
+} from './tools.ts'
 
 /**
  * The tools against the FixtureChain and SQLite, through the same services the Worker runs. Covers acceptance tests
@@ -275,6 +283,57 @@ describe('the approval page', () => {
       expect(fixture.balanceOf(BOB)).toBe(toStroops('20'))
       expect(fixture.balanceOf(contractId)).toBe(toStroops('10'))
       expect(transfers(fixture)).toBe(0)
+    } finally {
+      await runtime.dispose()
+    }
+  })
+})
+
+describe('an x402 purchase above the allowance', () => {
+  test('needs the nod; approving funds the pocket; the retry with the same key pays once', async () => {
+    const fixture = makeFixtureChain({ x402PriceStroops: toStroops('6') })
+    const network = { ...testNetwork, caps: { ...testNetwork.caps, maxX402PriceStroops: toStroops('10') } }
+    const runtime: AppRuntime = ManagedRuntime.make(testServices(fixture, undefined, network))
+    try {
+      const passkey = await SoftPasskey.create('wallet.test', ORIGIN)
+      const { ctx } = await runtime.runPromise(world(passkey))
+      const token = await runtime.runPromise(createSession(OWNER))
+      const fetch = () =>
+        runtime.runPromise(
+          paidResourceFetch(ctx, { url: 'https://seller.test/api/report', idempotency_key: 'report-1' }),
+        )
+      const asked = (await fetch()).value
+      expect(asked.status).toBe('requires_approval')
+      expect(asked.approval_url).not.toBeNull()
+      expect(fixture.callsOf('delegatedTransfer')).toHaveLength(0)
+      const id = asked.payment_id ?? ''
+      const post = async (path: string, payload: string) => {
+        const request = new Request(`${ORIGIN}${path}`, {
+          method: 'POST',
+          headers: { cookie: `hm_owner=${token}`, 'content-type': 'application/json' },
+          body: payload,
+        })
+        const response = await ownerRoute(runtime, request, path)
+        if (response === undefined) throw new Error(`no route for ${path}`)
+        return { status: response.status, text: await response.text() }
+      }
+      const prepared = await post(`/approve/${id}/prepare`, '{}')
+      const signed = await passkey.assertChallenge(challengeOf(prepared.text))
+      expect((await post(`/approve/${id}`, body(passkey, signed))).status).toBe(200)
+      const funded = (await runtime.runPromise(paymentStatus(ctx, id))).value
+      expect(funded.status).toBe('approved')
+      expect(funded.next_step).toContain('same idempotency_key')
+
+      const paid = (await fetch()).value
+      expect(paid.status).toBe('paid')
+      expect(paid.receipt?.lane).toBe('owner')
+      expect(paid.body).toContain('fixture paid resource')
+      const again = (await fetch()).value
+      expect(again.status).toBe('paid')
+      expect(again.body).toBeNull()
+      expect(fixture.callsOf('payX402')).toHaveLength(2)
+      expect(fixture.callsOf('delegatedTransfer')).toHaveLength(0)
+      expect(again.grant_remaining).toBe('5.00')
     } finally {
       await runtime.dispose()
     }

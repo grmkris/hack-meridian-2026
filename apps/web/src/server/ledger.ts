@@ -188,6 +188,11 @@ export interface LedgerShape {
     walletId: string,
     input: { readonly intentId: string; readonly prepared: string },
   ) => Effect.Effect<PaymentIntent, LedgerError>
+  /** x402 the owner funded: approved → submitted for the purchase from the pocket (the agent's retry). */
+  readonly claimFunded: (
+    walletId: string,
+    input: { readonly intentId: string; readonly connectionId: string },
+  ) => Effect.Effect<Claim, LedgerError>
   /** CAP-73 claim: remember the prepared router invocation (only while awaiting approval). */
   readonly setClaimPrepared: (
     walletId: string,
@@ -505,11 +510,56 @@ const settle = Effect.fnUntraced(function* (
     )
     return intent
   }
+  const operationKind = yield* first(sql('SELECT kind FROM operations WHERE id = ?', input.operationId), row =>
+    Effect.succeed(String(row['kind'])),
+  )
+  // An over-allowance x402 purchase the owner approved: their passkey sent the price into the pocket (outside the
+  // policy). The purchase itself happens when the agent retries with the same key.
+  if (intent.kind !== 'payment' && operationKind === 'owner_transfer' && outcome._tag === 'Confirmed') {
+    yield* write(
+      sql(
+        "UPDATE operations SET status = 'confirmed', tx_hash = ?, ledger = ?, raw_result = ? WHERE id = ?",
+        outcome.settlement.tx,
+        outcome.settlement.ledger,
+        JSON.stringify({ funded_pocket: true, feeStroops: outcome.settlement.feeStroops.toString() }),
+        input.operationId,
+      ),
+      sql(
+        "UPDATE payment_intents SET status = 'approved', failure = NULL, updated_at = ? WHERE id = ?",
+        now,
+        intent.id,
+      ),
+      ...(grant === undefined ? [] : [setGrantCounters(grant, { pocket: grant.pocket_balance + intent.amount })]),
+    )
+    return yield* loadIntent(intent.id)
+  }
+  // The funded purchase failed at the seller or facilitator: the price is still in the pocket, retry later.
+  if (
+    intent.kind !== 'payment' &&
+    operationKind === 'x402_settlement' &&
+    intent.lane === 'owner' &&
+    outcome._tag === 'Failed'
+  ) {
+    yield* write(
+      sql(
+        "UPDATE operations SET status = 'failed', raw_result = ? WHERE id = ?",
+        JSON.stringify({ kind: outcome.kind, message: outcome.message }),
+        input.operationId,
+      ),
+      sql(
+        "UPDATE payment_intents SET status = 'approved', failure = ?, updated_at = ? WHERE id = ?",
+        `${outcome.kind}: ${outcome.message}`,
+        now,
+        intent.id,
+      ),
+    )
+    return yield* loadIntent(intent.id)
+  }
   const pulled = outcome.pulled
   // x402: the pull lands in the pocket, the settlement takes the price out of it.
   const pocketDelta = intent.kind === 'payment' ? 0n : pulled - (outcome._tag === 'Confirmed' ? intent.amount : 0n)
   const counters =
-    grant === undefined || (held === 0n && pulled === 0n)
+    grant === undefined || (held === 0n && pulled === 0n && pocketDelta === 0n)
       ? []
       : [
           setGrantCounters(grant, {
@@ -679,6 +729,37 @@ const approveClaim = Effect.fnUntraced(function* (
   return { _tag: 'Claimed' as const, intent: yield* loadIntent(intent.id), grant: undefined, operationId: '' }
 })
 
+const claimFunded = Effect.fnUntraced(function* (
+  _walletId: string,
+  input: { readonly intentId: string; readonly connectionId: string },
+) {
+  const intent = yield* loadIntent(input.intentId)
+  if (intent.connection_id !== input.connectionId) return yield* notFound(`no payment ${input.intentId}`)
+  if (intent.status !== 'approved' || intent.kind === 'payment')
+    return { _tag: 'NotClaimed' as const, intent, why: 'already' as const }
+  const now = yield* nowIso
+  const operationId = yield* randomId('op')
+  yield* write(
+    setIntentStatus(intent.id, { status: 'submitted', now }),
+    insert('operations', {
+      id: operationId,
+      intent_id: intent.id,
+      kind: 'x402_settlement',
+      tx_hash: null,
+      submitted_at: now,
+      ledger: null,
+      status: 'submitted',
+      raw_result: null,
+    }),
+  )
+  return {
+    _tag: 'Claimed' as const,
+    intent: yield* loadIntent(intent.id),
+    grant: yield* loadGrant(intent.grant_id),
+    operationId,
+  }
+})
+
 const claimApproved = Effect.fnUntraced(function* (_walletId: string, input: { readonly intentId: string }) {
   const intent = yield* loadIntent(input.intentId)
   if (intent.status !== 'approved') return { _tag: 'NotClaimed' as const, intent, why: 'already' as const }
@@ -796,6 +877,7 @@ export const makeLocalLedger = Effect.gen(function* () {
     claimOwner: serialized(claimOwner),
     settle: serialized(settle),
     setApprovalPrepared: serialized(setApprovalPrepared),
+    claimFunded: serialized(claimFunded),
     setClaimPrepared: serialized(setClaimPrepared),
     approveClaim: serialized(approveClaim),
     claimApproved: serialized(claimApproved),

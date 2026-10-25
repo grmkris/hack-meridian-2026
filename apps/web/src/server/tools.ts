@@ -9,6 +9,7 @@ import {
   fromStroops,
   type PaidMcpCallInput,
   type PaidResourceFetchInput,
+  type PaymentIntent,
   type PaymentPrepareInput,
   type Readiness,
   type Receipt,
@@ -461,6 +462,35 @@ const bodyText = (response: Response) =>
     return text.length > MAX_BODY ? `${text.slice(0, MAX_BODY)}\n…(truncated)` : text
   })
 
+/**
+ * The retry after the owner approved an over-allowance purchase: their passkey already moved the price into the pocket.
+ * Check the seller asks no more than was approved, claim the submit, and pay from the pocket without a pull.
+ */
+const fundedHook =
+  (input: {
+    readonly ctx: ToolContext
+    readonly wallet: Wallet
+    readonly intent: PaymentIntent
+    readonly state: Ref.Ref<PaidState>
+  }) =>
+  (quote: X402Quote) =>
+    Effect.gen(function* () {
+      const network = yield* Network
+      if (quote.network !== network.caip || quote.asset !== network.usdcSac)
+        return yield* decline('the seller changed its terms since the approval')
+      if (quote.amountStroops > input.intent.amount)
+        return yield* decline(
+          `the seller now asks ${fromStroops(quote.amountStroops)} USDC, more than the ${fromStroops(input.intent.amount)} USDC the user approved`,
+        )
+      yield* Ref.update(input.state, s => ({ ...s, quote, intentId: input.intent.id }))
+      const claim = yield* Ledger.use(ledger =>
+        ledger.claimFunded(input.wallet.id, { intentId: input.intent.id, connectionId: input.ctx.props.connection_id }),
+      ).pipe(Effect.mapError(error => new ChainError({ kind: 'declined', message: error.message })))
+      if (claim._tag === 'NotClaimed') return yield* decline('this purchase is already being paid')
+      yield* Ref.update(input.state, s => ({ ...s, operationId: claim.operationId }))
+      return null
+    })
+
 /** The repeat of a paid call whose key already has an intent: report it, never pay again. */
 const existingPaid = (ctx: ToolContext, intentId: string, grant: SpendingGrant | undefined, nowMs: number) =>
   Effect.gen(function* () {
@@ -513,13 +543,22 @@ const paid = <Body>(
     if (existing !== undefined) {
       if ((yield* fingerprintOf(existing.id)) !== request.fingerprint)
         return yield* fail(`Idempotency key ${request.key} was used for a different request; use a new key.`)
-      return { body: null, ...(yield* existingPaid(ctx, existing.id, grant, nowMs)) }
+      // Funded by the owner's nod: this retry completes the purchase. Anything else is reported as it stands.
+      if (existing.status !== 'approved')
+        return { body: null, ...(yield* existingPaid(ctx, existing.id, grant, nowMs)) }
     }
-    if (grant === undefined || grant.status !== 'active')
+    if (grant === undefined || (existing === undefined && grant.status !== 'active'))
       return yield* fail('This AI app has no live allowance; ask the user to set one (connection_grant_create).')
-    const remaining = grant.total - grant.spent - grant.reserved + grant.pocket_balance
-    const maxAmount = request.maxAmount === undefined ? remaining : toStroops(request.maxAmount)
-    const intentId = yield* randomId('pi')
+    // The chain's per-payment belt: what the user approved, the agent's own max_amount, else Nod's x402 price cap.
+    // Whether the price fits the allowance is the quote hook's call (it routes a bigger one to the user's nod).
+    const network = yield* Network
+    const maxAmount =
+      existing !== undefined
+        ? existing.amount
+        : request.maxAmount === undefined
+          ? network.caps.maxX402PriceStroops
+          : toStroops(request.maxAmount)
+    const intentId = existing?.id ?? (yield* randomId('pi'))
     const state = yield* Ref.make<PaidState>({
       intentId: null,
       operationId: null,
@@ -529,20 +568,23 @@ const paid = <Body>(
       ownerLane: false,
     })
     const services = yield* Effect.context<Chain | Ledger | Network>()
-    const hook = quoteHook({
-      ctx,
-      wallet,
-      grant,
-      connectionName: connection.oauth_client_name,
-      kind: request.kind,
-      key: request.key,
-      fingerprint: request.fingerprint,
-      resource: request.resource,
-      reason: request.reason,
-      maxAmount,
-      intentId,
-      state,
-    })
+    const hook =
+      existing !== undefined
+        ? fundedHook({ ctx, wallet, intent: existing, state })
+        : quoteHook({
+            ctx,
+            wallet,
+            grant,
+            connectionName: connection.oauth_client_name,
+            kind: request.kind,
+            key: request.key,
+            fingerprint: request.fingerprint,
+            resource: request.resource,
+            reason: request.reason,
+            maxAmount,
+            intentId,
+            state,
+          })
     const result = yield* Effect.result(pay(grant, intentId, maxAmount, quote => Effect.provide(hook(quote), services)))
     const after = yield* Ref.get(state)
     const ledger = yield* Ledger

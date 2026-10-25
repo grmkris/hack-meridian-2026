@@ -70,6 +70,7 @@ export const ledgerViaObject = (ns: DurableObjectNamespace<WalletObject>) => {
     claimOwner: call('claimOwner'),
     settle: call('settle'),
     setApprovalPrepared: call('setApprovalPrepared'),
+    claimFunded: call('claimFunded'),
     setClaimPrepared: call('setClaimPrepared'),
     approveClaim: call('approveClaim'),
     claimApproved: call('claimApproved'),

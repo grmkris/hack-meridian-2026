@@ -102,6 +102,8 @@ const nextStep = (intent: PaymentIntent, status: PaymentIntent['status'], url: s
         ? `This needs the user's nod, and the recipient accepts on a claim link: ask the user to open ${url ?? ''} and approve it with their passkey, then poll payment_status with payment_id ${intent.id}.`
         : `This needs the user's nod. Ask the user to open ${url ?? ''} and approve it with their passkey, then poll payment_status with payment_id ${intent.id}.`
     case 'approved':
+      if (intent.kind !== 'payment')
+        return `The user approved this purchase and the price is in this AI app's pocket. Call ${intent.kind === 'x402_mcp' ? 'paid_mcp_call' : 'paid_resource_fetch'} again with the same idempotency_key to complete it.`
       return intent.recipient_readiness === 'trustline_required'
         ? `The user approved. Waiting for ${intent.recipient_name ?? 'the recipient'} to accept on the claim link; poll payment_status with payment_id ${intent.id}.`
         : `Approved. Poll payment_status with payment_id ${intent.id}.`
