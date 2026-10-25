@@ -35,7 +35,7 @@ export const EXAMPLE_WALLET = {
   askBadge: 'Needs your nod',
   approve: 'Approve 20.00 USDC to Bob with your passkey',
   approved: 'Approved with your passkey. The allowance stays 2.90.',
-  caption: 'Example wallet. Two numbers that never blur: what you hold, and what your AI may spend.',
+  caption: 'Example wallet. What you hold and what your AI may spend stay two separate numbers.',
 } as const
 
 export const HOW_IT_WORKS = {
@@ -146,8 +146,10 @@ export const TRY_IT = {
     'Ask Claude to pay Bob 5 USDC for dinner. That is more than what is left, so it needs your nod.',
   ],
   sampleLead: 'No Claude at hand? ',
-  sample: 'Watch a sample agent run',
+  sample: 'Watch a sample agent run on Nod’s own demo wallet',
   sampleHref: '/sample',
+  sampleNote:
+    'The same steps, through the same tools Claude calls, on Nod’s own demo wallet. A live log shows every amount, nod, fee and transaction.',
 } as const
 
 export const FOOTER = {
