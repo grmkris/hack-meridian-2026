@@ -155,6 +155,8 @@ notifications, and a person who has never held USDC can be paid through a claim 
 - **Mainnet for what runs on testnet tonight.** Deposit-first signup with an exchange deposit address, the claim link
   that creates a wallet for someone with nothing, and contacts the AI adds, once the deposit router passes its mainnet
   run.
+- **A claim link that is an allowance for a person.** Your one nod sets the amount for seven days, the key lives only
+  in the link, Nod never holds it.
 - **Recovery and shared wallets.** A second passkey or a guardian, and wallets two people own.
 - **Cash-out** to a bank through a Stellar anchor.
 - **No pocket step** once x402 facilitators accept smart-account payers.
