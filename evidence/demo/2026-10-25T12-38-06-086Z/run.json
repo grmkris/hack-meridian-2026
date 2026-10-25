@@ -1,0 +1,826 @@
+{
+  "run_id": "1025123806",
+  "target": "stub",
+  "base": "https://hm26-s4-mcp.kristjan-grm11775.workers.dev",
+  "mcp": "https://hm26-s4-mcp.kristjan-grm11775.workers.dev/mcp",
+  "seller": "https://hm26-seller.kristjan-grm11775.workers.dev",
+  "relayer": "GBGNYETYEEWM5RIRE6KWUUZKD3X4DBZZ72M2LHQJNUGYO3D6ZYADBPT6",
+  "started_at": "2026-10-25T12:38:06.086Z",
+  "finished_at": "2026-10-25T12:38:16.377Z",
+  "oauth": {
+    "client_id": "d5mSuGyKet-GXKdO",
+    "redirect": "http://127.0.0.1:43141/callback"
+  },
+  "tools": ["wallet_overview", "payment_prepare", "payment_status"],
+  "steps": [
+    {
+      "id": "s1",
+      "title": "Connect: DCR + PKCE, consent page, passkey, allowance",
+      "status": "pass",
+      "ms": 4248
+    },
+    {
+      "id": "s2",
+      "title": "Grant installed: allowance and expiry on the connection",
+      "status": "pass",
+      "ms": 413
+    },
+    {
+      "id": "s3",
+      "title": "wallet_overview: balance and allowance are two numbers",
+      "status": "pass",
+      "ms": 54
+    },
+    {
+      "id": "s4",
+      "title": "paid_resource_fetch: buy the market brief for 0.10 over x402",
+      "status": "skip",
+      "ms": 0,
+      "error": "needs x402"
+    },
+    {
+      "id": "s5",
+      "title": "Send Alice 2 USDC: payment_prepare → payment_execute (autonomous lane)",
+      "status": "skip",
+      "ms": 0,
+      "error": "needs autonomous"
+    },
+    {
+      "id": "s6",
+      "title": "Ask for 100 USDC to Bob for dinner → requires_approval + link",
+      "status": "pass",
+      "ms": 228
+    },
+    {
+      "id": "s7",
+      "title": "Owner opens the link, sees recipient and amount, approves with the passkey; agent polls",
+      "status": "pass",
+      "ms": 3297
+    },
+    {
+      "id": "s8a",
+      "title": "Same request again (same idempotency key) → same receipt, no second payment",
+      "status": "pass",
+      "ms": 108
+    },
+    {
+      "id": "s8b",
+      "title": "Ask for 4 USDC with 2.90 left → owner lane, not an onchain revert",
+      "status": "pass",
+      "ms": 70
+    },
+    {
+      "id": "s10",
+      "title": "Send Carol 10 USDC: trustline required → claim link → trust + transfer in one transaction",
+      "status": "skip",
+      "ms": 0,
+      "error": "needs claim"
+    },
+    {
+      "id": "s9",
+      "title": "Owner revokes the connection on the site → next delegated payment refused, rule gone onchain",
+      "status": "pass",
+      "ms": 1618
+    },
+    {
+      "id": "s11",
+      "title": "Fee audit: the relayer paid every fee, the owner account holds no XLM",
+      "status": "pass",
+      "ms": 0
+    }
+  ],
+  "acceptance": {
+    "1": {
+      "status": "N/A",
+      "checks": ["skip s4: s4 skipped on stub (needs x402)"]
+    },
+    "2": {
+      "status": "PASS",
+      "checks": [
+        "pass s8b: 4 > 5.00 → lane owner, status requires_approval",
+        "pass s8b: nothing reserved or spent: allowance 5.00 → 5.00 (expected unchanged)"
+      ]
+    },
+    "3": {
+      "status": "REF",
+      "checks": [
+        "ref s11: forced over-limit transfer signed by the connection key: rejected onchain #3221 in S1 (3daf4b00…, docs/spikes/s1.md) and refused at enforce simulation in S5; not reachable through MCP by design"
+      ]
+    },
+    "4": {
+      "status": "PASS",
+      "checks": [
+        "pass s6: lane owner, status requires_approval, approval_url https://hm26-s4-mcp.kristjan-grm11775.workers.dev/approve/pi_0b4ea3aaf16553f71cdbe80c",
+        "pass s6: the approval link is in the tool result text too",
+        "pass s6: owner-lane request reserved nothing: allowance 5.00 → 5.00 (expected unchanged)",
+        "pass s7: approval page shows Bob and 100 USDC",
+        "pass s7: owner lane did not consume the grant: allowance 5.00 → 5.00 (expected unchanged)"
+      ]
+    },
+    "5": {
+      "status": "PASS",
+      "checks": ["pass s8a: same payment_id pi_0b4ea3aaf16553f71cdbe80c", "pass s8a: same receipt 58500529…"]
+    },
+    "6": {
+      "status": "PASS",
+      "checks": [
+        "pass s9: next delegated payment after revoke: Unauthorized",
+        "skip s9: onchain rule removal not checkable on this target"
+      ]
+    },
+    "7": {
+      "status": "PASS",
+      "checks": [
+        "skip s4: s4 skipped on stub (needs x402)",
+        "skip s5: s5 skipped on stub (needs autonomous)",
+        "pass s6: before approval: awaiting_approval, no receipt",
+        "pass s7: opening the link had no side effect before approving",
+        "pass s7: payment_status confirmed, receipt 58500529",
+        "skip s7: stub: receipts are fake, nothing onchain to check"
+      ]
+    },
+    "8": {
+      "status": "N/A",
+      "checks": ["skip s10: s10 skipped on stub (needs claim)"]
+    },
+    "9": {
+      "status": "N/A",
+      "checks": [
+        "skip s4: s4 skipped on stub (needs x402)",
+        "skip s5: s5 skipped on stub (needs autonomous)",
+        "skip s10: s10 skipped on stub (needs claim)",
+        "skip s11: no onchain wallet on this target"
+      ]
+    }
+  },
+  "checks": [
+    {
+      "step": "s1",
+      "test": null,
+      "status": "pass",
+      "detail": "DCR client_id d5mSuGyKet-GXKdO"
+    },
+    {
+      "step": "s1",
+      "test": null,
+      "status": "pass",
+      "detail": "callback state matches"
+    },
+    {
+      "step": "s1",
+      "test": null,
+      "status": "pass",
+      "detail": "callback iss https://hm26-s4-mcp.kristjan-grm11775.workers.dev (RFC 9207)"
+    },
+    {
+      "step": "s1",
+      "test": null,
+      "status": "pass",
+      "detail": "access token issued (PKCE)"
+    },
+    {
+      "step": "s1",
+      "test": null,
+      "status": "pass",
+      "detail": "tools/list → wallet_overview, payment_prepare, payment_status"
+    },
+    {
+      "step": "s2",
+      "test": null,
+      "status": "pass",
+      "detail": "grant total 5.00 = consent 5.00"
+    },
+    {
+      "step": "s3",
+      "test": null,
+      "status": "pass",
+      "detail": "balance 50.00 USDC, allowance 5.00 remaining until 2026-10-26T12:00:00.000Z"
+    },
+    {
+      "step": "s4",
+      "test": 1,
+      "status": "skip",
+      "detail": "s4 skipped on stub (needs x402)"
+    },
+    {
+      "step": "s4",
+      "test": 7,
+      "status": "skip",
+      "detail": "s4 skipped on stub (needs x402)"
+    },
+    {
+      "step": "s4",
+      "test": 9,
+      "status": "skip",
+      "detail": "s4 skipped on stub (needs x402)"
+    },
+    {
+      "step": "s5",
+      "test": 7,
+      "status": "skip",
+      "detail": "s5 skipped on stub (needs autonomous)"
+    },
+    {
+      "step": "s5",
+      "test": 9,
+      "status": "skip",
+      "detail": "s5 skipped on stub (needs autonomous)"
+    },
+    {
+      "step": "s6",
+      "test": 4,
+      "status": "pass",
+      "detail": "lane owner, status requires_approval, approval_url https://hm26-s4-mcp.kristjan-grm11775.workers.dev/approve/pi_0b4ea3aaf16553f71cdbe80c"
+    },
+    {
+      "step": "s6",
+      "test": 4,
+      "status": "pass",
+      "detail": "the approval link is in the tool result text too"
+    },
+    {
+      "step": "s6",
+      "test": 7,
+      "status": "pass",
+      "detail": "before approval: awaiting_approval, no receipt"
+    },
+    {
+      "step": "s6",
+      "test": 4,
+      "status": "pass",
+      "detail": "owner-lane request reserved nothing: allowance 5.00 → 5.00 (expected unchanged)"
+    },
+    {
+      "step": "s7",
+      "test": 4,
+      "status": "pass",
+      "detail": "approval page shows Bob and 100 USDC"
+    },
+    {
+      "step": "s7",
+      "test": 7,
+      "status": "pass",
+      "detail": "opening the link had no side effect before approving"
+    },
+    {
+      "step": "s7",
+      "test": 7,
+      "status": "pass",
+      "detail": "payment_status confirmed, receipt 58500529"
+    },
+    {
+      "step": "s7",
+      "test": 7,
+      "status": "skip",
+      "detail": "stub: receipts are fake, nothing onchain to check"
+    },
+    {
+      "step": "s7",
+      "test": 4,
+      "status": "pass",
+      "detail": "owner lane did not consume the grant: allowance 5.00 → 5.00 (expected unchanged)"
+    },
+    {
+      "step": "s8a",
+      "test": 5,
+      "status": "pass",
+      "detail": "same payment_id pi_0b4ea3aaf16553f71cdbe80c"
+    },
+    {
+      "step": "s8a",
+      "test": 5,
+      "status": "pass",
+      "detail": "same receipt 58500529…"
+    },
+    {
+      "step": "s8b",
+      "test": 2,
+      "status": "pass",
+      "detail": "4 > 5.00 → lane owner, status requires_approval"
+    },
+    {
+      "step": "s8b",
+      "test": 2,
+      "status": "pass",
+      "detail": "nothing reserved or spent: allowance 5.00 → 5.00 (expected unchanged)"
+    },
+    {
+      "step": "s10",
+      "test": 8,
+      "status": "skip",
+      "detail": "s10 skipped on stub (needs claim)"
+    },
+    {
+      "step": "s10",
+      "test": 9,
+      "status": "skip",
+      "detail": "s10 skipped on stub (needs claim)"
+    },
+    {
+      "step": "s9",
+      "test": 6,
+      "status": "pass",
+      "detail": "next delegated payment after revoke: Unauthorized"
+    },
+    {
+      "step": "s9",
+      "test": 6,
+      "status": "skip",
+      "detail": "onchain rule removal not checkable on this target"
+    },
+    {
+      "step": "s11",
+      "test": 3,
+      "status": "ref",
+      "detail": "forced over-limit transfer signed by the connection key: rejected onchain #3221 in S1 (3daf4b00…, docs/spikes/s1.md) and refused at enforce simulation in S5; not reachable through MCP by design"
+    },
+    {
+      "step": "s11",
+      "test": 9,
+      "status": "skip",
+      "detail": "no onchain wallet on this target"
+    }
+  ],
+  "calls": [
+    {
+      "step": "s2",
+      "t": 4372,
+      "tool": "wallet_overview",
+      "arguments": {
+        "idempotency_key": "rh-1025123806-overview-0"
+      },
+      "ms": 413,
+      "ok": true,
+      "isError": false,
+      "structured": {
+        "wallet": {
+          "id": "wal_personal",
+          "name": "Personal",
+          "network": "stellar:testnet",
+          "contract_id": "C…(fixture)"
+        },
+        "balance": {
+          "asset": "USDC",
+          "amount": "50.00"
+        },
+        "allowance": {
+          "grant_id": "gr_27880b99",
+          "asset": "USDC",
+          "total": "5.00",
+          "spent": "0.00",
+          "remaining": "5.00",
+          "valid_until": "2026-10-26T12:00:00.000Z",
+          "status": "active"
+        },
+        "pending_approvals": 0,
+        "connection": {
+          "id": "27880b99-97f1-4c80-9292-2a6485f6d15b",
+          "client_name": "hm26 rehearse (stub)"
+        }
+      },
+      "text": "{\n  \"wallet\": {\n    \"id\": \"wal_personal\",\n    \"name\": \"Personal\",\n    \"network\": \"stellar:testnet\",\n    \"contract_id\": \"C…(fixture)\"\n  },\n  \"balance\": {\n    \"asset\": \"USDC\",\n    \"amount\": \"50.00\"\n  },\n  \"allowance\": {\n    \"grant_id\": \"gr_27880b99\",\n    \"asset\": \"USDC\",\n    \"total\": \"5.00\",\n    \"spent\": \"0.00\",\n    \"remaining\": \"5.00\",\n    \"valid_until\": \"2026-10-26T12:00:00.000Z\",\n    \"status\": \"active\"\n  },\n  \"pending_approvals\": 0,\n  \"connection\": {\n    \"id\": \"27880b99-97f1-4c80-9292-2a6485f6d15b\",\n    \"client_name\": \"hm26 rehearse (stub)\"\n  }\n}"
+    },
+    {
+      "step": "s3",
+      "t": 4785,
+      "tool": "wallet_overview",
+      "arguments": {
+        "idempotency_key": "rh-1025123806-overview-1"
+      },
+      "ms": 54,
+      "ok": true,
+      "isError": false,
+      "structured": {
+        "wallet": {
+          "id": "wal_personal",
+          "name": "Personal",
+          "network": "stellar:testnet",
+          "contract_id": "C…(fixture)"
+        },
+        "balance": {
+          "asset": "USDC",
+          "amount": "50.00"
+        },
+        "allowance": {
+          "grant_id": "gr_27880b99",
+          "asset": "USDC",
+          "total": "5.00",
+          "spent": "0.00",
+          "remaining": "5.00",
+          "valid_until": "2026-10-26T12:00:00.000Z",
+          "status": "active"
+        },
+        "pending_approvals": 0,
+        "connection": {
+          "id": "27880b99-97f1-4c80-9292-2a6485f6d15b",
+          "client_name": "hm26 rehearse (stub)"
+        }
+      },
+      "text": "{\n  \"wallet\": {\n    \"id\": \"wal_personal\",\n    \"name\": \"Personal\",\n    \"network\": \"stellar:testnet\",\n    \"contract_id\": \"C…(fixture)\"\n  },\n  \"balance\": {\n    \"asset\": \"USDC\",\n    \"amount\": \"50.00\"\n  },\n  \"allowance\": {\n    \"grant_id\": \"gr_27880b99\",\n    \"asset\": \"USDC\",\n    \"total\": \"5.00\",\n    \"spent\": \"0.00\",\n    \"remaining\": \"5.00\",\n    \"valid_until\": \"2026-10-26T12:00:00.000Z\",\n    \"status\": \"active\"\n  },\n  \"pending_approvals\": 0,\n  \"connection\": {\n    \"id\": \"27880b99-97f1-4c80-9292-2a6485f6d15b\",\n    \"client_name\": \"hm26 rehearse (stub)\"\n  }\n}"
+    },
+    {
+      "step": "s6",
+      "t": 4839,
+      "tool": "payment_prepare",
+      "arguments": {
+        "recipient": "Bob GBOBDEMO",
+        "amount": "100",
+        "reason": "dinner",
+        "idempotency_key": "rh-1025123806-dinner"
+      },
+      "ms": 67,
+      "ok": true,
+      "isError": false,
+      "structured": {
+        "payment_id": "pi_0b4ea3aaf16553f71cdbe80c",
+        "status": "requires_approval",
+        "amount": "100",
+        "asset": "USDC",
+        "recipient": "Bob GBOBDEMO",
+        "network": "stellar:testnet",
+        "lane": "owner",
+        "expires_at": "2026-10-25T13:08:10.970Z",
+        "approval_url": "https://hm26-s4-mcp.kristjan-grm11775.workers.dev/approve/pi_0b4ea3aaf16553f71cdbe80c",
+        "grant_remaining": "5.00"
+      },
+      "text": "This payment of 100 USDC to Bob GBOBDEMO needs the wallet owner's approval. Ask the user to open https://hm26-s4-mcp.kristjan-grm11775.workers.dev/approve/pi_0b4ea3aaf16553f71cdbe80c and approve it, then call payment_status with payment_id pi_0b4ea3aaf16553f71cdbe80c.\n{\n  \"payment_id\": \"pi_0b4ea3aaf16553f71cdbe80c\",\n  \"status\": \"requires_approval\",\n  \"amount\": \"100\",\n  \"asset\": \"USDC\",\n  \"recipient\": \"Bob GBOBDEMO\",\n  \"network\": \"stellar:testnet\",\n  \"lane\": \"owner\",\n  \"expires_at\": \"2026-10-25T13:08:10.970Z\",\n  \"approval_url\": \"https://hm26-s4-mcp.kristjan-grm11775.workers.dev/approve/pi_0b4ea3aaf16553f71cdbe80c\",\n  \"grant_remaining\": \"5.00\"\n}"
+    },
+    {
+      "step": "s6",
+      "t": 4906,
+      "tool": "payment_status",
+      "arguments": {
+        "payment_id": "pi_0b4ea3aaf16553f71cdbe80c"
+      },
+      "ms": 160,
+      "ok": true,
+      "isError": false,
+      "structured": {
+        "payment_id": "pi_0b4ea3aaf16553f71cdbe80c",
+        "status": "awaiting_approval",
+        "amount": "100",
+        "asset": "USDC",
+        "recipient": "Bob GBOBDEMO",
+        "network": "stellar:testnet",
+        "lane": "owner",
+        "expires_at": "2026-10-25T13:08:10.970Z",
+        "approval_url": "https://hm26-s4-mcp.kristjan-grm11775.workers.dev/approve/pi_0b4ea3aaf16553f71cdbe80c",
+        "grant_remaining": "5.00"
+      },
+      "text": "Still waiting for the owner to approve at https://hm26-s4-mcp.kristjan-grm11775.workers.dev/approve/pi_0b4ea3aaf16553f71cdbe80c.\n{\n  \"payment_id\": \"pi_0b4ea3aaf16553f71cdbe80c\",\n  \"status\": \"awaiting_approval\",\n  \"amount\": \"100\",\n  \"asset\": \"USDC\",\n  \"recipient\": \"Bob GBOBDEMO\",\n  \"network\": \"stellar:testnet\",\n  \"lane\": \"owner\",\n  \"expires_at\": \"2026-10-25T13:08:10.970Z\",\n  \"approval_url\": \"https://hm26-s4-mcp.kristjan-grm11775.workers.dev/approve/pi_0b4ea3aaf16553f71cdbe80c\",\n  \"grant_remaining\": \"5.00\"\n}"
+    },
+    {
+      "step": "s7",
+      "t": 5067,
+      "tool": "payment_status",
+      "arguments": {
+        "payment_id": "pi_0b4ea3aaf16553f71cdbe80c"
+      },
+      "ms": 63,
+      "ok": true,
+      "isError": false,
+      "structured": {
+        "payment_id": "pi_0b4ea3aaf16553f71cdbe80c",
+        "status": "awaiting_approval",
+        "amount": "100",
+        "asset": "USDC",
+        "recipient": "Bob GBOBDEMO",
+        "network": "stellar:testnet",
+        "lane": "owner",
+        "expires_at": "2026-10-25T13:08:10.970Z",
+        "approval_url": "https://hm26-s4-mcp.kristjan-grm11775.workers.dev/approve/pi_0b4ea3aaf16553f71cdbe80c",
+        "grant_remaining": "5.00"
+      },
+      "text": "Still waiting for the owner to approve at https://hm26-s4-mcp.kristjan-grm11775.workers.dev/approve/pi_0b4ea3aaf16553f71cdbe80c.\n{\n  \"payment_id\": \"pi_0b4ea3aaf16553f71cdbe80c\",\n  \"status\": \"awaiting_approval\",\n  \"amount\": \"100\",\n  \"asset\": \"USDC\",\n  \"recipient\": \"Bob GBOBDEMO\",\n  \"network\": \"stellar:testnet\",\n  \"lane\": \"owner\",\n  \"expires_at\": \"2026-10-25T13:08:10.970Z\",\n  \"approval_url\": \"https://hm26-s4-mcp.kristjan-grm11775.workers.dev/approve/pi_0b4ea3aaf16553f71cdbe80c\",\n  \"grant_remaining\": \"5.00\"\n}"
+    },
+    {
+      "step": "s7",
+      "t": 5752,
+      "tool": "payment_status",
+      "arguments": {
+        "payment_id": "pi_0b4ea3aaf16553f71cdbe80c"
+      },
+      "ms": 54,
+      "ok": true,
+      "isError": false,
+      "structured": {
+        "payment_id": "pi_0b4ea3aaf16553f71cdbe80c",
+        "status": "submitted",
+        "amount": "100",
+        "asset": "USDC",
+        "recipient": "Bob GBOBDEMO",
+        "network": "stellar:testnet",
+        "lane": "owner",
+        "expires_at": "2026-10-25T13:08:10.970Z",
+        "grant_remaining": "5.00"
+      },
+      "text": "Payment pi_0b4ea3aaf16553f71cdbe80c is submitted.\n{\n  \"payment_id\": \"pi_0b4ea3aaf16553f71cdbe80c\",\n  \"status\": \"submitted\",\n  \"amount\": \"100\",\n  \"asset\": \"USDC\",\n  \"recipient\": \"Bob GBOBDEMO\",\n  \"network\": \"stellar:testnet\",\n  \"lane\": \"owner\",\n  \"expires_at\": \"2026-10-25T13:08:10.970Z\",\n  \"grant_remaining\": \"5.00\"\n}"
+    },
+    {
+      "step": "s7",
+      "t": 8308,
+      "tool": "payment_status",
+      "arguments": {
+        "payment_id": "pi_0b4ea3aaf16553f71cdbe80c"
+      },
+      "ms": 55,
+      "ok": true,
+      "isError": false,
+      "structured": {
+        "payment_id": "pi_0b4ea3aaf16553f71cdbe80c",
+        "status": "confirmed",
+        "amount": "100",
+        "asset": "USDC",
+        "recipient": "Bob GBOBDEMO",
+        "network": "stellar:testnet",
+        "lane": "owner",
+        "expires_at": "2026-10-25T13:08:10.970Z",
+        "receipt": {
+          "tx_hash": "5850052969a92f049ce6d07500edb8c6c1360aa9a4f59c70ec5302c85bd1c3bf",
+          "ledger": 0,
+          "explorer_url": "https://stellar.expert/explorer/testnet/tx/5850052969a92f049ce6d07500edb8c6c1360aa9a4f59c70ec5302c85bd1c3bf",
+          "confirmed_at": "2026-10-25T12:38:13.698Z",
+          "lane": "owner",
+          "note": "FAKE receipt (spike S4): no transaction was submitted"
+        },
+        "grant_remaining": "5.00"
+      },
+      "text": "Confirmed. Receipt 5850052969a92f049ce6d07500edb8c6c1360aa9a4f59c70ec5302c85bd1c3bf.\n{\n  \"payment_id\": \"pi_0b4ea3aaf16553f71cdbe80c\",\n  \"status\": \"confirmed\",\n  \"amount\": \"100\",\n  \"asset\": \"USDC\",\n  \"recipient\": \"Bob GBOBDEMO\",\n  \"network\": \"stellar:testnet\",\n  \"lane\": \"owner\",\n  \"expires_at\": \"2026-10-25T13:08:10.970Z\",\n  \"receipt\": {\n    \"tx_hash\": \"5850052969a92f049ce6d07500edb8c6c1360aa9a4f59c70ec5302c85bd1c3bf\",\n    \"ledger\": 0,\n    \"explorer_url\": \"https://stellar.expert/explorer/testnet/tx/5850052969a92f049ce6d07500edb8c6c1360aa9a4f59c70ec5302c85bd1c3bf\",\n    \"confirmed_at\": \"2026-10-25T12:38:13.698Z\",\n    \"lane\": \"owner\",\n    \"note\": \"FAKE receipt (spike S4): no transaction was submitted\"\n  },\n  \"grant_remaining\": \"5.00\"\n}"
+    },
+    {
+      "step": "s8a",
+      "t": 8364,
+      "tool": "payment_prepare",
+      "arguments": {
+        "recipient": "Bob GBOBDEMO",
+        "amount": "100",
+        "reason": "dinner",
+        "idempotency_key": "rh-1025123806-dinner"
+      },
+      "ms": 104,
+      "ok": true,
+      "isError": false,
+      "structured": {
+        "payment_id": "pi_0b4ea3aaf16553f71cdbe80c",
+        "status": "confirmed",
+        "amount": "100",
+        "asset": "USDC",
+        "recipient": "Bob GBOBDEMO",
+        "network": "stellar:testnet",
+        "lane": "owner",
+        "expires_at": "2026-10-25T13:08:10.970Z",
+        "receipt": {
+          "tx_hash": "5850052969a92f049ce6d07500edb8c6c1360aa9a4f59c70ec5302c85bd1c3bf",
+          "ledger": 0,
+          "explorer_url": "https://stellar.expert/explorer/testnet/tx/5850052969a92f049ce6d07500edb8c6c1360aa9a4f59c70ec5302c85bd1c3bf",
+          "confirmed_at": "2026-10-25T12:38:13.698Z",
+          "lane": "owner",
+          "note": "FAKE receipt (spike S4): no transaction was submitted"
+        },
+        "grant_remaining": "5.00"
+      },
+      "text": "Payment pi_0b4ea3aaf16553f71cdbe80c is confirmed.\n{\n  \"payment_id\": \"pi_0b4ea3aaf16553f71cdbe80c\",\n  \"status\": \"confirmed\",\n  \"amount\": \"100\",\n  \"asset\": \"USDC\",\n  \"recipient\": \"Bob GBOBDEMO\",\n  \"network\": \"stellar:testnet\",\n  \"lane\": \"owner\",\n  \"expires_at\": \"2026-10-25T13:08:10.970Z\",\n  \"receipt\": {\n    \"tx_hash\": \"5850052969a92f049ce6d07500edb8c6c1360aa9a4f59c70ec5302c85bd1c3bf\",\n    \"ledger\": 0,\n    \"explorer_url\": \"https://stellar.expert/explorer/testnet/tx/5850052969a92f049ce6d07500edb8c6c1360aa9a4f59c70ec5302c85bd1c3bf\",\n    \"confirmed_at\": \"2026-10-25T12:38:13.698Z\",\n    \"lane\": \"owner\",\n    \"note\": \"FAKE receipt (spike S4): no transaction was submitted\"\n  },\n  \"grant_remaining\": \"5.00\"\n}"
+    },
+    {
+      "step": "s8b",
+      "t": 8472,
+      "tool": "payment_prepare",
+      "arguments": {
+        "recipient": "Alice",
+        "amount": "4",
+        "reason": "more than the allowance left",
+        "idempotency_key": "rh-1025123806-alice-4"
+      },
+      "ms": 69,
+      "ok": true,
+      "isError": false,
+      "structured": {
+        "payment_id": "pi_38fb50c6e0a29cc01892a6e8",
+        "status": "requires_approval",
+        "amount": "4",
+        "asset": "USDC",
+        "recipient": "Alice",
+        "network": "stellar:testnet",
+        "lane": "owner",
+        "expires_at": "2026-10-25T13:08:14.602Z",
+        "approval_url": "https://hm26-s4-mcp.kristjan-grm11775.workers.dev/approve/pi_38fb50c6e0a29cc01892a6e8",
+        "grant_remaining": "5.00"
+      },
+      "text": "This payment of 4 USDC to Alice needs the wallet owner's approval. Ask the user to open https://hm26-s4-mcp.kristjan-grm11775.workers.dev/approve/pi_38fb50c6e0a29cc01892a6e8 and approve it, then call payment_status with payment_id pi_38fb50c6e0a29cc01892a6e8.\n{\n  \"payment_id\": \"pi_38fb50c6e0a29cc01892a6e8\",\n  \"status\": \"requires_approval\",\n  \"amount\": \"4\",\n  \"asset\": \"USDC\",\n  \"recipient\": \"Alice\",\n  \"network\": \"stellar:testnet\",\n  \"lane\": \"owner\",\n  \"expires_at\": \"2026-10-25T13:08:14.602Z\",\n  \"approval_url\": \"https://hm26-s4-mcp.kristjan-grm11775.workers.dev/approve/pi_38fb50c6e0a29cc01892a6e8\",\n  \"grant_remaining\": \"5.00\"\n}"
+    },
+    {
+      "step": "s9",
+      "t": 9908,
+      "tool": "payment_prepare",
+      "arguments": {
+        "recipient": "Alice",
+        "amount": "0.01",
+        "reason": "after revoke",
+        "idempotency_key": "rh-1025123806-after-revoke"
+      },
+      "ms": 252,
+      "ok": false,
+      "isError": true,
+      "structured": null,
+      "text": "",
+      "error": "Unauthorized"
+    }
+  ],
+  "txs": [],
+  "wire": [
+    {
+      "t": 541,
+      "method": "POST",
+      "url": "https://hm26-s4-mcp.kristjan-grm11775.workers.dev/mcp",
+      "status": 401,
+      "rpc": "initialize"
+    },
+    {
+      "t": 660,
+      "method": "GET",
+      "url": "https://hm26-s4-mcp.kristjan-grm11775.workers.dev/.well-known/oauth-protected-resource/mcp",
+      "status": 200
+    },
+    {
+      "t": 779,
+      "method": "GET",
+      "url": "https://hm26-s4-mcp.kristjan-grm11775.workers.dev/.well-known/oauth-authorization-server",
+      "status": 200
+    },
+    {
+      "t": 1384,
+      "method": "POST",
+      "url": "https://hm26-s4-mcp.kristjan-grm11775.workers.dev/oauth/register",
+      "status": 201
+    },
+    {
+      "t": 3287,
+      "method": "GET",
+      "url": "https://hm26-s4-mcp.kristjan-grm11775.workers.dev/.well-known/oauth-protected-resource/mcp",
+      "status": 200
+    },
+    {
+      "t": 3413,
+      "method": "GET",
+      "url": "https://hm26-s4-mcp.kristjan-grm11775.workers.dev/.well-known/oauth-authorization-server",
+      "status": 200
+    },
+    {
+      "t": 3675,
+      "method": "POST",
+      "url": "https://hm26-s4-mcp.kristjan-grm11775.workers.dev/oauth/token",
+      "status": 200
+    },
+    {
+      "t": 3728,
+      "method": "POST",
+      "url": "https://hm26-s4-mcp.kristjan-grm11775.workers.dev/mcp",
+      "status": 200,
+      "rpc": "initialize"
+    },
+    {
+      "t": 3770,
+      "method": "POST",
+      "url": "https://hm26-s4-mcp.kristjan-grm11775.workers.dev/mcp",
+      "status": 202,
+      "rpc": "notifications/initialized"
+    },
+    {
+      "t": 3903,
+      "method": "GET",
+      "url": "https://hm26-s4-mcp.kristjan-grm11775.workers.dev/mcp",
+      "status": 405
+    },
+    {
+      "t": 4364,
+      "method": "POST",
+      "url": "https://hm26-s4-mcp.kristjan-grm11775.workers.dev/mcp",
+      "status": 200,
+      "rpc": "tools/list"
+    },
+    {
+      "t": 4782,
+      "method": "POST",
+      "url": "https://hm26-s4-mcp.kristjan-grm11775.workers.dev/mcp",
+      "status": 200,
+      "rpc": "tools/call wallet_overview"
+    },
+    {
+      "t": 4838,
+      "method": "POST",
+      "url": "https://hm26-s4-mcp.kristjan-grm11775.workers.dev/mcp",
+      "status": 200,
+      "rpc": "tools/call wallet_overview"
+    },
+    {
+      "t": 4905,
+      "method": "POST",
+      "url": "https://hm26-s4-mcp.kristjan-grm11775.workers.dev/mcp",
+      "status": 200,
+      "rpc": "tools/call payment_prepare"
+    },
+    {
+      "t": 5066,
+      "method": "POST",
+      "url": "https://hm26-s4-mcp.kristjan-grm11775.workers.dev/mcp",
+      "status": 200,
+      "rpc": "tools/call payment_status"
+    },
+    {
+      "t": 5130,
+      "method": "POST",
+      "url": "https://hm26-s4-mcp.kristjan-grm11775.workers.dev/mcp",
+      "status": 200,
+      "rpc": "tools/call payment_status"
+    },
+    {
+      "t": 5805,
+      "method": "POST",
+      "url": "https://hm26-s4-mcp.kristjan-grm11775.workers.dev/mcp",
+      "status": 200,
+      "rpc": "tools/call payment_status"
+    },
+    {
+      "t": 8362,
+      "method": "POST",
+      "url": "https://hm26-s4-mcp.kristjan-grm11775.workers.dev/mcp",
+      "status": 200,
+      "rpc": "tools/call payment_status"
+    },
+    {
+      "t": 8466,
+      "method": "POST",
+      "url": "https://hm26-s4-mcp.kristjan-grm11775.workers.dev/mcp",
+      "status": 200,
+      "rpc": "tools/call payment_prepare"
+    },
+    {
+      "t": 8540,
+      "method": "POST",
+      "url": "https://hm26-s4-mcp.kristjan-grm11775.workers.dev/mcp",
+      "status": 200,
+      "rpc": "tools/call payment_prepare"
+    },
+    {
+      "t": 10058,
+      "method": "POST",
+      "url": "https://hm26-s4-mcp.kristjan-grm11775.workers.dev/mcp",
+      "status": 401,
+      "rpc": "tools/call payment_prepare"
+    },
+    {
+      "t": 10068,
+      "method": "GET",
+      "url": "https://hm26-s4-mcp.kristjan-grm11775.workers.dev/.well-known/oauth-protected-resource/mcp",
+      "status": 200
+    },
+    {
+      "t": 10084,
+      "method": "GET",
+      "url": "https://hm26-s4-mcp.kristjan-grm11775.workers.dev/.well-known/oauth-authorization-server",
+      "status": 200
+    },
+    {
+      "t": 10136,
+      "method": "POST",
+      "url": "https://hm26-s4-mcp.kristjan-grm11775.workers.dev/oauth/token",
+      "status": 400
+    },
+    {
+      "t": 10147,
+      "method": "GET",
+      "url": "https://hm26-s4-mcp.kristjan-grm11775.workers.dev/.well-known/oauth-protected-resource/mcp",
+      "status": 200
+    },
+    {
+      "t": 10159,
+      "method": "GET",
+      "url": "https://hm26-s4-mcp.kristjan-grm11775.workers.dev/.well-known/oauth-authorization-server",
+      "status": 200
+    }
+  ],
+  "browser": [
+    "s1 GET https://hm26-s4-mcp.kristjan-grm11775.workers.dev/authorize?response_type=code&client_id=d5mSuGyKet-GXKdO&code_challenge=ldw57MBda3i_nfmWv6eeVYCdIUn3yCfxY-5C69d9O7c&code_challenge_method=S256&redirect_uri=http%3A%2F%2F127.0.0.1%3A43141%2Fcallback&state=c91c0b15-b6ba-4d78-880b-cf7ca423b787&scope=wallet&resource=https%3A%2F%2Fhm26-s4-mcp.kristjan-grm11775.workers.dev%2Fmcp → 200",
+    "s1 POST https://hm26-s4-mcp.kristjan-grm11775.workers.dev/authorize → 302",
+    "s1 GET http://127.0.0.1:43141/callback?code=<redacted>&state=c91c0b15-b6ba-4d78-880b-cf7ca423b787&iss=https%3A%2F%2Fhm26-s4-mcp.kristjan-grm11775.workers.dev → 200",
+    "s1 goto https://hm26-s4-mcp.kristjan-grm11775.workers.dev/authorize?response_type=code&client_id=d5mSuGyKet-GXKdO&code_challenge=<redacted>&code_challenge_method=S256&redirect_uri=http%3A%2F%2F127.0.0.1%3A43141%2Fcallback&state=<redacted>&scope=wallet&resource=https%3A%2F%2Fhm26-s4-mcp.kristjan-grm11775.workers.dev%2Fmcp → 200",
+    "s1 screenshot /home/kristjan/code/hack-meridian-2026/evidence/demo/2026-10-25T12-38-06-086Z/consent.png",
+    "s1 fill input[name=password] (password)",
+    "s1 fill input[name=allowance]",
+    "s1 click button[value=approve]",
+    "s7 GET https://hm26-s4-mcp.kristjan-grm11775.workers.dev/approve/pi_0b4ea3aaf16553f71cdbe80c → 200",
+    "s7 POST https://hm26-s4-mcp.kristjan-grm11775.workers.dev/approve/pi_0b4ea3aaf16553f71cdbe80c → 200",
+    "s7 goto https://hm26-s4-mcp.kristjan-grm11775.workers.dev/approve/pi_0b4ea3aaf16553f71cdbe80c → 200",
+    "s7 screenshot /home/kristjan/code/hack-meridian-2026/evidence/demo/2026-10-25T12-38-06-086Z/approval-before.png",
+    "s7 fill input[name=password] (password)",
+    "s7 click #approve",
+    "s7 screenshot /home/kristjan/code/hack-meridian-2026/evidence/demo/2026-10-25T12-38-06-086Z/approval-after.png",
+    "s9 GET https://hm26-s4-mcp.kristjan-grm11775.workers.dev/connections → 200",
+    "s9 POST https://hm26-s4-mcp.kristjan-grm11775.workers.dev/connections/revoke → 200",
+    "s9 goto https://hm26-s4-mcp.kristjan-grm11775.workers.dev/connections → 200",
+    "s9 fill form:has(button[data-connection=\"{{connection_id}}\"]) input[name=password] (password)",
+    "s9 click form:has(button[data-connection=\"{{connection_id}}\"]) button",
+    "s9 screenshot /home/kristjan/code/hack-meridian-2026/evidence/demo/2026-10-25T12-38-06-086Z/connections-revoked.png"
+  ],
+  "notes": ["pi_0b4ea3aaf16553f71cdbe80c: submitted → confirmed"]
+}

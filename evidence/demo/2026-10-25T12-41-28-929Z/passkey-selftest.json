@@ -1,0 +1,16 @@
+{
+  "result": {
+    "created": "OhTmE3wHKCnEnyzjPKX8QqdgjdrESCXLpsNdxlq9VPU",
+    "asserted": "OhTmE3wHKCnEnyzjPKX8QqdgjdrESCXLpsNdxlq9VPU",
+    "signature_bytes": 71,
+    "alg": -7,
+    "authenticatorData": "SZYN5YgOjGh0NBcP"
+  },
+  "credentials": [
+    {
+      "credentialId": "OhTmE3wHKCnEnyzjPKX8QqdgjdrESCXLpsNdxlq9VPU=",
+      "rpId": "localhost",
+      "signCount": 2
+    }
+  ]
+}
