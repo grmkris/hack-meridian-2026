@@ -1,0 +1,2 @@
+// The S3 onboard router deployed on testnet (wasm hash 39c97734a92ac1057da3d4785cbc2307d937a3275fc6bcbb76bf6aa5bd503888).
+export const ROUTER = 'CCLFB4I4CNGWHHL53UO33CSWKKXJBANMDGOGL43J7RBT7SWK2H2BPGN4'

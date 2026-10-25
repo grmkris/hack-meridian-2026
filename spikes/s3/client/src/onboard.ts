@@ -10,16 +10,10 @@
 // --omit-recipient: negative test. Drops the recipient's entry, shows the enforce-mode simulation error, then submits
 // anyway with the first simulation's footprint so the rejection is onchain with a hash.
 import {
-  Account,
-  Address,
   Asset,
   authorizeEntry,
-  buildInvocationTree,
-  Contract,
   Horizon,
   humanizeEvents,
-  inspectAuthEntry,
-  nativeToScVal,
   Operation,
   rpc,
   TransactionBuilder,
@@ -28,8 +22,8 @@ import {
 } from '@stellar/stellar-sdk'
 
 import { expert, HORIZON_URL, key, PASSPHRASE, server, USDC_ISSUER, USDC_SAC } from './env'
-
-export const ROUTER = 'CCLFB4I4CNGWHHL53UO33CSWKKXJBANMDGOGL43J7RBT7SWK2H2BPGN4'
+import { buildTx, describeEntry, payAndTrustFunc } from './lib'
+import { ROUTER } from './router'
 
 const arg = (name: string, fallback: string) => {
   const i = process.argv.indexOf(`--${name}`)
@@ -53,30 +47,11 @@ const balances = async (who: string) =>
     .map(b => `${'asset_code' in b ? b.asset_code : 'XLM'}=${b.balance}`)
     .join(' ')
 
-/** Who an auth entry is for, and the invocation tree it authorizes (SDK 17 property-style XDR). */
-export const describeEntry = (e: xdr.SorobanAuthorizationEntry) => {
-  const info = inspectAuthEntry(e)
-  const tree = buildInvocationTree(info.invocation)
-  const call = 'source' in tree.args ? `${tree.args.source}.${tree.args.function}` : tree.type
-  return { who: info.address ?? 'source-account', call, subInvocations: tree.invocations.length, signed: info.signed }
-}
-
-const op = new Contract(ROUTER).call(
-  'pay_and_trust',
-  new Address(sender.publicKey()).toScVal(),
-  new Address(recipient.publicKey()).toScVal(),
-  new Address(USDC_SAC).toScVal(),
-  nativeToScVal(amount, { type: 'i128' }),
-)
-const func = (op.body as unknown as { invokeHostFunctionOp: { hostFunction: xdr.HostFunction } }).invokeHostFunctionOp
-  .hostFunction
-
+const p = { router: ROUTER, sender: sender.publicKey(), recipient: recipient.publicKey(), token: USDC_SAC, amount }
+const func = payAndTrustFunc(p)
 const relayerSeq = (await server.getAccount(relayer.publicKey())).sequenceNumber()
 const build = (auth: xdr.SorobanAuthorizationEntry[]) =>
-  new TransactionBuilder(new Account(relayer.publicKey(), relayerSeq), { fee: '100000', networkPassphrase: PASSPHRASE })
-    .addOperation(Operation.invokeHostFunction({ func, auth }))
-    .setTimeout(300)
-    .build()
+  buildTx(relayer.publicKey(), relayerSeq, func, auth, PASSPHRASE)
 
 console.log(`relayer   ${relayer.publicKey()}  ${await balances(relayer.publicKey())}`)
 console.log(`sender    ${sender.publicKey()}  ${await balances(sender.publicKey())}`)
