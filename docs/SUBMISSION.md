@@ -1,173 +1,162 @@
 # Submission: Nod
 
 Deadline **2026-10-26 12:00 UTC** (12:00 Lisbon, 13:00 on the netcup box). Portal: https://app.hackmeridian.com (sign
-in with the registered email). Path: **Genesis** (assigned). Thematic track: **Stellar Composed** (the form takes one). Target submit time **11:00 UTC**, then re-check every link in a private
-window. Source for rules and rubric: `docs/research/hackathon-and-ecosystem.md`.
-
-## Fill in from the portal (Kristjan, 15 minutes, as early as possible)
-
-| Field                              | Value                                                                          |
-| ---------------------------------- | ------------------------------------------------------------------------------ |
-| Demo video                         | hosted on YouTube or Vimeo; length limit not stated on the form (plan ≤ 3 min) |
-| Pitch deck format                  | PDF, PPTX, PPT or HTML; the portal offers a template                           |
-| Submission questions               | pasted by Kristjan; field drafts below in "Portal form, field by field" (a3)   |
-| Team members and emails registered | UNVERIFIED                                                                     |
-| Track selection                    | ONE thematic track: Stellar Composed (Genesis path is assigned)                |
-
-## Checklist
-
-| #   | Item                                                                                                                                                                                 | Owner                        | When (UTC)                       |
-| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------- | -------------------------------- |
-| 0   | Portal fields above copied into this file                                                                                                                                            | Kristjan                     | done 14:00                       |
-| 0b  | `/llms.txt`, `/robots.txt`, `/sitemap.xml` served by the live site (an AI pre-judges before humans)                                                                                  | a3 writes, B places          | 15:00                            |
-| 0c  | README with the required headings: summary, problem, setup, installation, environment variables, demo instructions, architecture (assets, contract ids, wallets, integrations, APIs) | a3, env list from A1         | 18:00 draft, 08:00 final         |
-| 1   | Public repo `grmkris/hack-meridian-2026` pushed; small commits keep landing on `main`                                                                                                | foundation session, then all | today                            |
-| 2   | README: problem, how it works, specs, architecture, testnet ids, explorer links, run, judge test, prior work, AI attribution                                                         | docs agent                   | 17:00–20:00 draft, 08:00 final   |
-| 3   | Demo video: script below, screen recording with voice, upload                                                                                                                        | Kristjan + agent             | record by 07:00, upload by 09:30 |
-| 4   | Pitch deck: one slide per rubric line (below), PDF                                                                                                                                   | docs agent                   | skeleton 18:00, final 09:00      |
-| 5   | Submission answers drafted below, pasted into the form                                                                                                                               | Kristjan                     | 10:00–10:30                      |
-| 6   | Judge-testable deployment: URL, funded testnet path, a test connection the judge can use                                                                                             | build                        | verified 09:00                   |
-| 7   | Submit; re-check links privately                                                                                                                                                     | Kristjan                     | 11:00                            |
-
-## Deck, demo video and words
-
-The deck outline (one slide per rubric line), the demo video's voice-over lines and shot list, the promo film brief, the
-landing page sections and the vocabulary live in [PITCH.md](PITCH.md). The product is presented as **Nod**. Fallbacks: if
-the trustline beat is not green on the real service by 06:00 UTC, cut it and extend the revoke beat; if Claude's
-connector flow fails on the day, record in Claude Code (proven in S4).
+in with the registered email). Path: **Genesis** (assigned). Thematic track: **Stellar Composed** (the form takes one).
+Judges see the video, the deck, the public repository and these answers, after an AI pre-judge reads the site
+(`/llms.txt`, `/robots.txt`, `/sitemap.xml` are served). Deck: PDF, PPTX, PPT or HTML up to 20 MiB
+(`deck/dist/nod-deck.pdf`). Video: a YouTube or Vimeo link, required. The words come from [PITCH.md](PITCH.md); every
+claim below has its proof in the repository.
 
 ## Portal form, field by field
 
-Copied from app.hackmeridian.com on 2026-10-25. Builder track **Genesis** is assigned. The form takes **one** thematic
-track: **Stellar Composed**. The SAC trustline feature (CAP-73) stays in the product and the answers as a protocol
-feature we use, not as a second track. Judging includes "AI-assisted pre-judging, where humans make every decision",
-and the demo site should serve `llms.txt`, `robots.txt` and `sitemap.xml`. Deck: PDF, PPTX, PPT or HTML up to 20 MiB
-(the portal has a template). Video: a YouTube or Vimeo link, required.
+Character counts were measured on the text between the field heading and the next heading.
 
 ### Project title
 
 Nod
 
-### Tagline (≤ 120 characters)
+### Tagline (≤ 120 characters; this one: 113)
 
-A Stellar wallet your AI spends from inside an onchain allowance. Small stuff, it just pays. Big stuff needs your nod.
+Small stuff, it just pays. Big stuff needs your nod. A Stellar wallet inside your AI, with one allowance you set.
 
-### Description (Markdown, ≤ 8000 characters)
+### Description (Markdown, ≤ 8000 characters; this one: 7323)
 
-**Nod gives your AI an allowance.** It is a Stellar wallet you add to Claude, or any MCP app, with one connector URL.
-Each AI app gets its own allowance, for example 5 USDC until tomorrow, which your passkey signs onto your Stellar
-account. Inside it, the app pays for APIs over x402 and pays your contacts on its own. Anything bigger comes back to you
-as a link, and one passkey tap approves that exact recipient and amount. The limit is an OpenZeppelin spending-limit
-policy on your account, not a setting on our server: even if our server were compromised, the most it could spend for an
-AI app is what you allowed.
+**Apps are turning into conversations and agents, so wallets have to follow them into the chat.** Nod is a Stellar
+wallet that lives inside the AI you already use: one connector URL in Claude, Goblin, Claude Code or any MCP app, and in
+ChatGPT as a developer-mode connector. In hosts that render MCP Apps, Nod's cards appear in the chat; in hosts that take
+MCP Events, Nod tells you when money arrives or a payment needs you. You sign up with a passkey and hold USDC, and you
+never meet XLM, a seed phrase or a trustline.
 
-**Live on Stellar testnet:** https://testnet.trynod.si · connector `https://testnet.trynod.si/mcp`
+Approving every call kills an agent's autonomy, and nobody trusts an AI with the whole balance. So you give each AI app
+**one number, an allowance**, say 5 USDC until tomorrow. Inside it, the app pays for APIs over x402 and pays people on
+its own. Anything past it needs your passkey, every time, for any amount: the AI hands you a link, and your passkey
+signs on Nod's own page, on your phone or your laptop. The allowance is an OpenZeppelin spending-limit policy on your
+own Stellar account, so the most Nod's service could ever spend for an AI app is the allowance you set, pocket
+included. Someone who has never held USDC gets a claim link, and their trustline and the payment land in one
+transaction.
+
+- **Live on Stellar mainnet:** https://trynod.si, the product (signup is open; USDC only). Connector
+  `https://trynod.si/mcp`.
+- **Judges' sandbox on testnet:** https://testnet.trynod.si. New wallets get 10 testnet USDC, and `/sample` runs a
+  sample agent. Connector `https://testnet.trynod.si/mcp`.
+
+#### Proof on mainnet
+
+The full flow runs on Stellar mainnet at trynod.si, in claude.ai, on the founder's own wallet: an x402 purchase settled
+by OpenZeppelin Channels, a payment inside the allowance, one that needed the nod, a claim link that created a
+trustline and paid in one transaction, a revoke that removed the rule and swept the pocket.
+
+- 5 USDC allowance installed on the account: [`f803994b`](https://stellar.expert/explorer/public/tx/f803994b1f0313b0c9fe81c51355eb51296b86992c65c70e2e04effa8d73d7eb)
+- x402 market brief, 0.10 USDC: pull into the pocket [`6485e55c`](https://stellar.expert/explorer/public/tx/6485e55cd8f69d51b60f608bdc253d40c3d7ee02f9b86bcccd6cefbeeb08c7bb), settled by OpenZeppelin Channels [`cb296cc3`](https://stellar.expert/explorer/public/tx/cb296cc3a539cfaf966d79fa3662e48e83e3f1fb01fe9be24b767d3c3c8dea58)
+- 2 USDC to Alice inside the allowance: [`c8ee8b5a`](https://stellar.expert/explorer/public/tx/c8ee8b5ad7599b9db13a4dd551a918d55ecafc6de2f31c79a61fcc7edb1032cb) · 5 USDC to Bob, past it, approved with the passkey: [`0339b8dd`](https://stellar.expert/explorer/public/tx/0339b8dd088b46d500de425d0afe8707ff6922186ef70070396323f2d3312e4f)
+- 1 USDC to Carol, trustline and payment in one transaction: [`1fe4e852`](https://stellar.expert/explorer/public/tx/1fe4e852314ea638ed53ba79acebc60a129b587e0ef80c9b051d434aa01e68c6)
+- Revoke: pocket swept back [`ab6d493d`](https://stellar.expert/explorer/public/tx/ab6d493d483f6ea5d560a9561ab7cdd2668b9d7597632023095a397ca1fd53dd), rule removed [`e17e15d5`](https://stellar.expert/explorer/public/tx/e17e15d5efd2f43e883073873ff9d5dc0333ea9dca318cea0f38a5c7678f04c9); the next payment was refused
 
 #### What works today
 
-- **Passkey wallet.** Face ID or a fingerprint creates an OpenZeppelin smart account. No seed phrase; you never need XLM,
-  because Nod pays the network fees. New wallets get 10 testnet USDC so judges can try it.
-- **An allowance per AI app.** Connecting Claude over OAuth and approving its allowance is one step. Each allowance is a
+- **Passkey wallet.** Face ID or a fingerprint creates an OpenZeppelin smart account. Nod pays every network fee.
+- **One allowance per AI app.** Connecting the app over OAuth and setting its allowance is one step; the allowance is a
   context rule on your account with a spending limit and an expiry.
-- **Pays for APIs.** Claude buys a 0.10 USDC market brief from an x402 seller, settled by a public facilitator
-  (OpenZeppelin Channels or x402.org). No prompt.
-- **Pays people.** "Send Alice 2 USDC" goes out under the same allowance, signed by Claude's own key.
-- **Needs your nod.** "Pay Bob 20 USDC for dinner" is more than the 2.90 left, so it is never signed with Claude's key.
-  You get a link showing Bob's name and address, the amount and who asked; your passkey signs exactly that.
-- **Ask twice, pay once.** A repeated request returns the same receipt.
-- **Pays people who have never held USDC.** Carol has no trustline: she signs a claim link once, and her trustline and
-  the 5 USDC land in one transaction.
-- **Revoke.** Nod stops signing at once and sweeps the leftover balance back; one passkey tap removes the rule from your
+- **Pays for APIs.** The AI buys a 0.10 USDC market brief from an x402 seller, settled by a public facilitator. No
+  prompt; 4.90 left.
+- **Pays people.** "Send Alice 2 USDC" goes out under the same allowance, signed by the app's own key; 2.90 left.
+- **Needs your nod.** "Pay Bob 5 USDC for dinner" is more than the 2.90 left, so it is never signed with the app's key.
+  You get a link showing Bob's name and address, the amount and who asked; your passkey signs that payment, and the
+  allowance stays 2.90. Ask twice, pay once.
+- **Pays people who have never held USDC.** You nod once; they accept the claim link with Freighter within 30 minutes
+  (about 0.5 XLM for the trustline reserve), and the trustline (CAP-73) and the payment land in one transaction.
+- **Revoke.** Nod stops signing at once and sweeps the pocket back; one passkey tap removes the allowance from your
   account.
+- **Cards and notifications.** Shown live in Goblin, claude.ai and ChatGPT: the wallet card, the nod as a link, the card
+  turning into its receipt. Notifications (MCP Events) arrive in Goblin and ChatGPT; claude.ai and Claude Code do not
+  implement them, so there the cards poll.
 
-#### How it uses Stellar (what it composes)
+#### How it uses Stellar
 
-| Building block                                 | Role in Nod                                                                          | Testnet id                        |
-| ---------------------------------------------- | ------------------------------------------------------------------------------------ | --------------------------------- |
-| OpenZeppelin smart account                     | one contract account per wallet; passkey admin; one context rule per AI app          | WASM `1b5f4534…785a`              |
-| OpenZeppelin spending-limit policy             | the allowance: N USDC until T, enforced by the account                               | `CABXBYJN…TIP5G`                  |
-| WebAuthn verifier (secp256r1 host function)    | your passkey signs approvals and allowance changes                                   | `CC7EKIHQ…IOM3F`                  |
-| Ed25519 verifier                               | each AI app's own key                                                                | `CAAVTMCB…HKN4`                   |
-| Circle USDC through the Stellar Asset Contract | the money, as a SEP-41 token                                                         | `CBIELTK6…DAMA`                   |
-| SAC `trust` (CAP-73) + our router              | trustline and transfer in one invocation for the claim link                          | `CCLFB4I4…PGN4`                   |
-| x402 on `stellar:testnet`                      | paid APIs, settled by x402.org or OpenZeppelin Channels (never a facilitator we run) |                                   |
-| Sponsored reserves                             | each AI app's small payer account holds 0 XLM                                        |                                   |
-| Relayer pool as transaction source             | Nod pays every fee; the owner holds no XLM                                           | `GBCALSA3…YWBR`, `GAWYWVMH…YSE4I` |
-| Built-in DEX                                   | the paid market brief reads the XLM/USDC order book                                  |                                   |
+- OpenZeppelin smart account: one contract account per wallet, your passkey as admin, one context rule per AI app.
+- OpenZeppelin spending-limit policy: the allowance, N USDC until T, enforced by the account.
+- WebAuthn (secp256r1) and Ed25519 verifiers: your passkey, and each AI app's own key.
+- Circle USDC through the Stellar Asset Contract (SEP-41).
+- SAC `trust` (CAP-73) and our trust-and-pay router: trustline and transfer in one invocation, on mainnet and testnet.
+- SAC `approve` and our deposit router: deposit addresses that exchanges can pay, swept into the wallet (testnet only).
+- x402 through x402.org and OpenZeppelin Channels, public facilitators, never one of ours.
+- Sponsored reserves and relayers as transaction source: the owner holds no XLM.
+- SEP-1 `stellar.toml` and `home_domain`: the service's accounts name trynod.si.
 
-Hosted x402 facilitators do not accept smart-account payers yet, so each AI app's key also owns a small classic account
-that it fills from your wallet under the same policy, then pays from with the stock x402 client (the pocket model). Both
-transactions appear on the receipt.
+Hosted x402 facilitators do not take smart-account payers yet, so each AI app's key also owns a small pocket account,
+filled from your wallet under the same policy in 1 USDC steps. Both transactions are on the receipt. Contract ids for
+both networks are in the README.
 
 #### Proof on testnet
 
-One rehearsal on the live site passed acceptance tests 1, 2 and 4–9; test 3 (a forced over-limit transfer, not
-reachable through MCP by design) is proven onchain in a spike:
+One rehearsal on the live site passed acceptance tests 1, 2 and 4–9; test 3, a forced over-limit transfer, cannot be
+sent through MCP by design and is proven onchain in spike S1 ([`3daf4b00`](https://stellar.expert/explorer/testnet/tx/3daf4b000cb58ad1bbef3629c13a02d44403c4b690dd51815020cbc89723b42a)).
+The run drove the deployed release `5253df0` on testnet.trynod.si through Claude's path with a new passkey wallet;
+its seven transactions are in [`run.json`](https://github.com/grmkris/hack-meridian-2026/blob/main/evidence/demo/2026-10-25T19-14-24-616Z/run.json).
 
-- x402 purchase: pull into the pocket under the allowance [`97847912`](https://stellar.expert/explorer/testnet/tx/978479126c9339de3a2cf4140dcef4958aa13d95ea39408b50cbf4ae413ed702), settlement by OpenZeppelin Channels [`e3e62e07`](https://stellar.expert/explorer/testnet/tx/e3e62e07dbf11f0bd75ac795a3bef5a50fcc6ffd64e610c98a70dc9676890990)
-- 2 USDC to Alice inside the allowance: [`fb77bd0f`](https://stellar.expert/explorer/testnet/tx/fb77bd0f01aeb515b967e7bf5f7d0b1f8ec5c4c6af7889263ed3172a0a8ebefe) · 20 USDC to Bob approved with the passkey: [`fbfd200c`](https://stellar.expert/explorer/testnet/tx/fbfd200cc85525ee65a0a55f4b3dc338eedf37c1c8273abcc0ac7701f09e97da)
-- Carol's trustline and 5 USDC in one transaction: [`565b7f07`](https://stellar.expert/explorer/testnet/tx/565b7f0740d2cb73975939107c6b3329a03d60d26925101ba7e9a7ae5660735c)
-- Revoke: rule removed [`55beab6d`](https://stellar.expert/explorer/testnet/tx/55beab6dd2866dd95f6bfcc7209d4c3c7e8a423d4955de5607a6009da1003279), pocket swept back [`00129674`](https://stellar.expert/explorer/testnet/tx/00129674edaed2fcce96c73745587f2c599704850c182c38f7d7c12ab5ee55a6)
-- An over-allowance transfer forced onchain is rejected by the account: [`3daf4b00`](https://stellar.expert/explorer/testnet/tx/3daf4b000cb58ad1bbef3629c13a02d44403c4b690dd51815020cbc89723b42a)
+#### Try it in three minutes (testnet sandbox)
 
-#### Try it in three minutes
-
-Add `https://testnet.trynod.si/mcp` as a custom connector in Claude, create a passkey wallet on the page that opens, approve the 5 USDC
-allowance, then ask: "Buy the market brief", "Send Alice 2 USDC", "Pay Bob 5 USDC for dinner" (more than the 2.90 left, so it needs your passkey). Full steps:
-`evidence/JUDGE-TEST-PATH.md` in the repository. No Claude at hand? [https://testnet.trynod.si/sample](https://testnet.trynod.si/sample) runs a sample agent through
-the same tools on Nod's own demo wallet, with a live log and explorer links.
+Add `https://testnet.trynod.si/mcp` as a custom connector in Claude, create a passkey wallet on the page that opens and
+set a 5 USDC allowance. Then ask: "Buy the market brief", "Send Alice 2 USDC", "Pay Bob 5 USDC for dinner" (more than
+the 2.90 left, so it needs your nod). Full steps: `evidence/JUDGE-TEST-PATH.md`. No Claude at hand?
+https://testnet.trynod.si/sample runs a sample agent through the same tools on Nod's own demo wallet, with a live log
+and explorer links.
 
 #### Built at HackMeridian
 
-Research and pinned versions, then five time-boxed spikes that proved every risky part on testnet with transaction
-hashes, then the product: a Cloudflare Worker (Effect, OAuth 2.1, MCP), a Foldkit site and a Stellar chain package.
-Every commit is on `main` from 25 October.
+Research and pinned versions first, then time-boxed spikes that proved each risky part on testnet with transaction
+hashes, then the product: a Cloudflare Worker (Effect, OAuth 2.1, MCP with cards and events), a Foldkit site and a
+Stellar chain package. Mainnet went live the same evening. Every commit is on `main` from 25 October.
 
 ### Problem solved
 
-People who use AI assistants (Claude today, any MCP app tomorrow) want them to finish tasks that cost money: buy a paid
-API result, pay a friend back, cover a small bill. Today they hand over a card or a private key, which gives the
-assistant everything, or they make every payment themselves, which defeats the point. Sellers of paid APIs feel it too:
-x402 lets agents pay per call, but Stellar's docs note "there is no policy layer for x402 on Stellar today", so few
-owners let an agent hold money. Nod gives each AI app its own allowance on the owner's Stellar account, enforced by
-OpenZeppelin's spending-limit policy rather than by our server. Inside it the app pays on its own; anything bigger comes
-back as a link the owner approves with one passkey tap, for that exact recipient and amount. No seed phrase, no XLM, and
-revoking takes effect at once.
+People who use AI assistants want them to finish tasks that cost money: buy a paid API result, pay a friend back, cover
+a small bill. Today they hand the assistant a card or a private key, which gives it everything, or they approve every
+payment themselves, which defeats the point of an agent. Sellers of paid APIs feel it too: x402 lets agents pay per
+call, but Stellar's docs note "there is no policy layer for x402 on Stellar today", so few owners let an agent hold
+money. Nod gives each AI app one allowance on the owner's Stellar account, enforced by OpenZeppelin's spending-limit
+policy on that account. Inside it the app pays on its own; anything past it comes back as a link the owner approves
+with a passkey, every time, for any amount. The wallet lives where the agent works, in the chat, with cards and
+notifications, and a person who has never held USDC can be paid through a claim link.
 
 ### Challenges
 
-- **Hosted x402 facilitators reject smart-account payers.** We would not run our own facilitator, because a wallet that
-  only works with its own settlement service is not interoperable. Instead each AI app's key owns a small sponsored
-  account, pulls exactly what a purchase needs from the wallet under the onchain policy, and pays as a plain account
-  through x402.org or OpenZeppelin Channels.
+- **Hosted x402 facilitators reject smart-account payers.** We would not run our own facilitator: a wallet that only
+  works with its own settlement service is not interoperable. Instead each AI app's key owns a small sponsored pocket
+  account, filled from the wallet under the onchain policy in 1 USDC steps, and pays as a plain account through x402.org
+  or OpenZeppelin Channels. Upstream fixes are open (x402 PRs #3399 and #3860).
 - **Making "5 USDC until tomorrow" mean exactly that.** OpenZeppelin's policy uses a rolling window, so we size the window
   to the allowance's lifetime plus a margin and add an expiry. We tested the boundary: exactly 5.0 passes, one stroop
   more is rejected.
+- **One number.** We tried a second threshold for payments that need your nod; the consent and approval screens then
+  showed three numbers, which was confusing. The allowance is now the only number you set.
 - **Soroban authorization details.** Signed auth entries must be re-simulated in enforcing mode before submission; the
-  two-signer trustline call needs a non-root recording simulation first; passkey signatures cover the exact auth digest,
-  so an approval cannot be redirected.
-- **Testnet storage rent rose from 47× to over 200× normal during the day.** The first payment under a new allowance cost 11–17 XLM. We size fee
-  ceilings from the enforcing simulation and pull in 1 USDC steps, which cut relayer cost per purchase from 1.69 to 0.56
-  XLM. At over 200× rent, x402.org's fee cap fell below the settlement cost; because we integrated two public
-  facilitators, the seller moved to OpenZeppelin Channels. At mainnet rent the whole allowance lifecycle costs about 0.6
-  XLM.
-- **Keeping the demo alive through judging.** The shared OpenZeppelin policy contract on testnet would have expired on 27
-  October; we extended the shared contracts to mid-November.
+  two-signer trustline call needs a non-root recording simulation first; passkey signatures cover the auth digest, so an
+  approval cannot be redirected.
+- **Exchanges cannot pay a contract account.** A Nod wallet is a `C…` address. Our deposit router binds a sponsored
+  `G…` deposit address to one wallet so that anyone can sweep what arrives into it and nowhere else. It is proven on
+  testnet; installing a rule on the account would have needed the owner's passkey, so the bound lives in the router.
+- **Testnet storage rent spiked during the day**, from about 47× normal to over 200×, and one pocket pull cost 91 XLM in
+  fees. We size fee ceilings from the enforcing simulation and pull in 1 USDC steps; because we integrated two public
+  facilitators, the seller moved to OpenZeppelin Channels when x402.org's fee cap fell below the settlement cost. On
+  mainnet a payment cost Nod between 0.001 and 0.05 XLM.
 - **The trustline needs the recipient.** CAP-73's `trust` requires the recipient's own signature and 0.5 XLM of reserve,
-  so onboarding is a claim link the recipient signs, never silent.
-- **One builder, many agents, one branch.** Parallel Claude Code sessions built the spikes and the product on `main` with
-  disjoint ownership, small commits and evidence for every claim.
+  so the claim link is something the recipient signs.
+- **One builder, many agents, one branch.** Parallel Claude Code sessions built the spikes, the product and the copy on
+  `main` with disjoint ownership, small commits and evidence for every claim.
 
 ### What's next
 
-- **Mainnet pilot.** A read-only check found every contract we use already on mainnet with identical WASM except our
-  920-byte router; OpenZeppelin Channels settles on mainnet; a full allowance lifecycle costs about 0.6 XLM.
+- **Deposit-first signup on mainnet.** Show a deposit address the moment the passkey exists, and deploy the account when
+  the first USDC arrives; the deposit router moves to mainnet after its testnet proof.
+- **A claim link that creates a wallet.** Someone with nothing at all taps the link, a passkey creates their Nod
+  wallet, and the USDC lands in it.
+- **Contacts the AI can add,** with the first payment to a new contact always needing the nod.
 - **Recovery and shared wallets.** A second passkey or a guardian, and wallets two people own.
-- **Cash-out.** Let the people Nod pays withdraw to a bank through a Stellar anchor.
-- **Finer allowances.** Task budgets inside an allowance, merchant allowlists, per-payment caps, payment requests and bill
-  splits.
-- **Agent-to-agent escrow** with an existing Stellar escrow protocol.
-- **No pocket step** once x402 facilitators accept smart-account payers (x402 PRs #3399 and #3860).
+- **Cash-out** to a bank through a Stellar anchor.
+- **No pocket step** once x402 facilitators accept smart-account payers.
+- **Hardening from our own code audit:** a watcher that settles payments whose outcome is unknown, cleanup of expired
+  allowances, and the account build moved to OpenZeppelin's current release.
 
 ### Repository link
 
@@ -175,42 +164,43 @@ https://github.com/grmkris/hack-meridian-2026
 
 ### Demo link
 
-https://testnet.trynod.si
+https://trynod.si
 
 ### Video link
 
 YouTube (unlisted) link, uploaded by Kristjan after recording.
 
-### Tech stack (comma-separated, ≤ 25)
+### Tech stack (comma-separated, ≤ 25; this one: 25)
 
 Rust, Soroban, soroban-sdk, Stellar SDK, stellar-cli, OpenZeppelin Stellar contracts, Stellar Asset Contract, USDC,
-x402, OpenZeppelin Channels, WebAuthn passkeys, TypeScript, Effect, Foldkit, Cloudflare Workers, Durable Objects, D1,
-Alchemy, Bun, Model Context Protocol, OAuth 2.1, Tailwind CSS, Vite, Vitest
+x402, OpenZeppelin Channels, WebAuthn passkeys, Model Context Protocol, MCP Apps, MCP Events, OAuth 2.1, TypeScript,
+Effect, Foldkit, Cloudflare Workers, Durable Objects, D1, Alchemy, Bun, Vite, Tailwind CSS
 
-### Prior work disclosure (needs Kristjan's confirmation)
+### Prior work disclosure
 
 Everything in this repository was written during HackMeridian; the git history starts on 25 October 2026. Used as-is
-from others: OpenZeppelin's deployed Stellar smart-account, verifier and spending-limit contracts; Circle's testnet USDC;
-the x402 libraries and the hosted facilitators x402.org and OpenZeppelin Channels; agent skills vendored with source,
+from others: OpenZeppelin's deployed Stellar smart-account, verifier and spending-limit contracts; Circle's USDC; the
+x402 libraries and the hosted facilitators x402.org and OpenZeppelin Channels; agent skills vendored with source,
 commit and licence in `.agents/skills/sources.json`. From Kristjan's earlier projects: repository conventions and agent
-tooling. **[Kristjan to confirm or cut]** Kristjan built Froggy at ETHOnline 2026, an agent wallet on Base and Hedera
-whose limits were enforced by its own server; no Froggy code is used here, and Nod moves the limit onto the account
-itself.
+tooling. The MCP Events wire (schemas, webhooks, delivery, journal, policy) was ported from Kristjan's own myapps
+codebase and the 2026-07-28 MCP lane is modelled on his agent-jobs server; Goblin, one of the three hosts shown, is
+Kristjan's own MCP host. Kristjan built Froggy at ETHOnline 2026, an agent wallet on Base and Hedera whose limits were
+enforced by its own server; no Froggy code is used here, and Nod moves the limit onto the account itself.
 
 ### AI tooling note
 
-Claude Code (Claude Opus 5.5) wrote most of the code and docs, run as parallel sessions with separate jobs: an
-orchestrator (spec, five spikes, build plan), the site, the wallet service, the Stellar chain package, the demo seller
-and rehearsal runner, and the pitch, README and landing copy. Every session followed the rules in `AGENTS.md` and
-committed small changes to `main`. Raven, Stellar's MCP server, and Stellar's developer skills supplied documentation and
-ecosystem research, including prior hackathon entries. Gemini 3.8 Flash in the Antigravity CLI, with the humanizer
-skill, reviewed copy. Kristjan set the scope, made the product decisions (no facilitator of our own, Claude as the host,
-the name, the demo amounts), tested the flows and recorded the voice-over. Every onchain claim was executed on Stellar
-testnet and links to stellar.expert.
+Claude Code wrote most of the code and docs, run as parallel Claude Opus 5.5 and Fable sessions with separate jobs: an
+orchestrator (spec, spikes, build plan, deploys), the site, the wallet service, the Stellar chain package, MCP Apps and
+Events, deposits, the demo seller and rehearsal runner, and the pitch, README, deck and landing copy. Every session
+followed the rules in `AGENTS.md` and committed small changes to `main`. Raven, Stellar's MCP server, and Stellar's
+developer skills supplied documentation and ecosystem research, including prior hackathon entries. Gemini, through the
+Antigravity CLI, reviewed the copy. Kristjan set the scope and made the product decisions (no facilitator of our own,
+Claude as the first host, one number, mainnet as the product, the name, the demo amounts), tested the flows, and ran
+the mainnet flow in claude.ai with his own wallet and passkey. Every onchain claim was executed on Stellar and links to
+stellar.expert.
 
 ## Judge test path
 
-Live since 13:43 UTC: site https://testnet.trynod.si, MCP connector
-https://testnet.trynod.si/mcp. Steps for a judge: `evidence/JUDGE-TEST-PATH.md` (Claude
-connector first). A fresh wallet is auto-funded with 10 testnet USDC. Reference run with explorer links:
-`evidence/demo/2026-10-25T13-38-30-890Z/`.
+Sandbox: https://testnet.trynod.si, MCP connector `https://testnet.trynod.si/mcp`; a fresh wallet is funded with 10
+testnet USDC. Steps for a judge: `evidence/JUDGE-TEST-PATH.md` (Claude connector first). Reference run with explorer
+links: `evidence/demo/2026-10-25T19-14-24-616Z/`. The product itself is on mainnet at https://trynod.si.
