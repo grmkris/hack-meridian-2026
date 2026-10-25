@@ -2,98 +2,20 @@ import { Array } from 'effect'
 import type { Html, HtmlBuilder } from 'foldkit/html'
 
 import { LINK, badge, meter } from '../view/ui'
-
-// CONTENT
-
-type Point = Readonly<{ id: string; title: string; body: string }>
-
-type Proof = Readonly<{ hash: string; claim: string }>
-
-const REPOSITORY_URL = 'https://github.com/grmkris/hack-meridian-2026'
-
-const EXPLORER_TX_URL = 'https://stellar.expert/explorer/testnet/tx/'
-
-const STEPS: ReadonlyArray<Point> = [
-  {
-    id: 'connect',
-    title: 'Connect',
-    body: 'Add Nod to Claude, or any MCP app, with one connector URL.',
-  },
-  {
-    id: 'allowance',
-    title: 'Set an allowance',
-    body: '“5 USDC until tomorrow.” Your passkey signs it, and it is written to your Stellar account.',
-  },
-  {
-    id: 'pay',
-    title: 'Let it pay',
-    body: 'Paid APIs over x402 and friends by name, inside the allowance. Bigger asks come to your phone.',
-  },
-]
-
-const TRUST: ReadonlyArray<Point> = [
-  {
-    id: 'onchain',
-    title: 'The limit lives on Stellar, not on our server',
-    body: 'An OpenZeppelin spending-limit policy on your account caps each AI app. Even our service cannot spend more than you allowed.',
-  },
-  {
-    id: 'exact',
-    title: 'Your passkey approves the exact payment',
-    body: 'The link shows the recipient’s name and address, the amount and which AI app asked. Your passkey signs exactly that.',
-  },
-  {
-    id: 'revoke',
-    title: 'Revoke any time',
-    body: 'Nod stops at once, and the allowance is removed from your Stellar account.',
-  },
-  {
-    id: 'gas',
-    title: 'No seed phrase, no gas',
-    body: 'A passkey owns the wallet and you never need XLM. Nod pays the network fee.',
-  },
-]
-
-const PROOFS: ReadonlyArray<Proof> = [
-  {
-    hash: '42c8aa3bde85f1785d668c1f376c599dfb7e750f324ea96edf85beede10e727a',
-    claim: '2 USDC to Alice, signed by the AI app’s key inside its allowance',
-  },
-  {
-    hash: '2577fefcb260f579d28535683e5c1ca3ea645a8bd716c3783561fe5aa804893d',
-    claim: '20 USDC to Bob, over the allowance, approved with the passkey',
-  },
-  {
-    hash: '9e2f5c1613cf65a9cb034416a30bd785d50d46117c94a7c59418458493c95765',
-    claim: 'Carol’s USDC trustline and 5 USDC in one transaction',
-  },
-  {
-    hash: '95c909b086835140139ca25ba04f639cdc02706026bfb83d6fc8b1902462993e',
-    claim: 'Revoke removes the allowance rule from the account',
-  },
-  {
-    hash: '1975a39d3df82555625df12070e5626eb0c18bea218957e8d1ddb321d6ea243e',
-    claim: 'Revoke sweeps the pocket back to the wallet',
-  },
-  {
-    hash: '646d95c918bc43e1ea22f8ffc6efd48b197344d3add94599b2e40c1248a62945',
-    claim: 'An x402 purchase: the AI app’s key fills its pocket under the policy…',
-  },
-  {
-    hash: '1c6806128d7020f4fe4aa4906c8d0158cc403dd3e1c38ba9988f649442138a19',
-    claim: '…and a public facilitator settles 0.10 USDC to the seller',
-  },
-  {
-    hash: 'c0f6f923936b7dc4d716454ba3e3d3f43f21ddcf353e49e3e083d054bf5f9c57',
-    claim: 'A 5 USDC allowance spends exactly 5.0; one stroop more fails',
-  },
-  {
-    hash: '3daf4b000cb58ad1bbef3629c13a02d44403c4b690dd51815020cbc89723b42a',
-    claim: 'An over-allowance transfer forced onchain is rejected by the account',
-  },
-]
-
-const BUILT_WITH: ReadonlyArray<string> = ['OpenZeppelin smart accounts', 'Circle USDC', 'x402', 'Passkeys', 'Stellar']
+import {
+  CLAIM,
+  EXAMPLE_WALLET,
+  EXPLORER_TX_URL,
+  FOOTER,
+  HERO,
+  HOW_IT_WORKS,
+  PROOF,
+  type Point,
+  type Proof,
+  REPOSITORY_URL,
+  TRUST,
+  TRY_IT,
+} from './landing-copy'
 
 // VIEW
 
@@ -116,18 +38,27 @@ const allowanceCard = <Message>(h: HtmlBuilder<Message>): Html =>
           h.div(
             [h.Class('flex flex-col gap-2 bg-paper p-5')],
             [
-              h.p([h.Class('text-xs font-semibold uppercase tracking-[0.14em] text-muted')], ['Wallet balance']),
-              h.p([h.Class('text-3xl font-semibold tracking-tight tabular-nums text-ink')], ['30.00 USDC']),
-              h.p([h.Class('text-sm text-muted')], ['Personal · Stellar testnet']),
+              h.p(
+                [h.Class('text-xs font-semibold uppercase tracking-[0.14em] text-muted')],
+                [EXAMPLE_WALLET.balanceLabel],
+              ),
+              h.p([h.Class('text-3xl font-semibold tracking-tight tabular-nums text-ink')], [EXAMPLE_WALLET.balance]),
+              h.p([h.Class('text-sm text-muted')], [EXAMPLE_WALLET.walletLine]),
             ],
           ),
           h.div(
             [h.Class('flex flex-col gap-2 bg-paper p-5')],
             [
-              h.p([h.Class('text-xs font-semibold uppercase tracking-[0.14em] text-muted')], ['Claude may spend']),
-              h.p([h.Class('text-3xl font-semibold tracking-tight tabular-nums text-accent')], ['5.00 USDC']),
-              meter(0, 'Claude allowance used', h),
-              h.p([h.Class('text-sm text-muted')], ['of 5.00 · until tomorrow 12:00 UTC']),
+              h.p(
+                [h.Class('text-xs font-semibold uppercase tracking-[0.14em] text-muted')],
+                [EXAMPLE_WALLET.allowanceLabel],
+              ),
+              h.p(
+                [h.Class('text-3xl font-semibold tracking-tight tabular-nums text-accent')],
+                [EXAMPLE_WALLET.allowance],
+              ),
+              meter(0, EXAMPLE_WALLET.allowanceMeterLabel, h),
+              h.p([h.Class('text-sm text-muted')], [EXAMPLE_WALLET.allowanceLine]),
             ],
           ),
           h.div(
@@ -136,19 +67,16 @@ const allowanceCard = <Message>(h: HtmlBuilder<Message>): Html =>
               h.div(
                 [h.Class('flex flex-col gap-1')],
                 [
-                  h.p([h.Class('font-semibold tabular-nums text-ink')], ['20.00 USDC to Bob']),
-                  h.p([h.Class('text-sm text-muted')], ['Claude asked · “Dinner with Bob”']),
+                  h.p([h.Class('font-semibold tabular-nums text-ink')], [EXAMPLE_WALLET.askAmount]),
+                  h.p([h.Class('text-sm text-muted')], [EXAMPLE_WALLET.askLine]),
                 ],
               ),
-              badge('Needs your nod', 'warn', h),
+              badge(EXAMPLE_WALLET.askBadge, 'warn', h),
             ],
           ),
         ],
       ),
-      h.figcaption(
-        [h.Class('text-sm text-muted')],
-        ['Example wallet. Two numbers that never blur: what you hold, and what your AI may spend.'],
-      ),
+      h.figcaption([h.Class('text-sm text-muted')], [EXAMPLE_WALLET.caption]),
     ],
   )
 
@@ -162,20 +90,12 @@ const heroView = <Message>(slots: Readonly<{ walletForm: Html; addToClaude: Html
           h.div(
             [h.Class('flex flex-wrap items-center gap-3')],
             [
-              h.p([h.Class('text-sm font-semibold tracking-tight text-accent')], ['nod']),
-              badge('Stellar testnet', 'quiet', h),
+              h.p([h.Class('text-sm font-semibold tracking-tight text-accent')], [HERO.wordmark]),
+              badge(HERO.network, 'quiet', h),
             ],
           ),
-          h.h1(
-            [h.Class('text-4xl font-semibold tracking-tight text-balance text-ink sm:text-5xl')],
-            ['Give your AI an allowance.'],
-          ),
-          h.p(
-            [h.Class('max-w-xl text-lg text-pretty text-muted')],
-            [
-              'Nod is a Stellar wallet you add to Claude. Small payments go through on their own, inside the allowance you set. Anything bigger waits for your nod.',
-            ],
-          ),
+          h.h1([h.Class('text-4xl font-semibold tracking-tight text-balance text-ink sm:text-5xl')], [HERO.title]),
+          h.p([h.Class('max-w-xl text-lg text-pretty text-muted')], [HERO.lede]),
         ],
       ),
       h.div(
@@ -201,14 +121,10 @@ const howItWorksView = <Message>(h: HtmlBuilder<Message>): Html =>
   h.section(
     [h.Class('flex flex-col gap-6')],
     [
-      sectionHeading(
-        'How it works',
-        'Three steps, once per AI app. After that, Claude pays inside its allowance and asks you for the rest.',
-        h,
-      ),
+      sectionHeading(HOW_IT_WORKS.title, HOW_IT_WORKS.lead, h),
       h.ol(
         [h.Class('grid gap-6 sm:grid-cols-3')],
-        Array.map(STEPS, (step, index) => stepItem(step, index + 1, h)),
+        Array.map(HOW_IT_WORKS.steps, (step, index) => stepItem(step, index + 1, h)),
       ),
     ],
   )
@@ -227,10 +143,10 @@ const trustView = <Message>(h: HtmlBuilder<Message>): Html =>
   h.section(
     [h.Class('flex flex-col gap-6')],
     [
-      sectionHeading('Why you can trust it', 'The rules sit in your Stellar account, where the money is.', h),
+      sectionHeading(TRUST.title, TRUST.lead, h),
       h.ul(
         [h.Class('grid gap-6 sm:grid-cols-2')],
-        Array.map(TRUST, point => trustItem(point, h)),
+        Array.map(TRUST.points, point => trustItem(point, h)),
       ),
     ],
   )
@@ -242,16 +158,11 @@ const claimView = <Message>(h: HtmlBuilder<Message>): Html =>
       h.div(
         [h.Class('flex flex-wrap items-center gap-3')],
         [
-          h.h2([h.Class('text-2xl font-semibold tracking-tight text-balance text-ink')], ['Pays people too']),
-          badge('Trustline required', 'warn', h),
+          h.h2([h.Class('text-2xl font-semibold tracking-tight text-balance text-ink')], [CLAIM.title]),
+          badge(CLAIM.badge, 'warn', h),
         ],
       ),
-      h.p(
-        [h.Class('max-w-2xl text-base text-pretty text-muted')],
-        [
-          'Even people who have never held USDC. Carol gets a claim link for her 5 USDC. She signs once, and her USDC trustline and the payment land in one transaction.',
-        ],
-      ),
+      h.p([h.Class('max-w-2xl text-base text-pretty text-muted')], [CLAIM.body]),
     ],
   )
 
@@ -281,14 +192,10 @@ const proofView = <Message>(h: HtmlBuilder<Message>): Html =>
   h.section(
     [h.Class('flex flex-col gap-6')],
     [
-      sectionHeading(
-        'Proof on Stellar testnet',
-        'Each claim links to its transaction on stellar.expert. Nothing here is a mock-up.',
-        h,
-      ),
+      sectionHeading(PROOF.title, PROOF.lead, h),
       h.ul(
         [h.Class('divide-y divide-line rounded-3xl border border-line bg-paper p-5 sm:p-6')],
-        Array.map(PROOFS, proof => proofItem(proof, h)),
+        Array.map(PROOF.items, proof => proofItem(proof, h)),
       ),
     ],
   )
@@ -297,29 +204,18 @@ const tryItView = <Message>(connectorUrl: string, h: HtmlBuilder<Message>): Html
   h.section(
     [h.Class('flex flex-col gap-6')],
     [
-      sectionHeading(
-        'Try it in 3 minutes',
-        'You need Claude and a device that can make a passkey. Everything runs on Stellar testnet; no real money moves.',
-        h,
-      ),
+      sectionHeading(TRY_IT.title, TRY_IT.lead, h),
       h.ol(
         [h.Class('flex max-w-2xl list-decimal flex-col gap-3 pl-5 text-base text-pretty text-ink marker:text-muted')],
         [
           h.li(
             [],
             [
-              'In Claude, open Settings, then Connectors, and add a custom connector with this URL: ',
+              TRY_IT.connectorStep,
               h.code([h.Class('select-all break-all font-mono text-sm text-ink')], [connectorUrl]),
             ],
           ),
-          h.li(
-            [],
-            [
-              'Connect, create a passkey wallet, and approve Claude’s allowance. Nod funds the new wallet with testnet USDC.',
-            ],
-          ),
-          h.li([], ['Ask Claude to buy the market brief, then to send Alice 2 USDC. Neither asks you.']),
-          h.li([], ['Ask Claude to pay Bob 5 USDC for dinner. That is more than what is left, so it needs your nod.']),
+          ...Array.map(TRY_IT.steps, step => h.li([], [step])),
         ],
       ),
     ],
@@ -334,13 +230,13 @@ const footerView = <Message>(h: HtmlBuilder<Message>): Html =>
     [
       h.ul(
         [h.Class('flex flex-wrap gap-2')],
-        Array.map(BUILT_WITH, name => builtWithItem(name, h)),
+        Array.map(FOOTER.builtWith, name => builtWithItem(name, h)),
       ),
       h.p(
         [h.Class('max-w-2xl text-sm text-pretty text-muted')],
         [
-          'Built at HackMeridian 2026 for the Stellar Composed track. Stellar testnet only. ',
-          h.a([h.Href(REPOSITORY_URL), h.Target('_blank'), h.Rel('noreferrer'), h.Class(LINK)], ['Source on GitHub']),
+          FOOTER.note,
+          h.a([h.Href(REPOSITORY_URL), h.Target('_blank'), h.Rel('noreferrer'), h.Class(LINK)], [FOOTER.source]),
         ],
       ),
     ],
