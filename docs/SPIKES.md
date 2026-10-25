@@ -66,7 +66,7 @@ Deliverables (as planned; reconcile with what the foundation session actually pr
 - `scripts/stage.ts`, `scripts/smoke.ts`, `scripts/typecheck.ts`, `scripts/contract.ts` as `package.json` already references.
 - `.mcp.json` with `stellar-raven` and `cloudflare`; vendored Stellar skills (files only; no hooks, no permission edits).
 - Prove: `heavy bun run check` passes; `bun run dev` serves the SPA and `/mcp` answers `tools/list`; `@stellar/stellar-sdk`
-  17.3.0 imports and builds a transaction inside workerd (local stage), with any polyfill noted.
+  16.4.1 imports and builds a transaction inside workerd (local stage), with any polyfill noted.
 
 Pins: Effect 4.0.5, Foldkit 0.169.x (0.168 proven in swarmm), Alchemy **2.0.0-beta.83 exactly** (shared Cloudflare state
 store), TypeScript 7.0.2, Bun 1.4.2. Copy conventions from `~/code/swarmm` (Foldkit hosting wrapper, `FOLDKIT.md`),
@@ -74,6 +74,8 @@ store), TypeScript 7.0.2, Bun 1.4.2. Copy conventions from `~/code/swarmm` (Fold
 for settings, Alchemy drift fixes). Do not deploy to `testnet` yet; local stage only.
 
 ## S1 · Smart account authority model — 4 h (highest risk)
+
+**Verified 2026-10-25 (docs/research/smart-accounts.md)**: no Rust needed. The OpenZeppelin account WASM, Ed25519 and WebAuthn verifiers and the spending-limit policy are deployed on testnet; one wallet = one `deploy` of the WASM. `smart-account-kit` 0.8.0 signs only the v0.7.x digest and has no headless Ed25519 signing, so the spike hand-signs auth entries with `authorizeEntry` (recipe in §c). Pin `@stellar/stellar-sdk` 16.4.1. The limit is a rolling window: size `period_ledgers` ≥ the rule lifetime; `valid_until` is a ledger number. Fee sponsoring = our G account as source, with a second (enforce) simulation after signing.
 
 **Question**: can one OpenZeppelin smart account on testnet have (a) a passkey-style secp256r1 admin signer and (b) an
 Ed25519 "connection" signer limited to USDC `transfer` ≤ N total until T, with over-limit and post-revoke transfers
@@ -163,7 +165,7 @@ Claims:
 4. Connect from **Claude** (claude.ai custom connector or Claude Code `claude mcp add --transport http`) and call both
    tools. Note whether DCR was required and whether URL-mode elicitation is available.
 5. ChatGPT developer mode if an account with it is available; otherwise record the requirement list from the research doc.
-6. Prove `@stellar/stellar-sdk` 17.3.0 runs in the deployed Worker: build and sign a dummy transaction in a `/api/probe`
+6. Prove `@stellar/stellar-sdk` 16.4.1 runs (not 17.x: the smart-account kits require ^16.3) in the deployed Worker: build and sign a dummy transaction in a `/api/probe`
    route. Record any `node:` polyfill or `nodejs_compat` flag needed.
 
 Deliverables: `spikes/s4/` deployable stub, the results doc with per-host screenshots and the exact OAuth flags each host

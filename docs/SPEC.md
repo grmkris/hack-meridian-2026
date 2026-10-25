@@ -89,7 +89,7 @@ Stellar testnet (Soroban RPC)
 
 Deployed on Cloudflare via Alchemy (stages `local` and `testnet`), following the foundation the previous session
 pinned: Effect 4.0.5, Foldkit 0.169.x, Alchemy 2.0.0-beta.83 exactly, TypeScript 7.0.2, Bun 1.4.2,
-`@stellar/stellar-sdk` 17.3.0, soroban-sdk 29.0.1, stellar-cli 28.1.0. Exact Stellar library pins come from
+`@stellar/stellar-sdk` **16.4.1** (17.x breaks smart-account-kit and passkey-kit; verified 2026-10-25), soroban-sdk 29.0.1, stellar-cli 28.1.0. Exact Stellar library pins come from
 `docs/research/`.
 
 ## MCP tool surface (small on purpose)
