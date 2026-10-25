@@ -168,3 +168,15 @@ and `GAWYWVMH…` (10,000 XLM each), treasury 210 USDC, rent factor 109.6. `smok
 `CCDOHIGFC4Y2EYZWA66HULNXUI3PX3OD3WX27OKGPEHLRR3LDR3OBZG4` holding 10.00 USDC verified on chain. Testnet deploys stay with
 the worktree: `git -C /srv/cache/hm26/deploy-testnet checkout --detach <sha>`, gate, plan, apply. Pending: fee ceilings
 raised to 100 XLM first pull / 40 XLM later and redeployed; the Contacts page was still loading in the e2e screenshot.
+
+## Status 15:05 UTC
+
+- Service complete for the demo: fee ceilings follow the live rent factor (`ee61aef`; testnet at ~115× normal), revoke
+  records remove_tx and sweep_tx (`7036c72`), over-allowance x402 approve-then-retry (`89d1b3c`). Env var list in the
+  README (owner a3). One thematic track: Composed.
+- Redeploy of testnet at `19e1c13` applying (additive migration 0003, fee ceilings, pre-judge files `/llms.txt`,
+  `/robots.txt`, `/sitemap.xml`, OG/noscript index). C's single full testnet rehearsal follows, then Kristjan's own run in
+  Claude.
+- Stream C's agent hit an Opus rate limit; its work is committed; the rehearsal run resumes it or uses a smaller model.
+- 16:00 UTC decision: the optional "run a sample agent" page for judges without Claude (A1 server-side runner against a
+  service-owned demo wallet, rate-limited; B page). In only if the testnet rehearsal is green and rate limits allow.
