@@ -2,6 +2,8 @@ import { Server } from '@modelcontextprotocol/sdk/server/index.js'
 import { WebStandardStreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js'
 import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprotocol/sdk/types.js'
 
+import { eventsCapabilities, registerEvents } from './events/rpc.ts'
+import { appsCapabilities, registerApps } from './mcp-apps.ts'
 import { callTool, listTools } from './mcp-tools.ts'
 import type { AppRuntime } from './runtime.ts'
 import type { ToolContext } from './tools.ts'
@@ -47,12 +49,14 @@ const readBody = async (request: Request): Promise<{ readonly body: unknown } | 
 const serveLegacy = async (runtime: AppRuntime, request: Request, body: unknown, ctx: ToolContext, auth: McpAuth) => {
   const server = new Server(
     { name: 'Nod', version: '0.1.0' },
-    { capabilities: { tools: {} }, instructions: INSTRUCTIONS },
+    { capabilities: { tools: {}, ...appsCapabilities, ...eventsCapabilities }, instructions: INSTRUCTIONS },
   )
   server.setRequestHandler(ListToolsRequestSchema, async () => ({ tools: listTools() }))
   server.setRequestHandler(CallToolRequestSchema, async call =>
     callTool(runtime, ctx, call.params.name, call.params.arguments),
   )
+  registerApps(server, runtime, ctx)
+  registerEvents(server, runtime, ctx)
   const transport = new WebStandardStreamableHTTPServerTransport({ enableJsonResponse: true })
   await server.connect(transport)
   return transport.handleRequest(request, {
