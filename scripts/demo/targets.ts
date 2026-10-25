@@ -98,17 +98,21 @@ const service = (name: string, base: string): Target => ({
     { do: 'waitFor', selector: '[data-testid="approval-done"]', optional: true, timeoutMs: 90_000 },
     { do: 'shot', name: 'approval-after' },
   ],
+  // Stream B's Connections page (apps/web/src/page/connections.ts): revoke is two clicks, the row then carries
+  // data-testid="revoked"; when the service needs the passkey to remove the onchain rule, the row offers
+  // data-testid="remove-rule" → A1's /approve page. Step s9 then checks the chain for the rule itself.
   revoke: [
     { do: 'goto', url: '{{base}}/connections' },
+    { do: 'waitFor', selector: '[data-testid="revoke"][data-connection="{{connection_id}}"]', timeoutMs: 60_000 },
     { do: 'shot', name: 'connections' },
-    {
-      do: 'click',
-      selector:
-        '[data-testid="revoke"][data-connection="{{connection_id}}"], button[data-connection="{{connection_id}}"]',
-      timeoutMs: 60_000,
-    },
-    { do: 'waitFor', selector: '[data-testid="revoked"]', optional: true, timeoutMs: 60_000 },
+    { do: 'click', selector: '[data-testid="revoke"][data-connection="{{connection_id}}"]' },
+    { do: 'click', selector: '[data-testid="revoke-confirm"][data-connection="{{connection_id}}"]' },
+    { do: 'waitFor', selector: '[data-connection="{{connection_id}}"][data-testid="revoked"]', timeoutMs: 60_000 },
     { do: 'shot', name: 'connections-revoked' },
+    { do: 'click', selector: '[data-testid="remove-rule"]', optional: true, timeoutMs: 5_000 },
+    { do: 'click', selector: '[data-testid="approve"], #approve', optional: true, timeoutMs: 30_000 },
+    { do: 'waitFor', selector: '[data-testid="approval-done"]', optional: true, timeoutMs: 90_000 },
+    { do: 'shot', name: 'rule-removal' },
   ],
   claim: [
     { do: 'goto', url: '{{claim_url}}' },
