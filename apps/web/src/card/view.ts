@@ -1,10 +1,11 @@
 import { Array, Option } from 'effect'
 import type { Html, HtmlBuilder } from 'foldkit/html'
 
+import { decimalUsdc, shortAddress } from '../format'
 import { Message } from './message'
 import { type Model, Shown } from './model'
-import { eyebrow, header, lead, note } from './view/parts'
-import { paymentBody, paymentView } from './view/payment'
+import { amount, brandHeader, eyebrow, header, lead, note, pollStatus } from './view/parts'
+import { paymentBody, paymentView, reasonQuote } from './view/payment'
 import { purchaseView } from './view/purchase'
 import { backButton, requestBody, requestsView, requestView } from './view/request'
 import { allowanceLinkView, revokedView, walletView } from './view/wallet'
@@ -13,10 +14,37 @@ import { allowanceLinkView, revokedView, walletView } from './view/wallet'
 
 type Builder = HtmlBuilder<Message>
 
-const DEFAULT_NETWORK = 'stellar:testnet'
+/** A recipient as the AI named it: a name stays a name, an address is shortened. */
+const askedRecipient = (recipient: string): string =>
+  /^[GCM][A-Z2-7]{55,}$/u.test(recipient) ? shortAddress(recipient) : recipient
 
-const waiting = (model: Model, h: Builder): ReadonlyArray<Html> => [
-  header(DEFAULT_NETWORK, h),
+/** payment_prepare before Nod answers: the amount and recipient the AI asked for, and what happens next. */
+const askedPayment = (model: Model, amountAsked: string, h: Builder): ReadonlyArray<Html> => [
+  brandHeader(h),
+  eyebrow('Asked to pay', 'quiet', h),
+  amount(decimalUsdc(amountAsked), h),
+  Option.match(model.toolInput.maybeRecipient, {
+    onNone: () => h.empty,
+    onSome: recipient => h.p([h.Class('nod-recipient')], ['to ', h.strong([], [askedRecipient(recipient)])]),
+  }),
+  reasonQuote(model, Option.getOrNull(model.toolInput.maybeReason), h),
+  pollStatus(model, 'Inside the allowance it pays on its own; past it, Nod asks for your passkey on its own page', h),
+]
+
+const waiting = (model: Model, h: Builder): ReadonlyArray<Html> =>
+  Option.match(
+    Option.filter(model.toolInput.maybeAmount, () =>
+      Option.exists(model.maybeToolName, name => name === 'payment_prepare'),
+    ),
+    {
+      onSome: amountAsked =>
+        model.bridge._tag === 'Unavailable' ? waitingSkeleton(model, h) : askedPayment(model, amountAsked, h),
+      onNone: () => waitingSkeleton(model, h),
+    },
+  )
+
+const waitingSkeleton = (model: Model, h: Builder): ReadonlyArray<Html> => [
+  brandHeader(h),
   model.bridge._tag === 'Unavailable'
     ? note(`This chat did not connect the card (${model.bridge.reason}). The AI has the full result.`, h)
     : h.div(
@@ -32,13 +60,9 @@ const waiting = (model: Model, h: Builder): ReadonlyArray<Html> => [
 const body = (model: Model, h: Builder): ReadonlyArray<Html> =>
   Shown.match<ReadonlyArray<Html>>(model.shown, {
     Waiting: () => waiting(model, h),
-    ToolFailed: ({ message }) => [
-      header(DEFAULT_NETWORK, h),
-      eyebrow('Nod could not do that', 'bad', h),
-      lead(message, h),
-    ],
+    ToolFailed: ({ message }) => [brandHeader(h), eyebrow('Nod could not do that', 'bad', h), lead(message, h)],
     Unrecognised: () => [
-      header(DEFAULT_NETWORK, h),
+      brandHeader(h),
       note('Nod sent something this card cannot show. The AI has the full result.', h),
     ],
     Payment: ({ payment }) => paymentView(model, payment, h),

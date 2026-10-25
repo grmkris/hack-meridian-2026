@@ -53,6 +53,9 @@ export const ToolInput = Schema.Struct({
   maybeTool: Schema.Option(Schema.String),
   maybeMaxAmount: Schema.Option(Schema.String),
   maybeReason: Schema.Option(Schema.String),
+  /** payment_prepare: the amount and who it is for, as the AI asked, before Nod answers. */
+  maybeAmount: Schema.Option(Schema.String),
+  maybeRecipient: Schema.Option(Schema.String),
 })
 export type ToolInput = typeof ToolInput.Type
 

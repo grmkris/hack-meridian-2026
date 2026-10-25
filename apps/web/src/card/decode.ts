@@ -86,6 +86,8 @@ export const decodeToolInput = (params: unknown): ToolInput => {
     maybeTool: stringField(args, 'tool'),
     maybeMaxAmount: stringField(args, 'max_amount'),
     maybeReason: stringField(args, 'reason'),
+    maybeAmount: stringField(args, 'amount'),
+    maybeRecipient: Option.orElse(stringField(args, 'recipient_name'), () => stringField(args, 'recipient')),
   }
 }
 

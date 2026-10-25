@@ -61,6 +61,8 @@ export const init: Runtime.ElementInit<Model, Message, Flags, Host> = flags => (
       maybeTool: Option.none(),
       maybeMaxAmount: Option.none(),
       maybeReason: Option.none(),
+      maybeAmount: Option.none(),
+      maybeRecipient: Option.none(),
     },
     shown: Shown.Waiting(),
     poll: Poll.Idle(),

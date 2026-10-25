@@ -99,7 +99,11 @@ bridge.onsizechange = ({ height }) => {
 bridge.oninitialized = () => {
   void bridge
     .sendToolInput({ arguments: { ...fixture.arguments } })
-    .then(() => bridge.sendToolResult(toolResult(fixture.structured, fixture.sentence, fixture.isError === true)))
+    .then(() =>
+      fixture.pending === true
+        ? undefined
+        : bridge.sendToolResult(toolResult(fixture.structured, fixture.sentence, fixture.isError === true)),
+    )
   setTimeout(() => {
     document.body.dataset['ready'] = 'true'
   }, 400)

@@ -20,10 +20,23 @@ export const header = (network: string, h: Builder): Html =>
     ],
   )
 
+/** Before Nod answers, the card does not know the network yet: the wordmark alone, never a guessed network. */
+export const brandHeader = (h: Builder): Html =>
+  h.header([h.Class('nod-header')], [h.span([h.Class('nod-wordmark'), h.AriaLabel('Nod')], ['nod'])])
+
 export const eyebrow = (text: string, tone: Tone, h: Builder): Html =>
   h.p([h.Class(`nod-eyebrow nod-tone-${tone}`)], [h.span([h.Class('nod-dot'), h.AriaHidden(true)]), text])
 
-export const amount = (text: string, h: Builder): Html => h.p([h.Class('nod-amount')], [text])
+/** "4.00 USDC": the number in Besley, the unit beside it smaller, so the number is what reads first. */
+export const amount = (text: string, h: Builder): Html => {
+  const unitAt = text.lastIndexOf(' ')
+  return unitAt <= 0
+    ? h.p([h.Class('nod-amount')], [text])
+    : h.p(
+        [h.Class('nod-amount')],
+        [text.slice(0, unitAt), h.span([h.Class('nod-unit')], [` ${text.slice(unitAt + 1)}`])],
+      )
+}
 
 export const headline = (text: string, h: Builder): Html => h.h1([h.Class('nod-headline')], [text])
 

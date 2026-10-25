@@ -246,7 +246,12 @@ const allowanceColumn = (overview: Overview, h: HtmlBuilder<Message>): Html =>
             Array.map(grants, grant => allowanceRow(grant, h)),
           ),
       }),
-      h.p([h.Class('mt-1 text-sm text-ink')], ['Anything bigger needs your passkey, every time.']),
+      ...Array.match(overview.grants, {
+        onEmpty: () => [],
+        onNonEmpty: () => [
+          h.p([h.Class('mt-1 text-sm text-ink')], ['Anything bigger needs your passkey, every time.']),
+        ],
+      }),
       h.a([h.Href(connectionsRouter()), h.Class(`${LINK} self-start text-sm`)], ['Manage connections']),
     ],
     h,
@@ -505,14 +510,16 @@ const addMoneyPanel = (
                   h.p(
                     [h.Class('text-sm text-muted')],
                     [
-                      'Works from wallets that can send to contract addresses (Freighter). Deposit addresses for exchanges are next.',
+                      overview.deposits_available === true
+                        ? 'You can also send USDC straight to the wallet address from Freighter.'
+                        : 'Works from wallets that can send to contract addresses (Freighter). Deposit addresses for exchanges are next.',
                     ],
                   ),
                 ],
               ),
             ],
           ),
-          depositBlock(overview, deposit, h),
+          ...(overview.deposits_available === false ? [] : [depositBlock(overview, deposit, h)]),
         ],
         h,
       ),

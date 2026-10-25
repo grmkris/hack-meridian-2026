@@ -58,16 +58,35 @@ export const receiptFacts = (receipt: ReceiptView, grantRemaining: string, h: Bu
       ? [['Into the pocket', textLink(`${shortAddress(receipt.pull_tx_hash)} ↗`, receipt.pull_explorer_url, h)]]
       : []
   return [
-    ['Ledger', h.span([h.Class('nod-number')], [String(receipt.ledger)])],
     ['Confirmed', time(receipt.confirmed_at, h)],
-    ['Transaction', textLink(`${shortAddress(receipt.tx_hash)} ↗`, receipt.explorer_url, h)],
-    ...pull,
     [
       'Network fee',
       receipt.fee_paid_by === 'relayer' ? `Nod paid it (${receipt.fee_xlm} XLM)` : 'The seller’s facilitator paid it',
     ],
     ['Allowance left', decimalUsdc(grantRemaining)],
+    ['Transaction', textLink(`${shortAddress(receipt.tx_hash)} ↗`, receipt.explorer_url, h)],
+    ...pull,
+    ['Ledger', h.span([h.Class('nod-number')], [String(receipt.ledger)])],
   ]
+}
+
+/** Why this payment waits for the passkey, in the words the owner needs to decide. */
+const nodReason = (model: Model, payment: PaymentView): string => {
+  const app = Option.getOrElse(appName(model), () => 'this AI app')
+  return Match.value(payment.approval_reason ?? null).pipe(
+    Match.withReturnType<string>(),
+    Match.when(
+      'recipient_not_ready',
+      () =>
+        `${payment.recipient.name ?? 'The recipient'} has no USDC trustline yet, so this payment needs your passkey.`,
+    ),
+    Match.when('no_allowance', () => `There is no allowance for ${app} right now, so this payment needs your passkey.`),
+    Match.when('owner_only', () => 'A payment like this one always needs your passkey.'),
+    Match.orElse(
+      () =>
+        `It is more than ${app} may still spend on its own (${decimalUsdc(payment.grant_remaining)}), so it needs your passkey.`,
+    ),
+  )
 }
 
 const needsNod = (model: Model, payment: PaymentView, h: Builder): ReadonlyArray<Html> => [
@@ -78,8 +97,9 @@ const needsNod = (model: Model, payment: PaymentView, h: Builder): ReadonlyArray
     [h.Class('nod-address')],
     [h.p([h.Class('nod-label')], ['Full address']), h.p([h.Class('nod-mono nod-select')], [payment.recipient.address])],
   ),
+  lead(nodReason(model, payment), h),
   reasonQuote(model, payment.reason, h),
-  facts([['Expires', time(payment.expires_at, h)], allowanceLeft(model, payment.grant_remaining, h)], h),
+  facts([['Open until', time(payment.expires_at, h)]], h),
   payment.claim_url === null
     ? h.empty
     : note(
@@ -95,7 +115,7 @@ const needsNod = (model: Model, payment: PaymentView, h: Builder): ReadonlyArray
 ]
 
 const receipt = (model: Model, payment: PaymentView, h: Builder): ReadonlyArray<Html> => [
-  eyebrow('Paid', 'good', h),
+  eyebrow(payment.lane === 'owner' ? 'Paid with your nod' : 'Paid inside the allowance', 'good', h),
   amount(decimalUsdc(payment.amount), h),
   recipientLine(payment.recipient.name, payment.recipient.address, h),
   payment.receipt === null ? h.empty : facts(receiptFacts(payment.receipt, payment.grant_remaining, h), h),

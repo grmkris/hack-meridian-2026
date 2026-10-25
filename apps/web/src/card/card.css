@@ -649,3 +649,12 @@ body {
     transition: none;
   }
 }
+
+/* The unit beside an amount: smaller and quieter, so the number reads first. */
+.nod-unit {
+  font-family: var(--nod-sans);
+  font-size: 0.5em;
+  font-weight: 600;
+  letter-spacing: 0;
+  color: var(--nod-muted);
+}

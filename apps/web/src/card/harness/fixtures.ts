@@ -31,6 +31,8 @@ export interface Fixture {
   readonly polls?: ReadonlyArray<unknown>
   /** Answers for named tools (request_pay, requests_list, …), in order; the last answer repeats. */
   readonly answers?: Readonly<Record<string, ReadonlyArray<unknown>>>
+  /** The host holds the call open (a URL request for the passkey): the card gets the arguments and no result yet. */
+  readonly pending?: boolean
 }
 
 const receipt = (overrides: Partial<ReceiptView> = {}): ReceiptView => ({
@@ -264,6 +266,13 @@ const PREPARE = { recipient: 'Bob', amount: '20', idempotency_key: 'k-bob-20' }
 const FETCH = { url: 'https://weather.x402.example/forecast?city=lisbon', max_amount: '0.50', idempotency_key: 'k-wx' }
 
 export const FIXTURES: Readonly<Record<string, Fixture>> = {
+  'payment-asked': {
+    tool: 'payment_prepare',
+    arguments: { ...PREPARE, reason: 'Dinner at Taberna, split with Bob' },
+    structured: payment(),
+    sentence: '',
+    pending: true,
+  },
   'payment-needs-nod': {
     tool: 'payment_prepare',
     arguments: PREPARE,
