@@ -19,6 +19,11 @@ export const USDC_ISSUER = 'GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLL
 export const XLM_SAC = 'CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC'
 /** S3's CAP-73 router: `pay_and_trust(sender, recipient, token, amount)` = SAC `trust(recipient)` + `transfer`. */
 export const ONBOARD_ROUTER = 'CCLFB4I4CNGWHHL53UO33CSWKKXJBANMDGOGL43J7RBT7SWK2H2BPGN4'
+/**
+ * The deposit router (`contracts/deposit`, docs/spikes/s8-deposit.md): `register(g, c)` and the permissionless
+ * `sweep(g)`; token = testnet USDC, no admin, no upgrade. Wasm `7bc3752b…`.
+ */
+export const DEPOSIT_ROUTER = 'CAFLFU5GH7QZ6KF3FBKRV7VW5XFYUKQPCFFTCPTKVEUG4TDT5B2ZOXGL'
 /** Circle's mainnet USDC issuer. */
 export const PUBNET_USDC_ISSUER = 'GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN'
 

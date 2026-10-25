@@ -3,7 +3,10 @@ use std::rc::Rc;
 
 use soroban_sdk::{
     events::Event,
-    testutils::{Address as _, AuthorizedFunction, AuthorizedInvocation, Events as _, Ledger as _},
+    testutils::{
+        Address as _, AuthorizedFunction, AuthorizedInvocation, Events as _, Ledger as _, MockAuth,
+        MockAuthInvoke,
+    },
     token, vec, xdr, Address, Env, IntoVal, Symbol, TryFromVal,
 };
 
@@ -66,9 +69,14 @@ impl Setup {
         self.env.set_auths(&[]);
     }
 
+    /// The expiration the service passes: the network maximum less a margin for the time to inclusion.
+    fn until(&self) -> u32 {
+        self.router.max_expiration_ledger() - 100
+    }
+
     fn register(&self) -> u32 {
         self.env.mock_all_auths();
-        let until = self.router.register(&self.g, &self.c);
+        let until = self.router.register(&self.g, &self.c, &self.until());
         self.env.set_auths(&[]);
         until
     }
@@ -97,15 +105,16 @@ fn setup() -> Setup {
 fn register_binds_g_and_approves_the_router_under_one_authorization_from_g() {
     let s = setup();
     s.env.ledger().set_sequence_number(1_000);
-    let expected_until = 1_000
+    let max = 1_000
         + s.env
             .as_contract(&s.router.address, || s.env.storage().max_ttl());
+    assert_eq!(s.router.max_expiration_ledger(), max);
 
     s.env.mock_all_auths();
-    let until = s.router.register(&s.g, &s.c);
-    assert_eq!(until, expected_until);
+    let until = s.router.register(&s.g, &s.c, &max);
+    assert_eq!(until, max);
 
-    // G authorized exactly register(g, c) with approve(g, router, MAX, until) beneath it; nobody else signed.
+    // G authorized exactly register(g, c, until) with approve(g, router, MAX, until) beneath it; nobody else signed.
     assert_eq!(
         s.env.auths(),
         std::vec![(
@@ -114,7 +123,12 @@ fn register_binds_g_and_approves_the_router_under_one_authorization_from_g() {
                 function: AuthorizedFunction::Contract((
                     s.router.address.clone(),
                     Symbol::new(&s.env, "register"),
-                    vec![&s.env, s.g.into_val(&s.env), s.c.into_val(&s.env)],
+                    vec![
+                        &s.env,
+                        s.g.into_val(&s.env),
+                        s.c.into_val(&s.env),
+                        until.into_val(&s.env)
+                    ],
                 )),
                 sub_invocations: std::vec![AuthorizedInvocation {
                     function: AuthorizedFunction::Contract((
@@ -156,7 +170,7 @@ fn register_binds_g_and_approves_the_router_under_one_authorization_from_g() {
 #[test]
 fn register_without_the_deposit_address_authorization_fails() {
     let s = setup();
-    assert!(s.router.try_register(&s.g, &s.c).is_err());
+    assert!(s.router.try_register(&s.g, &s.c, &s.until()).is_err());
     assert_eq!(s.router.deposit(&s.g), None);
     assert_eq!(s.token().allowance(&s.g, &s.router.address), 0);
 }
@@ -166,7 +180,7 @@ fn register_refuses_binding_an_address_to_itself() {
     let s = setup();
     s.env.mock_all_auths();
     assert_eq!(
-        s.router.try_register(&s.g, &s.g),
+        s.router.try_register(&s.g, &s.g, &s.until()),
         Err(Ok(Error::SameAddress))
     );
 }
@@ -178,11 +192,11 @@ fn a_second_registration_of_the_same_g_is_refused_even_when_g_signs_it() {
     let attacker = Address::generate(&s.env);
     s.env.mock_all_auths();
     assert_eq!(
-        s.router.try_register(&s.g, &attacker),
+        s.router.try_register(&s.g, &attacker, &s.until()),
         Err(Ok(Error::AlreadyRegistered))
     );
     assert_eq!(
-        s.router.try_register(&s.g, &s.c),
+        s.router.try_register(&s.g, &s.c, &s.until()),
         Err(Ok(Error::AlreadyRegistered))
     );
     assert_eq!(
@@ -235,7 +249,7 @@ fn a_g_that_kept_its_key_is_still_only_sweepable_to_its_recipient() {
     let attacker = Address::generate(&s.env);
     s.env.mock_all_auths();
     assert_eq!(
-        s.router.try_register(&s.g, &attacker),
+        s.router.try_register(&s.g, &attacker, &s.until()),
         Err(Ok(Error::AlreadyRegistered))
     );
     assert_eq!(s.router.sweep(&s.g), 10 * USDC);
@@ -285,7 +299,7 @@ fn sweep_of_a_g_without_a_trustline_reads_as_nothing_to_sweep() {
     let s = setup();
     let bare = classic_account(&s.env, 9);
     s.env.mock_all_auths();
-    s.router.register(&bare, &s.c);
+    s.router.register(&bare, &s.c, &s.until());
     s.env.set_auths(&[]);
     assert_eq!(s.router.try_sweep(&bare), Err(Ok(Error::NothingToSweep)));
 }
@@ -305,4 +319,50 @@ fn the_allowance_is_live_through_its_expiration_ledger() {
     s.pay_g(2 * USDC);
     s.env.ledger().set_sequence_number(until);
     assert_eq!(s.router.sweep(&s.g), 2 * USDC);
+}
+
+#[test]
+fn what_g_signs_does_not_depend_on_the_ledger_the_registration_lands_in() {
+    // The service simulates and G signs at one ledger; the transaction applies a few ledgers later. Only the exact
+    // authorization tree G signed is allowed (no mock_all_auths), so the approve below register must carry the
+    // caller's expiration, not one computed from the ledger at apply time. (Mocked exact auths need a contract
+    // address, so this G is one; the account case is the same tree.)
+    let s = setup();
+    let g = Address::generate(&s.env);
+    s.env.ledger().set_sequence_number(5_000);
+    let until = s.until();
+    let approve = MockAuthInvoke {
+        contract: &s.usdc,
+        fn_name: "approve",
+        args: (&g, &s.router.address, i128::MAX, until).into_val(&s.env),
+        sub_invokes: &[],
+    };
+    let register = MockAuthInvoke {
+        contract: &s.router.address,
+        fn_name: "register",
+        args: (&g, &s.c, until).into_val(&s.env),
+        sub_invokes: std::slice::from_ref(&approve),
+    };
+    s.env.ledger().set_sequence_number(5_012);
+    s.router
+        .mock_auths(&[MockAuth {
+            address: &g,
+            invoke: &register,
+        }])
+        .register(&g, &s.c, &until);
+    assert_eq!(s.token().allowance(&g, &s.router.address), i128::MAX);
+}
+
+#[test]
+fn register_refuses_an_expiration_in_the_past_or_beyond_the_network_maximum() {
+    let s = setup();
+    s.env.ledger().set_sequence_number(2_000);
+    s.env.mock_all_auths();
+    assert_eq!(
+        s.router.try_register(&s.g, &s.c, &2_000),
+        Err(Ok(Error::ExpirationInPast))
+    );
+    let beyond = s.router.max_expiration_ledger() + 1;
+    assert!(s.router.try_register(&s.g, &s.c, &beyond).is_err());
+    assert_eq!(s.router.deposit(&s.g), None);
 }

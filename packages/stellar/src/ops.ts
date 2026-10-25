@@ -27,6 +27,11 @@ export interface TtlStatus {
 export interface StellarOpsShape {
   /** Drop G(K)'s USDC trustline and merge it into a relayer (sponsored reserves return). Its USDC must be 0. */
   readonly closePocket: (signerKeyRef: string) => Effect.Effect<Receipt, ChainError>
+  /**
+   * Retire a deposit address: G's pre-signed teardown (trustline removed, merged into the relayer that sponsored it),
+   * fee-bumped by a relayer. Refuses while G holds USDC (the teardown would fail and burn its only sequence number).
+   */
+  readonly closeDeposit: (depositAddress: string, teardownXdr: string) => Effect.Effect<Receipt, ChainError>
   /** Instance TTL of each contract (and of its WASM code), and code TTL of each WASM hash. */
   readonly ttlStatus: (
     contractIds: ReadonlyArray<string>,

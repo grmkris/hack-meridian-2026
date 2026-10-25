@@ -5,13 +5,23 @@ import {
   ChainError,
   type ChainHealth,
   type ClaimSenderAuth,
+  type DepositAddress,
   type OwnerPasskey,
   type PreparedClaim,
   type PreparedOwnerAuth,
   type Receipt,
   type WebAuthnAssertion,
 } from '@hm/protocol'
-import { Address, Asset, authorizeEntry, Keypair, Operation, xdr } from '@stellar/stellar-sdk'
+import {
+  Address,
+  Asset,
+  authorizeEntry,
+  FeeBumpTransaction,
+  Keypair,
+  Operation,
+  TransactionBuilder,
+  xdr,
+} from '@stellar/stellar-sdk'
 
 import {
   authorizeWithEd25519,
@@ -24,7 +34,16 @@ import {
 } from './auth.ts'
 import { fromHex, toBase64Url, toBuffer, toHex } from './bytes.ts'
 import { ChainConfig } from './config.ts'
-import { messageOf } from './errors.ts'
+import { INCLUSION_FEE } from './constants.ts'
+import {
+  createDepositOps,
+  EXPIRATION_MARGIN_LEDGERS,
+  lockDepositOps,
+  registerFunc,
+  sweepFunc,
+  teardownTx,
+} from './deposit.ts'
+import { contractCodes, messageOf } from './errors.ts'
 import { grantRuleName, grantWindow, ruleLive, SpendingLimitData, spentAt } from './grant.ts'
 import { makeInvoker } from './invoke.ts'
 import type { NetworkParams } from './network.ts'
@@ -78,6 +97,13 @@ const ClaimPayload = Schema.Struct({
   signer: Schema.optional(Schema.String),
 })
 const decodeClaimPayload = Schema.decodeUnknownEffect(Schema.fromJsonString(ClaimPayload))
+
+/** The router's `deposit(g)` view, as `scValToNative` reads it (`None` → null). */
+const DepositRecord = Schema.NullOr(Schema.Struct({ recipient: Schema.String, expiration_ledger: Schema.Finite }))
+const decodeDepositRecord = Schema.decodeUnknownEffect(DepositRecord)
+
+/** The router's `NothingToSweep` (contracts/deposit): no balance, no trustline, or no allowance left. */
+const NOTHING_TO_SWEEP = 4
 
 const badInput = (message: string) => new ChainError({ kind: 'unknown', message })
 
@@ -537,6 +563,105 @@ export const makeStellar = Effect.gen(function* () {
       return receiptOf(outcome)
     })
 
+  const depositRouter =
+    C.depositRouter === ''
+      ? Effect.fail(
+          new ChainError({ kind: 'declined', message: `deposit_unavailable: no deposit router on ${net.name}` }),
+        )
+      : Effect.succeed(C.depositRouter)
+
+  /**
+   * docs/spikes/s8-deposit.md: create (sponsored G + trustline) → register (G approves the router, G→C bound for
+   * good) → lock (master weight 0, the teardown as G's only pre-auth signer). G's key lives only in this closure. A failure after the
+   * create leaves a sponsored, empty G nobody can use (its key is gone): 1.5 XLM of the relayer's reserve, no funds.
+   */
+  const createDepositAddress = (contractId: string) =>
+    Effect.gen(function* () {
+      if (!isContractAddress(contractId)) return yield* badInput(`not a smart account: ${contractId}`)
+      const router = yield* depositRouter
+      const g = Keypair.random()
+      const address = g.publicKey()
+      const usdc = usdcAsset(net.usdcIssuer)
+      let sponsor = pool.primary.publicKey()
+      const created = yield* invoker.submitClassic(
+        relayer => {
+          sponsor = relayer.publicKey()
+          return createDepositOps(sponsor, address, usdc)
+        },
+        [g],
+      )
+      const max = yield* view(router, 'max_expiration_ledger', [])
+      if (max.switch().name !== 'scvU32') return yield* badInput('max_expiration_ledger returned no ledger')
+      const func = registerFunc(router, address, contractId, max.u32() - EXPIRATION_MARGIN_LEDGERS)
+      const prep = yield* invoker.prepare(func)
+      const signed = yield* signClassic(prep.entries, g, prep.latestLedger + DELEGATED_AUTH_LEDGERS)
+      const registered = yield* invoker.submit(func, signed)
+      const until = registered.returnValue
+      if (until === undefined || until.switch().name !== 'scvU32')
+        return yield* new ChainError({ kind: 'unknown', message: 'register returned no ledger', tx: registered.hash })
+      const teardown = teardownTx(address, yield* soroban.sequence(address), sponsor, usdc, passphrase)
+      const locked = yield* invoker.submitClassic(
+        relayer => lockDepositOps(relayer.publicKey(), address, teardown.hash),
+        [g],
+      )
+      return {
+        address,
+        recipient: contractId,
+        expirationLedger: until.u32(),
+        txs: { create: created.hash, register: registered.hash, lock: locked.hash },
+        teardownXdr: teardown.xdr,
+      } satisfies DepositAddress
+    })
+
+  /** Anyone may sweep; the relayer submits with no authorization entries. Refuses a G the router binds elsewhere. */
+  const sweepDeposit = (depositAddress: string, contractId: string) =>
+    Effect.gen(function* () {
+      const router = yield* depositRouter
+      if (accountOf(depositAddress) !== depositAddress) return yield* badInput(`not a G… address: ${depositAddress}`)
+      const raw = yield* view(router, 'deposit', [addr(depositAddress)])
+      const bound = yield* decodeDepositRecord(nativeOf(raw) ?? null).pipe(
+        Effect.mapError(e => badInput(`deposit record: ${messageOf(e)}`)),
+      )
+      if (bound === null)
+        return yield* new ChainError({
+          kind: 'declined',
+          message: `deposit_unknown: ${depositAddress} is not registered`,
+        })
+      if (bound.recipient !== contractId)
+        return yield* new ChainError({
+          kind: 'declined',
+          message: `deposit_mismatch: ${depositAddress} pays ${bound.recipient}, not ${contractId}`,
+        })
+      const held = yield* classicBalances(depositAddress)
+      if (held.usdc <= 0n) return null
+      const outcome = yield* invoker.submit(sweepFunc(router, depositAddress), []).pipe(
+        Effect.catchIf(
+          e => contractCodes(e.message).includes(NOTHING_TO_SWEEP),
+          () => Effect.succeed(null),
+        ),
+      )
+      if (outcome === null) return null
+      const swept = outcome.returnValue === undefined ? held.usdc : BigInt(String(nativeOf(outcome.returnValue)))
+      return { amountStroops: swept, receipt: receiptOf(outcome) }
+    })
+
+  const closeDeposit = (depositAddress: string, teardownXdr: string) =>
+    Effect.gen(function* () {
+      const inner = yield* fromXdr('teardownXdr', () => TransactionBuilder.fromXDR(teardownXdr, passphrase))
+      if (inner instanceof FeeBumpTransaction || inner.source !== depositAddress)
+        return yield* badInput(`not the teardown of ${depositAddress}`)
+      const now = yield* classicBalances(depositAddress)
+      if (!now.accountExists) return yield* badInput(`deposit address ${depositAddress} does not exist`)
+      if (now.usdc > 0n)
+        return yield* badInput(`deposit address ${depositAddress} still holds ${now.usdc} stroops of USDC; sweep first`)
+      const outcome = yield* pool.run(relayer => {
+        const bump = TransactionBuilder.buildFeeBumpTransaction(relayer, String(INCLUSION_FEE), inner, passphrase)
+        bump.sign(relayer)
+        return soroban.sendAndPoll(bump)
+      })
+      return receiptOf(outcome)
+    })
+
   const ttlStatus = (contractIds: ReadonlyArray<string>, wasmHashes: ReadonlyArray<string>) =>
     Effect.gen(function* () {
       const now = yield* latest
@@ -744,6 +869,8 @@ export const makeStellar = Effect.gen(function* () {
     delegatedTransfer,
     createPocket,
     sweepPocket,
+    createDepositAddress,
+    sweepDeposit,
     payX402: (signerKeyRef, url, maxAmountStroops, paymentId, onQuote) =>
       enabled('x402 payment').pipe(
         Effect.andThen(vault.unseal(signerKeyRef)),
@@ -761,7 +888,15 @@ export const makeStellar = Effect.gen(function* () {
     finalizeClaim,
     health,
   })
-  const ops = StellarOps.of({ closePocket, ttlStatus, extendTtl, rentFactor: readRentFactor, network: net, caps })
+  const ops = StellarOps.of({
+    closePocket,
+    closeDeposit,
+    ttlStatus,
+    extendTtl,
+    rentFactor: readRentFactor,
+    network: net,
+    caps,
+  })
   return { chain, ops } satisfies { chain: Chain['Service']; ops: StellarOpsShape }
 })
 

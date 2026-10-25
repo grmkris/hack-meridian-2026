@@ -21,17 +21,18 @@
       "evidence": "docs/spikes/s3.md"
     },
     "deposit": {
-      "id": "CBYNVNG4XA5EMPEVBMTMI2I6GRSCGTFE3HQDUYANTVJ5VD3E6WTNEXEL",
-      "wasmHash": "acef0d89568ac793287b3f0bc40c40b36e6ff29ad0f25ee0753e1fb3061d27bd",
+      "id": "CAFLFU5GH7QZ6KF3FBKRV7VW5XFYUKQPCFFTCPTKVEUG4TDT5B2ZOXGL",
+      "wasmHash": "7bc3752b337ff7b4c13683e5d1861d404ff069b01cf3c1ff4748055c48fb0c14",
       "deployer": "GA64JNQLXMCZTNR5IKCDTHUC2HCH34FYODNEOJ7H2MK5HKE4MC62VLKM",
-      "deployedAt": "2026-10-25T18:16:00Z",
-      "uploadTx": "fd3e423b63080d0227cffaec0e47d7ff5eb1f7ec117c9506c87f5f0e888e3fd1",
-      "deployTx": "6fd031c2707eb8d48deac7ada2099a45ec2bebe26b6fff5ddf88e3f03daf1ea8",
+      "deployedAt": "2026-10-25T18:26:00Z",
+      "uploadTx": "97c2ba7599a56e1cbd49af50a55c55a76a7c9a06bbb85e7958aa868448f500bf",
+      "deployTx": "5754d3a8324c2932104bdde38583255c6ecbdf3f7945d407dc5c038c82c04df7",
       "constructor": {
         "token": "CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA"
       },
       "source": "contracts/deposit",
-      "evidence": "docs/spikes/s8-deposit.md"
+      "evidence": "docs/spikes/s8-deposit.md",
+      "supersedes": "CBYNVNG4XA5EMPEVBMTMI2I6GRSCGTFE3HQDUYANTVJ5VD3E6WTNEXEL (wasm acef0d89\u2026: register computed the approve expiry at apply time, so G's signed auth never matched onchain; unused)"
     }
   }
 }

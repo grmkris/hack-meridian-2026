@@ -49,7 +49,7 @@ export interface Soroban {
     authMode: rpc.Api.SimulationAuthMode | undefined,
     stage: string,
   ) => Effect.Effect<SimSuccess, ChainError>
-  readonly sendAndPoll: (tx: Transaction) => Effect.Effect<TxOutcome, ChainError>
+  readonly sendAndPoll: (tx: Transaction | FeeBumpTransaction) => Effect.Effect<TxOutcome, ChainError>
   readonly getTransaction: (hash: string) => Effect.Effect<TxOutcome, ChainError>
   readonly view: (source: string, contract: xdr.HostFunction) => Effect.Effect<xdr.ScVal, ChainError>
   readonly buildInvoke: (
@@ -141,7 +141,7 @@ export const makeSoroban = (network: NetworkParams): Soroban => {
       ),
     )
 
-  const sendAndPoll = (tx: Transaction) =>
+  const sendAndPoll = (tx: Transaction | FeeBumpTransaction) =>
     Effect.gen(function* () {
       const hash = tx.hash().toString('hex')
       const sent = yield* Effect.tryPromise({

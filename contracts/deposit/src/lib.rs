@@ -8,9 +8,11 @@
 //! the account's own `require_auth`) and the service creates deposit addresses without one. See
 //! `docs/spikes/s8-deposit.md`.
 //!
-//! - `register(g, c)` needs `g`'s authorization. It binds `g` to `c` once (a second registration of the same `g` is
-//!   refused forever) and, inside the same authorization, has the asset contract record
-//!   `approve(g, this, i128::MAX, max_live_until_ledger)`: the longest allowance the network accepts.
+//! - `register(g, c, expiration_ledger)` needs `g`'s authorization. It binds `g` to `c` once (a second registration of
+//!   the same `g` is refused forever) and, inside the same authorization, has the asset contract record
+//!   `approve(g, this, i128::MAX, expiration_ledger)`. The caller passes the ledger (the service uses
+//!   `max_expiration_ledger()` minus a small margin: the longest allowance the network accepts) because what `g` signs
+//!   must not depend on the ledger the transaction lands in.
 //! - `sweep(g)` needs nobody's authorization: this contract is the spender, so the asset contract accepts it as the
 //!   direct caller. It moves `min(balance(g), allowance(g, this))` to the recorded `c` and nowhere else.
 //!
@@ -57,6 +59,8 @@ pub enum Error {
     SameAddress = 3,
     /// `g` holds nothing this router may move (no balance, no trustline, or no allowance left).
     NothingToSweep = 4,
+    /// The expiration ledger is not after the current ledger.
+    ExpirationInPast = 5,
 }
 
 /// `g` is now a deposit address for `recipient`.
@@ -105,26 +109,39 @@ impl DepositRouter {
         token_of(&env)
     }
 
+    /// The latest ledger an allowance (and a binding) registered now can last through: the network's maximum entry
+    /// TTL from the current ledger, ~180 days on testnet and mainnet today.
+    pub fn max_expiration_ledger(env: Env) -> u32 {
+        env.ledger().sequence() + env.storage().max_ttl()
+    }
+
     /// What `g` is bound to, if it is a deposit address here.
     pub fn deposit(env: Env, g: Address) -> Option<Deposit> {
         env.storage().persistent().get(&DataKey::Deposit(g))
     }
 
     /// Binds `g` to `recipient` and, under the same authorization from `g`, approves this router for `g`'s whole
-    /// balance until the network's maximum ledger. Returns the allowance's last ledger.
-    pub fn register(env: Env, g: Address, recipient: Address) -> Result<u32, Error> {
+    /// balance through `expiration_ledger` (at most `max_expiration_ledger()` when the transaction applies). Returns it.
+    pub fn register(
+        env: Env,
+        g: Address,
+        recipient: Address,
+        expiration_ledger: u32,
+    ) -> Result<u32, Error> {
         g.require_auth();
         if g == recipient {
             return Err(Error::SameAddress);
+        }
+        let now = env.ledger().sequence();
+        if expiration_ledger <= now {
+            return Err(Error::ExpirationInPast);
         }
         let key = DataKey::Deposit(g.clone());
         let storage = env.storage().persistent();
         if storage.has(&key) {
             return Err(Error::AlreadyRegistered);
         }
-        // The longest allowance (and binding TTL) the network accepts: ~180 days on mainnet and testnet today.
-        let ttl = env.storage().max_ttl();
-        let expiration_ledger = env.ledger().sequence() + ttl;
+        // The asset contract refuses an expiration past the network's maximum, so `ttl` is within the maximum too.
         token::TokenClient::new(&env, &token_of(&env)).approve(
             &g,
             &env.current_contract_address(),
@@ -138,6 +155,7 @@ impl DepositRouter {
                 expiration_ledger,
             },
         );
+        let ttl = expiration_ledger - now;
         storage.extend_ttl(&key, ttl, ttl);
         Registered {
             deposit: g,

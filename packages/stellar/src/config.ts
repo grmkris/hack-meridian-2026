@@ -79,7 +79,7 @@ const big = (v: Option.Option<string>, fallback: bigint) => Option.match(v, { on
  * `STELLAR_NETWORK_PASSPHRASE`, `STELLAR_RPC_URL`, `STELLAR_RPC_FALLBACK_URL`, `STELLAR_HORIZON_URL`,
  * `STELLAR_EXPLORER_URL`, `STELLAR_FRIENDBOT_URL` (`off` disables), `X402_NETWORK`, `ACCOUNT_WASM_HASH`,
  * `ED25519_VERIFIER_ID`, `WEBAUTHN_VERIFIER_ID`, `SPENDING_LIMIT_POLICY_ID`, `USDC_SAC_ID`, `USDC_ISSUER`,
- * `ONBOARD_ROUTER_ID`, `NATIVE_SAC_ID`, `X402_FACILITATOR_URL`, `X402_FALLBACK_FACILITATOR_URL`,
+ * `ONBOARD_ROUTER_ID`, `DEPOSIT_ROUTER_ID` (`off` disables), `NATIVE_SAC_ID`, `X402_FACILITATOR_URL`, `X402_FALLBACK_FACILITATOR_URL`,
  * `FIRST_PULL_MAX_FEE_STROOPS`, `PULL_MAX_FEE_STROOPS`, `OWNER_MAX_FEE_STROOPS`.
  */
 export const networkConfig = Effect.gen(function* () {
@@ -103,6 +103,7 @@ export const networkConfig = Effect.gen(function* () {
     spendingLimitPolicy: optString('SPENDING_LIMIT_POLICY_ID'),
     usdcSac: optString('USDC_SAC_ID'),
     onboardRouter: optString('ONBOARD_ROUTER_ID'),
+    depositRouter: optString('DEPOSIT_ROUTER_ID'),
     nativeSac: optString('NATIVE_SAC_ID'),
     facilitatorUrl: optString('X402_FACILITATOR_URL'),
     fallbackFacilitatorUrl: optString('X402_FALLBACK_FACILITATOR_URL'),
@@ -129,6 +130,9 @@ export const networkConfig = Effect.gen(function* () {
       spendingLimitPolicy: or(o.spendingLimitPolicy, p.contracts.spendingLimitPolicy),
       usdcSac: or(o.usdcSac, p.contracts.usdcSac),
       onboardRouter: or(o.onboardRouter, p.contracts.onboardRouter),
+      // `off` turns deposit addresses off on a network whose preset has a router.
+      depositRouter:
+        Option.getOrUndefined(o.depositRouter) === 'off' ? '' : or(o.depositRouter, p.contracts.depositRouter),
       nativeSac: or(o.nativeSac, p.contracts.nativeSac),
     },
     facilitatorUrl: or(o.facilitatorUrl, p.facilitatorUrl),

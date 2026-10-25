@@ -94,6 +94,8 @@ export interface FixtureChain {
   readonly failNext: (method: keyof ChainShape, kind: ChainError['kind']) => void
   /** Make the next x402 settlement fail after the quote hook ran (the pull already happened): the facilitator says no. */
   readonly failNextSettlement: (message: string) => void
+  /** Someone outside Nod pays `amount` stroops of USDC to `address` (an exchange paying a deposit address). */
+  readonly pay: (address: string, amount: bigint) => void
 }
 
 const FIXTURE_LEDGER_START = 1_000_000
@@ -127,6 +129,8 @@ export const makeFixtureChain = (options: FixtureOptions = {}): FixtureChain => 
   const log: Array<FixtureCall> = []
   const balances = new Map<string, bigint>()
   const rules: Array<FixtureRule> = []
+  /** Deposit address → the wallet the fixture router binds it to. */
+  const deposits = new Map<string, string>()
   const nextRuleId = new Map<string, number>()
   const failures = new Map<keyof ChainShape, ChainError['kind']>(
     Object.entries(options.failNext ?? {}).filter(
@@ -351,6 +355,34 @@ export const makeFixtureChain = (options: FixtureOptions = {}): FixtureChain => 
           return receipt()
         }),
       ),
+    createDepositAddress: contractId =>
+      call('createDepositAddress', [contractId], () =>
+        Effect.sync(() => {
+          const address = strkey('G', next(), 'DEPOSIT', seed)
+          deposits.set(address, contractId)
+          const txs = { create: receipt().tx, register: receipt().tx, lock: receipt().tx }
+          return {
+            address,
+            recipient: contractId,
+            expirationLedger: ledger + 3_110_400,
+            txs,
+            teardownXdr: `fixture-teardown-${address}`,
+          }
+        }),
+      ),
+    sweepDeposit: (depositAddress, contractId) =>
+      call('sweepDeposit', [depositAddress, contractId], () =>
+        Effect.suspend(() => {
+          const bound = deposits.get(depositAddress)
+          if (bound === undefined) return fail('simulation_failed', 'fixture: deposit #2 not registered')
+          if (bound !== contractId) return fail('declined', `fixture: ${depositAddress} pays ${bound}`)
+          const amount = balance(depositAddress)
+          if (amount <= 0n) return Effect.succeed(null)
+          balances.set(depositAddress, 0n)
+          credit(contractId, amount)
+          return Effect.succeed({ amountStroops: amount, receipt: receipt() })
+        }),
+      ),
     payX402: (signerKeyRef, url, maxAmountStroops, paymentId, onQuote) =>
       call('payX402', [signerKeyRef, url, maxAmountStroops, paymentId], () =>
         Effect.gen(function* () {
@@ -472,6 +504,7 @@ export const makeFixtureChain = (options: FixtureOptions = {}): FixtureChain => 
     failNextSettlement: message => {
       settlementFailure = message
     },
+    pay: credit,
   }
 }
 

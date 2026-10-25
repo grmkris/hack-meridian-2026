@@ -173,6 +173,26 @@ export interface ChainHealth {
 }
 
 /**
+ * A wallet's deposit address (docs/spikes/s8-deposit.md): a sponsored classic `G…` bound by the deposit router to
+ * one smart account; whatever USDC arrives there can only be swept into that account, by anyone.
+ */
+export interface DepositAddress {
+  /** The `G…` to pay (any amount, any number of times, no memo). */
+  readonly address: string
+  /** The smart account every sweep pays. */
+  readonly recipient: string
+  /** The router's allowance over G ends after this ledger (~180 days); a later deposit needs a fresh address. */
+  readonly expirationLedger: number
+  /** Proof: the sponsored create + trustline, the registration (approve), the lock (master weight 0). */
+  readonly txs: { readonly create: string; readonly register: string; readonly lock: string }
+  /**
+   * G's teardown (remove trustline, merge into the relayer), authorized by G's only signer, a pre-auth hash of it:
+   * fee-bump it once G is empty and retired. Bearer: it can close G, nothing else.
+   */
+  readonly teardownXdr: string
+}
+
+/**
  * The quote hook: called with the seller's terms before anything is signed. It validates, reserves and pulls the
  * shortfall into the pocket, returning the pull's receipt (null when the pocket already held enough). Fail with
  * `declined` to stop.
@@ -229,6 +249,19 @@ export interface ChainShape {
   /** G(K) with sponsored reserves and a USDC trustline. */
   readonly createPocket: (signerKeyRef: string) => Effect.Effect<{ address: string; tx: string }, ChainError>
   readonly sweepPocket: (signerKeyRef: string, toContractId: string) => Effect.Effect<Receipt, ChainError>
+  /**
+   * A fresh deposit address for `contractId`: sponsored G with a USDC trustline, registered with the deposit router
+   * (G approves the router), master weight 0 and the teardown as its only signer, key discarded. Fails `declined` when the network has no router.
+   */
+  readonly createDepositAddress: (contractId: string) => Effect.Effect<DepositAddress, ChainError>
+  /**
+   * The permissionless sweep: everything the router may take from `depositAddress` goes to `contractId` (refused when
+   * the router binds it elsewhere). `null` when there is nothing to sweep; nothing is submitted then.
+   */
+  readonly sweepDeposit: (
+    depositAddress: string,
+    contractId: string,
+  ) => Effect.Effect<{ readonly amountStroops: bigint; readonly receipt: Receipt } | null, ChainError>
   /**
    * GET `url`; on 402 call `onQuote` (the service validates, reserves and pulls the shortfall into the pocket there),
    * then pay from the pocket through the facilitator with `payment-identifier = paymentId`. `settlement` is null when
