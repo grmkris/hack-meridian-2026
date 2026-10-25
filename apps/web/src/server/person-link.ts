@@ -11,7 +11,7 @@ import { activateWallet } from './deposit.ts'
 import { Ledger } from './ledger.ts'
 import { Network, transferFeeCeiling } from './network.ts'
 import { checkAssertion, OwnerError, requireWallet, sessionToken, walletOfSession } from './owner.ts'
-import { type Chrome, escape, html, messagePage, page } from './pages.ts'
+import { type Chrome, escape, html, messagePage, page, utcTime } from './pages.ts'
 import { query, sql, write } from './rows.ts'
 import type { AppRuntime, AppServices } from './runtime.ts'
 import { createPendingGrant, pendingGrant, putScratch, toolResult, walletById } from './store.ts'
@@ -154,23 +154,26 @@ export const approveLinkPage = (
   const amount = escape(fromStroops(link.amount))
   const name = escape(link.recipient_name)
   const lapsed = millisOf(link.expires_at) <= view.nowMs
+  const back = '<p><a href="/">Back to Nod</a></p>'
   const state =
     link.status === 'awaiting_nod'
       ? view.signedIn
-        ? `<p class="actions"><button class="nod" id="approve" data-testid="link-approve">Approve with your passkey</button></p>`
-        : `<p class="actions"><button class="primary" id="signin" data-testid="link-signin">Sign in with your passkey</button></p>`
+        ? `<div class="thumb"><button class="nod wide" id="approve" data-testid="link-approve">Approve with your passkey</button></div>`
+        : `<div class="thumb"><button class="primary wide" id="signin" data-testid="link-signin">Sign in with your passkey</button></div>`
       : link.status === 'open' && !lapsed
-        ? `<section class="card" data-testid="link-ready"><p>The link is on your account until ${escape(link.expires_at.slice(0, 16).replace('T', ' '))} UTC. It was shown once, on the device that approved it.</p><p id="stored" class="muted">If you lost it, remove it from Connections and make a new one.</p></section>`
+        ? `<section class="card" data-testid="link-ready"><p>The link is on your account until ${escape(utcTime(link.expires_at))}. It was shown once, on the device that approved it.</p><p id="stored" class="muted">If you lost it, take it back in <a href="/connections">Connections</a> and make a new one.</p></section>${back}`
         : link.status === 'claimed'
-          ? `<section class="card" data-testid="link-claimed"><p class="ok">${name} claimed it.</p></section>`
-          : `<section class="card"><p>This link is ${escape(lapsed ? 'expired' : link.status)}.</p></section>`
+          ? `<section class="card" data-testid="link-claimed"><p class="ok">${name} claimed it.</p></section>${back}`
+          : `<section class="card"><p>This link is ${escape(lapsed ? 'expired' : link.status)}.</p></section>${back}`
   return page(
     `Send ${link.recipient_name} ${fromStroops(link.amount)} USDC`,
     c,
     `<h1 data-testid="link-title">Send ${name} ${amount} USDC with a link</h1>
-<section class="card"><dl><dt>For</dt><dd>${name}</dd><dt>Amount</dt><dd><span class="amount">${amount}</span> USDC</dd><dt>Asked by</dt><dd>${escape(link.requester)}</dd></dl>
-${link.reason === null ? '' : `<figure class="ask"><blockquote>${escape(link.reason)}</blockquote><figcaption><strong>${escape(link.requester)}</strong> says</figcaption></figure>`}
-<p class="fee">Your passkey sets ${amount} USDC aside on your own account for seven days, for whoever holds the link. Nothing leaves your wallet until ${name} claims it; unclaimed, it lapses by itself, and you can take it back from Connections before then. The link's key is made on this device and never reaches Nod.</p></section>
+<section class="card pay" aria-label="Link"><p class="amount">${amount}<span class="unit"> USDC</span></p>
+<p class="to">for <strong>${name}</strong></p>
+<figure class="ask"><figcaption>Asked by <strong>${escape(link.requester)}</strong></figcaption>${link.reason === null ? '' : `<blockquote>“${escape(link.reason)}”</blockquote><figcaption>The AI app’s own words; Nod has not checked them.</figcaption>`}</figure>
+<p class="fee"><strong>Nothing leaves your wallet until ${name} claims it.</strong></p>
+<p class="muted">Your passkey sets ${amount} USDC aside on your own account for seven days, for whoever holds the link. Unclaimed, it lapses by itself, and you can take it back from Connections before then. The link’s key is made on this device and never reaches Nod.</p></section>
 <div id="steps">${state}</div>
 <section class="card" id="done" hidden data-testid="link-done"><h2 class="ok">Send ${name} this link</h2>
 <p><code id="link" data-testid="link-url" class="addr"></code></p>
@@ -401,20 +404,24 @@ const revokePage = (c: Chrome, link: ClaimLink, signedIn: boolean, rpId: string)
     'Take back a link',
     c,
     `<h1 data-testid="link-revoke-title">Take back the link for ${escape(link.recipient_name)}</h1>
-<section class="card"><p>${escape(fromStroops(link.amount))} USDC set aside until ${escape(link.expires_at.slice(0, 16).replace('T', ' '))} UTC. Taking it back removes the rule from your account with one passkey tap; the link stops working.</p></section>
+<section class="card pay"><p class="amount">${escape(fromStroops(link.amount))}<span class="unit"> USDC</span></p>
+<p class="muted">Set aside until ${escape(utcTime(link.expires_at))}. Taking it back removes the rule from your account with one passkey tap; the link stops working.</p></section>
 ${
   link.status === 'revoked' || (link.remove_tx ?? null) !== null
-    ? '<section class="card" data-testid="link-revoked"><p class="ok">Taken back.</p></section>'
+    ? `<section class="card" data-testid="link-revoked"><p class="ok">Taken back.</p>${(link.remove_tx ?? null) === null ? '' : `<p class="muted">Transaction <a href="${escape(`${c.explorerBase}/tx/${link.remove_tx ?? ''}`)}" rel="noreferrer"><code>${escape(link.remove_tx ?? '')}</code></a></p>`}</section><p><a href="/">Back to Nod</a></p>`
     : signedIn
-      ? '<p class="actions"><button class="primary" id="revoke" data-testid="link-revoke-confirm">Take it back with your passkey</button></p>'
-      : '<p class="actions"><button class="primary" id="signin" data-testid="link-signin">Sign in with your passkey</button></p>'
-}<p id="status" class="muted" role="status"></p>`,
+      ? '<div class="thumb"><button class="primary wide" id="revoke" data-testid="link-revoke-confirm">Take it back with your passkey</button></div>'
+      : '<div class="thumb"><button class="primary wide" id="signin" data-testid="link-signin">Sign in with your passkey</button></div>'
+}<section class="card" id="revoked-now" hidden data-testid="link-revoked-now"><p class="ok">Taken back.</p><p class="muted">Transaction <a id="remove-tx" rel="noreferrer"><code id="remove-tx-hash"></code></a></p></section>
+<p id="back" hidden><a href="/">Back to Nod</a></p>
+<p id="status" class="muted" role="status"></p>`,
     `const ctx=JSON.parse(document.getElementById('ctx').textContent);
 const on=(id,f)=>{const el=document.getElementById(id);if(el)el.onclick=f};
 on('signin',async e=>{const done=busy(e.target,'Waiting for your passkey…');try{await signIn();location.reload()}catch(x){done();show('status',x.message)}});
 on('revoke',async e=>{const done=busy(e.target,'Preparing…');try{const p=await post(ctx.base+'/prepare',{});e.target.textContent='Waiting for your passkey…';
 const a=await assertion(p.challenge,ctx.rpId,[]);e.target.textContent='Removing it on Stellar…';const r=await post(ctx.base,{assertion:a});
-e.target.remove();show('status','Taken back: '+r.tx,'ok')}catch(x){done();show('status',x.message)}});`,
+e.target.closest('.thumb').remove();document.getElementById('revoked-now').hidden=false;document.getElementById('back').hidden=false;
+const l=document.getElementById('remove-tx');l.href=r.explorer_url;document.getElementById('remove-tx-hash').textContent=r.tx}catch(x){done();show('status',x.message)}});`,
     { base: `/approve/revoke-link/${link.id}`, rpId },
   )
 

@@ -278,10 +278,8 @@ if (!fromConnections) await sender.page.goto(`${BASE}/approve/revoke-link/${anot
 await sender.page.waitForLoadState('load')
 await senderShot('revoke-page')
 await sender.page.locator('[data-testid="link-revoke-confirm"]').click({ timeout: 30_000 })
-await sender.page.waitForFunction(() => (document.getElementById('status')?.textContent ?? '').startsWith('Taken back'), undefined, {
-  timeout: 120_000,
-})
-const removal = ((await sender.page.locator('#status').textContent()) ?? '').replace('Taken back: ', '').trim()
+await sender.page.locator('[data-testid="link-revoked-now"]').waitFor({ timeout: 120_000 })
+const removal = ((await sender.page.locator('#remove-tx-hash').textContent()) ?? '').trim()
 await senderShot('revoked')
 const afterRevoke: unknown = await jan.page.evaluate(
   id =>
