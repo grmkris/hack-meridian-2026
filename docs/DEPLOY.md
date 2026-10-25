@@ -1,7 +1,8 @@
 # Deploying the testnet stage
 
 Handed over by the foundation session (stream B) on 2026-10-25 15:35 UTC to the orchestrator session. Live: testnet at
-`36f8466`, smoke 9/9. The stage URL is https://hack-meridian-testnet.kristjan-grm11775.workers.dev (MCP at `/mcp`).
+`b1a960b` (deployed 15:36 UTC by the orchestrator: a3's llms.txt proofs; smoke 9/9, llms.txt byte-identical, landing bundle
+carries the 15:12 proof hashes; rent factor 269). The stage URL is https://hack-meridian-testnet.kristjan-grm11775.workers.dev (MCP at `/mcp`).
 
 ## The deploy worktree is the only place a testnet deploy runs
 
@@ -36,8 +37,7 @@ rehearsal or a recording is in flight. `scripts/stage.ts` appends `-dirty` to th
 
 ## Queue (main is past `36f8466`)
 
-- `a61dd15`: a3's llms.txt proofs from the 15:12 run (all tx hashes checked on Horizon: 7 successful plus `3daf4b00`,
-  which failed on chain as its text claims; `1b5f4534` is the OZ WASM hash).
+- ~~`a61dd15`~~ deployed in `b1a960b` (15:36 UTC).
 - e6's landing restyle (~18:30 UTC): `apps/web/src/landing.css`, `src/assets/`, `landing-copy.ts`, the `welcome.ts` view
   markup, the `index.html` font load. Agreed conditions: unchanged test ids, the "Wallet name" label, and the alert and
   status roles; no 390 px overflow and no console errors (`bun run shots` checks both); AA contrast and focus rings on
