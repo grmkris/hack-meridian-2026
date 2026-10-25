@@ -113,7 +113,11 @@ const nextStep = (intent: PaymentIntent, status: PaymentIntent['status'], url: s
     case 'submitted':
       return `Submitted. Poll payment_status with payment_id ${intent.id}; it never pays twice.`
     case 'confirmed':
-      return 'Confirmed on Stellar; the receipt is final.'
+      if (intent.recipient_readiness === 'trustline_required')
+        return `Confirmed on Stellar: the user approved this payment with their passkey, and ${intent.recipient_name ?? 'the recipient'} accepted the claim link, so their USDC trustline and the payment landed in one transaction. ${intent.recipient_name ?? 'The recipient'} is now ready to receive USDC (usdc_ready). The receipt is final.`
+      return intent.lane === 'owner'
+        ? "Confirmed on Stellar: the user approved this payment with their passkey on Nod's approval page. The receipt is final."
+        : 'Confirmed on Stellar; the receipt is final.'
     case 'failed':
       return `Failed: ${intent.failure ?? 'unknown'}. Prepare a new payment with a new idempotency key if it should be retried.`
     case 'expired':
