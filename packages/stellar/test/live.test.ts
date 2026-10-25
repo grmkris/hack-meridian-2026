@@ -17,11 +17,14 @@ import { Keypair } from '@stellar/stellar-sdk'
 
 import { SPENDING_LIMIT_POLICY, stellarLayer, StellarOps } from '../src/index.ts'
 import { SoftPasskey } from '../src/testing.ts'
+import { sellerRound, treasuryAddressOf } from './workerd/seller-round.ts'
 
 const LIVE = process.env['STELLAR_LIVE'] === '1'
 const USDC = (n: number) => BigInt(Math.round(n * 1e7))
 const XLM = USDC
 const DEMO_SELLER = process.env['X402_DEMO_URL'] ?? 'https://stellar.org/x402-demo/api/protected/testnet'
+/** The demo seller Worker (apps/seller, stream C). */
+const SELLER_URL = process.env['SELLER_URL'] ?? 'https://hm26-seller.kristjan-grm11775.workers.dev'
 
 const envFile = (): Record<string, string> => {
   const text = readFileSync(join(import.meta.dirname, '..', '.env'), 'utf8')
@@ -230,6 +233,15 @@ describe.skipIf(!LIVE)('Chain on Stellar testnet (live)', () => {
     record('ttl', ttl)
     expect(ttl.entries.filter(e => e.kind === 'instance').every(e => e.liveUntilLedger !== null)).toBe(true)
   })
+
+  it('pays the demo seller over HTTP and MCP from a pocket, then sweeps and closes it', async () => {
+    const treasury = treasuryAddressOf(envFile()['TREASURY_SECRET'] ?? '')
+    const round = await run(sellerRound(SELLER_URL, treasury, 'bun'))
+    record('seller', round)
+    expect(round.http.status).toBe(200)
+    expect(round.http.settlement?.tx).toMatch(/^[0-9a-f]{64}$/u)
+    expect(round.mcp.settlement?.tx).toMatch(/^[0-9a-f]{64}$/u)
+  }, 180_000)
 
   afterAll(async () => {
     await runtime?.dispose()
