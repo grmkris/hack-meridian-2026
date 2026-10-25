@@ -12,7 +12,7 @@ import { DecimalAmount } from './money.ts'
 const IdempotencyKey = Schema.String.check(Schema.isMinLength(1), Schema.isMaxLength(128)).annotate({
   description: 'A key unique to this request; repeating it returns the same result and never pays twice',
 })
-const OptionalKey = Schema.optional(IdempotencyKey)
+const OptionalKey = Schema.optionalKey(IdempotencyKey)
 const Reason = Schema.String.check(Schema.isMaxLength(280)).annotate({
   description: "Why the agent is paying; the owner sees it marked as the agent's claim",
 })
@@ -133,9 +133,9 @@ export const PaymentPrepareInput = Schema.Struct({
     description: 'A saved contact name or id, or a Stellar address (C…, G…, M…)',
   }),
   amount: DecimalAmount.annotate({ description: 'Decimal amount, e.g. "2" or "0.10" (7 decimals at most)' }),
-  asset: Schema.optional(Asset),
-  memo: Schema.optional(Schema.String.check(Schema.isMaxLength(28))),
-  reason: Schema.optional(Reason),
+  asset: Schema.optionalKey(Asset),
+  memo: Schema.optionalKey(Schema.String.check(Schema.isMaxLength(28))),
+  reason: Schema.optionalKey(Reason),
   idempotency_key: IdempotencyKey,
 })
 export type PaymentPrepareInput = typeof PaymentPrepareInput.Type
@@ -163,10 +163,10 @@ export const PaymentStatusOutput = PaymentView
 // 7. paid_resource_fetch
 export const PaidResourceFetchInput = Schema.Struct({
   url: Schema.String.check(Schema.isPattern(/^https?:\/\//u)),
-  max_amount: Schema.optional(DecimalAmount).annotate({
+  max_amount: Schema.optionalKey(DecimalAmount).annotate({
     description: 'Refuse to pay more than this for the resource (default: the grant remaining)',
   }),
-  reason: Schema.optional(Reason),
+  reason: Schema.optionalKey(Reason),
   idempotency_key: IdempotencyKey,
 })
 export type PaidResourceFetchInput = typeof PaidResourceFetchInput.Type
@@ -190,9 +190,9 @@ export type PaidResourceFetchOutput = typeof PaidResourceFetchOutput.Type
 export const PaidMcpCallInput = Schema.Struct({
   server_url: Schema.String.check(Schema.isPattern(/^https?:\/\//u)),
   tool: Schema.String.check(Schema.isMinLength(1)),
-  arguments: Schema.optional(Schema.Record(Schema.String, Schema.Unknown)),
-  max_amount: Schema.optional(DecimalAmount),
-  reason: Schema.optional(Reason),
+  arguments: Schema.optionalKey(Schema.Record(Schema.String, Schema.Unknown)),
+  max_amount: Schema.optionalKey(DecimalAmount),
+  reason: Schema.optionalKey(Reason),
   idempotency_key: IdempotencyKey,
 })
 export type PaidMcpCallInput = typeof PaidMcpCallInput.Type
@@ -210,8 +210,8 @@ export type PaidMcpCallOutput = typeof PaidMcpCallOutput.Type
 
 // 9. connection_grant_create
 export const ConnectionGrantCreateInput = Schema.Struct({
-  amount: Schema.optional(DecimalAmount),
-  valid_for_hours: Schema.optional(Schema.Int.check(Schema.isGreaterThan(0))),
+  amount: Schema.optionalKey(DecimalAmount),
+  valid_for_hours: Schema.optionalKey(Schema.Int.check(Schema.isGreaterThan(0))),
   idempotency_key: IdempotencyKey,
 })
 export const ConnectionGrantCreateOutput = Schema.Struct({

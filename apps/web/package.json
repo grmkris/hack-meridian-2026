@@ -8,10 +8,13 @@
     "build": "vite build"
   },
   "dependencies": {
+    "@cloudflare/workers-oauth-provider": "1.2.4",
     "@effect/platform-browser": "4.0.5",
     "@foldkit/ui": "0.169.0",
     "@hm/api": "workspace:*",
     "@hm/counter-client": "workspace:*",
+    "@hm/protocol": "workspace:*",
+    "@modelcontextprotocol/sdk": "1.32.2",
     "effect": "4.0.5",
     "foldkit": "0.169.0"
   },

@@ -1,20 +1,11 @@
-import { Effect, Layer, Option } from 'effect'
+import { Effect } from 'effect'
 import { afterEach, describe, expect, test } from 'vitest'
 
 import { ChainUnavailable, type CounterReading, NotDeployed } from '@hm/api'
 
 import { makeApiHandler } from './app.ts'
-import { Counter } from './counter.ts'
-import { Settings } from './settings.ts'
-
-const settings = Layer.succeed(Settings, {
-  stage: 'test',
-  release: '0123456789abcdef0123456789abcdef01234567',
-  network: 'testnet',
-  rpcUrl: 'http://rpc.invalid',
-  networkPassphrase: 'Test SDF Network ; September 2015',
-  counterContractId: Option.none(),
-})
+import type { Counter } from './counter.ts'
+import { testServices } from './test/layers.ts'
 
 const reading: CounterReading = {
   contractId: 'CAKTREEYOPERBZGP4FHTUZP4WRCMTM5X4WSC3UVTBNG3DEL2LGUC4ON2',
@@ -28,7 +19,7 @@ afterEach(async () => {
 })
 
 const get = async (read: Counter['Service']['read'], path: string) => {
-  const api = makeApiHandler(Layer.mergeAll(settings, Layer.succeed(Counter, { read })))
+  const api = makeApiHandler(testServices(undefined, { read }))
   handlers.push(api)
   const response = await api.handler(new Request(`http://worker.test${path}`))
   return { status: response.status, body: (await response.json()) as unknown }
@@ -38,11 +29,12 @@ describe('the Worker API', () => {
   test('health reports the stage, release and network', async () => {
     const { status, body } = await get(Effect.succeed(reading), '/api/health')
     expect(status).toBe(200)
-    expect(body).toEqual({
+    expect(body).toMatchObject({
       ok: true,
       stage: 'test',
       release: '0123456789abcdef0123456789abcdef01234567',
       network: 'testnet',
+      chain: { mode: 'fixture', rent_factor: 47 },
     })
   })
 
