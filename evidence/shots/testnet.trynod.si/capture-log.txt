@@ -1,0 +1,20 @@
+2026-10-25T19:58:25.864Z shot landing
+2026-10-25T19:58:26.075Z DCR client JzXmHA6smyVBpBSv
+2026-10-25T19:58:28.302Z shot consent-signin
+2026-10-25T19:58:46.024Z shot consent
+2026-10-25T19:58:59.670Z connected
+2026-10-25T19:59:00.548Z Alice prepare prepared pi_0fb2a091aa0db19989c32ac7e9fba2f4
+2026-10-25T19:59:07.962Z Alice confirmed 6d61353ceada07e085daead43f466e2dfb02341d701ec69a167804bb5d315bce
+2026-10-25T19:59:08.605Z Bob prepare awaiting_approval https://testnet.trynod.si/approve/pi_2331883bed1aba777e8301dfdb83c523
+2026-10-25T19:59:11.466Z shot approval
+2026-10-25T19:59:21.429Z shot approval-paid
+2026-10-25T19:59:21.600Z Bob confirmed a17ce9c3847935b0ea29c8d625eca21861e1982b8092b14801c5c06a10699f94
+2026-10-25T19:59:24.821Z shot home
+2026-10-25T19:59:27.282Z shot connections
+2026-10-25T19:59:28.794Z shot connections-revoke-confirm
+2026-10-25T19:59:31.098Z shot connections-revoked-step-1
+2026-10-25T19:59:33.288Z shot revoke-step-2
+2026-10-25T19:59:41.056Z shot revoke-done
+2026-10-25T19:59:43.391Z shot connections-revoked
+2026-10-25T19:59:45.736Z shot receipts
+2026-10-25T19:59:45.928Z after revoke: refused: Error: Unauthorized
