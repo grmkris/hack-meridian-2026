@@ -401,7 +401,7 @@ const notFoundView = (path: string, h: HtmlBuilder<Message>): Html =>
     [emptyRow(`Nothing lives at ${path}.`, h), h.a([h.Href(homeRouter()), h.Class(LINK)], ['Back to your wallet'])],
   )
 
-const routeView = (model: Model, h: HtmlBuilder<Message>): Html =>
+const routeView = (model: Model, wallet: WalletSummary, h: HtmlBuilder<Message>): Html =>
   AppRoute.match<Html>(model.route, {
     Home: () =>
       h.submodel({
@@ -415,6 +415,7 @@ const routeView = (model: Model, h: HtmlBuilder<Message>): Html =>
         slotId: 'connections',
         model: model.connections,
         view: Connections.view,
+        viewInputs: { network: wallet.network },
         toParentMessage: message => Message.GotConnectionsMessage({ message }),
       }),
     Contacts: () =>
@@ -439,7 +440,7 @@ const signedInView = (model: Model, wallet: WalletSummary, h: HtmlBuilder<Messag
     [h.Class('min-h-dvh')],
     [
       headerView(wallet, model.route, h),
-      h.main([h.Class('mx-auto max-w-5xl px-4 py-6 sm:py-8')], [routeView(model, h)]),
+      h.main([h.Class('mx-auto max-w-5xl px-4 py-6 sm:py-8')], [routeView(model, wallet, h)]),
     ],
   )
 

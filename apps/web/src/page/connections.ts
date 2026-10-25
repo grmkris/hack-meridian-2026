@@ -5,25 +5,30 @@ import { defineMessageUnion } from 'foldkit/message'
 import { defineTaggedUnion } from 'foldkit/schema'
 import { modifyFields } from 'foldkit/struct'
 
-import { Backend, GrantView, type Resources, RevokeReply } from '../backend'
-import { dateTime, percentUsed, usdc } from '../format'
+import { Backend, GrantView, LinkView, type Resources, RevokeReply } from '../backend'
+import { dateTime, isMainnet, percentUsed, shortAddress, usdc } from '../format'
 import { Problem, recoverProblem } from '../problem'
 import {
   BUTTON_DANGER,
   BUTTON_PRIMARY,
   BUTTON_SECONDARY,
   FIGURE,
+  LINK,
   badge,
   emptyRow,
   errorRow,
   loadingRow,
   meter,
   pageHeader,
+  panel,
 } from '../view/ui'
 
 // MODEL
 
 export const ConnectionsData = AsyncData.Schema(Schema.Array(GrantView), Schema.String)
+/** Person links: an allowance for one person (the sender's passkey set it for exactly the amount, seven days). */
+export const LinksData = AsyncData.Schema(Schema.Array(LinkView), Schema.String)
+type LinksData = typeof LinksData.schema.Type
 
 export const Revoke = defineTaggedUnion({
   Idle: {},
@@ -35,6 +40,7 @@ export type Revoke = typeof Revoke.Type
 
 export const Model = Schema.Struct({
   connections: ConnectionsData.schema,
+  links: LinksData.schema,
   revoke: Revoke,
   maybeRuleRemovalUrl: Schema.Option(Schema.String),
 })
@@ -46,6 +52,8 @@ export const Message = defineMessageUnion({
   EnteredPage: {},
   SucceededLoadConnections: { connections: Schema.Array(GrantView) },
   FailedLoadConnections: { problem: Problem },
+  SucceededLoadLinks: { links: Schema.Array(LinkView) },
+  FailedLoadLinks: { problem: Problem },
   ClickedRevoke: { connectionId: Schema.String },
   ClickedCancelRevoke: {},
   ClickedConfirmRevoke: { connectionId: Schema.String },
@@ -60,7 +68,12 @@ export type OutMessage = typeof OutMessage.Type
 // INIT
 
 export const init = (): Update.Return<Model, Message, Resources> => ({
-  model: { connections: ConnectionsData.Idle(), revoke: Revoke.Idle(), maybeRuleRemovalUrl: Option.none() },
+  model: {
+    connections: ConnectionsData.Idle(),
+    links: LinksData.Idle(),
+    revoke: Revoke.Idle(),
+    maybeRuleRemovalUrl: Option.none(),
+  },
 })
 
 // COMMAND
@@ -72,6 +85,15 @@ export const LoadConnections = Command.define('LoadConnections', {
     const connections = yield* backend.connections
     return Message.SucceededLoadConnections({ connections })
   }).pipe(recoverProblem(problem => Message.FailedLoadConnections({ problem }))),
+})
+
+export const LoadLinks = Command.define('LoadLinks', {
+  messages: [Message.SucceededLoadLinks, Message.FailedLoadLinks],
+  execute: Effect.gen(function* () {
+    const backend = yield* Backend
+    const links = yield* backend.links
+    return Message.SucceededLoadLinks({ links })
+  }).pipe(recoverProblem(problem => Message.FailedLoadLinks({ problem }))),
 })
 
 export const RevokeConnection = Command.define('RevokeConnection', {
@@ -90,7 +112,11 @@ export const RevokeConnection = Command.define('RevokeConnection', {
 export type UpdateReturn = Update.ReturnWithOutMessage<Model, Message, OutMessage, Resources>
 
 const endSession = (model: Model): UpdateReturn => ({
-  model: modifyFields(model, { connections: () => ConnectionsData.Idle(), revoke: () => Revoke.Idle() }),
+  model: modifyFields(model, {
+    connections: () => ConnectionsData.Idle(),
+    links: () => LinksData.Idle(),
+    revoke: () => Revoke.Idle(),
+  }),
   outMessage: OutMessage.EndedSession(),
 })
 
@@ -101,13 +127,27 @@ const replaceConnection =
 
 export const update = (model: Model, message: Message) =>
   Message.match<UpdateReturn>(message, {
-    EnteredPage: () =>
-      Option.match(AsyncData.revalidateOrLoad(model.connections), {
-        onNone: () => ({ model }),
-        onSome: nextConnections => ({
-          model: modifyFields(model, { connections: () => nextConnections }),
-          commands: [LoadConnections()],
+    EnteredPage: () => {
+      const maybeConnections = AsyncData.revalidateOrLoad(model.connections)
+      const maybeLinks = AsyncData.revalidateOrLoad(model.links)
+      return {
+        model: modifyFields(model, {
+          connections: connections => Option.getOrElse(maybeConnections, () => connections),
+          links: links => Option.getOrElse(maybeLinks, () => links),
         }),
+        commands: [
+          ...Option.match(maybeConnections, { onNone: () => [], onSome: () => [LoadConnections()] }),
+          ...Option.match(maybeLinks, { onNone: () => [], onSome: () => [LoadLinks()] }),
+        ],
+      }
+    },
+    SucceededLoadLinks: ({ links }) => ({
+      model: modifyFields(model, { links: () => LinksData.Success({ data: links }) }),
+    }),
+    FailedLoadLinks: ({ problem }) =>
+      Problem.match<UpdateReturn>(problem, {
+        SignedOut: () => endSession(model),
+        Failed: ({ error }) => ({ model: modifyFields(model, { links: () => LinksData.Failure({ error }) }) }),
       }),
     SucceededLoadConnections: ({ connections }) => ({
       model: modifyFields(model, { connections: () => ConnectionsData.Success({ data: connections }) }),
@@ -400,7 +440,115 @@ const ruleRemovalNotice = (url: string, h: HtmlBuilder<Message>): Html =>
     ],
   )
 
-export const view = Submodel.defineView<Model, Message>((model, h): Html =>
+const LINK_STATUS: Readonly<
+  Record<LinkView['status'], Readonly<{ label: string; tone: 'accent' | 'good' | 'quiet' }>>
+> = {
+  open: { label: 'Open', tone: 'accent' },
+  paid: { label: 'Paid', tone: 'good' },
+  revoked: { label: 'Revoked', tone: 'quiet' },
+  expired: { label: 'Expired', tone: 'quiet' },
+}
+
+/** stellar.expert for the wallet's network; the Worker sends links' hashes without a base. */
+const explorerTxUrl = (network: string, hash: string): string =>
+  `https://stellar.expert/explorer/${isMainnet(network) ? 'public' : 'testnet'}/tx/${hash}`
+
+const linkWhen = (link: LinkView): string =>
+  link.status === 'open'
+    ? `Open until ${dateTime(link.expires_at)}`
+    : Option.match(Option.fromNullishOr(link.paid_at), {
+        onNone: () => `Was open until ${dateTime(link.expires_at)}`,
+        onSome: paidAt => `Paid ${dateTime(paidAt)}`,
+      })
+
+const linkRow = (link: LinkView, network: string, h: HtmlBuilder<Message>): Html =>
+  h.keyed('li')(
+    link.id,
+    [
+      h.DataAttribute('testid', 'link-row'),
+      h.DataAttribute('link', link.id),
+      h.Class('flex flex-col gap-3 py-4 first:pt-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between'),
+    ],
+    [
+      h.div(
+        [h.Class('flex min-w-0 flex-col gap-1')],
+        [
+          h.p(
+            [h.Class('flex flex-wrap items-baseline gap-x-2 gap-y-1')],
+            [
+              h.span([h.Class('font-semibold text-ink [overflow-wrap:anywhere]')], [link.recipient_name]),
+              h.span([h.Class(`${FIGURE} text-xl text-ink`)], [usdc(link.amount)]),
+              badge(LINK_STATUS[link.status].label, LINK_STATUS[link.status].tone, h),
+            ],
+          ),
+          h.p(
+            [h.Class('flex flex-wrap items-center gap-x-2 text-sm text-muted')],
+            [
+              linkWhen(link),
+              ...Option.match(Option.fromNullishOr(link.tx_hash), {
+                onNone: () => [],
+                onSome: hash => [
+                  h.a(
+                    [
+                      h.Href(explorerTxUrl(network, hash)),
+                      h.Target('_blank'),
+                      h.Rel('noreferrer'),
+                      h.Class(`${LINK} font-mono text-[0.8125rem]`),
+                    ],
+                    [`${shortAddress(hash)} ↗`],
+                  ),
+                ],
+              }),
+            ],
+          ),
+        ],
+      ),
+      ...Option.match(Option.fromNullishOr(link.status === 'open' ? link.revoke_url : null), {
+        onNone: () => [],
+        onSome: url => [
+          h.a(
+            [
+              h.Href(url),
+              h.DataAttribute('testid', 'link-revoke'),
+              h.DataAttribute('link', link.id),
+              h.Class(`${BUTTON_SECONDARY} shrink-0 self-start sm:self-center`),
+            ],
+            ['Revoke'],
+          ),
+        ],
+      }),
+    ],
+  )
+
+const linksPanel = (links: LinksData, network: string, h: HtmlBuilder<Message>): Html =>
+  panel(
+    'Links',
+    [
+      h.p(
+        [h.Class('-mt-2 mb-4 text-sm text-muted')],
+        ['A link is an allowance for one person: your passkey set it for exactly the amount, for seven days.'],
+      ),
+      AsyncData.matchData(links, {
+        onEmpty: () => loadingRow(h),
+        onFailure: error => errorRow(error, h),
+        onData: list =>
+          Array.match(list, {
+            onEmpty: () => emptyRow('No links yet. When you send money to someone new, the link shows up here.', h),
+            onNonEmpty: rows =>
+              h.ul(
+                [h.Class('divide-y divide-line')],
+                Array.map(rows, link => linkRow(link, network, h)),
+              ),
+          }),
+      }),
+    ],
+    h,
+  )
+
+/** The wallet's network, for explorer links the Worker sends as bare hashes. */
+export type ViewInputs = Readonly<{ network: string }>
+
+export const view = Submodel.defineView<Model, Message, ViewInputs>((model, viewInputs, h): Html =>
   h.div(
     [h.Class('flex flex-col gap-5')],
     [
@@ -428,6 +576,7 @@ export const view = Submodel.defineView<Model, Message>((model, h): Html =>
               ),
           }),
       }),
+      linksPanel(model.links, viewInputs.network, h),
     ],
   ),
 )

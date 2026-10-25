@@ -42,11 +42,12 @@ describe('session', () => {
         expect(nextModel.session).toEqual(Session.SignedIn({ wallet: fixture.wallet }))
         expect(nextModel.route).toEqual(AppRoute.Connections())
       }),
-      Command.expectExact(Connections.LoadConnections),
+      Command.expectExact(Connections.LoadConnections, Connections.LoadLinks),
       Command.resolve(
         Connections.LoadConnections,
         Connections.Message.SucceededLoadConnections({ connections: fixture.grants }),
       ),
+      Command.resolve(Connections.LoadLinks, Connections.Message.SucceededLoadLinks({ links: [] })),
     )
   })
 

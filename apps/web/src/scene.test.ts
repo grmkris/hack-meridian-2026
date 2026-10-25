@@ -13,7 +13,12 @@ const signedIn: Model = {
   route: AppRoute.Home(),
   session: Session.SignedIn({ wallet: fixture.wallet }),
   home: modifyFields(Home.init().model, { overview: () => Home.OverviewData.Success({ data: overview }) }),
-  connections: { connections: { _tag: 'Idle' }, revoke: { _tag: 'Idle' }, maybeRuleRemovalUrl: Option.none() },
+  connections: {
+    connections: { _tag: 'Idle' },
+    links: { _tag: 'Idle' },
+    revoke: { _tag: 'Idle' },
+    maybeRuleRemovalUrl: Option.none(),
+  },
   contacts: { contacts: { _tag: 'Idle' }, name: '', address: '', submission: { _tag: 'Idle' } },
   receipts: { receipts: { _tag: 'Idle' } },
 }
