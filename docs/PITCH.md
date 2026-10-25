@@ -86,7 +86,7 @@ Lives inside the web app (Kristjan, 13:00 UTC). Sections, top to bottom:
 
 1. **Hero.** "Give your AI an allowance." Sub: "Nod is a Stellar wallet you add to Claude. Small payments go through on
    their own, inside the allowance you set. Anything bigger waits for your nod." Actions: **Create your wallet**
-   (passkey) and **Add to Claude** (copies the connector URL). Visual: the two-number card (wallet 50.00 USDC / Claude
+   (passkey) and **Add to Claude** (copies the connector URL). Visual: the two-number card (wallet 30.00 USDC / Claude
    may spend 5.00) beside a chat line and a phone approval.
 2. **How it works**, three steps. _Connect_: add Nod to Claude or any MCP app. _Set an allowance_: "5 USDC until
    tomorrow", signed with your passkey and written to your Stellar account. _Let it pay_: paid APIs over x402, friends by
@@ -98,7 +98,7 @@ Lives inside the web app (Kristjan, 13:00 UTC). Sections, top to bottom:
 5. **Proof.** Live stellar.expert links: a payment inside the allowance, an approved payment, an over-limit transfer
    rejected by the account, a trustline-plus-payment. Filled from `evidence/` after the first testnet run.
 6. **Try it in 3 minutes** (for judges): add the connector, create a passkey wallet (auto-funded with 10 testnet USDC),
-   ask Claude to buy the market brief, pay Alice, then ask for 100 USDC.
+   ask Claude to buy the market brief, pay Alice, then ask for 20 USDC for dinner with Bob.
 7. **Built with** OpenZeppelin smart accounts · Circle USDC · x402 · passkeys · Stellar. HackMeridian 2026, Stellar
    Composed and Stellar Unlocked. GitHub link. Testnet notice.
 
@@ -109,7 +109,7 @@ Lives inside the web app (Kristjan, 13:00 UTC). Sections, top to bottom:
 | 1   | Give your AI an allowance. (two-number card)                | title                    |
 | 2   | Your AI can do everything except pay safely.                | User Value & Problem 20% |
 | 3   | One connector, two lanes: it pays, or it asks you.          | what we built            |
-| 4   | Demo stills: buy, pay Alice, 100 asks, approve, revoke.     | Product Design & UX 10%  |
+| 4   | Demo stills: buy, pay Alice, 20 asks, approve, revoke.      | Product Design & UX 10%  |
 | 5   | The limit lives on Stellar, not on our server.              | Technical Execution 15%  |
 | 6   | Six building blocks, composed; a trustline through the SAC. | Track Alignment 20%      |
 | 7   | New: the pocket model, connect = allowance, ask not reject. | Innovation 15%           |
@@ -117,30 +117,36 @@ Lives inside the web app (Kristjan, 13:00 UTC). Sections, top to bottom:
 | 9   | Every AI app is a door; Stellar's x402 sellers need buyers. | Market & Ecosystem 10%   |
 | 10  | Try it in 3 minutes, and what's next.                       | continuation             |
 
+## Demo amounts (Kristjan, 2026-10-25; identical on testnet and mainnet)
+
+Wallet starts at 30 USDC; the AI app's allowance is 5 USDC; it buys a 0.10 USDC API result and pays Alice 2 USDC on its
+own (2.90 left); the 20 USDC dinner for Bob needs his nod; asking twice pays once; 4 USDC is more than the 2.90 left, so
+it comes back to him; Carol, who has never held USDC, gets 5 USDC through a claim link she signs; then revoke.
+
 ## Demo video (≤ 3 min; Kristjan's voice, cut by this session)
 
 Kristjan records each line below as its own take (quiet room, phone or USB mic, one take per line, a second of silence
 either side). Picture is cut to the voice from screen captures of the real flow, with captions, chapter marks, a quiet
 music bed and an end card. The cold open is the approval: it is the moment no other entry has.
 
-| #   | Picture                                                                         | Line                                                                                                                                                       |
-| --- | ------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | Claude: "Pay Bob 100 USDC for dinner" → "needs your nod" → phone, Face ID, Paid | "My AI just asked me for a hundred dollars. One tap, and it's paid: exactly to Bob, exactly a hundred."                                                    |
-| 2   | Title: nod. "Small stuff, it just pays. Big stuff needs your nod."              | "This is Nod, a Stellar wallet your AI can spend from, inside an allowance you set."                                                                       |
-| 3   | Add the connector in Claude → consent page → passkey                            | "I add Nod to Claude. My passkey creates the wallet and signs one rule on Stellar: Claude may spend five dollars, until tomorrow. No seed phrase, no XLM." |
-| 4   | Home: 50.00 USDC wallet, 5.00 Claude may spend                                  | "Two numbers that never blur. The wallet holds fifty. Claude may spend five."                                                                              |
-| 5   | "Buy the market brief" → content + receipt, 4.90 left                           | "Claude buys a paid market report over x402. No prompt, because it fits the allowance. A public facilitator settles it."                                   |
-| 6   | "Send Alice 2 USDC" → receipt, 2.90 left, stellar.expert                        | "It pays Alice two dollars, signed by Claude's own key and checked by an OpenZeppelin policy on my account. Nod pays the fee."                             |
-| 7   | Same request again → same receipt; "Send 4 USDC" → asks                         | "Ask twice, pay once. And four dollars is more than what's left, so it comes to me instead of failing."                                                    |
-| 8   | Forced over-limit transfer → rejected on stellar.expert                         | "Even if our server tried, the account itself rejects anything over the limit."                                                                            |
-| 9   | "Send Carol 10 USDC" → claim link → Carol signs → one transaction               | "Carol has never held USDC. She signs once, and her trustline and the payment land in the same transaction."                                               |
-| 10  | Revoke → next payment refused                                                   | "I revoke Claude. The next payment is refused, and the rule is gone from my account."                                                                      |
-| 11  | End card: nod · repo · Stellar Composed + Unlocked                              | "Nod. Give your AI an allowance, and keep the last word."                                                                                                  |
+| #   | Picture                                                                        | Line                                                                                                                                                       |
+| --- | ------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Claude: "Pay Bob 20 USDC for dinner" → "needs your nod" → phone, Face ID, Paid | "My AI just asked me for twenty dollars. One tap, and it's paid: exactly to Bob, exactly twenty."                                                          |
+| 2   | Title: nod. "Small stuff, it just pays. Big stuff needs your nod."             | "This is Nod, a Stellar wallet your AI can spend from, inside an allowance you set."                                                                       |
+| 3   | Add the connector in Claude → consent page → passkey                           | "I add Nod to Claude. My passkey creates the wallet and signs one rule on Stellar: Claude may spend five dollars, until tomorrow. No seed phrase, no XLM." |
+| 4   | Home: 30.00 USDC wallet, 5.00 Claude may spend                                 | "Two numbers that never blur. The wallet holds thirty. Claude may spend five."                                                                             |
+| 5   | "Buy the market brief" → content + receipt, 4.90 left                          | "Claude buys a paid market report over x402. No prompt, because it fits the allowance. A public facilitator settles it."                                   |
+| 6   | "Send Alice 2 USDC" → receipt, 2.90 left, stellar.expert                       | "It pays Alice two dollars, signed by Claude's own key and checked by an OpenZeppelin policy on my account. Nod pays the fee."                             |
+| 7   | Same request again → same receipt; "Send 4 USDC" → asks                        | "Ask twice, pay once. And four dollars is more than what's left, so it comes to me instead of failing."                                                    |
+| 8   | Forced over-limit transfer → rejected on stellar.expert                        | "Even if our server tried, the account itself rejects anything over the limit."                                                                            |
+| 9   | "Send Carol 5 USDC" → claim link → Carol signs → one transaction               | "Carol has never held USDC. She signs once, and her trustline and the payment land in the same transaction."                                               |
+| 10  | Revoke → next payment refused                                                  | "I revoke Claude. The next payment is refused, and the rule is gone from my account."                                                                      |
+| 11  | End card: nod · repo · Stellar Composed + Unlocked                             | "Nod. Give your AI an allowance, and keep the last word."                                                                                                  |
 
 ## Promo film (20–30 s, no voice, captions, 16:9 and 9:16)
 
 For the landing hero, README GIF, launch post and deck slide 1. Kinetic type over real UI: "Your AI can shop." → "Paying
-is the scary part." → $0.10 report, paid · $2 to Alice, paid · $100 to Bob → "needs your nod" → Face ID → paid →
+is the scary part." → $0.10 report, paid · $2 to Alice, paid · $20 to Bob → "needs your nod" → Face ID → paid →
 "The limit lives on Stellar." → nod wordmark. Built from Playwright captures of the real app, HyperFrames for type and
 motion, and the caption, chapter and music pipeline from `~/code/goblin-videos/demo-cut`.
 

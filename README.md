@@ -17,7 +17,7 @@ Built at [HackMeridian 2026](https://www.hackmeridian.com/) (Lisbon, 25–26 Oct
 | -------------------------------- | --------------------------------------- | ----------------------------------------------------------------- |
 | Claude to buy a 0.10 USDC report | Claude's own key, inside its allowance  | the account's context rule and spending-limit policy, with expiry |
 | Claude to send Alice 2 USDC      | Claude's own key, inside its allowance  | the same rule; the same allowance counts both                     |
-| Claude to send Bob 100 USDC      | **you**, with your passkey, from a link | the account checks the passkey signature over that exact payment  |
+| Claude to send Bob 20 USDC       | **you**, with your passkey, from a link | the account checks the passkey signature over that exact payment  |
 | to stop Claude                   | you, on the site                        | the service stops at once; the rule is removed from the account   |
 
 - **One allowance per AI app.** Connecting an app over OAuth and approving its allowance with your passkey is one step;
