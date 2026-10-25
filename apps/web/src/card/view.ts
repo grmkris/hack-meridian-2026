@@ -8,6 +8,7 @@ import { amount, brandHeader, eyebrow, header, lead, note, pollStatus } from './
 import { paymentBody, paymentView, reasonQuote } from './view/payment'
 import { purchaseView } from './view/purchase'
 import { backButton, requestBody, requestsView, requestView } from './view/request'
+import { topupView } from './view/topup'
 import { allowanceLinkView, revokedView, walletView } from './view/wallet'
 
 /** The card: the frame (theme, host variables, surface) around the view of whatever the tool returned. */
@@ -80,6 +81,7 @@ const body = (model: Model, h: Builder): ReadonlyArray<Html> =>
     Revoked: ({ revoke }) => revokedView(model, revoke, h),
     Request: ({ request }) => requestView(model, request, h),
     Requests: ({ requests }) => requestsView(model, requests, h),
+    Topup: ({ topup }) => topupView(model, topup, h),
   })
 
 /** On Home, the inbox request the person chose to review. */

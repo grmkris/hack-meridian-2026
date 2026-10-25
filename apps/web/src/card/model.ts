@@ -9,6 +9,7 @@ import {
   PocketPull,
   ReceiptView,
   RequestView,
+  TopupView,
   WalletOverviewOutput,
 } from '@hm/protocol'
 
@@ -88,8 +89,13 @@ export const Shown = defineTaggedUnion({
   Revoked: { revoke: ConnectionGrantRevokeOutput },
   Request: { request: RequestView },
   Requests: { requests: Schema.Array(RequestView) },
+  /** wallet_topup_quote / wallet_topup_status: a top-up from another chain (NEAR Intents). */
+  Topup: { topup: TopupView },
 })
 export type Shown = typeof Shown.Type
+
+/** A top-up from another chain as the card shows it. */
+export type TopupCard = typeof TopupView.Type
 
 /** Paying or declining a request from the card: confirmed first, with one idempotency key per action, kept for retries. */
 export const RequestActionKind = Schema.Literals(['Pay', 'Decline'])

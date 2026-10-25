@@ -8,11 +8,12 @@ import {
   PaymentView,
   RequestView,
   RequestsListOutput,
+  TopupView,
   WalletOverviewOutput,
 } from '@hm/protocol'
 
 import { type ToolReply, toToolReply } from './host'
-import { type Appearance, type Capabilities, type Purchase, Shown, type ToolInput } from './model'
+import { type Appearance, type Capabilities, type Purchase, Shown, type ToolInput, type TopupCard } from './model'
 
 /** The host's JSON, decoded into the card's Model. Pure: `update` calls these on what the ports carried in. */
 
@@ -116,6 +117,7 @@ const jsonPreview = (value: unknown): Option.Option<string> => {
 }
 
 const decodePayment = Schema.decodeUnknownOption(PaymentView)
+const decodeTopup = Schema.decodeUnknownOption(TopupView)
 const decodeWallet = Schema.decodeUnknownOption(WalletOverviewOutput)
 const decodeFetch = Schema.decodeUnknownOption(PaidResourceFetchOutput)
 const decodeMcpCall = Schema.decodeUnknownOption(PaidMcpCallOutput)
@@ -130,6 +132,8 @@ export const requestsOf = (structured: unknown): Option.Option<ReadonlyArray<Req
   Option.map(decodeRequests(structured), list => list.requests)
 
 export const paymentOf = (structured: unknown): Option.Option<PaymentView> => decodePayment(structured)
+
+export const topupOf = (structured: unknown): Option.Option<TopupCard> => decodeTopup(structured)
 
 export const walletOf = (structured: unknown): Option.Option<WalletOverviewOutput> => decodeWallet(structured)
 
@@ -170,6 +174,7 @@ const asMcpCall = (structured: unknown): Option.Option<Purchase> =>
 type Decoder = (structured: unknown) => Option.Option<Shown>
 
 const PAYMENT: Decoder = structured => Option.map(decodePayment(structured), payment => Shown.Payment({ payment }))
+const TOPUP: Decoder = structured => Option.map(decodeTopup(structured), topup => Shown.Topup({ topup }))
 const WALLET: Decoder = structured => Option.map(decodeWallet(structured), overview => Shown.Wallet({ overview }))
 const FETCH: Decoder = structured =>
   Option.map(asFetch(structured), purchase => Shown.Purchase({ purchase, maybePayment: Option.none() }))
@@ -183,7 +188,17 @@ const REQUESTS: Decoder = structured =>
   Option.map(decodeRequests(structured), list => Shown.Requests({ requests: list.requests }))
 
 /** Shape order when the host does not name the tool: the most specific shapes first. */
-const BY_SHAPE: ReadonlyArray<Decoder> = [PAYMENT, WALLET, REQUEST, REQUESTS, FETCH, MCP_CALL, REVOKED, ALLOWANCE_LINK]
+const BY_SHAPE: ReadonlyArray<Decoder> = [
+  PAYMENT,
+  WALLET,
+  REQUEST,
+  REQUESTS,
+  FETCH,
+  MCP_CALL,
+  REVOKED,
+  ALLOWANCE_LINK,
+  TOPUP,
+]
 
 const BY_TOOL: Readonly<Record<string, Decoder>> = {
   payment_prepare: PAYMENT,
@@ -199,6 +214,8 @@ const BY_TOOL: Readonly<Record<string, Decoder>> = {
   requests_list: REQUESTS,
   request_pay: PAYMENT,
   request_decline: REQUEST,
+  wallet_topup_quote: TOPUP,
+  wallet_topup_status: TOPUP,
 }
 
 /** What a tool result shows: the named tool's shape first, then any shape it fits. */

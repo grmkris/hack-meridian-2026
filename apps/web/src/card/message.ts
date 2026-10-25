@@ -32,6 +32,8 @@ export const Message = defineMessageUnion({
   SucceededRequestAction: { kind: RequestActionKind, reply: ToolReply },
   FailedRequestAction: { reason: Schema.String },
   ClickedClosePayment: {},
+  SucceededPollTopup: { reply: ToolReply },
+  FailedPollTopup: { reason: Schema.String },
   ClickedCopyLink: { url: Schema.String },
   CompletedCopyLink: {},
   FailedCopyLink: {},

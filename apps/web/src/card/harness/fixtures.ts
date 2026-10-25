@@ -265,7 +265,56 @@ const worstOverview = overview({
 const PREPARE = { recipient: 'Bob', amount: '20', idempotency_key: 'k-bob-20' }
 const FETCH = { url: 'https://weather.x402.example/forecast?city=lisbon', max_amount: '0.50', idempotency_key: 'k-wx' }
 
+const topup = (status: 'pending' | 'processing' | 'arrived' | 'failed' | 'expired') => ({
+  id: 'tq_9f1c',
+  pay_to: '0x5b1e2f0c9d4a7e6b3c8f1a2d4e6b8c0a1f3e5d7c',
+  amount_in: '5',
+  amount_out: '4.98',
+  origin_chain: 'base',
+  asset: 'USDC',
+  deadline: '2026-10-26T00:10:00.000Z',
+  status,
+  sweep_tx: status === 'arrived' ? 'edc8f3b2c15e0c9d3a7b1f4e2d6c8a0b9e7f5d3c1a2b4e6d8f0a9c7e5b3d1f2a' : null,
+})
+const TOPUP_ARGS = {
+  origin_chain: 'base',
+  asset: 'USDC',
+  amount: '5',
+  refund_address: '0x2a9c51f3b7d64e0c8a1f5d3b9e7c2a4f6d8b0e1c',
+  idempotency_key: 'k-topup',
+}
+
 export const FIXTURES: Readonly<Record<string, Fixture>> = {
+  'topup-pending': {
+    tool: 'wallet_topup_quote',
+    arguments: TOPUP_ARGS,
+    structured: {
+      ...topup('pending'),
+      add_money_url: `${ORIGIN}/#add-money`,
+      message: 'Send 5 USDC on Base.',
+      grant_remaining: '3.00',
+    },
+    sentence: 'Send 5 USDC on Base to 0x5b1e… within 30 minutes; it arrives as about 4.98 USDC in your Nod wallet.',
+    polls: [topup('pending')],
+  },
+  'topup-arrives': {
+    tool: 'wallet_topup_quote',
+    arguments: TOPUP_ARGS,
+    structured: {
+      ...topup('pending'),
+      add_money_url: `${ORIGIN}/#add-money`,
+      message: 'Send 5 USDC on Base.',
+      grant_remaining: '3.00',
+    },
+    sentence: 'Send 5 USDC on Base.',
+    polls: [topup('processing'), topup('arrived')],
+  },
+  'topup-arrived': {
+    tool: 'wallet_topup_status',
+    arguments: { id: 'tq_9f1c' },
+    structured: topup('arrived'),
+    sentence: 'About 4.98 USDC arrived.',
+  },
   'payment-asked': {
     tool: 'payment_prepare',
     arguments: { ...PREPARE, reason: 'Dinner at Taberna, split with Bob' },

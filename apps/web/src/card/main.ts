@@ -14,11 +14,23 @@ import {
   requestsOf,
   shownOfResult,
   toolNameOf,
+  topupOf,
   walletOf,
 } from './decode'
 import { Host, type ToolReply } from './host'
 import { Message } from './message'
-import { Bridge, LinkCopy, LinkState, Model, Poll, RequestAction, RequestActionKind, Shown, Surface } from './model'
+import {
+  Bridge,
+  LinkCopy,
+  LinkState,
+  Model,
+  Poll,
+  RequestAction,
+  RequestActionKind,
+  Shown,
+  Surface,
+  type TopupCard,
+} from './model'
 import { isSettled, settledSentence } from './phase'
 import { view } from './view'
 
@@ -91,6 +103,17 @@ export const PollPayment = Command.define('PollPayment', {
       const reply = yield* host.callTool('payment_status', { payment_id: paymentId })
       return Message.SucceededPollPayment({ reply })
     }).pipe(Effect.catch(error => Effect.succeed(Message.FailedPollPayment({ reason: error.reason })))),
+})
+
+export const PollTopup = Command.define('PollTopup', {
+  args: { id: Schema.String },
+  messages: [Message.SucceededPollTopup, Message.FailedPollTopup],
+  execute: ({ id }) =>
+    Effect.gen(function* () {
+      const host = yield* Host
+      const reply = yield* host.callTool('wallet_topup_status', { id })
+      return Message.SucceededPollTopup({ reply })
+    }).pipe(Effect.catch(error => Effect.succeed(Message.FailedPollTopup({ reason: error.reason })))),
 })
 
 export const PollWallet = Command.define('PollWallet', {
@@ -178,7 +201,16 @@ export const SendRequestAction = Command.define('SendRequestAction', {
 // POLLING
 
 /** What the card is waiting on, if anything: a payment that has not settled, or the Home wallet. */
-type PollTarget = { readonly _tag: 'Payment'; readonly paymentId: string } | { readonly _tag: 'Wallet' }
+type PollTarget =
+  | { readonly _tag: 'Payment'; readonly paymentId: string }
+  | { readonly _tag: 'Topup'; readonly id: string }
+  | { readonly _tag: 'Wallet' }
+
+/** A top-up still waiting for the deposit or the swap. */
+const topupWaiting = (topup: TopupCard): Option.Option<PollTarget> =>
+  topup.status === 'pending' || topup.status === 'processing'
+    ? Option.some({ _tag: 'Topup', id: topup.id })
+    : Option.none()
 
 const unsettled = (payment: PaymentView): Option.Option<PollTarget> =>
   isSettled(payment) ? Option.none() : Option.some({ _tag: 'Payment', paymentId: payment.payment_id })
@@ -202,6 +234,7 @@ const shownTarget = (shown: Shown): Option.Option<PollTarget> =>
     Revoked: () => Option.none(),
     Request: () => Option.none(),
     Requests: () => Option.none(),
+    Topup: ({ topup }) => topupWaiting(topup),
   })
 
 export const pollTargetOf = (model: Model): Option.Option<PollTarget> =>
@@ -238,7 +271,7 @@ const scheduleOf = (model: Model): Schedule => {
   }
   return Option.match(pollTargetOf(model), {
     onNone: () => 'Never',
-    onSome: target => (target._tag === 'Payment' && model.pollCount < FAST_POLLS ? 'Fast' : 'Slow'),
+    onSome: target => (target._tag !== 'Wallet' && model.pollCount < FAST_POLLS ? 'Fast' : 'Slow'),
   })
 }
 
@@ -258,7 +291,11 @@ const startPoll = (model: Model): UpdateReturn => {
     onSome: target => ({
       model: modifyFields(model, { poll: () => Poll.InFlight() }),
       commands:
-        target._tag === 'Payment' ? [PollPayment({ paymentId: target.paymentId })] : [PollWallet(), PollInbox()],
+        target._tag === 'Payment'
+          ? [PollPayment({ paymentId: target.paymentId })]
+          : target._tag === 'Topup'
+            ? [PollTopup({ id: target.id })]
+            : [PollWallet(), PollInbox()],
     }),
   })
 }
@@ -279,6 +316,7 @@ const withPayment = (model: Model, payment: PaymentView): Model =>
             Revoked: () => shown,
             Request: () => shown,
             Requests: () => shown,
+            Topup: () => shown,
           }),
       })
 
@@ -300,6 +338,7 @@ const withRequest = (model: Model, request: RequestView): Model =>
         Revoked: () => shown,
         Request: () => Shown.Request({ request }),
         Requests: ({ requests }) => Shown.Requests({ requests: replaceRequest(requests, request) }),
+        Topup: () => shown,
       }),
     inbox: inbox => replaceRequest(inbox, request),
   })
@@ -425,6 +464,17 @@ export const update = (model: Model, message: Message) =>
           ),
       }),
     FailedPollPayment: ({ reason }) => pollFailed(model, reason),
+    SucceededPollTopup: ({ reply }) =>
+      Option.match(reply.isError ? Option.none() : topupOf(reply.structured), {
+        onNone: () => pollFailed(model, unreadable(reply)),
+        onSome: topup => ({
+          model: modifyFields(afterPoll(model), {
+            shown: () => Shown.Topup({ topup }),
+            maybePollError: () => Option.none(),
+          }),
+        }),
+      }),
+    FailedPollTopup: ({ reason }) => pollFailed(model, reason),
     SucceededPollWallet: ({ reply }) =>
       Option.match(reply.isError ? Option.none() : walletOf(reply.structured), {
         onNone: () => pollFailed(model, unreadable(reply)),
