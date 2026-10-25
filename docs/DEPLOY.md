@@ -5,8 +5,8 @@ Plans and queues live in the release plan (.local/brainstorm/FINAL-REVIEW.md §K
 **Deploys: session A ("ops and hardening") only, since 19:10 UTC 2026-10-25**, testnet and mainnet, from the worktree
 below; mainnet only on the orchestrator's explicit go, never during a recording.
 
-Live: **testnet at `843bdfd`** (22:12 UTC: NEAR Intents top-up service, migration 0012) on https://testnet.trynod.si (MCP
-at `/mcp`; the workers.dev host redirects there); **mainnet at `1cd71c7`** (21:23 UTC; deposit router bound) on https://trynod.si. Dated sections
+Live: **testnet at `f6510d0`** (22:19 UTC: NEAR Intents top-ups, migration 0012, the card's top-up view) on
+https://testnet.trynod.si (MCP at `/mcp`; the workers.dev host redirects there); **mainnet at `f6510d0`** (22:20 UTC; deposit router bound) on https://trynod.si. Both stages serve the same SHA. Dated sections
 below are the history.
 
 ## The deploy worktree is the only place a testnet deploy runs
@@ -429,3 +429,20 @@ and Home tab (`341f986`, `843bdfd`), D's llms.txt and landing words (`87c36b0`).
   green, 1 warn (`evidence/probe/2026-10-25T22-17-06-972Z.json`). Treasury 235 USDC.
 
 Rollback: re-pin `1cd71c7` (0012 additive).
+
+## 22:19–22:20 UTC: both stages at `f6510d0` (orchestrator's go)
+
+`f6510d0` adds C's card top-up view (`apps/web/src/card/**`, `card.html` rebuilt in a clean worktree) over `843bdfd`.
+Testnet: gate green including `cards:check` ("card.html is up to date"), plan `[Web] update` + RELEASE, deploy
+`"deletedClasses":[]`, health release `f6510d07…`, smoke 9/9 (`evidence/probe/smoke-testnet-2026-10-25T22-19-38Z.json`), `/llms.txt` byte-identical,
+`resources/read ui://nod/card/v1` byte-identical to the committed `card.html`; no wallet.
+
+Mainnet: plan `[WalletDb] update` (0012) + `[Web] update` + RELEASE, deploy `"deletedClasses":[]`, 0012 applied 22:19:59
+UTC (`topups` exists); health release `f6510d07…`, pubnet, invite off, payments on, relayers 100.9 / 49.9 XLM, treasury
+19 USDC. `GET /api/topup/assets` (anonymous) 200 with 36 chains, `base` (ETH, USDC) and `sol` (SOL, USDT, USDC) among
+them. `/llms.txt` byte-identical. The rendered landing reads "Here on trynod.si, Nod runs on Stellar mainnet: open to
+anyone, USDC only, funded from any exchange or wallet through your deposit address." Unknown `/approve/link/cl_…`,
+`/approve/revoke-link/cl_…`, `/claim/cl_…` → 404 pages; `/api/links` 401. No wallet, no spend (D1 holds three mainnet
+wallets: the founder's, the 21:44 deposit test, and one signup that is not ours). Kristjan's real top-up is the proof.
+
+Rollback: testnet `843bdfd`, mainnet `1cd71c7` (0012 additive).
