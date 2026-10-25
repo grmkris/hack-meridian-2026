@@ -73,9 +73,9 @@ console.log(
 )
 
 const spends: Array<Spend> = [
-  ...(uploaded ? [] : [{ what: 'upload deposit WASM (5.4 KB)', payer: 'relayer A', xlm: 2 }]),
+  ...(uploaded ? [] : [{ what: 'upload deposit WASM (5.4 KB)', payer: 'relayer A', xlm: 8.2 }]),
   ...(deployed ? [] : [{ what: 'deploy the router instance with its token', payer: 'relayer A', xlm: 0.1 }]),
-  { what: `extend code and instance TTL to ${ttl} ledgers`, payer: 'relayer A', xlm: 1 },
+  { what: `extend code and instance TTL to ${ttl} ledgers`, payer: 'relayer A', xlm: 3.7 },
 ]
 const mode = announce('Deposit router v2 deploy', spends)
 const signer = mode === 'submit' ? keypair('relayerA') : undefined
@@ -86,7 +86,8 @@ if (!uploaded) {
     label: 'upload deposit WASM',
     source: deployer,
     op: Stellar.Operation.uploadContractWasm({ wasm }),
-    ceilingStroops: 4n * STROOPS,
+    // 8.13 XLM simulated on 25 Oct 21:15 UTC (the code entry's first rent on pubnet), not the 2.49 of the onboard upload.
+    ceilingStroops: 10n * STROOPS,
     signer,
   })
   const returned = upload.returnValue?.bytes()
@@ -128,7 +129,8 @@ const extend = await sorobanOp({
   source: deployer,
   data: new Stellar.SorobanDataBuilder().setReadOnly([codeKey, instanceKey]).build(),
   op: Stellar.Operation.extendFootprintTtl({ extendTo: ttl }),
-  ceilingStroops: 3n * STROOPS,
+  // 3.65 XLM simulated on 25 Oct 21:30 UTC for both entries to 3,000,000 ledgers.
+  ceilingStroops: 4n * STROOPS,
   signer,
 })
 const extendTx = extend.sent?.hash ?? null

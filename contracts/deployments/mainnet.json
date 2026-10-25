@@ -14,6 +14,27 @@
       "source": "contracts/onboard",
       "testnetTwin": "CCLFB4I4CNGWHHL53UO33CSWKKXJBANMDGOGL43J7RBT7SWK2H2BPGN4",
       "explorer": "https://stellar.expert/explorer/public/contract/CBWYFI6XWQI5C43GISIIUFXTJXBUI52QSNKKYC55GWMPLQRL2RAXT6TM"
+    },
+    "deposit": {
+      "id": "CBWDC7KRPOHSUIPADS6NHXHPYZ2KXHUZ7TONHBPVK7AKIWYXNLRFI6YX",
+      "wasmHash": "7bc3752b337ff7b4c13683e5d1861d404ff069b01cf3c1ff4748055c48fb0c14",
+      "deployer": "GBVYA2V4SMVPXFRPVB5FEFCADW7RXFIACR2HBLN2WP3RHAZKL267YG5X",
+      "salt": "hm26/mainnet/deposit-router/v2",
+      "deployedAt": "2026-10-25T20:25:33Z",
+      "uploadTx": "b377e2f572fb35b7a58f2e299247b9d5036baad691a2b84837038a93d20f88c4",
+      "deployTx": "dec00d0b244719ba7ccd7c3d638f54f6b3e0e8fbdf7d175cb04058fa04690d1e",
+      "extendTx": "f835c763b05ab3c84da2249cf0b538313e5af47e11f41f3465c55a9febb7e8f6",
+      "liveUntilLedger": {
+        "code": 68134834,
+        "instance": 68134834
+      },
+      "constructor": {
+        "token": "CCW67TSZV3SSS2HXMBQ5JFGCKJNXKZM7UQUWUZPUTHXSTZLEO7SJMI75"
+      },
+      "source": "contracts/deposit",
+      "testnetTwin": "CAFLFU5GH7QZ6KF3FBKRV7VW5XFYUKQPCFFTCPTKVEUG4TDT5B2ZOXGL",
+      "evidence": "docs/spikes/s8-deposit.md",
+      "explorer": "https://stellar.expert/explorer/public/contract/CBWDC7KRPOHSUIPADS6NHXHPYZ2KXHUZ7TONHBPVK7AKIWYXNLRFI6YX"
     }
   }
 }
