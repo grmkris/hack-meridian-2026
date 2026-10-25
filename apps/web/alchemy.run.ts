@@ -53,6 +53,8 @@ const switchesFor = (stage: string): Record<string, string> => ({
   MAX_OWNER_PAYMENT_USDC: isMainnet(stage) ? '50' : '100',
   MAX_X402_PRICE_USDC: '1',
   PAYMENTS_ENABLED: 'true',
+  // /sample: a server-side sample agent on Nod's demo wallet (testnet only; the page refuses on any other network).
+  SAMPLE_ENABLED: isMainnet(stage) ? 'false' : 'true',
   WALLET_TTL_LEDGERS: '',
   // Testnet rent runs at ~110× normal (25 Oct, rising): a grant's first pull costs 40–60 XLM, later ones up to ~20 XLM. Ceilings in
   // stroops; the relayer pays, never the owner. Mainnet keeps the chain package's preset.
@@ -156,7 +158,17 @@ export default Alchemy.Stack(
       observability: { enabled: true },
       // These reach the Worker; every other path is a built asset or, for a client route, index.html.
       assets: {
-        runWorkerFirst: ['/api/*', '/mcp', '/.well-known/*', '/authorize', '/oauth/*', '/approve/*', '/claim/*'],
+        runWorkerFirst: [
+          '/api/*',
+          '/mcp',
+          '/.well-known/*',
+          '/authorize',
+          '/oauth/*',
+          '/approve/*',
+          '/claim/*',
+          '/sample',
+          '/sample/*',
+        ],
       },
       dev: { port: 18960, strictPort: true },
       memo: { include: BUILD_INPUTS, lockfile: true },
@@ -176,6 +188,8 @@ export default Alchemy.Stack(
         WALLET_DB: db,
         WALLET_OBJECT: Cloudflare.DurableObject('WalletObject', { className: 'WalletObject' }),
         OAUTH_STORE: Cloudflare.DurableObject('OAuthStore', { className: 'OAuthStore' }),
+        // /sample's lock, rate limits and run logs; a run executes in its alarm (apps/web/src/server/sample).
+        SAMPLE_RUNNER: Cloudflare.DurableObject('SampleRunner', { className: 'SampleRunner' }),
         ...(yield* walletEnv(stage)),
       },
     })

@@ -8,11 +8,14 @@ import { durableKv } from './server/kv-shim.ts'
 import { authorize, OAuthProvider, prepareGrant, providerOptions, serveMcpRequest } from './server/oauth.ts'
 import { ownerRoute } from './server/routes.ts'
 import { makeRuntime, type WorkerEnv } from './server/runtime.ts'
+import { sampleRoute } from './server/sample/route.ts'
+import type { SampleEnv } from './server/sample/runner-object.ts'
 
 export { OAuthStore } from './server/kv-shim.ts'
+export { SampleRunner } from './server/sample/runner-object.ts'
 export { WalletObject } from './server/wallet-object.ts'
 
-interface Env extends WorkerEnv {
+interface Env extends SampleEnv {
   readonly OAUTH_KV: KVNamespace
   readonly OAUTH_PROVIDER: OAuthHelpers
 }
@@ -34,6 +37,8 @@ const defaultHandler = {
     if (path === '/oauth/grant/prepare' && request.method === 'POST') return prepareGrant(runtime, request)
     const owner = ownerRoute(runtime, request, path)
     if (owner !== undefined) return owner
+    const sample = sampleRoute(runtime, request, path, requestEnv)
+    if (sample !== undefined) return sample
     if (path.startsWith('/api/')) return api.handler(request)
     return requestEnv.ASSETS.fetch(request)
   },
