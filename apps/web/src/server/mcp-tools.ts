@@ -3,7 +3,11 @@ import { Effect, Predicate, Schema } from 'effect'
 import {
   ConnectionGrantCreateInput,
   ConnectionGrantRevokeInput,
+  ConnectionGrantUpdateInput,
+  ContactAddInput,
+  ContactRemoveInput,
   ContactsSearchInput,
+  ContactUpdateInput,
   NodHomeInput,
   PaidMcpCallInput,
   PaidResourceFetchInput,
@@ -11,15 +15,25 @@ import {
   PaymentExecuteInput,
   PaymentPrepareInput,
   PaymentStatusInput,
+  PaymentsListInput,
   RequestCreateInput,
   RequestDeclineInput,
   RequestPayInput,
   RequestsListInput,
   type ToolName,
+  WalletDepositAddressInput,
   WalletOverviewInput,
 } from '@hm/protocol'
 import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js'
 
+import {
+  connectionGrantUpdate,
+  contactAdd,
+  contactRemove,
+  contactUpdate,
+  paymentsList,
+  walletDepositAddress,
+} from './contacts-tools.ts'
 import type { DbError } from './db.ts'
 import type { LedgerError } from './ledger.ts'
 import { CARD_URI, homeMeta, renderMeta } from './mcp-apps.ts'
@@ -218,6 +232,55 @@ const TOOLS = [
     RequestDeclineInput,
     { readOnlyHint: false, idempotentHint: true, openWorldHint: false },
     (ctx, args) => requestDecline(ctx, args.request_id),
+  ),
+  // Appended after the first fifteen (contacts-tools.ts): their tools/list entries stay as they were.
+  spec(
+    'contact_add',
+    'Save a contact',
+    "Save a person in the user's contacts by name and Stellar address, so payments can name them. The contact is marked as added by this AI app, and the first payment to an address an AI app saved needs the user's nod (passkey) whatever the amount, unless the wallet already paid or met that address. An address already saved is not added twice.",
+    ContactAddInput,
+    { readOnlyHint: false, idempotentHint: true, openWorldHint: false },
+    (ctx, args) => contactAdd(ctx, args),
+  ),
+  spec(
+    'contact_update',
+    'Change a contact',
+    "Rename a contact, replace its aliases, or give it a new address. A new address counts as saved by this AI app: its first payment needs the user's nod.",
+    ContactUpdateInput,
+    { readOnlyHint: false, idempotentHint: true, openWorldHint: false },
+    (ctx, args) => contactUpdate(ctx, args),
+  ),
+  spec(
+    'contact_remove',
+    'Remove a contact',
+    "Remove a contact from the user's contacts. Receipts of past payments stay.",
+    ContactRemoveInput,
+    { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
+    (ctx, args) => contactRemove(ctx, args),
+  ),
+  spec(
+    'wallet_deposit_address',
+    'Deposit address',
+    "The wallet's deposit address: a Stellar G… address anyone, an exchange included, can send USDC to (any amount, no memo); it lands in the Nod wallet and nowhere else. Says until when it works, what is waiting, and what arrived so far. Created on the first call (about 15 s).",
+    WalletDepositAddressInput,
+    { readOnlyHint: false, idempotentHint: true, openWorldHint: true },
+    ctx => walletDepositAddress(ctx),
+  ),
+  spec(
+    'payments_list',
+    'Payments',
+    "This AI app's payments, newest first (all_apps: the whole wallet's), each with its status and, once confirmed, its receipt and Stellar explorer link. At most 50.",
+    PaymentsListInput,
+    { readOnlyHint: true, openWorldHint: false },
+    (ctx, args) => paymentsList(ctx, args),
+  ),
+  spec(
+    'connection_grant_update',
+    'Change the allowance',
+    "Return the link where the user changes this AI app's allowance (a new amount, a new expiry, or both) with their passkey. The new allowance replaces the current one. Never changes anything itself.",
+    ConnectionGrantUpdateInput,
+    { readOnlyHint: true, openWorldHint: false },
+    (ctx, args) => connectionGrantUpdate(ctx, args),
   ),
 ]
 

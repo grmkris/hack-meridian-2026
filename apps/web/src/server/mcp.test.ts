@@ -147,7 +147,19 @@ const TEN_TOOLS = [
   'connection_grant_revoke',
 ]
 
-const APPENDED_TOOLS = ['nod_home', 'request_create', 'requests_list', 'request_pay', 'request_decline']
+const APPENDED_TOOLS = [
+  'nod_home',
+  'request_create',
+  'requests_list',
+  'request_pay',
+  'request_decline',
+  'contact_add',
+  'contact_update',
+  'contact_remove',
+  'wallet_deposit_address',
+  'payments_list',
+  'connection_grant_update',
+]
 
 const CARD_TOOLS = [
   'wallet_overview',

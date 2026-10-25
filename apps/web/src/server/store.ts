@@ -375,6 +375,10 @@ export const createContact = (input: {
   readonly address: string
   readonly memo: string | null
   readonly readiness: Contact['destinations'][number]['readiness']
+  /** An AI app saved it (contact_add): shown as "added by", and its first payment needs the owner's nod. */
+  readonly addedBy?: { readonly name: string; readonly connectionId: string } | undefined
+  /** Who put the address there (0010): ai, claim_link; absent = the owner. */
+  readonly source?: 'ai' | 'claim_link' | undefined
 }) =>
   Effect.gen(function* () {
     const id = yield* randomId('ct')
@@ -386,6 +390,9 @@ export const createContact = (input: {
         display_name: input.displayName,
         aliases: JSON.stringify(input.aliases),
         created_at: now,
+        ...(input.addedBy === undefined
+          ? {}
+          : { added_by: input.addedBy.name, added_by_connection: input.addedBy.connectionId }),
       }),
       insert('contact_destinations', {
         id: yield* randomId('cd'),
@@ -397,6 +404,7 @@ export const createContact = (input: {
         verified_at: now,
         last_paid_at: null,
         created_at: now,
+        ...(input.source === undefined ? {} : { source: input.source }),
       }),
     )
     const contact = yield* contactById(input.ownerId, id)
@@ -410,6 +418,8 @@ export const replaceDestination = (input: {
   readonly address: string
   readonly memo: string | null
   readonly readiness: Contact['destinations'][number]['readiness']
+  /** contact_update by an AI app: `ai` (its first payment needs the owner's nod); absent = the owner. */
+  readonly source?: 'ai' | undefined
 }) =>
   Effect.gen(function* () {
     const now = yield* nowIso
@@ -425,10 +435,91 @@ export const replaceDestination = (input: {
         verified_at: now,
         last_paid_at: null,
         created_at: now,
+        ...(input.source === undefined ? {} : { source: input.source }),
       }),
     )
     return yield* contactById(input.ownerId, input.contactId)
   })
+
+/** Rename a contact or replace its aliases (contact_update). */
+export const renameContact = (input: {
+  readonly ownerId: string
+  readonly contactId: string
+  readonly displayName?: string | undefined
+  readonly aliases?: ReadonlyArray<string> | undefined
+}) =>
+  Effect.gen(function* () {
+    if (input.displayName !== undefined)
+      yield* write(
+        sql(
+          'UPDATE contacts SET display_name = ? WHERE id = ? AND owner_id = ?',
+          input.displayName,
+          input.contactId,
+          input.ownerId,
+        ),
+      )
+    if (input.aliases !== undefined)
+      yield* write(
+        sql(
+          'UPDATE contacts SET aliases = ? WHERE id = ? AND owner_id = ?',
+          JSON.stringify(input.aliases),
+          input.contactId,
+          input.ownerId,
+        ),
+      )
+    return yield* contactById(input.ownerId, input.contactId)
+  })
+
+/** contact_remove: the contact and its addresses go; intents and receipts that named it keep their own copy. */
+export const removeContact = (ownerId: string, contactId: string) =>
+  write(
+    sql(
+      'DELETE FROM contact_destinations WHERE contact_id IN (SELECT id FROM contacts WHERE id = ? AND owner_id = ?)',
+      contactId,
+      ownerId,
+    ),
+    sql('DELETE FROM contacts WHERE id = ? AND owner_id = ?', contactId, ownerId),
+  )
+
+/**
+ * The wallet already knows this address: it paid it before, someone chose it on one of the wallet's claim links, or
+ * it is the other side of a payment request that was paid. An AI app's new contact at such an address is not new.
+ */
+export const knownAddress = (walletId: string, address: string) =>
+  Effect.map(
+    first(
+      sql(
+        `SELECT 1 AS known WHERE EXISTS (SELECT 1 FROM receipts WHERE wallet_id = ? AND recipient_address = ?)
+           OR EXISTS (SELECT 1 FROM claim_links WHERE wallet_id = ? AND destination_address = ?)
+           OR EXISTS (SELECT 1 FROM payment_requests WHERE status = 'paid'
+                        AND ((payer_wallet_id = ? AND requester_address = ?) OR (requester_wallet_id = ? AND payer_address = ?)))`,
+        walletId,
+        address,
+        walletId,
+        address,
+        walletId,
+        address,
+        walletId,
+        address,
+      ),
+      () => Effect.succeed('known' as const),
+    ),
+    found => found !== undefined,
+  )
+
+/** The wallet's payment intents, newest first (payments_list); bounded by `limit`. */
+export const intentsOfWallet = (walletId: string, limit: number, connectionId?: string) =>
+  query(
+    connectionId === undefined
+      ? sql('SELECT * FROM payment_intents WHERE wallet_id = ? ORDER BY created_at DESC LIMIT ?', walletId, limit)
+      : sql(
+          'SELECT * FROM payment_intents WHERE wallet_id = ? AND connection_id = ? ORDER BY created_at DESC LIMIT ?',
+          walletId,
+          connectionId,
+          limit,
+        ),
+    toIntent,
+  )
 
 // Intents and receipts (reads)
 

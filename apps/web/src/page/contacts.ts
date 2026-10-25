@@ -197,6 +197,22 @@ const contactRow = (contact: Contact, h: HtmlBuilder<Message>): Html =>
             onEmpty: () => [],
             onNonEmpty: aliases => [h.span([h.Class('text-sm text-muted')], [`Also “${aliases.join('”, “')}”`])],
           }),
+          // contact_add: an AI app saved it; its first payment needs your nod whatever the amount.
+          ...Option.match(Option.fromNullishOr(contact.added_by), {
+            onNone: () => [],
+            onSome: by => [
+              h.span(
+                [h.DataAttribute('testid', 'added-by'), h.Class('text-sm text-muted')],
+                [
+                  contact.destinations.some(
+                    destination => destination.source === 'ai' && destination.last_paid_at === null,
+                  )
+                    ? `Added by ${by}. Its first payment needs your nod.`
+                    : `Added by ${by}.`,
+                ],
+              ),
+            ],
+          }),
         ],
       ),
       h.ul(

@@ -29,10 +29,12 @@ import type { ConnectionProps } from './props.ts'
 import { revokeConnection } from './revoke.ts'
 import {
   connectionById,
+  contactById,
   fingerprintOf,
   grantOfConnection,
   intentById,
   intentByKey,
+  knownAddress,
   pendingOfWallet,
   receiptOfIntent,
   receiptsOfWallet,
@@ -148,6 +150,7 @@ const contactView = (contact: Contact): ContactView => ({
     readiness: destination.last_paid_at === null ? [destination.readiness] : [destination.readiness, 'paid_before'],
     last_paid_at: destination.last_paid_at,
   })),
+  added_by: contact.added_by ?? null,
 })
 
 export const contactsSearch = (ctx: ToolContext, query: string) =>
@@ -253,6 +256,23 @@ const claimLinkStatus = (ctx: ToolContext, linkId: string) =>
     return { sentence, value: view }
   })
 
+/**
+ * The first payment to an address an AI app saved (contact_add, contact_update) takes the owner lane whatever the
+ * amount, unless the wallet already knows the address (paid it, met it on a claim link, or a paid request).
+ */
+export const firstPaymentToAiContact = (
+  walletId: string,
+  ownerId: string,
+  recipient: { readonly address: string; readonly contactId: string | null },
+) =>
+  Effect.gen(function* () {
+    if (recipient.contactId === null) return false
+    const contact = yield* contactById(ownerId, recipient.contactId)
+    const destination = contact?.destinations.find(candidate => candidate.address === recipient.address)
+    if (destination === undefined || destination.source !== 'ai' || destination.last_paid_at !== null) return false
+    return !(yield* knownAddress(walletId, recipient.address))
+  })
+
 /** `forceOwner`: the owner lane whatever the allowance (request_pay to a requester outside the payer's contacts). */
 export const paymentPrepare = (
   ctx: ToolContext,
@@ -277,6 +297,7 @@ export const paymentPrepare = (
     )
     if (readiness === 'account_missing')
       return yield* fail(`${recipient.address} does not exist on Stellar testnet yet, so it cannot receive USDC.`)
+    const newContact = yield* firstPaymentToAiContact(wallet.id, ctx.props.owner_id, recipient)
     const ledger = yield* Ledger
     const prepared = yield* ledger.prepareIntent(wallet.id, {
       scope: connection.id,
@@ -293,7 +314,8 @@ export const paymentPrepare = (
       recipientReadiness: readiness,
       resource: null,
       amount,
-      forceOwner: options.forceOwner ?? false,
+      forceOwner: (options.forceOwner ?? false) || newContact,
+      ownerReason: options.forceOwner === true ? undefined : newContact ? 'new_contact' : undefined,
       claim: false,
       operationKind: 'transfer',
       pocketBalance: null,
@@ -311,7 +333,7 @@ export const paymentPrepare = (
     return {
       sentence:
         view.approval_url !== null
-          ? `This payment of ${view.amount} USDC to ${recipient.name ?? recipient.address} is above what this AI app may spend on its own, so it needs the user's nod. Ask the user to open ${view.approval_url} and approve it with their passkey, then call payment_status with payment_id ${view.payment_id}.${view.claim_url === null ? '' : ` ${recipient.name ?? 'The recipient'} has no USDC trustline yet: they accept at ${view.claim_url}.`}`
+          ? `This payment of ${view.amount} USDC to ${recipient.name ?? recipient.address} ${view.approval_reason === 'new_contact' ? 'goes to an address an AI app saved and the user never paid, so the first payment' : 'is above what this AI app may spend on its own, so it'} needs the user's nod. Ask the user to open ${view.approval_url} and approve it with their passkey, then call payment_status with payment_id ${view.payment_id}.${view.claim_url === null ? '' : ` ${recipient.name ?? 'The recipient'} has no USDC trustline yet: they accept at ${view.claim_url}.`}`
           : view.next_step,
       value: { ...view, outcome: status === 'prepared' ? 'ready_to_execute' : status },
     }

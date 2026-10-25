@@ -3,6 +3,7 @@ import { Effect, Schema } from 'effect'
 import { Assertion } from '@hm/api'
 import { Chain, type ChainError, PreparedClaim, PreparedOwnerAuth } from '@hm/protocol'
 
+import { allowanceRoute } from './allowance-page.ts'
 import { claimLinkRoute } from './claim-link-page.ts'
 import { nowMillis, randomId } from './clock.ts'
 import type { DbError } from './db.ts'
@@ -480,6 +481,9 @@ export const ownerRoute = (runtime: AppRuntime, request: Request, path: string):
   // Claim link v2 (claims.ts): /claim/cl_… lets the recipient choose where the money goes.
   const link = claimLinkRoute(runtime, request, path)
   if (link !== undefined) return link
+  // connection_grant_update (allowance-page.ts): a new allowance or expiry, signed with the passkey.
+  const allowance = allowanceRoute(runtime, request, path)
+  if (allowance !== undefined) return allowance
   const claim = /^\/claim\/(pi_[0-9a-f]{32})$/u.exec(path)
   if (claim !== null && request.method === 'GET') return claimGet(runtime, request, claim[1] ?? '')
   if (claim !== null && request.method === 'POST') return claimPost(runtime, request, claim[1] ?? '')

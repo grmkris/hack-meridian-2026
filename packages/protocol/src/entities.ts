@@ -117,6 +117,8 @@ export const Destination = Schema.Struct({
   readiness: Readiness,
   verified_at: Schema.NullOr(IsoTime),
   last_paid_at: Schema.NullOr(IsoTime),
+  /** Who put the address there: `ai` (an AI app), `claim_link` (chosen on a claim link); null: the owner. */
+  source: Schema.optionalKey(Schema.NullOr(Schema.String)),
 })
 export type Destination = typeof Destination.Type
 
@@ -127,6 +129,8 @@ export const Contact = Schema.Struct({
   aliases: Schema.Array(Schema.String),
   destinations: Schema.Array(Destination),
   created_at: IsoTime,
+  /** The AI app that added the contact (shown as "added by Claude"); null when the owner did. */
+  added_by: Schema.optionalKey(Schema.NullOr(Schema.String)),
 })
 export type Contact = typeof Contact.Type
 
@@ -136,7 +140,8 @@ export type Lane = typeof Lane.Type
 /**
  * Why an intent takes the owner lane: the request forced it (`owner_only`), no live allowance (`no_allowance`), the
  * recipient cannot take USDC yet (`recipient_not_ready`), the amount is at or above the allowance's nod line
- * (`above_nod_line`), or more than the allowance has left (`over_allowance`). Checked in that order.
+ * (`above_nod_line`), or more than the allowance has left (`over_allowance`). Checked in that order. `new_contact`:
+ * the first payment to an address an AI app saved (contact_add, contact_update) and the wallet never paid or met.
  */
 export const ApprovalReason = Schema.Literals([
   'owner_only',
@@ -144,6 +149,7 @@ export const ApprovalReason = Schema.Literals([
   'recipient_not_ready',
   'above_nod_line',
   'over_allowance',
+  'new_contact',
 ])
 export type ApprovalReason = typeof ApprovalReason.Type
 

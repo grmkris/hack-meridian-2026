@@ -136,6 +136,8 @@ export const ContactView = Schema.Struct({
       last_paid_at: Schema.NullOr(IsoTime),
     }),
   ),
+  /** The AI app that saved this contact; null when the user did. Its first payment needs the user's nod. */
+  added_by: Schema.optionalKey(Schema.NullOr(Schema.String)),
 })
 export type ContactView = typeof ContactView.Type
 export const ContactsSearchOutput = Schema.Struct({
@@ -280,6 +282,96 @@ export const ConnectionGrantRevokeOutput = Schema.Struct({
 export const NodHomeInput = Schema.Struct({})
 export const NodHomeOutput = WalletOverviewOutput
 
+// 16–18. contact_add / contact_update / contact_remove: the user's contacts, changed by an AI app (marked as its)
+const ContactName = Schema.String.check(Schema.isMinLength(1), Schema.isMaxLength(40))
+const ContactAddress = Schema.String.check(Schema.isPattern(/^(?:[CG][A-Z2-7]{55}|M[A-Z2-7]{68})$/u)).annotate({
+  description: 'A Stellar address: C… (a smart account, e.g. a Nod wallet), G… or M…',
+})
+const Aliases = Schema.Array(Schema.String.check(Schema.isMinLength(1), Schema.isMaxLength(40))).check(
+  Schema.isMaxLength(5),
+)
+const ContactRef = Schema.String.check(Schema.isMinLength(1)).annotate({
+  description: 'The contact: its name, an alias, or its contact_id',
+})
+export const ContactAddInput = Schema.Struct({
+  name: ContactName,
+  address: ContactAddress,
+  aliases: Schema.optionalKey(Aliases),
+  idempotency_key: IdempotencyKey,
+})
+export type ContactAddInput = typeof ContactAddInput.Type
+export const ContactChangeOutput = Schema.Struct({
+  contact: Schema.NullOr(ContactView),
+  /** added, updated, removed, or unchanged (the address was already saved, or the same key repeated). */
+  result: Schema.Literals(['added', 'updated', 'removed', 'unchanged']),
+  message: Schema.String,
+  grant_remaining: Schema.String,
+})
+export const ContactUpdateInput = Schema.Struct({
+  contact: ContactRef,
+  name: Schema.optionalKey(ContactName),
+  address: Schema.optionalKey(ContactAddress),
+  aliases: Schema.optionalKey(Aliases),
+  idempotency_key: IdempotencyKey,
+})
+export type ContactUpdateInput = typeof ContactUpdateInput.Type
+export const ContactRemoveInput = Schema.Struct({ contact: ContactRef, idempotency_key: IdempotencyKey })
+export type ContactRemoveInput = typeof ContactRemoveInput.Type
+
+// 19. wallet_deposit_address: a G… any exchange or wallet can pay USDC to; it lands in the Nod wallet
+export const WalletDepositAddressInput = Schema.Struct({ idempotency_key: OptionalKey })
+export const WalletDepositAddressOutput = Schema.Struct({
+  /** active: pay it; unavailable: this network has no deposit router yet (send to the wallet's C… from Freighter). */
+  status: Schema.Literals(['active', 'unavailable']),
+  address: Schema.NullOr(Schema.String),
+  network: Network,
+  /** After this the address stops working (the router's allowance, ~180 days); a new one replaces it before then. */
+  expires_at: Schema.NullOr(IsoTime),
+  /** USDC on the address not yet in the wallet (it is swept within a minute while the address is watched). */
+  pending: Schema.NullOr(Schema.String),
+  received_total: Schema.String,
+  wallet_contract_id: Schema.String,
+  /** awaiting_deposit: the wallet's account deploys when its first USDC arrives. */
+  account_status: Schema.Literals(['awaiting_deposit', 'active']),
+  message: Schema.String,
+  grant_remaining: Schema.String,
+})
+
+// 20. payments_list: newest first, bounded
+export const PaymentsListInput = Schema.Struct({
+  limit: Schema.optionalKey(
+    Schema.Int.check(Schema.isGreaterThanOrEqualTo(1), Schema.isLessThanOrEqualTo(50)),
+  ).annotate({ description: 'How many, newest first (default 20, at most 50)' }),
+  all_apps: Schema.optionalKey(Schema.Boolean).annotate({
+    description: "true: every payment of the wallet (the user's own and other AI apps'); default: this AI app's",
+  }),
+  idempotency_key: OptionalKey,
+})
+export const PaymentsListOutput = Schema.Struct({
+  payments: Schema.Array(PaymentView),
+  grant_remaining: Schema.String,
+})
+
+// 21. connection_grant_update: a new allowance or expiry, as a link the user's passkey signs
+export const ConnectionGrantUpdateInput = Schema.Struct({
+  amount: Schema.optionalKey(DecimalAmount).annotate({
+    description: 'The new allowance in USDC (default: the current one)',
+  }),
+  valid_for_hours: Schema.optionalKey(
+    Schema.Int.check(Schema.isGreaterThan(0), Schema.isLessThanOrEqualTo(720)),
+  ).annotate({
+    description: 'How long the new allowance lasts from when the user signs it (default 24, at most 720)',
+  }),
+  idempotency_key: IdempotencyKey,
+})
+export const ConnectionGrantUpdateOutput = Schema.Struct({
+  url: Schema.String,
+  requested: Schema.Struct({ amount: Schema.String, valid_for_hours: Schema.Int }),
+  grant: Schema.NullOr(GrantView),
+  message: Schema.String,
+  grant_remaining: Schema.String,
+})
+
 export const TOOL_NAMES = [
   'wallet_overview',
   'contacts_search',
@@ -296,5 +388,11 @@ export const TOOL_NAMES = [
   'requests_list',
   'request_pay',
   'request_decline',
+  'contact_add',
+  'contact_update',
+  'contact_remove',
+  'wallet_deposit_address',
+  'payments_list',
+  'connection_grant_update',
 ] as const
 export type ToolName = (typeof TOOL_NAMES)[number]

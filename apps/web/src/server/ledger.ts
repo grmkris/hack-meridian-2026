@@ -72,8 +72,11 @@ export const laneDecision = (input: {
   readonly readiness: Readiness
   readonly nowMs: number
   readonly forceOwner: boolean
+  /** Why `forceOwner` sends it to the owner (default owner_only), e.g. new_contact. */
+  readonly ownerReason?: ApprovalReason | undefined
 }): { readonly lane: Lane; readonly reason: ApprovalReason | null } => {
-  if (input.forceOwner || input.amount <= 0n) return owner('owner_only')
+  if (input.forceOwner) return owner(input.ownerReason ?? 'owner_only')
+  if (input.amount <= 0n) return owner('owner_only')
   if (input.grant === undefined || !grantLive(input.grant, input.nowMs)) return owner('no_allowance')
   if (input.readiness !== 'usdc_ready') return owner('recipient_not_ready')
   if (input.amount > (input.kind === 'payment' ? policyFreeOf(input.grant) : remainingOf(input.grant)))
@@ -124,6 +127,8 @@ export interface NewIntent {
   readonly amount: bigint
   /** Route to the owner whatever the grant says. */
   readonly forceOwner: boolean
+  /** The reason the owner lane carries when `forceOwner` (default owner_only). */
+  readonly ownerReason?: ApprovalReason | undefined
   /** In the autonomous lane, reserve and claim the submit in the same step (x402: the quote is the go-ahead). */
   readonly claim: boolean
   /** The operation kind the claim records. */
@@ -224,6 +229,26 @@ export interface LedgerShape {
     walletId: string,
     input: { readonly grantId: string; readonly receipt: Receipt },
   ) => Effect.Effect<void, LedgerError>
+  /**
+   * connection_grant_update: the owner's passkey installed a new rule for the connection; its grant now points at it
+   * (new key, new allowance and expiry, counters from zero). Refused while a payment holds a reservation, or when the
+   * grant moved to another rule meanwhile. The old rule stays on the account until the owner removes it.
+   */
+  readonly replaceGrant: (walletId: string, input: ReplaceGrant) => Effect.Effect<SpendingGrant, LedgerError>
+}
+
+export interface ReplaceGrant {
+  readonly grantId: string
+  /** The rule the grant pointed at when the owner opened the page. */
+  readonly expectRuleId: number
+  readonly ruleId: number
+  readonly signerPublicKey: string
+  readonly signerKeyRef: string
+  readonly total: bigint
+  readonly validUntil: string
+  readonly validUntilLedger: number
+  readonly installTx: string
+  readonly pocketAddress: string | null
 }
 
 export class Ledger extends Context.Service<Ledger, LedgerShape>()('hm/Ledger') {}
@@ -504,6 +529,7 @@ const prepareIntent = Effect.fnUntraced(function* (walletId: string, input: NewI
     readiness: input.recipientReadiness,
     nowMs,
     forceOwner: input.forceOwner,
+    ownerReason: input.ownerReason,
   })
   const id = input.id ?? (yield* randomId('pi'))
   const claim = lane === 'autonomous' && input.claim && grant !== undefined
@@ -1078,6 +1104,49 @@ const recordSweep = Effect.fnUntraced(function* (
   )
 })
 
+const replaceGrant = Effect.fnUntraced(function* (_walletId: string, input: ReplaceGrant) {
+  const grant = yield* loadGrant(input.grantId)
+  if (grant === undefined) return yield* notFound(`no grant ${input.grantId}`)
+  if (grant.rule_id !== input.expectRuleId || grant.status !== 'active')
+    return yield* new LedgerError({
+      reason: 'invalid_state',
+      message: 'the allowance changed meanwhile; open the link again',
+    })
+  if (grant.reserved > 0n)
+    return yield* new LedgerError({ reason: 'invalid_state', message: 'a payment is in flight; try again in a minute' })
+  const now = yield* nowIso
+  yield* write(
+    sql(
+      `UPDATE spending_grants SET signer_public_key = ?, signer_key_ref = ?, total = ?, spent = '0', reserved = '0',
+         valid_until = ?, valid_until_ledger = ?, rule_id = ?, rule_status = 'installed', pocket_address = ?,
+         pocket_balance = '0', first_payment_done = 0, status = 'active', install_tx = ?, nod_above = ?,
+         remove_tx = NULL, sweep_tx = NULL WHERE id = ?`,
+      input.signerPublicKey,
+      input.signerKeyRef,
+      input.total.toString(),
+      input.validUntil,
+      input.validUntilLedger,
+      input.ruleId,
+      input.pocketAddress,
+      input.installTx,
+      input.total.toString(),
+      input.grantId,
+    ),
+    insert('operations', {
+      id: yield* randomId('op'),
+      intent_id: null,
+      kind: 'rule_install',
+      tx_hash: input.installTx,
+      submitted_at: now,
+      ledger: null,
+      status: 'confirmed',
+      raw_result: JSON.stringify({ grant_id: input.grantId, replaced_rule_id: grant.rule_id }),
+    }),
+  )
+  const replaced = yield* loadGrant(input.grantId)
+  return replaced === undefined ? yield* notFound(`no grant ${input.grantId}`) : replaced
+})
+
 /**
  * The ledger over the Db in scope, every operation under one permit: what the wallet's Durable Object hosts, and what
  * tests run directly against SQLite.
@@ -1106,5 +1175,6 @@ export const makeLocalLedger = Effect.gen(function* () {
     revokeConnection: serialized(revokeConnection),
     recordRuleRemoved: serialized(recordRuleRemoved),
     recordSweep: serialized(recordSweep),
+    replaceGrant: serialized(replaceGrant),
   })
 })

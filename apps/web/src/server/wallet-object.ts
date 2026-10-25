@@ -234,5 +234,6 @@ export const ledgerViaObject = (ns: DurableObjectNamespace<WalletObject>) => {
     revokeConnection: call('revokeConnection'),
     recordRuleRemoved: call('recordRuleRemoved'),
     recordSweep: call('recordSweep'),
+    replaceGrant: call('replaceGrant'),
   })
 }

@@ -1,0 +1,889 @@
+{
+  "base": "http://localhost:18960",
+  "steps": [
+    {
+      "at": "2026-10-25T19:56:57.362Z",
+      "step": "dave",
+      "address": "GASI5R5JRKJDWUNPBWVDMSPIJP65GCMB7UJJSXEUV2VNMP2MWJQV5ZEW",
+      "trustline_tx": "https://stellar.expert/explorer/testnet/tx/9d27be697ba9a7e4601882a51e4e0e324b2dd7321a78a8da6f7090af53d2e8be"
+    },
+    {
+      "at": "2026-10-25T19:56:57.693Z",
+      "step": "browser",
+      "line": "goto http://localhost:18960/authorize?response_type=code&client_id=qMqOhWto1s-jTvkz&code_challenge=<redacted>&code_challenge_method=S256&redirect_uri=http%3A%2F%2F127.0.0.1%3A45117%2Fcallback&state=<redacted>&scope=wallet&resource=http%3A%2F%2Flocalhost%3A18960%2Fmcp → 200"
+    },
+    {
+      "at": "2026-10-25T19:56:57.806Z",
+      "step": "browser",
+      "line": "click [data-testid=\"passkey-create\"], [data-testid=\"passkey-signin\"]"
+    },
+    {
+      "at": "2026-10-25T19:57:13.304Z",
+      "step": "browser",
+      "line": "visible [data-testid=\"consent-allow\"], button[value=approve]"
+    },
+    {
+      "at": "2026-10-25T19:57:13.317Z",
+      "step": "browser",
+      "line": "fill [data-testid=\"allowance\"], input[name=allowance]"
+    },
+    {
+      "at": "2026-10-25T19:57:13.377Z",
+      "step": "browser",
+      "line": "click [data-testid=\"consent-allow\"], button[value=approve]"
+    },
+    {
+      "at": "2026-10-25T19:57:22.942Z",
+      "step": "tools/list",
+      "count": 21,
+      "names": [
+        "wallet_overview",
+        "contacts_search",
+        "payment_prepare",
+        "payment_execute",
+        "payment_approve_url",
+        "payment_status",
+        "paid_resource_fetch",
+        "paid_mcp_call",
+        "connection_grant_create",
+        "connection_grant_revoke",
+        "nod_home",
+        "request_create",
+        "requests_list",
+        "request_pay",
+        "request_decline",
+        "contact_add",
+        "contact_update",
+        "contact_remove",
+        "wallet_deposit_address",
+        "payments_list",
+        "connection_grant_update"
+      ]
+    },
+    {
+      "at": "2026-10-25T19:57:23.330Z",
+      "step": "wallet_overview",
+      "ms": 388,
+      "is_error": false,
+      "sentence": "Nod wallet Personal (Stellar Testnet) holds 10.00 USDC. This AI app may still spend 5.00 USDC on its own until 2026-10-26T12:00:01.731Z; anything bigger needs the user's nod."
+    },
+    {
+      "at": "2026-10-25T19:57:23.330Z",
+      "step": "wallet",
+      "contract": "https://stellar.expert/explorer/testnet/contract/CBYV6YIOGMHS3TF3IQ5O2SM7WJXBCMQSJX7K6GANOX5GSABRONCN7RIM"
+    },
+    {
+      "at": "2026-10-25T19:57:23.535Z",
+      "step": "contact_add",
+      "ms": 205,
+      "is_error": false,
+      "sentence": "Saved Dave (GASI5R5JRKJDWUNPBWVDMSPIJP65GCMB7UJJSXEUV2VNMP2MWJQV5ZEW). Saved by this AI app: the first payment to Dave needs the user's nod (their passkey), whatever the amount."
+    },
+    {
+      "at": "2026-10-25T19:57:23.535Z",
+      "step": "contact_add result",
+      "result": "added",
+      "added_by": "Tools run"
+    },
+    {
+      "at": "2026-10-25T19:57:23.776Z",
+      "step": "payment_prepare",
+      "ms": 241,
+      "is_error": false,
+      "sentence": "This payment of 0.50 USDC to Dave goes to an address an AI app saved and the user never paid, so the first payment needs the user's nod. Ask the user to open http://localhost:18960/approve/pi_0d3a05ea1b5aa10bdb7d3d602a8310d5 and approve it with their passkey, then call payment_status with payment_id pi_0d3a05ea1b5aa10bdb7d3d602a8310d5."
+    },
+    {
+      "at": "2026-10-25T19:57:23.776Z",
+      "step": "first payment to Dave",
+      "status": "awaiting_approval",
+      "lane": "owner",
+      "approval_reason": "new_contact",
+      "approval_url": "http://localhost:18960/approve/pi_0d3a05ea1b5aa10bdb7d3d602a8310d5"
+    },
+    {
+      "at": "2026-10-25T19:57:23.889Z",
+      "step": "browser",
+      "line": "goto http://localhost:18960/approve/pi_0d3a05ea1b5aa10bdb7d3d602a8310d5 → 200"
+    },
+    {
+      "at": "2026-10-25T19:57:23.957Z",
+      "step": "browser",
+      "line": "click [data-testid=\"approve\"], #approve"
+    },
+    {
+      "at": "2026-10-25T19:57:27.817Z",
+      "step": "browser",
+      "line": "visible [data-testid=\"approval-done\"]"
+    },
+    {
+      "at": "2026-10-25T19:57:27.868Z",
+      "step": "browser",
+      "line": "screenshot /home/kristjan/code/hack-meridian-2026/evidence/tools/2026-10-25T19-56-49-656Z/dave-first-approved.png"
+    },
+    {
+      "at": "2026-10-25T19:57:27.908Z",
+      "step": "payment_status",
+      "ms": 40,
+      "is_error": false,
+      "sentence": "Confirmed. Transaction 5fe7f794345daa596b4f47bfb46ff110511b65f6c3eaad2ebc25180c43784fa5 in ledger 5386932 (https://stellar.expert/explorer/testnet/tx/5fe7f794345daa596b4f47bfb46ff110511b65f6c3eaad2ebc25180c43784fa5). Confirmed on Stellar: the user approved this payment with their passkey on Nod's approval page. The receipt is final."
+    },
+    {
+      "at": "2026-10-25T19:57:27.908Z",
+      "step": "first payment to Dave, after the nod",
+      "status": "confirmed",
+      "tx": "https://stellar.expert/explorer/testnet/tx/5fe7f794345daa596b4f47bfb46ff110511b65f6c3eaad2ebc25180c43784fa5"
+    },
+    {
+      "at": "2026-10-25T19:57:28.135Z",
+      "step": "payment_prepare",
+      "ms": 227,
+      "is_error": false,
+      "sentence": "Within the allowance. Call payment_execute with payment_id pi_e8089254662c99e89a74dc8ff0edd8dc to pay."
+    },
+    {
+      "at": "2026-10-25T19:57:28.135Z",
+      "step": "second payment to Dave",
+      "status": "prepared",
+      "lane": "autonomous"
+    },
+    {
+      "at": "2026-10-25T19:57:32.631Z",
+      "step": "payment_execute",
+      "ms": 4496,
+      "is_error": false,
+      "sentence": "Paid 0.50 USDC to Dave from the allowance; Nod paid the network fee. Transaction e4495376f1701eeb5eb27612c6dbe58b26857db9c09560e3398f9a367fb50522 (https://stellar.expert/explorer/testnet/tx/e4495376f1701eeb5eb27612c6dbe58b26857db9c09560e3398f9a367fb50522). This AI app may still spend 4.50 USDC."
+    },
+    {
+      "at": "2026-10-25T19:57:32.631Z",
+      "step": "second payment to Dave, alone",
+      "status": "confirmed",
+      "tx": "https://stellar.expert/explorer/testnet/tx/e4495376f1701eeb5eb27612c6dbe58b26857db9c09560e3398f9a367fb50522"
+    },
+    {
+      "at": "2026-10-25T19:57:32.708Z",
+      "step": "contact_update",
+      "ms": 77,
+      "is_error": false,
+      "sentence": "Updated Dave."
+    },
+    {
+      "at": "2026-10-25T19:57:32.708Z",
+      "step": "contact_update result",
+      "result": "updated"
+    },
+    {
+      "at": "2026-10-25T19:57:32.938Z",
+      "step": "contact_add",
+      "ms": 229,
+      "is_error": false,
+      "sentence": "Saved Temp (GAYSGDREXQMYO5NBVG7JZ5QNDJMNRNE5PQFLLHPT5SYNEDY6LOFTIWWG). Saved by this AI app: the first payment to Temp needs the user's nod (their passkey), whatever the amount."
+    },
+    {
+      "at": "2026-10-25T19:57:32.997Z",
+      "step": "contact_remove",
+      "ms": 59,
+      "is_error": false,
+      "sentence": "Removed Temp from the user's contacts. Payments already made keep their receipts."
+    },
+    {
+      "at": "2026-10-25T19:57:32.997Z",
+      "step": "contact_remove result",
+      "result": "removed"
+    },
+    {
+      "at": "2026-10-25T19:57:47.431Z",
+      "step": "wallet_deposit_address",
+      "ms": 14434,
+      "is_error": false,
+      "sentence": "Send USDC on Stellar Testnet to GDO5OWKRSAVS3BBKWGLWUQXLV35AIDYN5UAS2P5PLV62GLX37UITBPRN, from any exchange or wallet, any amount, no memo. It lands in the Nod wallet within about a minute while Nod watches the address (a day from now; later deposits wait there safely until the user opens Nod). It works until 2027-04-23T19:49:17.274Z."
+    },
+    {
+      "at": "2026-10-25T19:57:47.432Z",
+      "step": "wallet_deposit_address result",
+      "status": "active",
+      "address": "GDO5OWKRSAVS3BBKWGLWUQXLV35AIDYN5UAS2P5PLV62GLX37UITBPRN",
+      "expires_at": "2027-04-23T19:49:17.274Z"
+    },
+    {
+      "at": "2026-10-25T19:57:47.472Z",
+      "step": "payments_list",
+      "ms": 40,
+      "is_error": false,
+      "sentence": "2 payment(s), newest first: 0.50 USDC to Dave (confirmed); 0.50 USDC to Dave (confirmed). Each confirmed one has its receipt and explorer link."
+    },
+    {
+      "at": "2026-10-25T19:57:47.472Z",
+      "step": "payments_list result",
+      "count": 2,
+      "newest": "https://stellar.expert/explorer/testnet/tx/e4495376f1701eeb5eb27612c6dbe58b26857db9c09560e3398f9a367fb50522"
+    },
+    {
+      "at": "2026-10-25T19:57:47.498Z",
+      "step": "connection_grant_update",
+      "ms": 26,
+      "is_error": false,
+      "sentence": "This tool changes nothing itself. Ask the user to open http://localhost:18960/approve/allowance/con_64531c4780d68cf144ebc0581b2b9a05?amount=6.00&hours=48: their passkey signs a new allowance of 6.00 USDC for 48 hours for this AI app, which replaces the current one."
+    },
+    {
+      "at": "2026-10-25T19:57:47.550Z",
+      "step": "browser",
+      "line": "goto http://localhost:18960/approve/allowance/con_64531c4780d68cf144ebc0581b2b9a05?amount=6.00&hours=48 → 200"
+    },
+    {
+      "at": "2026-10-25T19:57:47.614Z",
+      "step": "browser",
+      "line": "screenshot /home/kristjan/code/hack-meridian-2026/evidence/tools/2026-10-25T19-56-49-656Z/allowance-before.png"
+    },
+    {
+      "at": "2026-10-25T19:57:47.658Z",
+      "step": "browser",
+      "line": "click [data-testid=\"allowance-approve\"]"
+    },
+    {
+      "at": "2026-10-25T19:57:58.057Z",
+      "step": "browser",
+      "line": "visible [data-testid=\"allowance-done\"]"
+    },
+    {
+      "at": "2026-10-25T19:57:58.102Z",
+      "step": "browser",
+      "line": "screenshot /home/kristjan/code/hack-meridian-2026/evidence/tools/2026-10-25T19-56-49-656Z/allowance-installed.png"
+    },
+    {
+      "at": "2026-10-25T19:57:58.157Z",
+      "step": "browser",
+      "line": "click [data-testid=\"allowance-remove-old\"]"
+    },
+    {
+      "at": "2026-10-25T19:58:03.504Z",
+      "step": "browser",
+      "line": "text \"The old allowance is removed\""
+    },
+    {
+      "at": "2026-10-25T19:58:03.540Z",
+      "step": "browser",
+      "line": "screenshot /home/kristjan/code/hack-meridian-2026/evidence/tools/2026-10-25T19-56-49-656Z/allowance-old-removed.png"
+    },
+    {
+      "at": "2026-10-25T19:58:03.548Z",
+      "step": "connection_grant_update installed",
+      "url": "http://localhost:18960/approve/allowance/con_64531c4780d68cf144ebc0581b2b9a05?amount=6.00&hours=48",
+      "install_tx": "https://stellar.expert/explorer/testnet/tx/34195e4253b74612681ee2b577038f9e263dfd7838c29b332139c9186997127e",
+      "removal": "The old allowance is removed: 5ec78390363b96c3f70b73a4e6aa21fca1b242f80aadbd43fa299fc221cc5f03"
+    },
+    {
+      "at": "2026-10-25T19:58:04.145Z",
+      "step": "wallet_overview",
+      "ms": 597,
+      "is_error": false,
+      "sentence": "Nod wallet Personal (Stellar Testnet) holds 9.00 USDC. This AI app may still spend 6.00 USDC on its own until 2026-10-27T19:57:49.182Z; anything bigger needs the user's nod."
+    },
+    {
+      "at": "2026-10-25T19:58:04.145Z",
+      "step": "allowance after the update",
+      "total": "6.00",
+      "remaining": "6.00",
+      "valid_until": "2026-10-27T19:57:49.182Z",
+      "install_tx": "https://stellar.expert/explorer/testnet/tx/34195e4253b74612681ee2b577038f9e263dfd7838c29b332139c9186997127e"
+    }
+  ],
+  "calls": [
+    {
+      "tool": "wallet_overview",
+      "arguments": {},
+      "ms": 388,
+      "structured": {
+        "network": "stellar:testnet",
+        "explorer_base": "https://stellar.expert/explorer/testnet",
+        "wallet": {
+          "id": "wal_48b5a5ba151cb35da72b8894eac4b90a",
+          "name": "Personal",
+          "contract_id": "CBYV6YIOGMHS3TF3IQ5O2SM7WJXBCMQSJX7K6GANOX5GSABRONCN7RIM",
+          "network": "stellar:testnet",
+          "deploy_tx": "109096d29a6491fb3b49c31900473516f7a41ed944d5731b06e51818a0742f50",
+          "fund_tx": "7c218c6b02b00b2005e11e835d273361aaedbdcb241f8aedf04de28def363758"
+        },
+        "balances": {
+          "usdc": "10.00",
+          "xlm": "0.00"
+        },
+        "grant": {
+          "grant_id": "gr_2cf7fa1a57b2bb9ff465835a2d4e94ae",
+          "asset": "USDC",
+          "total": "5.00",
+          "spent": "0.00",
+          "reserved": "0.00",
+          "pocket_balance": "0.00",
+          "remaining": "5.00",
+          "valid_until": "2026-10-26T12:00:01.731Z",
+          "status": "active",
+          "rule_id": 1,
+          "install_tx": "1ec7198ddb37da72cebc89ed0eedbd32885ae8b0b65ff8ed675947acd9a03aca",
+          "remove_tx": null
+        },
+        "pending_approvals": [],
+        "recent_receipts": [],
+        "connection": {
+          "id": "con_64531c4780d68cf144ebc0581b2b9a05",
+          "client_name": "Tools run",
+          "status": "active"
+        },
+        "grant_remaining": "5.00"
+      },
+      "text": "Nod wallet Personal (Stellar Testnet) holds 10.00 USDC. This AI app may still spend 5.00 USDC on its own until 2026-10-26T12:00:01.731Z; anything bigger needs the user's nod.",
+      "isError": false
+    },
+    {
+      "tool": "contact_add",
+      "arguments": {
+        "name": "Dave",
+        "address": "GASI5R5JRKJDWUNPBWVDMSPIJP65GCMB7UJJSXEUV2VNMP2MWJQV5ZEW",
+        "idempotency_key": "add-2026-10-25T19-56-49-656Z"
+      },
+      "ms": 205,
+      "structured": {
+        "contact": {
+          "contact_id": "ct_a7194e7146d01fa1c9fd9b9fbd975f7c",
+          "name": "Dave",
+          "aliases": [],
+          "destinations": [
+            {
+              "address": "GASI5R5JRKJDWUNPBWVDMSPIJP65GCMB7UJJSXEUV2VNMP2MWJQV5ZEW",
+              "network": "stellar:testnet",
+              "memo": null,
+              "readiness": [
+                "usdc_ready"
+              ],
+              "last_paid_at": null
+            }
+          ],
+          "added_by": "Tools run"
+        },
+        "result": "added",
+        "message": "Saved Dave (GASI5R5JRKJDWUNPBWVDMSPIJP65GCMB7UJJSXEUV2VNMP2MWJQV5ZEW). Saved by this AI app: the first payment to Dave needs the user's nod (their passkey), whatever the amount.",
+        "grant_remaining": "5.00"
+      },
+      "text": "Saved Dave (GASI5R5JRKJDWUNPBWVDMSPIJP65GCMB7UJJSXEUV2VNMP2MWJQV5ZEW). Saved by this AI app: the first payment to Dave needs the user's nod (their passkey), whatever the amount.",
+      "isError": false
+    },
+    {
+      "tool": "payment_prepare",
+      "arguments": {
+        "recipient": "Dave",
+        "amount": "0.50",
+        "idempotency_key": "dave-1-2026-10-25T19-56-49-656Z"
+      },
+      "ms": 241,
+      "structured": {
+        "payment_id": "pi_0d3a05ea1b5aa10bdb7d3d602a8310d5",
+        "kind": "payment",
+        "status": "awaiting_approval",
+        "lane": "owner",
+        "approval_reason": "new_contact",
+        "amount": "0.50",
+        "asset": "USDC",
+        "network": "stellar:testnet",
+        "recipient": {
+          "name": "Dave",
+          "address": "GASI5R5JRKJDWUNPBWVDMSPIJP65GCMB7UJJSXEUV2VNMP2MWJQV5ZEW",
+          "readiness": "usdc_ready"
+        },
+        "fee_ceiling_xlm": 12,
+        "reason": null,
+        "expires_at": "2026-10-25T20:27:23.741Z",
+        "approval_url": "http://localhost:18960/approve/pi_0d3a05ea1b5aa10bdb7d3d602a8310d5",
+        "claim_url": null,
+        "receipt": null,
+        "failure": null,
+        "next_step": "This needs the user's nod. Ask the user to open http://localhost:18960/approve/pi_0d3a05ea1b5aa10bdb7d3d602a8310d5 and approve it with their passkey, then poll payment_status with payment_id pi_0d3a05ea1b5aa10bdb7d3d602a8310d5.",
+        "grant_remaining": "5.00",
+        "outcome": "requires_approval"
+      },
+      "text": "This payment of 0.50 USDC to Dave goes to an address an AI app saved and the user never paid, so the first payment needs the user's nod. Ask the user to open http://localhost:18960/approve/pi_0d3a05ea1b5aa10bdb7d3d602a8310d5 and approve it with their passkey, then call payment_status with payment_id pi_0d3a05ea1b5aa10bdb7d3d602a8310d5.",
+      "isError": false
+    },
+    {
+      "tool": "payment_status",
+      "arguments": {
+        "payment_id": "pi_0d3a05ea1b5aa10bdb7d3d602a8310d5"
+      },
+      "ms": 40,
+      "structured": {
+        "payment_id": "pi_0d3a05ea1b5aa10bdb7d3d602a8310d5",
+        "kind": "payment",
+        "status": "confirmed",
+        "lane": "owner",
+        "approval_reason": "new_contact",
+        "amount": "0.50",
+        "asset": "USDC",
+        "network": "stellar:testnet",
+        "recipient": {
+          "name": "Dave",
+          "address": "GASI5R5JRKJDWUNPBWVDMSPIJP65GCMB7UJJSXEUV2VNMP2MWJQV5ZEW",
+          "readiness": "usdc_ready"
+        },
+        "fee_ceiling_xlm": 12,
+        "reason": null,
+        "expires_at": "2026-10-25T20:27:23.741Z",
+        "approval_url": null,
+        "claim_url": null,
+        "receipt": {
+          "receipt_id": "rc_68632b2c4224cdd001c937940a9a0bd5",
+          "payment_id": "pi_0d3a05ea1b5aa10bdb7d3d602a8310d5",
+          "kind": "payment",
+          "amount": "0.50",
+          "asset": "USDC",
+          "recipient": "GASI5R5JRKJDWUNPBWVDMSPIJP65GCMB7UJJSXEUV2VNMP2MWJQV5ZEW",
+          "recipient_name": "Dave",
+          "lane": "owner",
+          "tx_hash": "5fe7f794345daa596b4f47bfb46ff110511b65f6c3eaad2ebc25180c43784fa5",
+          "ledger": 5386932,
+          "confirmed_at": "2026-10-25T19:57:27.316Z",
+          "explorer_url": "https://stellar.expert/explorer/testnet/tx/5fe7f794345daa596b4f47bfb46ff110511b65f6c3eaad2ebc25180c43784fa5",
+          "pull_tx_hash": null,
+          "pull_explorer_url": null,
+          "fee_xlm": "0.0012939",
+          "fee_paid_by": "relayer",
+          "requester": "Tools run",
+          "resource": null
+        },
+        "failure": null,
+        "next_step": "Confirmed on Stellar: the user approved this payment with their passkey on Nod's approval page. The receipt is final.",
+        "grant_remaining": "5.00"
+      },
+      "text": "Confirmed. Transaction 5fe7f794345daa596b4f47bfb46ff110511b65f6c3eaad2ebc25180c43784fa5 in ledger 5386932 (https://stellar.expert/explorer/testnet/tx/5fe7f794345daa596b4f47bfb46ff110511b65f6c3eaad2ebc25180c43784fa5). Confirmed on Stellar: the user approved this payment with their passkey on Nod's approval page. The receipt is final.",
+      "isError": false
+    },
+    {
+      "tool": "payment_prepare",
+      "arguments": {
+        "recipient": "Dave",
+        "amount": "0.50",
+        "idempotency_key": "dave-2-2026-10-25T19-56-49-656Z"
+      },
+      "ms": 227,
+      "structured": {
+        "payment_id": "pi_e8089254662c99e89a74dc8ff0edd8dc",
+        "kind": "payment",
+        "status": "prepared",
+        "lane": "autonomous",
+        "approval_reason": null,
+        "amount": "0.50",
+        "asset": "USDC",
+        "network": "stellar:testnet",
+        "recipient": {
+          "name": "Dave",
+          "address": "GASI5R5JRKJDWUNPBWVDMSPIJP65GCMB7UJJSXEUV2VNMP2MWJQV5ZEW",
+          "readiness": "usdc_ready"
+        },
+        "fee_ceiling_xlm": 100,
+        "reason": null,
+        "expires_at": "2026-10-25T20:27:28.100Z",
+        "approval_url": null,
+        "claim_url": null,
+        "receipt": null,
+        "failure": null,
+        "next_step": "Within the allowance. Call payment_execute with payment_id pi_e8089254662c99e89a74dc8ff0edd8dc to pay.",
+        "grant_remaining": "5.00",
+        "outcome": "ready_to_execute"
+      },
+      "text": "Within the allowance. Call payment_execute with payment_id pi_e8089254662c99e89a74dc8ff0edd8dc to pay.",
+      "isError": false
+    },
+    {
+      "tool": "payment_execute",
+      "arguments": {
+        "payment_id": "pi_e8089254662c99e89a74dc8ff0edd8dc",
+        "idempotency_key": "dave-2-exec-2026-10-25T19-56-49-656Z"
+      },
+      "ms": 4496,
+      "structured": {
+        "payment_id": "pi_e8089254662c99e89a74dc8ff0edd8dc",
+        "kind": "payment",
+        "status": "confirmed",
+        "lane": "autonomous",
+        "approval_reason": null,
+        "amount": "0.50",
+        "asset": "USDC",
+        "network": "stellar:testnet",
+        "recipient": {
+          "name": "Dave",
+          "address": "GASI5R5JRKJDWUNPBWVDMSPIJP65GCMB7UJJSXEUV2VNMP2MWJQV5ZEW",
+          "readiness": "usdc_ready"
+        },
+        "fee_ceiling_xlm": 100,
+        "reason": null,
+        "expires_at": "2026-10-25T20:27:28.100Z",
+        "approval_url": null,
+        "claim_url": null,
+        "receipt": {
+          "receipt_id": "rc_43f9db2a4085cfd0b1f85ff8774656e3",
+          "payment_id": "pi_e8089254662c99e89a74dc8ff0edd8dc",
+          "kind": "payment",
+          "amount": "0.50",
+          "asset": "USDC",
+          "recipient": "GASI5R5JRKJDWUNPBWVDMSPIJP65GCMB7UJJSXEUV2VNMP2MWJQV5ZEW",
+          "recipient_name": "Dave",
+          "lane": "autonomous",
+          "tx_hash": "e4495376f1701eeb5eb27612c6dbe58b26857db9c09560e3398f9a367fb50522",
+          "ledger": 5386933,
+          "confirmed_at": "2026-10-25T19:57:32.570Z",
+          "explorer_url": "https://stellar.expert/explorer/testnet/tx/e4495376f1701eeb5eb27612c6dbe58b26857db9c09560e3398f9a367fb50522",
+          "pull_tx_hash": null,
+          "pull_explorer_url": null,
+          "fee_xlm": "0.0407181",
+          "fee_paid_by": "relayer",
+          "requester": "Tools run",
+          "resource": null
+        },
+        "failure": null,
+        "next_step": "Confirmed on Stellar; the receipt is final.",
+        "grant_remaining": "4.50"
+      },
+      "text": "Paid 0.50 USDC to Dave from the allowance; Nod paid the network fee. Transaction e4495376f1701eeb5eb27612c6dbe58b26857db9c09560e3398f9a367fb50522 (https://stellar.expert/explorer/testnet/tx/e4495376f1701eeb5eb27612c6dbe58b26857db9c09560e3398f9a367fb50522). This AI app may still spend 4.50 USDC.",
+      "isError": false
+    },
+    {
+      "tool": "contact_update",
+      "arguments": {
+        "contact": "Dave",
+        "aliases": [
+          "dave from the run"
+        ],
+        "idempotency_key": "upd-2026-10-25T19-56-49-656Z"
+      },
+      "ms": 77,
+      "structured": {
+        "contact": {
+          "contact_id": "ct_a7194e7146d01fa1c9fd9b9fbd975f7c",
+          "name": "Dave",
+          "aliases": [
+            "dave from the run"
+          ],
+          "destinations": [
+            {
+              "address": "GASI5R5JRKJDWUNPBWVDMSPIJP65GCMB7UJJSXEUV2VNMP2MWJQV5ZEW",
+              "network": "stellar:testnet",
+              "memo": null,
+              "readiness": [
+                "usdc_ready",
+                "paid_before"
+              ],
+              "last_paid_at": "2026-10-25T19:57:32.570Z"
+            }
+          ],
+          "added_by": "Tools run"
+        },
+        "result": "updated",
+        "message": "Updated Dave.",
+        "grant_remaining": "4.50"
+      },
+      "text": "Updated Dave.",
+      "isError": false
+    },
+    {
+      "tool": "contact_add",
+      "arguments": {
+        "name": "Temp",
+        "address": "GAYSGDREXQMYO5NBVG7JZ5QNDJMNRNE5PQFLLHPT5SYNEDY6LOFTIWWG",
+        "idempotency_key": "add-temp-2026-10-25T19-56-49-656Z"
+      },
+      "ms": 229,
+      "structured": {
+        "contact": {
+          "contact_id": "ct_fe6b6559b8e2e892de8a0a09f85729c5",
+          "name": "Temp",
+          "aliases": [],
+          "destinations": [
+            {
+              "address": "GAYSGDREXQMYO5NBVG7JZ5QNDJMNRNE5PQFLLHPT5SYNEDY6LOFTIWWG",
+              "network": "stellar:testnet",
+              "memo": null,
+              "readiness": [
+                "account_missing"
+              ],
+              "last_paid_at": null
+            }
+          ],
+          "added_by": "Tools run"
+        },
+        "result": "added",
+        "message": "Saved Temp (GAYSGDREXQMYO5NBVG7JZ5QNDJMNRNE5PQFLLHPT5SYNEDY6LOFTIWWG). Saved by this AI app: the first payment to Temp needs the user's nod (their passkey), whatever the amount.",
+        "grant_remaining": "4.50"
+      },
+      "text": "Saved Temp (GAYSGDREXQMYO5NBVG7JZ5QNDJMNRNE5PQFLLHPT5SYNEDY6LOFTIWWG). Saved by this AI app: the first payment to Temp needs the user's nod (their passkey), whatever the amount.",
+      "isError": false
+    },
+    {
+      "tool": "contact_remove",
+      "arguments": {
+        "contact": "Temp",
+        "idempotency_key": "rm-temp-2026-10-25T19-56-49-656Z"
+      },
+      "ms": 59,
+      "structured": {
+        "contact": {
+          "contact_id": "ct_fe6b6559b8e2e892de8a0a09f85729c5",
+          "name": "Temp",
+          "aliases": [],
+          "destinations": [
+            {
+              "address": "GAYSGDREXQMYO5NBVG7JZ5QNDJMNRNE5PQFLLHPT5SYNEDY6LOFTIWWG",
+              "network": "stellar:testnet",
+              "memo": null,
+              "readiness": [
+                "account_missing"
+              ],
+              "last_paid_at": null
+            }
+          ],
+          "added_by": "Tools run"
+        },
+        "result": "removed",
+        "message": "Removed Temp from the user's contacts. Payments already made keep their receipts.",
+        "grant_remaining": "4.50"
+      },
+      "text": "Removed Temp from the user's contacts. Payments already made keep their receipts.",
+      "isError": false
+    },
+    {
+      "tool": "wallet_deposit_address",
+      "arguments": {},
+      "ms": 14434,
+      "structured": {
+        "network": "stellar:testnet",
+        "wallet_contract_id": "CBYV6YIOGMHS3TF3IQ5O2SM7WJXBCMQSJX7K6GANOX5GSABRONCN7RIM",
+        "account_status": "active",
+        "grant_remaining": "4.50",
+        "status": "active",
+        "address": "GDO5OWKRSAVS3BBKWGLWUQXLV35AIDYN5UAS2P5PLV62GLX37UITBPRN",
+        "expires_at": "2027-04-23T19:49:17.274Z",
+        "pending": "0.00",
+        "received_total": "0.00",
+        "message": "Send USDC on Stellar Testnet to GDO5OWKRSAVS3BBKWGLWUQXLV35AIDYN5UAS2P5PLV62GLX37UITBPRN, from any exchange or wallet, any amount, no memo. It lands in the Nod wallet within about a minute while Nod watches the address (a day from now; later deposits wait there safely until the user opens Nod). It works until 2027-04-23T19:49:17.274Z."
+      },
+      "text": "Send USDC on Stellar Testnet to GDO5OWKRSAVS3BBKWGLWUQXLV35AIDYN5UAS2P5PLV62GLX37UITBPRN, from any exchange or wallet, any amount, no memo. It lands in the Nod wallet within about a minute while Nod watches the address (a day from now; later deposits wait there safely until the user opens Nod). It works until 2027-04-23T19:49:17.274Z.",
+      "isError": false
+    },
+    {
+      "tool": "payments_list",
+      "arguments": {
+        "limit": 10
+      },
+      "ms": 40,
+      "structured": {
+        "payments": [
+          {
+            "payment_id": "pi_e8089254662c99e89a74dc8ff0edd8dc",
+            "kind": "payment",
+            "status": "confirmed",
+            "lane": "autonomous",
+            "approval_reason": null,
+            "amount": "0.50",
+            "asset": "USDC",
+            "network": "stellar:testnet",
+            "recipient": {
+              "name": "Dave",
+              "address": "GASI5R5JRKJDWUNPBWVDMSPIJP65GCMB7UJJSXEUV2VNMP2MWJQV5ZEW",
+              "readiness": "usdc_ready"
+            },
+            "fee_ceiling_xlm": 100,
+            "reason": null,
+            "expires_at": "2026-10-25T20:27:28.100Z",
+            "approval_url": null,
+            "claim_url": null,
+            "receipt": {
+              "receipt_id": "rc_43f9db2a4085cfd0b1f85ff8774656e3",
+              "payment_id": "pi_e8089254662c99e89a74dc8ff0edd8dc",
+              "kind": "payment",
+              "amount": "0.50",
+              "asset": "USDC",
+              "recipient": "GASI5R5JRKJDWUNPBWVDMSPIJP65GCMB7UJJSXEUV2VNMP2MWJQV5ZEW",
+              "recipient_name": "Dave",
+              "lane": "autonomous",
+              "tx_hash": "e4495376f1701eeb5eb27612c6dbe58b26857db9c09560e3398f9a367fb50522",
+              "ledger": 5386933,
+              "confirmed_at": "2026-10-25T19:57:32.570Z",
+              "explorer_url": "https://stellar.expert/explorer/testnet/tx/e4495376f1701eeb5eb27612c6dbe58b26857db9c09560e3398f9a367fb50522",
+              "pull_tx_hash": null,
+              "pull_explorer_url": null,
+              "fee_xlm": "0.0407181",
+              "fee_paid_by": "relayer",
+              "requester": "Tools run",
+              "resource": null
+            },
+            "failure": null,
+            "next_step": "Confirmed on Stellar; the receipt is final.",
+            "grant_remaining": "4.50"
+          },
+          {
+            "payment_id": "pi_0d3a05ea1b5aa10bdb7d3d602a8310d5",
+            "kind": "payment",
+            "status": "confirmed",
+            "lane": "owner",
+            "approval_reason": "new_contact",
+            "amount": "0.50",
+            "asset": "USDC",
+            "network": "stellar:testnet",
+            "recipient": {
+              "name": "Dave",
+              "address": "GASI5R5JRKJDWUNPBWVDMSPIJP65GCMB7UJJSXEUV2VNMP2MWJQV5ZEW",
+              "readiness": "usdc_ready"
+            },
+            "fee_ceiling_xlm": 12,
+            "reason": null,
+            "expires_at": "2026-10-25T20:27:23.741Z",
+            "approval_url": null,
+            "claim_url": null,
+            "receipt": {
+              "receipt_id": "rc_68632b2c4224cdd001c937940a9a0bd5",
+              "payment_id": "pi_0d3a05ea1b5aa10bdb7d3d602a8310d5",
+              "kind": "payment",
+              "amount": "0.50",
+              "asset": "USDC",
+              "recipient": "GASI5R5JRKJDWUNPBWVDMSPIJP65GCMB7UJJSXEUV2VNMP2MWJQV5ZEW",
+              "recipient_name": "Dave",
+              "lane": "owner",
+              "tx_hash": "5fe7f794345daa596b4f47bfb46ff110511b65f6c3eaad2ebc25180c43784fa5",
+              "ledger": 5386932,
+              "confirmed_at": "2026-10-25T19:57:27.316Z",
+              "explorer_url": "https://stellar.expert/explorer/testnet/tx/5fe7f794345daa596b4f47bfb46ff110511b65f6c3eaad2ebc25180c43784fa5",
+              "pull_tx_hash": null,
+              "pull_explorer_url": null,
+              "fee_xlm": "0.0012939",
+              "fee_paid_by": "relayer",
+              "requester": "Tools run",
+              "resource": null
+            },
+            "failure": null,
+            "next_step": "Confirmed on Stellar: the user approved this payment with their passkey on Nod's approval page. The receipt is final.",
+            "grant_remaining": "4.50"
+          }
+        ],
+        "grant_remaining": "4.50"
+      },
+      "text": "2 payment(s), newest first: 0.50 USDC to Dave (confirmed); 0.50 USDC to Dave (confirmed). Each confirmed one has its receipt and explorer link.",
+      "isError": false
+    },
+    {
+      "tool": "connection_grant_update",
+      "arguments": {
+        "amount": "6",
+        "valid_for_hours": 48,
+        "idempotency_key": "up-2026-10-25T19-56-49-656Z"
+      },
+      "ms": 26,
+      "structured": {
+        "url": "http://localhost:18960/approve/allowance/con_64531c4780d68cf144ebc0581b2b9a05?amount=6.00&hours=48",
+        "requested": {
+          "amount": "6.00",
+          "valid_for_hours": 48
+        },
+        "grant": {
+          "grant_id": "gr_2cf7fa1a57b2bb9ff465835a2d4e94ae",
+          "asset": "USDC",
+          "total": "5.00",
+          "spent": "0.50",
+          "reserved": "0.00",
+          "pocket_balance": "0.00",
+          "remaining": "4.50",
+          "valid_until": "2026-10-26T12:00:01.731Z",
+          "status": "active",
+          "rule_id": 1,
+          "install_tx": "1ec7198ddb37da72cebc89ed0eedbd32885ae8b0b65ff8ed675947acd9a03aca",
+          "remove_tx": null
+        },
+        "message": "This tool changes nothing itself. Ask the user to open http://localhost:18960/approve/allowance/con_64531c4780d68cf144ebc0581b2b9a05?amount=6.00&hours=48: their passkey signs a new allowance of 6.00 USDC for 48 hours for this AI app, which replaces the current one.",
+        "grant_remaining": "4.50"
+      },
+      "text": "This tool changes nothing itself. Ask the user to open http://localhost:18960/approve/allowance/con_64531c4780d68cf144ebc0581b2b9a05?amount=6.00&hours=48: their passkey signs a new allowance of 6.00 USDC for 48 hours for this AI app, which replaces the current one.",
+      "isError": false
+    },
+    {
+      "tool": "wallet_overview",
+      "arguments": {},
+      "ms": 597,
+      "structured": {
+        "network": "stellar:testnet",
+        "explorer_base": "https://stellar.expert/explorer/testnet",
+        "wallet": {
+          "id": "wal_48b5a5ba151cb35da72b8894eac4b90a",
+          "name": "Personal",
+          "contract_id": "CBYV6YIOGMHS3TF3IQ5O2SM7WJXBCMQSJX7K6GANOX5GSABRONCN7RIM",
+          "network": "stellar:testnet",
+          "deploy_tx": "109096d29a6491fb3b49c31900473516f7a41ed944d5731b06e51818a0742f50",
+          "fund_tx": "7c218c6b02b00b2005e11e835d273361aaedbdcb241f8aedf04de28def363758"
+        },
+        "balances": {
+          "usdc": "9.00",
+          "xlm": "0.00"
+        },
+        "grant": {
+          "grant_id": "gr_2cf7fa1a57b2bb9ff465835a2d4e94ae",
+          "asset": "USDC",
+          "total": "6.00",
+          "spent": "0.00",
+          "reserved": "0.00",
+          "pocket_balance": "0.00",
+          "remaining": "6.00",
+          "valid_until": "2026-10-27T19:57:49.182Z",
+          "status": "active",
+          "rule_id": 2,
+          "install_tx": "34195e4253b74612681ee2b577038f9e263dfd7838c29b332139c9186997127e",
+          "remove_tx": null
+        },
+        "pending_approvals": [],
+        "recent_receipts": [
+          {
+            "receipt_id": "rc_43f9db2a4085cfd0b1f85ff8774656e3",
+            "payment_id": "pi_e8089254662c99e89a74dc8ff0edd8dc",
+            "kind": "payment",
+            "amount": "0.50",
+            "asset": "USDC",
+            "recipient": "GASI5R5JRKJDWUNPBWVDMSPIJP65GCMB7UJJSXEUV2VNMP2MWJQV5ZEW",
+            "recipient_name": "Dave",
+            "lane": "autonomous",
+            "tx_hash": "e4495376f1701eeb5eb27612c6dbe58b26857db9c09560e3398f9a367fb50522",
+            "ledger": 5386933,
+            "confirmed_at": "2026-10-25T19:57:32.570Z",
+            "explorer_url": "https://stellar.expert/explorer/testnet/tx/e4495376f1701eeb5eb27612c6dbe58b26857db9c09560e3398f9a367fb50522",
+            "pull_tx_hash": null,
+            "pull_explorer_url": null,
+            "fee_xlm": "0.0407181",
+            "fee_paid_by": "relayer",
+            "requester": "Tools run",
+            "resource": null
+          },
+          {
+            "receipt_id": "rc_68632b2c4224cdd001c937940a9a0bd5",
+            "payment_id": "pi_0d3a05ea1b5aa10bdb7d3d602a8310d5",
+            "kind": "payment",
+            "amount": "0.50",
+            "asset": "USDC",
+            "recipient": "GASI5R5JRKJDWUNPBWVDMSPIJP65GCMB7UJJSXEUV2VNMP2MWJQV5ZEW",
+            "recipient_name": "Dave",
+            "lane": "owner",
+            "tx_hash": "5fe7f794345daa596b4f47bfb46ff110511b65f6c3eaad2ebc25180c43784fa5",
+            "ledger": 5386932,
+            "confirmed_at": "2026-10-25T19:57:27.316Z",
+            "explorer_url": "https://stellar.expert/explorer/testnet/tx/5fe7f794345daa596b4f47bfb46ff110511b65f6c3eaad2ebc25180c43784fa5",
+            "pull_tx_hash": null,
+            "pull_explorer_url": null,
+            "fee_xlm": "0.0012939",
+            "fee_paid_by": "relayer",
+            "requester": "Tools run",
+            "resource": null
+          }
+        ],
+        "connection": {
+          "id": "con_64531c4780d68cf144ebc0581b2b9a05",
+          "client_name": "Tools run",
+          "status": "active"
+        },
+        "grant_remaining": "6.00"
+      },
+      "text": "Nod wallet Personal (Stellar Testnet) holds 9.00 USDC. This AI app may still spend 6.00 USDC on its own until 2026-10-27T19:57:49.182Z; anything bigger needs the user's nod.",
+      "isError": false
+    }
+  ]
+}
