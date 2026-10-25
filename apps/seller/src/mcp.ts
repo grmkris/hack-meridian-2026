@@ -12,7 +12,7 @@ import {
 import { createPaymentWrapper, extractPaymentFromMeta, type x402ResourceServer } from '@x402/mcp'
 
 import { marketBrief } from './brief.ts'
-import { MAX_TIMEOUT_SECONDS, NETWORK, PRICE, fingerprint, type Env } from './config.ts'
+import { MAX_TIMEOUT_SECONDS, PRICE_STROOPS, fingerprint, type Env, type Settings } from './config.ts'
 import { ensureReady } from './ready.ts'
 
 const TOOL = 'market_brief'
@@ -21,21 +21,21 @@ type Paid = ReturnType<ReturnType<typeof createPaymentWrapper>>
 let paidTool: Paid | undefined
 
 /** The x402-wrapped handler, built once per isolate after the facilitators' `/supported` answered (src/ready.ts). */
-async function paid(rs: x402ResourceServer, env: Env): Promise<Paid> {
+async function paid(rs: x402ResourceServer, s: Settings): Promise<Paid> {
   if (paidTool !== undefined) return paidTool
   await ensureReady(rs)
   const accepts: Array<PaymentRequirements> = await rs.buildPaymentRequirements({
     scheme: 'exact',
-    network: NETWORK,
-    payTo: env.PAY_TO,
-    price: PRICE,
+    network: s.network,
+    payTo: s.payTo,
+    price: { amount: PRICE_STROOPS, asset: s.usdcSac },
     maxTimeoutSeconds: MAX_TIMEOUT_SECONDS,
   })
   paidTool = createPaymentWrapper(rs, {
     accepts,
     resource: {
       url: `mcp://tool/${TOOL}`,
-      description: 'Stellar testnet market brief, 0.10 USDC per call',
+      description: `Stellar ${s.stellar} market brief, 0.10 USDC per call`,
       mimeType: 'application/json',
     },
     extensions: { [PAYMENT_IDENTIFIER]: declarePaymentIdentifierExtension(false) },
@@ -45,7 +45,7 @@ async function paid(rs: x402ResourceServer, env: Env): Promise<Paid> {
       arguments: args,
       ...(context.meta ? { _meta: context.meta } : {}),
     })
-    const brief = await marketBrief({
+    const brief = await marketBrief(s, {
       via: 'mcp',
       paymentId: payload ? extractPaymentIdentifier(payload) : null,
       ...(args.topic !== undefined ? { topic: args.topic } : {}),
@@ -59,10 +59,11 @@ async function paid(rs: x402ResourceServer, env: Env): Promise<Paid> {
 async function callTool(
   rs: x402ResourceServer,
   env: Env,
+  s: Settings,
   args: { topic?: string | undefined },
   meta: Record<string, unknown> | undefined,
 ) {
-  const handler = await paid(rs, env)
+  const handler = await paid(rs, s)
   const extra = meta ? { _meta: meta } : {}
   const payload = extractPaymentFromMeta({ name: TOOL, arguments: args, ...extra })
   const id = payload ? extractPaymentIdentifier(payload) : null
@@ -98,17 +99,16 @@ async function callTool(
 }
 
 /** Stateless Streamable HTTP: one server and transport per POST, JSON responses, no session id. */
-export async function handleMcp(request: Request, env: Env, rs: x402ResourceServer): Promise<Response> {
+export async function handleMcp(request: Request, env: Env, s: Settings, rs: x402ResourceServer): Promise<Response> {
   const server = new McpServer({ name: 'hm26-seller', version: '0.1.0' })
   server.registerTool(
     TOOL,
     {
       title: 'Market brief (paid, 0.10 USDC)',
-      description:
-        'A short Stellar testnet market brief (XLM/USDC on the testnet DEX, latest ledger). Costs 0.10 USDC per call over x402 on stellar:testnet.',
+      description: `A short Stellar ${s.stellar} market brief (XLM/USDC on the DEX, latest ledger). Costs 0.10 USDC per call over x402 on ${s.network}.`,
       inputSchema: { topic: z.string().max(80).optional().describe('Optional focus, e.g. "XLM/USDC"') },
     },
-    async (args, extra) => callTool(rs, env, args, extra['_meta']),
+    async (args, extra) => callTool(rs, env, s, args, extra['_meta']),
   )
   const transport = new WebStandardStreamableHTTPServerTransport({ enableJsonResponse: true }) // no sessionIdGenerator: stateless
   await server.connect(transport)

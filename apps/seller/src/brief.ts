@@ -1,4 +1,4 @@
-import { HORIZON, USDC_ISSUER } from './config.ts'
+import type { Settings } from './config.ts'
 
 const timeout = () => AbortSignal.timeout(3_000)
 
@@ -19,13 +19,13 @@ const json = async (url: string): Promise<unknown> => {
   return response.json()
 }
 
-/** Best bid and ask for XLM priced in USDC on the testnet DEX, and the latest closed ledger. Best effort. */
-async function market() {
+/** Best bid and ask for XLM priced in USDC on the network's DEX, and the latest closed ledger. Best effort. */
+async function market(settings: Settings) {
   const [book, ledgers] = await Promise.allSettled([
     json(
-      `${HORIZON}/order_book?selling_asset_type=native&buying_asset_type=credit_alphanum4&buying_asset_code=USDC&buying_asset_issuer=${USDC_ISSUER}&limit=1`,
+      `${settings.horizon}/order_book?selling_asset_type=native&buying_asset_type=credit_alphanum4&buying_asset_code=USDC&buying_asset_issuer=${settings.usdcIssuer}&limit=1`,
     ),
-    json(`${HORIZON}/ledgers?order=desc&limit=1`),
+    json(`${settings.horizon}/ledgers?order=desc&limit=1`),
   ])
   const b = book.status === 'fulfilled' ? book.value : undefined
   const l = ledgers.status === 'fulfilled' ? ledgers.value : undefined
@@ -47,20 +47,20 @@ export interface BriefContext {
 }
 
 /** The paid content: a small market brief. It is generated per call, so a cached repeat is visibly the same one. */
-export async function marketBrief(context: BriefContext) {
-  const facts = await market()
+export async function marketBrief(settings: Settings, context: BriefContext) {
+  const facts = await market(settings)
   const mid = facts.xlm_in_usdc.mid
   return {
-    title: 'Stellar testnet market brief',
+    title: `Stellar ${settings.stellar} market brief`,
     topic: context.topic ?? 'XLM/USDC',
     generated_at: new Date().toISOString(),
     payment_id: context.paymentId,
     via: context.via,
-    price: { amount: '0.10', asset: 'USDC', network: 'stellar:testnet' },
+    price: { amount: '0.10', asset: 'USDC', network: settings.network },
     summary:
       mid === null
-        ? 'The testnet DEX order book for XLM/USDC is unavailable right now; ledgers keep closing every ~5 s.'
-        : `1 XLM ≈ ${mid} USDC on the testnet DEX (best bid ${facts.xlm_in_usdc.bid}, best ask ${facts.xlm_in_usdc.ask}).`,
+        ? `The ${settings.stellar} DEX order book for XLM/USDC is unavailable right now; ledgers keep closing every ~5 s.`
+        : `1 XLM ≈ ${mid} USDC on the ${settings.stellar} DEX (best bid ${facts.xlm_in_usdc.bid}, best ask ${facts.xlm_in_usdc.ask}).`,
     ...facts,
     seller: 'hm26-seller (stellarmcpwallet demo)',
   }

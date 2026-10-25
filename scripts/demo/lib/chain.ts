@@ -1,7 +1,17 @@
 import { Schema } from 'effect'
 
 import { Stellar } from '../../../apps/seller/demo-deps.ts'
-import { HORIZON_URL, PASSPHRASE, RPC_URL, USDC_ISSUER, USDC_SAC, XLM_SAC, explorerTx } from './env.ts'
+import {
+  HORIZON_URL,
+  PASSPHRASE,
+  RPC_URL,
+  STELLAR,
+  USDC_ISSUER,
+  USDC_SAC,
+  XLM_SAC,
+  assertMayTransact,
+  explorerTx,
+} from './env.ts'
 
 /** Classic (Horizon) and Soroban (RPC) helpers for the demo accounts. Testnet only. */
 export const horizon = new Stellar.Horizon.Server(HORIZON_URL)
@@ -19,6 +29,7 @@ export async function exists(address: string): Promise<boolean> {
 /** Friendbot funds a new account with 10,000 XLM; a no-op when the account exists. */
 export async function friendbot(address: string): Promise<'funded' | 'exists'> {
   if (await exists(address)) return 'exists'
+  if (STELLAR !== 'testnet') throw new Error(`friendbot exists only on testnet; fund ${address} by hand`)
   for (let attempt = 1; attempt <= 4; attempt++) {
     const response = await fetch(`https://friendbot.stellar.org?addr=${address}`)
     if (response.ok || (await exists(address))) return 'funded'
@@ -35,6 +46,7 @@ export async function submit(
   label: string,
   signers: ReadonlyArray<Stellar.Keypair> = [],
 ): Promise<string> {
+  assertMayTransact(label)
   const account = await horizon.loadAccount(source.publicKey())
   const builder = new Stellar.TransactionBuilder(account, { fee: '1000', networkPassphrase: PASSPHRASE }).setTimeout(
     120,
@@ -130,6 +142,7 @@ export async function sacBalances(source: string, holder: string) {
 
 /** Invokes a contract with `source` as transaction source, fee payer and (source-account) authorizer. */
 export async function invoke(source: Stellar.Keypair, operation: Stellar.xdr.Operation, label: string) {
+  assertMayTransact(label)
   const account = await rpc.getAccount(source.publicKey())
   const raw = new Stellar.TransactionBuilder(account, { fee: '1000', networkPassphrase: PASSPHRASE })
     .addOperation(operation)

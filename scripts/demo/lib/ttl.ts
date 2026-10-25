@@ -1,20 +1,31 @@
 import { Stellar } from '../../../apps/seller/demo-deps.ts'
 import { rpc } from './chain.ts'
-import { PASSPHRASE, USDC_SAC, explorerTx } from './env.ts'
+import { PASSPHRASE, STELLAR, USDC_SAC, assertMayTransact, explorerTx } from './env.ts'
 
 /**
  * TTLs of the shared contracts every wallet depends on. Nobody owns their rent: if one archives, every delegated
  * payment (policy, verifier), every new wallet (account WASM) or the claim link (router) breaks until restored.
  */
-export const SHARED: ReadonlyArray<{ readonly name: string; readonly contract?: string; readonly wasmHash?: string }> =
-  [
-    { name: 'spending-limit policy', contract: 'CABXBYJNZ7IUW4G3D6BND5YCAQF3ASSDMDAOKQQ63UYFSO7WUU2TIP5G' },
-    { name: 'ed25519 verifier', contract: 'CAAVTMCBXEIBPR64EAASKFXERVPYFZA2JYP5A3BG6PESWEFUJX5IHKN4' },
-    { name: 'webauthn verifier', contract: 'CC7EKIHQP3TN4CARQDND6CEOY2UXLWWC2X5GHTD5NLAT7BG5GPZIOM3F' },
-    { name: 'account wasm', wasmHash: '1b5f4534a76322da2ad7c745f6900857a6802b0ca79850c35a03561df997785a' },
-    { name: 'onboard router (S3)', contract: 'CCLFB4I4CNGWHHL53UO33CSWKKXJBANMDGOGL43J7RBT7SWK2H2BPGN4' },
-    { name: 'USDC SAC', contract: USDC_SAC },
-  ]
+type Shared = ReadonlyArray<{ readonly name: string; readonly contract?: string; readonly wasmHash?: string }>
+const TESTNET_SHARED: Shared = [
+  { name: 'spending-limit policy', contract: 'CABXBYJNZ7IUW4G3D6BND5YCAQF3ASSDMDAOKQQ63UYFSO7WUU2TIP5G' },
+  { name: 'ed25519 verifier', contract: 'CAAVTMCBXEIBPR64EAASKFXERVPYFZA2JYP5A3BG6PESWEFUJX5IHKN4' },
+  { name: 'webauthn verifier', contract: 'CC7EKIHQP3TN4CARQDND6CEOY2UXLWWC2X5GHTD5NLAT7BG5GPZIOM3F' },
+  { name: 'account wasm', wasmHash: '1b5f4534a76322da2ad7c745f6900857a6802b0ca79850c35a03561df997785a' },
+  { name: 'onboard router (S3)', contract: 'CCLFB4I4CNGWHHL53UO33CSWKKXJBANMDGOGL43J7RBT7SWK2H2BPGN4' },
+  { name: 'USDC SAC', contract: USDC_SAC },
+]
+/** Testnet ids are the ones S1–S5 proved; on pubnet the list is `SHARED_CONTRACTS=name=C…,name=C…` plus USDC. */
+export const SHARED: Shared =
+  STELLAR === 'testnet'
+    ? TESTNET_SHARED
+    : [
+        ...(process.env['SHARED_CONTRACTS'] ?? '')
+          .split(',')
+          .filter(entry => entry.includes('='))
+          .map(entry => ({ name: entry.slice(0, entry.indexOf('=')), contract: entry.slice(entry.indexOf('=') + 1) })),
+        { name: 'USDC SAC', contract: USDC_SAC },
+      ]
 
 export const LEDGER_SECONDS = 5
 const instanceKey = (contract: string) =>
@@ -89,6 +100,7 @@ const simulateFee = async (tx: Stellar.Transaction) => {
 }
 
 async function sendSoroban(source: Stellar.Keypair, tx: Stellar.Transaction, maxFeeXlm: number, label: string) {
+  assertMayTransact(label)
   const sim = await rpc.simulateTransaction(tx)
   if (!Stellar.rpc.Api.isSimulationSuccess(sim)) throw new Error(`${label}: simulation failed: ${sim.error}`)
   const feeXlm = Number(sim.minResourceFee) / 1e7

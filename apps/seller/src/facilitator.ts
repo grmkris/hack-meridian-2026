@@ -2,32 +2,24 @@ import { HTTPFacilitatorClient } from '@x402/core/server'
 import type { FacilitatorClient } from '@x402/core/server'
 import { SettleError, VerifyError } from '@x402/core/types'
 
-import { FACILITATORS, type Env, type FacilitatorName } from './config.ts'
+import type { FacilitatorName, Settings } from './config.ts'
 
 interface Named {
   readonly name: FacilitatorName
   readonly client: FacilitatorClient
 }
 
-const client = (name: FacilitatorName, env: Env): Named | undefined => {
-  if (name === 'x402org') return { name, client: new HTTPFacilitatorClient({ url: FACILITATORS.x402org }) }
-  const key = env.OZ_FACILITATOR_KEY
-  if (key === undefined || key === '') return undefined
-  const headers = { Authorization: `Bearer ${key}` }
+const client = (f: Settings['facilitators'][number]): Named => {
+  if (f.key === undefined) return { name: f.name, client: new HTTPFacilitatorClient({ url: f.url }) }
+  const headers = { Authorization: `Bearer ${f.key}` }
   return {
-    name,
+    name: f.name,
     client: new HTTPFacilitatorClient({
-      url: FACILITATORS.oz,
+      url: f.url,
       createAuthHeaders: async () => ({ verify: headers, settle: headers, supported: headers }),
     }),
   }
 }
-
-/** The facilitators in the order this deployment tries them. */
-export const facilitatorOrder = (env: Env): Array<FacilitatorName> =>
-  (env.FACILITATOR === 'oz' ? (['oz', 'x402org'] as const) : (['x402org', 'oz'] as const)).filter(
-    name => client(name, env) !== undefined,
-  )
 
 /**
  * Primary facilitator with a fallback. A structured answer (`VerifyError`, `SettleError`, `isValid: false`) is final;
@@ -37,8 +29,8 @@ export const facilitatorOrder = (env: Env): Array<FacilitatorName> =>
 export class FallbackFacilitator implements FacilitatorClient {
   readonly #clients: ReadonlyArray<Named>
 
-  constructor(env: Env) {
-    this.#clients = facilitatorOrder(env).flatMap(name => client(name, env) ?? [])
+  constructor(settings: Settings) {
+    this.#clients = settings.facilitators.map(client)
   }
 
   verify: FacilitatorClient['verify'] = (payload, requirements) =>

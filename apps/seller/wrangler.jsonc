@@ -7,6 +7,8 @@
   "workers_dev": true,
   "observability": { "enabled": true },
   "vars": {
+    // src/config.ts presets: testnet (this deployment) or pubnet (wrangler.mainnet.jsonc, prepared, not deployed)
+    "STELLAR_NETWORK": "testnet",
     // seller G with a USDC trustline (scripts/demo/seeds.json → accounts.seller)
     "PAY_TO": "GAINGRVWOM5BGQI6GQ7P2OIWTUS65H3PHTEHX365CVDB3NWHC3WVTDNI",
     // x402org first, OpenZeppelin Channels as fallback (secret OZ_FACILITATOR_KEY from .dev.vars); "oz" flips it

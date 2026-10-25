@@ -5,7 +5,7 @@ import { Stellar } from '../../apps/seller/demo-deps.ts'
 import { perform, type Action } from './lib/actions.ts'
 import { ownerBrowser, passkeySelfTest, type OwnerBrowser } from './lib/browser.ts'
 import { classicBalances, sacBalances, sacTransfer, submit, txFacts, USDC, view, type TxFacts } from './lib/chain.ts'
-import { ROOT, SEEDS_FILE, SELLER_URL, hasKey, key, usdc } from './lib/env.ts'
+import { NETWORK, ROOT, SEEDS_FILE, SELLER_URL, STELLAR, explorerTx, hasKey, key, usdc } from './lib/env.ts'
 import { at, parseJson, str } from './lib/json.ts'
 import {
   MemoryAuthProvider,
@@ -31,6 +31,7 @@ import { TARGETS } from './targets.ts'
  *   bun scripts/demo/rehearse.ts --only s4,s5           a subset (s1–s3 always run: they connect)
  *   bun scripts/demo/rehearse.ts --no-recycle           keep Bob's and Carol's USDC (default: back to the treasury)
  *   bun scripts/demo/rehearse.ts --passkey-selftest     prove the virtual authenticator on a local page
+ *   --network pubnet (with HM_URL, RPC_URL, SPENDING_LIMIT_POLICY; transactions need HM26_MAINNET_GO=yes)
  */
 const args = process.argv.slice(2)
 const flag = (name: string) => {
@@ -61,7 +62,10 @@ const password =
     : undefined
 const seeds: unknown = existsSync(SEEDS_FILE) ? parseJson(readFileSync(SEEDS_FILE, 'utf8')) : undefined
 const relayer = str(at(seeds, 'accounts.relayer.address'))
-const POLICY = 'CABXBYJNZ7IUW4G3D6BND5YCAQF3ASSDMDAOKQQ63UYFSO7WUU2TIP5G'
+/** The OpenZeppelin spending-limit policy the service installs (testnet: docs/spikes/s1.md); pubnet: SPENDING_LIMIT_POLICY. */
+const POLICY =
+  process.env['SPENDING_LIMIT_POLICY'] ??
+  (STELLAR === 'testnet' ? 'CABXBYJNZ7IUW4G3D6BND5YCAQF3ASSDMDAOKQQ63UYFSO7WUU2TIP5G' : undefined)
 const t0 = performance.now()
 const ms = () => Math.round(performance.now() - t0)
 
@@ -218,7 +222,7 @@ const ctx: Ctx = {
       step: current,
       label,
       hash,
-      explorer: `https://stellar.expert/explorer/testnet/tx/${hash}`,
+      explorer: explorerTx(hash),
       expectedFeePayer: feePayer,
       ...facts,
     })
@@ -261,7 +265,7 @@ const ctx: Ctx = {
       step: current,
       label: 'treasury top-up (rehearsal only)',
       hash: sent.hash,
-      explorer: `https://stellar.expert/explorer/testnet/tx/${sent.hash}`,
+      explorer: explorerTx(sent.hash),
       expectedFeePayer: 'treasury',
     })
   },
@@ -282,7 +286,7 @@ const ctx: Ctx = {
     return last
   },
   ruleLive: async (contractId, ruleId) => {
-    if (relayer === undefined) return undefined
+    if (relayer === undefined || POLICY === undefined) return undefined
     try {
       await view(relayer, POLICY, 'get_spending_limit_data', [
         Stellar.xdr.ScVal.scvU32(ruleId),
@@ -299,7 +303,7 @@ const ctx: Ctx = {
 }
 
 // ---------------------------------------------------------------- run
-console.log(`rehearsal ${runId} against ${target.name} ${mcpUrl.href}; evidence ${dir}`)
+console.log(`rehearsal ${runId} on ${NETWORK} against ${target.name} ${mcpUrl.href}; evidence ${dir}`)
 for (const step of STEPS) {
   current = step.id
   const always = ['s1', 's2', 's3'].includes(step.id)
@@ -399,6 +403,7 @@ const TITLES: Record<number, string> = {
 const run = {
   run_id: runId,
   target: target.name,
+  network: NETWORK,
   base: target.base,
   mcp: mcpUrl.href,
   seller: SELLER_URL,

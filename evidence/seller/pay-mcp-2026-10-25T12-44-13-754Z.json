@@ -1,0 +1,92 @@
+{
+  "at": "2026-10-25T12:44:13.754Z",
+  "via": "mcp",
+  "seller": "https://hm26-seller.kristjan-grm11775.workers.dev",
+  "payer": "GC6ZISRB5FHJVSQEG35CF3ROL6E6MCYLB2MVEJ35RKXQ6CG4FAGMTJLN",
+  "payment_id": "hm26_demo_dfbb96559ee948eaa55b9fa5592ddf44",
+  "attempts": [
+    {
+      "attempt": 1,
+      "ms": 7227,
+      "status": "tool-result",
+      "signed": 1,
+      "cache": null,
+      "settle": {
+        "success": true,
+        "payer": "GC6ZISRB5FHJVSQEG35CF3ROL6E6MCYLB2MVEJ35RKXQ6CG4FAGMTJLN",
+        "transaction": "4dd5f4ef2310cdd77594d9b240896f165cbd637df1c6217d5a3558ddda2848d6",
+        "network": "stellar:testnet"
+      },
+      "body": {
+        "title": "Stellar testnet market brief",
+        "topic": "XLM/USDC",
+        "generated_at": "2026-10-25T12:44:08.409Z",
+        "payment_id": "hm26_demo_dfbb96559ee948eaa55b9fa5592ddf44",
+        "via": "mcp",
+        "price": {
+          "amount": "0.10",
+          "asset": "USDC",
+          "network": "stellar:testnet"
+        },
+        "summary": "1 XLM ≈ 0.5643723 USDC on the testnet DEX (best bid 0.2475248, best ask 0.8812198).",
+        "xlm_in_usdc": {
+          "bid": "0.2475248",
+          "ask": "0.8812198",
+          "mid": "0.5643723"
+        },
+        "ledger": {
+          "sequence": 5381732,
+          "closed_at": "2026-10-25T12:44:07Z"
+        },
+        "seller": "hm26-seller (stellarmcpwallet demo)"
+      }
+    },
+    {
+      "attempt": 2,
+      "ms": 1070,
+      "status": "tool-result",
+      "signed": 1,
+      "cache": null,
+      "settle": {
+        "success": true,
+        "payer": "GC6ZISRB5FHJVSQEG35CF3ROL6E6MCYLB2MVEJ35RKXQ6CG4FAGMTJLN",
+        "transaction": "4dd5f4ef2310cdd77594d9b240896f165cbd637df1c6217d5a3558ddda2848d6",
+        "network": "stellar:testnet"
+      },
+      "body": {
+        "title": "Stellar testnet market brief",
+        "topic": "XLM/USDC",
+        "generated_at": "2026-10-25T12:44:08.409Z",
+        "payment_id": "hm26_demo_dfbb96559ee948eaa55b9fa5592ddf44",
+        "via": "mcp",
+        "price": {
+          "amount": "0.10",
+          "asset": "USDC",
+          "network": "stellar:testnet"
+        },
+        "summary": "1 XLM ≈ 0.5643723 USDC on the testnet DEX (best bid 0.2475248, best ask 0.8812198).",
+        "xlm_in_usdc": {
+          "bid": "0.2475248",
+          "ask": "0.8812198",
+          "mid": "0.5643723"
+        },
+        "ledger": {
+          "sequence": 5381732,
+          "closed_at": "2026-10-25T12:44:07Z"
+        },
+        "seller": "hm26-seller (stellarmcpwallet demo)"
+      }
+    }
+  ],
+  "settlement": {
+    "hash": "4dd5f4ef2310cdd77594d9b240896f165cbd637df1c6217d5a3558ddda2848d6",
+    "ledger": 5381733,
+    "successful": true,
+    "source": "GC6CSXBV4C6RL3HEDTW57KXYXSSXKAWKGYDEOSATXM3XNKXSR2VRYN3K",
+    "feeAccount": "GC5OLUZ4WANPN6VT7YGTK2SRMZG762KOVKJXHWIO4K57UBASO2FMNRET",
+    "feeCharged": "26098",
+    "createdAt": "2026-10-25T12:44:12Z",
+    "explorer": "https://stellar.expert/explorer/testnet/tx/4dd5f4ef2310cdd77594d9b240896f165cbd637df1c6217d5a3558ddda2848d6"
+  },
+  "same_receipt_on_repeat": true
+}
