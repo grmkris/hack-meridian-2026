@@ -9,12 +9,16 @@ import {
   FOOTER,
   HERO,
   HOW_IT_WORKS,
+  NETWORK_COPY,
+  type NetworkKind,
   PROOF,
   type Point,
   type Proof,
   REPOSITORY_URL,
+  SANDBOX_ORIGIN,
   TRUST,
   TRY_IT,
+  WHY,
 } from './landing-copy'
 
 // The signed-out home as one story: a night over Lisbon behind the hero (landing.css), where the example wallet waits
@@ -27,6 +31,18 @@ type Plate = 'hand' | 'seal' | 'door' | 'ledger' | 'flight'
 export const NIGHT_FLIGHT_SRC = '/landing/night-flight.mp4'
 
 type Side = 'start' | 'end'
+
+/**
+ * The same page is served by the sandbox (testnet.trynod.si, and localhost in development) and by the product on
+ * mainnet (trynod.si). The host in the connector URL, which comes from the page's own origin, picks the few words that
+ * differ (landing-copy.ts NETWORK_COPY).
+ */
+export const networkOf = (connectorUrl: string): NetworkKind => {
+  const host = /^[a-z]+:\/\/([^/:]+)/u.exec(connectorUrl)?.[1] ?? ''
+  return host === 'localhost' || host === '127.0.0.1' || host.startsWith('testnet.') || host.includes('-testnet')
+    ? 'testnet'
+    : 'mainnet'
+}
 
 // ICONS (Lucide, ISC)
 
@@ -73,12 +89,12 @@ const sceneView = <Message>(nightFlight: Attribute<Message>, h: HtmlBuilder<Mess
     ],
   )
 
-const barView = <Message>(h: HtmlBuilder<Message>): Html =>
+const barView = <Message>(network: NetworkKind, h: HtmlBuilder<Message>): Html =>
   h.header(
     [h.Class('landing-bar landing-width')],
     [
       h.p([h.Class('landing-wordmark')], [HERO.wordmark]),
-      h.span([h.Class('landing-network')], [HERO.network]),
+      h.span([h.Class('landing-network')], [NETWORK_COPY[network].badge]),
       h.a(
         [h.Href(REPOSITORY_URL), h.Target('_blank'), h.Rel('noreferrer'), h.Class('landing-bar-link')],
         [FOOTER.source],
@@ -237,7 +253,7 @@ type Slots<Message> = Readonly<{
   example: Example<Message>
 }>
 
-const heroView = <Message>(slots: Slots<Message>, h: HtmlBuilder<Message>): Html =>
+const heroView = <Message>(slots: Slots<Message>, network: NetworkKind, h: HtmlBuilder<Message>): Html =>
   h.section(
     [
       h.Class('landing-hero'),
@@ -246,7 +262,7 @@ const heroView = <Message>(slots: Slots<Message>, h: HtmlBuilder<Message>): Html
       h.AriaLabelledBy('landing-title'),
     ],
     [
-      barView(h),
+      barView(network, h),
       sceneView(slots.nightFlight, h),
       h.div(
         [h.Class('landing-hero-grid landing-width')],
@@ -319,6 +335,22 @@ const pointView = <Message>(point: Point, h: HtmlBuilder<Message>): Html =>
     [h.span([h.Class('landing-point-title')], [point.title]), h.span([h.Class('landing-point-body')], [point.body])],
   )
 
+/** Why a wallet belongs in the chat, before how this one works: the trust chapter's points, beside the swallow. */
+const whyView = <Message>(h: HtmlBuilder<Message>): Html =>
+  chapterView(
+    'why',
+    'flight',
+    'end',
+    [
+      headingView('why', WHY.title, WHY.lead, h),
+      h.ul(
+        [h.Class('landing-points')],
+        Array.map(WHY.points, point => pointView(point, h)),
+      ),
+    ],
+    h,
+  )
+
 const trustView = <Message>(h: HtmlBuilder<Message>): Html =>
   chapterView(
     'trust',
@@ -357,7 +389,7 @@ const proofRowView = <Message>(proof: Proof, h: HtmlBuilder<Message>): Html =>
       h.span([h.Class('landing-ledger-claim')], [proof.claim]),
       h.a(
         [
-          h.Href(`${EXPLORER_TX_URL}${proof.hash}`),
+          h.Href(`${proof.explorer ?? EXPLORER_TX_URL}${proof.hash}`),
           h.Target('_blank'),
           h.Rel('noreferrer'),
           h.Class('landing-ledger-tx'),
@@ -382,24 +414,28 @@ const proofView = <Message>(h: HtmlBuilder<Message>): Html =>
     h,
   )
 
-const tryItView = <Message>(connectorUrl: string, h: HtmlBuilder<Message>): Html =>
+/** Every step works on the sandbox, so on mainnet the block sends the visitor there (its connector, its sample). */
+const tryItView = <Message>(network: NetworkKind, connectorUrl: string, h: HtmlBuilder<Message>): Html =>
   chapterView(
     'try-it',
     'flight',
     'start',
     [
-      headingView('try-it', TRY_IT.title, TRY_IT.lead, h),
+      headingView('try-it', TRY_IT.title, NETWORK_COPY[network].tryLead, h),
       h.ol(
         [h.Class('landing-try')],
         [
-          h.li([], [TRY_IT.connectorStep, h.code([], [connectorUrl])]),
+          h.li(
+            [],
+            [TRY_IT.connectorStep, h.code([], [network === 'mainnet' ? `${SANDBOX_ORIGIN}/mcp` : connectorUrl])],
+          ),
           ...Array.map(TRY_IT.steps, step => h.li([], [step])),
         ],
       ),
       h.div(
         [h.Class('landing-sample')],
         [
-          h.p([], [TRY_IT.sampleLead, h.a([h.Href(TRY_IT.sampleHref)], [TRY_IT.sample])]),
+          h.p([], [TRY_IT.sampleLead, h.a([h.Href(TRY_IT.sampleHref[network])], [TRY_IT.sample])]),
           h.p([h.Class('landing-sample-note')], [TRY_IT.sampleNote]),
         ],
       ),
@@ -420,7 +456,7 @@ const dawnView = <Message>(h: HtmlBuilder<Message>): Html =>
     ],
   )
 
-const footerView = <Message>(h: HtmlBuilder<Message>): Html =>
+const footerView = <Message>(network: NetworkKind, h: HtmlBuilder<Message>): Html =>
   h.footer(
     [h.Class('landing-footer landing-width')],
     [
@@ -428,26 +464,35 @@ const footerView = <Message>(h: HtmlBuilder<Message>): Html =>
         [h.Class('landing-built')],
         Array.map(FOOTER.builtWith, name => h.keyed('li')(name, [], [name])),
       ),
-      h.p([], [FOOTER.note, h.a([h.Href(REPOSITORY_URL), h.Target('_blank'), h.Rel('noreferrer')], [FOOTER.source])]),
-    ],
-  )
-
-export const view = <Message>(slots: Slots<Message>, h: HtmlBuilder<Message>): Html =>
-  h.div(
-    [h.Class('landing')],
-    [
-      heroView(slots, h),
-      h.div(
-        [h.Class('landing-page')],
+      h.p(
+        [],
         [
-          howItWorksView(h),
-          trustView(h),
-          claimView(h),
-          proofView(h),
-          tryItView(slots.connectorUrl, h),
-          dawnView(h),
-          footerView(h),
+          NETWORK_COPY[network].footerNote,
+          h.a([h.Href(REPOSITORY_URL), h.Target('_blank'), h.Rel('noreferrer')], [FOOTER.source]),
         ],
       ),
     ],
   )
+
+export const view = <Message>(slots: Slots<Message>, h: HtmlBuilder<Message>): Html => {
+  const network = networkOf(slots.connectorUrl)
+  return h.div(
+    [h.Class('landing')],
+    [
+      heroView(slots, network, h),
+      h.div(
+        [h.Class('landing-page')],
+        [
+          whyView(h),
+          howItWorksView(h),
+          trustView(h),
+          claimView(h),
+          proofView(h),
+          tryItView(network, slots.connectorUrl, h),
+          dawnView(h),
+          footerView(network, h),
+        ],
+      ),
+    ],
+  )
+}
