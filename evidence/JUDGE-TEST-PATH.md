@@ -1,9 +1,10 @@
 # Nod: judge test path (draft)
 
-Status: **full deployed rehearsal passed 2026-10-25 15:12 UTC** against release `19e1c13`
-(`bun scripts/demo/rehearse.ts --target testnet`): every step s1–s11 green, acceptance checks 1, 2 and 4–9 pass, check 3
-cites the forced-over-limit spike. Live endpoints were checked at 14:33 UTC
-([smoke receipt](review/2026-10-25-testnet-smoke.json)) and by `probe.ts` at 13:45 UTC.
+Status: **full deployed rehearsal passed 2026-10-25 19:16 UTC** against release `5253df0`
+(`bun scripts/demo/rehearse.ts --target testnet`, [run.json](demo/2026-10-25T19-14-24-616Z/run.json)): every step
+s1–s11 green, acceptance checks 1, 2 and 4–9 pass, check 3 cites the forced-over-limit spike. Live endpoints were
+checked on the same release at 19:12 UTC ([smoke receipt](probe/smoke-testnet-2026-10-25T19-12-49Z.json), 9 checks) and
+by `probe.ts` at 19:18 UTC ([probe](probe/2026-10-25T19-18-16-039Z.json)).
 Testnet only: the path uses testnet tokens and testnet transactions.
 
 ## What you need
@@ -15,8 +16,8 @@ Testnet only: the path uses testnet tokens and testnet transactions.
 
 | Thing                    | Value                                                                                                                       |
 | ------------------------ | --------------------------------------------------------------------------------------------------------------------------- |
-| Connector URL (MCP)      | `https://hack-meridian-testnet.kristjan-grm11775.workers.dev/mcp` (live; OAuth authentication required) |
-| Wallet site              | [Open Nod](https://hack-meridian-testnet.kristjan-grm11775.workers.dev)                                               |
+| Connector URL (MCP)      | `https://testnet.trynod.si/mcp` (live; OAuth authentication required)                                                     |
+| Wallet site              | [Open Nod](https://testnet.trynod.si)                                                                                       |
 | Demo seller (x402)       | `https://hm26-seller.kristjan-grm11775.workers.dev/api/market-brief` (live: 0.10 USDC on `stellar:testnet`)                 |
 | Network, asset           | Stellar testnet, Circle testnet USDC (SAC `CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA`)                       |
 | Contacts in every wallet | Alice `CCHECHAS…SO4Q` (smart account), Bob `GACQCAQZ…NGIY` (USDC ready), Carol `GALY5TMI…UUAK` (no USDC trustline)          |
@@ -30,7 +31,7 @@ identifies itself with its published client metadata; nothing to register). Pres
 **Claude Code** instead:
 
 ```sh
-claude mcp add --transport http -s user nod https://hack-meridian-testnet.kristjan-grm11775.workers.dev/mcp
+claude mcp add --transport http -s user nod https://testnet.trynod.si/mcp
 claude                      # then /mcp → nod → Authenticate
 ```
 
@@ -38,8 +39,8 @@ claude                      # then /mcp → nod → Authenticate
 Code"), and where access is sent (`claude.ai`, or `localhost` for Claude Code).
 
 1. **Create a passkey wallet** on that page. Nod deploys your OpenZeppelin smart account (and pays the network fee) and
-   sends it **10 testnet USDC**. The deployed passkey check created
-   [this funded wallet](https://stellar.expert/explorer/testnet/contract/CCDOHIGFC4Y2EYZWA66HULNXUI3PX3OD3WX27OKGPEHLRR3LDR3OBZG4).
+   sends it **10 testnet USDC**. The 19:14 UTC rehearsal created
+   [this funded wallet](https://stellar.expert/explorer/testnet/contract/CDE4KSAHEDFVZ6SDX6WZGH5JEE3R4BIBTLKOPKJRW54FY6A6KUE2ROYX).
 2. Read the allowance: "Allow **Claude** to spend up to **5 USDC** total from **Personal** until **tomorrow 12:00**.
    Larger payments need your passkey." Press **Allow**; your passkey signs the allowance onto your Stellar account.
 3. You are back in Claude, connected. In a new chat, enable the Nod tools.
@@ -63,38 +64,43 @@ to watch in every answer: **wallet balance** and **remaining allowance**.
 
 Carol is one shared demo recipient. If another judge or the sample run onboarded her minutes earlier, step 10 shows her
 as **USDC ready** and Claude makes an ordinary payment instead of a claim link; that payment still succeeds. To see the
-claim link itself, open [`/sample`](https://hack-meridian-testnet.kristjan-grm11775.workers.dev/sample), which runs it on
-Nod's own wallet and resets Carol after each run (from the next deploy).
+claim link itself, open [`/sample`](https://testnet.trynod.si/sample), which runs it on
+Nod's own wallet and resets Carol after each run.
 
 Every receipt links to `stellar.expert`. The smart-account transactions are paid by a Nod relayer; the x402 settlement
 is paid by the facilitator. The current relayer addresses are published at
-[`/api/health`](https://hack-meridian-testnet.kristjan-grm11775.workers.dev/api/health) under `chain.relayers` (the deployed
+[`/api/health`](https://testnet.trynod.si/api/health) under `chain.relayers` (the deployed
 stage uses different relayers from the local reference run). Your wallet holds **0 XLM**.
 
 ## 3. Reference run (explorer links)
 
-The [15:12 UTC run](demo/2026-10-25T15-12-52-316Z/run.json) drove the deployed Worker (`19e1c13`) through Claude's
-path headlessly: OAuth with a new passkey wallet, then the recorded demo amounts (30 USDC wallet, 0.10 x402, 2 to Alice,
-20 to Bob with the passkey, 4 over the allowance, 5 to Carol by claim link, revoke). It took 204 s. Fees are in stroops;
-smart-account transactions are paid by Nod's relayers `GBCALSA3…` and `GAWYWVMH…`, the x402 settlement by OpenZeppelin
-Channels (fee bump `GA6THKUY…`).
+The [19:14 UTC run](demo/2026-10-25T19-14-24-616Z/run.json) drove the deployed Worker (`5253df0`) through Claude's
+path headlessly: OAuth with a new passkey wallet holding 10 USDC, then the one-number beats: allowance 5, the brief for
+0.10 over x402 (4.90 left), Alice 2 inside the allowance (2.90 left), Bob 5 needs the nod and is approved with the
+passkey, the same request again gives the same receipt, Alice 4 needs the nod (left unapproved), Carol 1 by claim link,
+revoke. It took 133 s. Fees are in stroops; smart-account transactions are paid by Nod's relayers `GBCALSA3…` and
+`GAWYWVMH…`, the x402 settlement by OpenZeppelin Channels (fee bump `GA6THKUY…`).
 
 | Step | What                                                         | Fee (stroops) | Transaction                                                                                                              |
 | ---- | ------------------------------------------------------------ | ------------: | ------------------------------------------------------------------------------------------------------------------------ |
-| 4    | x402: 1.00 USDC from the wallet into the AI app's pocket     |   909,648,553 | [97847912…](https://stellar.expert/explorer/testnet/tx/978479126c9339de3a2cf4140dcef4958aa13d95ea39408b50cbf4ae413ed702) |
-| 4    | x402: pocket pays the seller 0.10 (OpenZeppelin Channels)    |        63,263 | [e3e62e07…](https://stellar.expert/explorer/testnet/tx/e3e62e07dbf11f0bd75ac795a3bef5a50fcc6ffd64e610c98a70dc9676890990) |
-| 5    | 2 USDC to Alice inside the allowance                         |    78,350,140 | [fb77bd0f…](https://stellar.expert/explorer/testnet/tx/fb77bd0f01aeb515b967e7bf5f7d0b1f8ec5c4c6af7889263ed3172a0a8ebefe) |
-| 7    | 20 USDC to Bob, approved with the passkey                    |        61,945 | [fbfd200c…](https://stellar.expert/explorer/testnet/tx/fbfd200cc85525ee65a0a55f4b3dc338eedf37c1c8273abcc0ac7701f09e97da) |
-| 10   | Carol: USDC trustline + 5 USDC in one transaction (CAP-73)   |       120,656 | [565b7f07…](https://stellar.expert/explorer/testnet/tx/565b7f0740d2cb73975939107c6b3329a03d60d26925101ba7e9a7ae5660735c) |
-| 9    | allowance removed from the account onchain                   |        69,010 | [55beab6d…](https://stellar.expert/explorer/testnet/tx/55beab6dd2866dd95f6bfcc7209d4c3c7e8a423d4955de5607a6009da1003279) |
-| 9    | the pocket's 0.90 swept back to the wallet                   |        62,452 | [00129674…](https://stellar.expert/explorer/testnet/tx/00129674edaed2fcce96c73745587f2c599704850c182c38f7d7c12ab5ee55a6) |
+| 4    | x402: 1.00 USDC from the wallet into the AI app's pocket     |       407,208 | [2ecaef08…](https://stellar.expert/explorer/testnet/tx/2ecaef088b748c3de3d3cf70b37699cbe4a934f384c44742f53056def49dcdad) |
+| 4    | x402: pocket pays the seller 0.10 (OpenZeppelin Channels)    |        11,637 | [0fbbbed6…](https://stellar.expert/explorer/testnet/tx/0fbbbed63eec68b2c3d68860b2555d1fe0c94614e4af317a1d4130791b515e1c) |
+| 5    | 2 USDC to Alice inside the allowance (2.90 left)             |        47,468 | [21d29908…](https://stellar.expert/explorer/testnet/tx/21d29908d5e68047c6ed9faba198c9d3760b02bdf8bce66a9dac2570f88bb3b9) |
+| 7    | 5 USDC to Bob, approved with the passkey                     |        12,949 | [d5ea13b1…](https://stellar.expert/explorer/testnet/tx/d5ea13b1f9263888c8b9795d1383200bdbc6f5d5ec70182b5876dbf57a0202aa) |
+| 10   | Carol: USDC trustline + 1 USDC in one transaction (CAP-73)   |        20,034 | [13d1b05f…](https://stellar.expert/explorer/testnet/tx/13d1b05fb6a69e488b924b5a354fa33a43bd1211f03041ace384feeb5485e263) |
+| 9    | allowance removed from the account onchain                   |        20,014 | [c24b051f…](https://stellar.expert/explorer/testnet/tx/c24b051f845a31345f4fc28c74bb4fd5308ada1fed4ef3d2abb6e84480cf0ea7) |
+| 9    | the pocket's 0.90 swept back to the wallet                   |        10,826 | [9c3e9b1e…](https://stellar.expert/explorer/testnet/tx/9c3e9b1e61ed1ec7a3037c72da4b566a441a45f812207c461f233b0acea11df5) |
 | 3    | over-allowance transfer rejected onchain (`#3221`, spike S1) |             – | [3daf4b00…](https://stellar.expert/explorer/testnet/tx/3daf4b000cb58ad1bbef3629c13a02d44403c4b690dd51815020cbc89723b42a) |
 
-The large fee on the pocket move is storage rent: testnet's rent factor was ~219× normal at the time (S1, S5). Earlier
+The pocket move is the first transaction under a new allowance and pays the storage rent for the policy's new entry;
+testnet rent is back at its floor (`/api/health` → `rent_factor` 0.1), so it costs about 0.04 XLM (the 15:12 UTC run paid
+91 XLM at ~219× rent). Earlier
 separate checks: the demo seller settled through x402.org ([73290009…](https://stellar.expert/explorer/testnet/tx/73290009ae67ee94a5db1a53e44009b84e771edca240a61a5d70c16575fae554))
 and OpenZeppelin Channels ([5dd944b0…](https://stellar.expert/explorer/testnet/tx/5dd944b054a71511673cdbbecc8e6f780e2950049968332d69f972b73fb165af)),
 Alice's smart account was deployed ([992066b6…](https://stellar.expert/explorer/testnet/tx/992066b615bfd675fcab4341dd611f706c41d5695efe2cb9568165f1379726e3)),
 and the shared policy contract was kept alive ([19339ef0…](https://stellar.expert/explorer/testnet/tx/19339ef0102e3941c986172b3dde3c3eeec4bcbf66488f9e0dbdf8d3a13ae136)).
+The previous reference run is [15:12 UTC on `19e1c13`](demo/2026-10-25T15-12-52-316Z/run.json) (30 USDC beats, before
+the one-number allowance).
 
 ## If something goes wrong
 
