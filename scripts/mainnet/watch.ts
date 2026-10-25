@@ -12,6 +12,7 @@ import { Stellar } from '../../apps/seller/demo-deps.ts'
  *   bun scripts/mainnet/watch.ts                         one round, exit 1 on an alert
  *   bun scripts/mainnet/watch.ts --every 600             a round every 10 minutes, forever
  *   bun scripts/mainnet/watch.ts --every 600 --until-alert   …until the first alert (exit 1), for a background job
+ *   bun scripts/mainnet/watch.ts --every 600 --until-new-alert   …until an alert the first round did not already show
  *
  * Floors (orchestrator, 25 Oct): testnet relayers ≥ 500 XLM each, treasury ≥ 60 USDC; mainnet relayer A ≥ 12 XLM,
  * relayer B ≥ 5 XLM, treasury may be 0; contract TTL ≥ 7 days.
@@ -22,6 +23,9 @@ const args = process.argv.slice(2)
 const flag = (name: string) => (args.includes(name) ? args[args.indexOf(name) + 1] : undefined)
 const every = Number(flag('--every') ?? '0')
 const untilAlert = args.includes('--until-alert')
+const untilNewAlert = args.includes('--until-new-alert')
+/** An alert without its numbers, so "treasury holds 33.50" and "treasury holds 31.50" are the same known alert. */
+const kindOf = (alert: string) => alert.replace(/[\d.]+/gu, '#')
 
 const STAGES = {
   testnet: {
@@ -174,12 +178,17 @@ async function round() {
   appendFileSync(join(LOG_DIR, 'watch.jsonl'), `${JSON.stringify(line)}\n`)
   console.log(JSON.stringify(line))
   for (const alert of alerts) console.log(`ALERT ${line.at} ${alert}`)
-  return alerts.length
+  return alerts
 }
 
+let known: ReadonlySet<string> | undefined
 for (;;) {
-  const alerted = await round()
-  if (every <= 0) process.exit(alerted > 0 ? 1 : 0)
-  if (untilAlert && alerted > 0) process.exit(1)
+  const alerts = await round()
+  if (every <= 0) process.exit(alerts.length > 0 ? 1 : 0)
+  if (untilAlert && alerts.length > 0) process.exit(1)
+  if (untilNewAlert) {
+    if (known === undefined) known = new Set(alerts.map(kindOf))
+    else if (alerts.some(alert => !known?.has(kindOf(alert)))) process.exit(1)
+  }
   await new Promise(done => setTimeout(done, every * 1000))
 }
