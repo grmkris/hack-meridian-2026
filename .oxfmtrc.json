@@ -15,7 +15,7 @@
     "node_modules",
     "dist",
     "repos",
-    "spikes",
+    "spikes/**",
     "contracts/target",
     "contracts/**/test_snapshots",
     "packages/counter-client",
