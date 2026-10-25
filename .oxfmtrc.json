@@ -21,6 +21,8 @@
     "packages/counter-client",
     ".agents/skills",
     ".claude/skills",
+    ".codex",
+    ".cursor",
     "bun.lock",
     "*.tsbuildinfo"
   ]

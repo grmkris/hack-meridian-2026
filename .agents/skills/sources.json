@@ -1,0 +1,345 @@
+{
+  "version": 2,
+  "skills": {
+    "add-a-capability": {
+      "repository": "joelhooks/rat-stack",
+      "commit": "51964a1fa52bed2a4a36defabad1ee17d360fe23",
+      "path": "skills/add-a-capability",
+      "license": "MIT",
+      "licenses": [
+        "LICENSE"
+      ],
+      "treeSha256": "9c4466e0706321cfc92457b90e80ac8e51abcf952815df1e9d17b8da741ae50f",
+      "localTreeSha256": "9c4466e0706321cfc92457b90e80ac8e51abcf952815df1e9d17b8da741ae50f",
+      "unchanged": true
+    },
+    "add-a-store": {
+      "repository": "joelhooks/rat-stack",
+      "commit": "51964a1fa52bed2a4a36defabad1ee17d360fe23",
+      "path": "skills/add-a-store",
+      "license": "MIT",
+      "licenses": [
+        "LICENSE"
+      ],
+      "treeSha256": "0301daf9e33f05f4ce97005c15dd40e8985f86bc3965b4e840a2d63970c55567",
+      "localTreeSha256": "0301daf9e33f05f4ce97005c15dd40e8985f86bc3965b4e840a2d63970c55567",
+      "unchanged": true
+    },
+    "audit-program": {
+      "repository": "foldkit/foldkit",
+      "commit": "7ee214268c602967937b80f6f20d1e831f2e8ab6",
+      "path": "skills/audit-program",
+      "license": "MIT",
+      "licenses": [
+        "LICENSE"
+      ],
+      "treeSha256": "5bf8298b74df6ddfbc16ea7383fa22d68369766201271d848b02eedc8e07f52b",
+      "localTreeSha256": "5bf8298b74df6ddfbc16ea7383fa22d68369766201271d848b02eedc8e07f52b",
+      "unchanged": true
+    },
+    "break-ui": {
+      "repository": "emilkowalski/skills",
+      "commit": "e8a175de22ae1e49370fc144c1f3bb9aeedf988d",
+      "path": "skills/break-ui",
+      "license": "MIT",
+      "licenses": [
+        "LICENSE"
+      ],
+      "treeSha256": "c1c67d8e5bf7431ea78226e4c2558908a0aea7bbfa558736063227bb37d91690",
+      "localTreeSha256": "4f983a943048d604ff1e13cff680e7cbc3940520680e74c67b9d6538cefd3048",
+      "unchanged": false,
+      "adaptation": "Made manual-only (disable-model-invocation: true). agents/openai.yaml added so Codex also treats it as manual-only.",
+      "baseCommit": "e8a175de22ae1e49370fc144c1f3bb9aeedf988d"
+    },
+    "durable-objects": {
+      "repository": "cloudflare/skills",
+      "commit": "0871daceb347e3c51693fbe9c77555468df7e410",
+      "path": "skills/durable-objects",
+      "license": "Apache-2.0",
+      "licenses": [
+        "LICENSE"
+      ],
+      "treeSha256": "57d6553178ac88801def139889b4932af574dbb3db0f7949f3b8bf45b3d7335d",
+      "localTreeSha256": "86c2713d744846c851c14f096bba920904f7e664b404ada07908d53011c971de",
+      "unchanged": false,
+      "adaptation": "Removed trailing spaces from two blank lines in references/workers.md; the guidance is unchanged.",
+      "baseCommit": "0871daceb347e3c51693fbe9c77555468df7e410"
+    },
+    "effect-ts": {
+      "repository": "Effect-TS/skills",
+      "commit": "155c50c911f9c99c294ef8a4461981c5bbe6453e",
+      "path": "skills/effect-ts",
+      "license": "MIT",
+      "licenses": [
+        "LICENSE"
+      ],
+      "treeSha256": "c82b34704b6905b2ed8a93484a519eb57c86f51858ed8648046463f07386a1ee",
+      "localTreeSha256": "c82b34704b6905b2ed8a93484a519eb57c86f51858ed8648046463f07386a1ee",
+      "unchanged": true
+    },
+    "foldkit": {
+      "repository": "foldkit/foldkit",
+      "commit": "7ee214268c602967937b80f6f20d1e831f2e8ab6",
+      "path": "skills/foldkit",
+      "license": "MIT",
+      "licenses": [
+        "LICENSE"
+      ],
+      "treeSha256": "f2b7b5b9f90c1e85f3e97749f8b0a37a4297d46c6d379d5b5e3bff24558684a0",
+      "localTreeSha256": "f2b7b5b9f90c1e85f3e97749f8b0a37a4297d46c6d379d5b5e3bff24558684a0",
+      "unchanged": true
+    },
+    "frontend-design": {
+      "repository": "anthropics/skills",
+      "commit": "dbd4588f9e1033efb41dad4bef2f7947c8993d44",
+      "path": "skills/frontend-design",
+      "license": "Apache-2.0",
+      "licenses": [
+        "LICENSE.txt"
+      ],
+      "treeSha256": "7e9c2af00fd5b3144f49ce6fb1b16037b392ab9c2f049423b0b6114d99381ba2",
+      "localTreeSha256": "7e9c2af00fd5b3144f49ce6fb1b16037b392ab9c2f049423b0b6114d99381ba2",
+      "unchanged": true
+    },
+    "generate-program": {
+      "repository": "foldkit/foldkit",
+      "commit": "7ee214268c602967937b80f6f20d1e831f2e8ab6",
+      "path": "skills/generate-program",
+      "license": "MIT",
+      "licenses": [
+        "LICENSE"
+      ],
+      "treeSha256": "9233662e4999ff56f3795209c98624fdf6b9d33383d07c164cd7769afb24973b",
+      "localTreeSha256": "9233662e4999ff56f3795209c98624fdf6b9d33383d07c164cd7769afb24973b",
+      "unchanged": true
+    },
+    "good-css": {
+      "repository": "vojtaholik/good-css",
+      "commit": "b645ab15b9fcd059c0227c21b6a144bb70639f1a",
+      "path": "skills/good-css",
+      "license": "MIT",
+      "licenses": [
+        "LICENSE"
+      ],
+      "treeSha256": "c2a7a6b2a292b775cd700bfe8440ea07df308ae5bd379f8a037cf6d795f7b2d4",
+      "localTreeSha256": "20af66f79b57c1c1319056092bca631d4ff89a42fc7aac755881508b1606ac3a",
+      "unchanged": false,
+      "adaptation": "Description narrowed to CSS implementation; direction and finish deferred to frontend-design and make-interfaces-feel-better.",
+      "baseCommit": "b645ab15b9fcd059c0227c21b6a144bb70639f1a"
+    },
+    "grilling": {
+      "repository": "mattpocock/skills",
+      "commit": "49dd158d1076134a641b33efb035946536778336",
+      "path": "skills/productivity/grilling",
+      "license": "MIT",
+      "licenses": [
+        "LICENSE"
+      ],
+      "treeSha256": "714b8c4d1544298615f0647b237e7ea13c6940c302417c51571ca77ba5161dad",
+      "localTreeSha256": "714b8c4d1544298615f0647b237e7ea13c6940c302417c51571ca77ba5161dad",
+      "unchanged": true
+    },
+    "investigate-a-failure": {
+      "repository": "joelhooks/rat-stack",
+      "commit": "51964a1fa52bed2a4a36defabad1ee17d360fe23",
+      "path": "skills/investigate-a-failure",
+      "license": "MIT",
+      "licenses": [
+        "LICENSE"
+      ],
+      "treeSha256": "8887d58608af1bf5b624426a058cb5dcabf47c5c882ff773d0f38e03ae32a8f1",
+      "localTreeSha256": "8887d58608af1bf5b624426a058cb5dcabf47c5c882ff773d0f38e03ae32a8f1",
+      "unchanged": true
+    },
+    "learn-alchemy": {
+      "repository": "joelhooks/rat-stack",
+      "commit": "51964a1fa52bed2a4a36defabad1ee17d360fe23",
+      "path": "skills/learn-alchemy",
+      "license": "MIT",
+      "licenses": [
+        "LICENSE"
+      ],
+      "treeSha256": "e18a5281b12de4f9f540e916eb34d10660766dcefa77100b5d4bb93c2af0169a",
+      "localTreeSha256": "e18a5281b12de4f9f540e916eb34d10660766dcefa77100b5d4bb93c2af0169a",
+      "unchanged": true
+    },
+    "make-interfaces-feel-better": {
+      "repository": "jakubkrehel/make-interfaces-feel-better",
+      "commit": "35545ea1512ad59fa463e6b1f95ca9c052981fe6",
+      "path": "skills/make-interfaces-feel-better",
+      "license": "MIT",
+      "licenses": [
+        "LICENSE"
+      ],
+      "treeSha256": "a38394c031e268bf8d7d05ff6f742baf1787395692bedf76f07cef911c472bcb",
+      "localTreeSha256": "3fd67c0f8a5f0d5777331755f0c6d08745e50aa247b09dd34f29438d597f1853",
+      "unchanged": false,
+      "adaptation": "Description narrowed to static polish; motion and visual direction deferred to animate/apple-design and frontend-design (no overlap in the shared set).",
+      "baseCommit": "35545ea1512ad59fa463e6b1f95ca9c052981fe6"
+    },
+    "mobile-native": {
+      "repository": "emilkowalski/skills",
+      "commit": "e8a175de22ae1e49370fc144c1f3bb9aeedf988d",
+      "path": "skills/mobile-native",
+      "license": "MIT",
+      "licenses": [
+        "LICENSE"
+      ],
+      "treeSha256": "e09d6a584beac50f1f52be3c80164e1935ca0694f9e93fcb6893b564c7ce1d44",
+      "localTreeSha256": "1f4c18339885d3a74329fb24a2daec840726a9d30ce473aa548dbc7776bf6710",
+      "unchanged": false,
+      "adaptation": "Description narrowed to general touch/mobile web; Apple and Safari specifics deferred to apple-web-app.",
+      "baseCommit": "e8a175de22ae1e49370fc144c1f3bb9aeedf988d"
+    },
+    "rat-stack-mode": {
+      "repository": "joelhooks/rat-stack",
+      "commit": "51964a1fa52bed2a4a36defabad1ee17d360fe23",
+      "path": "skills/rat-stack-mode",
+      "license": "MIT",
+      "licenses": [
+        "LICENSE"
+      ],
+      "treeSha256": "2344579f6a327cdb01b7ae6fffa22365b1c374bff5f171ee026a2398772e0a56",
+      "localTreeSha256": "2344579f6a327cdb01b7ae6fffa22365b1c374bff5f171ee026a2398772e0a56",
+      "unchanged": true
+    },
+    "stellar-agentic-payments": {
+      "repository": "stellar/stellar-dev-skill",
+      "commit": "e20f3529421830ee57fdbf9974e334816b05fe84",
+      "path": "skills/agentic-payments",
+      "license": "Apache-2.0",
+      "licenses": [
+        "LICENSE"
+      ],
+      "treeSha256": "91e9a89ff3cc73ef0949393d080b389be86f7e7ed043987772d47fae7347c679",
+      "localTreeSha256": "eed55b25fa557277312662ea943b02e07e712f3a567a2faab6cb8f6d0dd5bf67",
+      "unchanged": false,
+      "adaptation": "frontmatter name prefixed with stellar- to match the folder; upstream's generic names (data, assets, standards) collide with other packs",
+      "baseCommit": "e20f3529421830ee57fdbf9974e334816b05fe84"
+    },
+    "stellar-assets": {
+      "repository": "stellar/stellar-dev-skill",
+      "commit": "e20f3529421830ee57fdbf9974e334816b05fe84",
+      "path": "skills/assets",
+      "license": "Apache-2.0",
+      "licenses": [
+        "LICENSE"
+      ],
+      "treeSha256": "da841d2048effb1e8e7bfa60db80c79e13792602533c145f05b6aec8b28ea408",
+      "localTreeSha256": "83a8fc3069eee94825acf2955cdbd646552b643490739de562295919e39b42dc",
+      "unchanged": false,
+      "adaptation": "frontmatter name prefixed with stellar- to match the folder; upstream's generic names (data, assets, standards) collide with other packs",
+      "baseCommit": "e20f3529421830ee57fdbf9974e334816b05fe84"
+    },
+    "stellar-dapp": {
+      "repository": "stellar/stellar-dev-skill",
+      "commit": "e20f3529421830ee57fdbf9974e334816b05fe84",
+      "path": "skills/dapp",
+      "license": "Apache-2.0",
+      "licenses": [
+        "LICENSE"
+      ],
+      "treeSha256": "72ac568e18f99715cb05416b2f6bf12729c9a1decd9a920c32774567eccebeee",
+      "localTreeSha256": "3b3a56405b28adc3ce0700872e8d6870a757b4acd7793e3c4c77339583466f89",
+      "unchanged": false,
+      "adaptation": "frontmatter name prefixed with stellar- to match the folder; upstream's generic names (data, assets, standards) collide with other packs",
+      "baseCommit": "e20f3529421830ee57fdbf9974e334816b05fe84"
+    },
+    "stellar-data": {
+      "repository": "stellar/stellar-dev-skill",
+      "commit": "e20f3529421830ee57fdbf9974e334816b05fe84",
+      "path": "skills/data",
+      "license": "Apache-2.0",
+      "licenses": [
+        "LICENSE"
+      ],
+      "treeSha256": "386cb0153da9448a3fdac1a83b01be9e187c0463f6cfa8f98b046c0f64817641",
+      "localTreeSha256": "abebddade2bc65f4b5e0fc82b1f5e00b01163b678c1b452c3979adc927ef7e9a",
+      "unchanged": false,
+      "adaptation": "frontmatter name prefixed with stellar- to match the folder; upstream's generic names (data, assets, standards) collide with other packs",
+      "baseCommit": "e20f3529421830ee57fdbf9974e334816b05fe84"
+    },
+    "stellar-smart-contracts": {
+      "repository": "stellar/stellar-dev-skill",
+      "commit": "e20f3529421830ee57fdbf9974e334816b05fe84",
+      "path": "skills/smart-contracts",
+      "license": "Apache-2.0",
+      "licenses": [
+        "LICENSE"
+      ],
+      "treeSha256": "55b0fb6864493f02fc4b7dfa940c72593b62e7f3b51a875b882e94de2d75f49f",
+      "localTreeSha256": "92f7356734cd46f188abbe90ea696bd90b1958cc6dbeb1eb576c430209465ca4",
+      "unchanged": false,
+      "adaptation": "frontmatter name prefixed with stellar- to match the folder; upstream's generic names (data, assets, standards) collide with other packs",
+      "baseCommit": "e20f3529421830ee57fdbf9974e334816b05fe84"
+    },
+    "stellar-standards": {
+      "repository": "stellar/stellar-dev-skill",
+      "commit": "e20f3529421830ee57fdbf9974e334816b05fe84",
+      "path": "skills/standards",
+      "license": "Apache-2.0",
+      "licenses": [
+        "LICENSE"
+      ],
+      "treeSha256": "b5023436702f989ade1d312031efc6a463a41f46d81b8bcb6a7f1bed47b68cf3",
+      "localTreeSha256": "2b8801f99e0e03b4904a26f761288a16bacbc10995066d1fa8631c425f79dbb4",
+      "unchanged": false,
+      "adaptation": "frontmatter name prefixed with stellar- to match the folder; upstream's generic names (data, assets, standards) collide with other packs",
+      "baseCommit": "e20f3529421830ee57fdbf9974e334816b05fe84"
+    },
+    "test-behaviour": {
+      "repository": "joelhooks/rat-stack",
+      "commit": "51964a1fa52bed2a4a36defabad1ee17d360fe23",
+      "path": "skills/test-behaviour",
+      "license": "MIT",
+      "licenses": [
+        "LICENSE"
+      ],
+      "treeSha256": "f74db6d64b76c93c50aacc01b1c6be33b9b1ea4b7d9a5cae2020d4f154d1f3e2",
+      "localTreeSha256": "f74db6d64b76c93c50aacc01b1c6be33b9b1ea4b7d9a5cae2020d4f154d1f3e2",
+      "unchanged": true
+    },
+    "thermo-nuclear-review": {
+      "repository": "cursor/plugins",
+      "commit": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+      "path": "thermos/skills/thermo-nuclear-review",
+      "license": "MIT",
+      "licenses": [
+        "LICENSE"
+      ],
+      "treeSha256": "6555687f1bffa96a3cd813aa7e94707d4aec98465c1184c3d12fbfd034bfc3f0",
+      "localTreeSha256": "6e28f1a80f415ec4c2db5942d1331343f796e48300f3bd64c1c66cac12a0d694",
+      "unchanged": false,
+      "adaptation": "agents/openai.yaml added so Codex also treats it as manual-only.",
+      "baseCommit": "ccb5507cec1546dc88135c1139c811e6c59115ba"
+    },
+    "unslop": {
+      "repository": "cursor/plugins",
+      "commit": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+      "path": "pstack/skills/unslop",
+      "license": "MIT",
+      "licenses": [
+        "LICENSE"
+      ],
+      "treeSha256": "8ccc1d0bebf98bb77486238ca07d7dc7fba9b467aef3ad49477aa64cbcef89aa",
+      "localTreeSha256": "a3acfd72b95b3dce0feb5cfde79797526ece9270f46bdcfac1139f8ed74b704e",
+      "unchanged": false,
+      "adaptation": "Description scoped to prose; upstream 'Must always apply' contradicts its manual-only flag (cursor/plugins#308, #367). agents/openai.yaml added so Codex also treats it as manual-only.",
+      "baseCommit": "ccb5507cec1546dc88135c1139c811e6c59115ba"
+    },
+    "workers-best-practices": {
+      "repository": "cloudflare/skills",
+      "commit": "0871daceb347e3c51693fbe9c77555468df7e410",
+      "path": "skills/workers-best-practices",
+      "license": "Apache-2.0",
+      "licenses": [
+        "LICENSE"
+      ],
+      "treeSha256": "d5490ccefce4c472ec34b7d78218e358ed2a5d659a6950f79c084b38c2dc1349",
+      "localTreeSha256": "a90c01c4b463794cc93719379053712e841431b951bd9564b53e60135e035fb4",
+      "unchanged": false,
+      "adaptation": "Made manual-only (disable-model-invocation: true). agents/openai.yaml disables implicit invocation in Codex.",
+      "baseCommit": "0871daceb347e3c51693fbe9c77555468df7e410"
+    }
+  }
+}

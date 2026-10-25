@@ -1,0 +1,22 @@
+{
+  "mcpServers": {
+    "stellar-raven": {
+      "url": "https://raven.stellar.buzz/mcp"
+    },
+    "cloudflare": {
+      "url": "https://mcp.cloudflare.com/mcp"
+    },
+    "rat-stack": {
+      "url": "https://ratstack.sh/mcp"
+    },
+    "mysi": {
+      "url": "https://mysi.lol/mcp"
+    },
+    "foldkit-devtools": {
+      "command": "node",
+      "args": [
+        "apps/web/node_modules/@foldkit/devtools-mcp/dist/server.js"
+      ]
+    }
+  }
+}
