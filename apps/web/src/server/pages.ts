@@ -370,7 +370,7 @@ export const claimPage = (
 ${input.notice === undefined ? '' : `<p class="card warn">${escape(input.notice)}</p>`}
 <div class="card"><dl><dt>From</dt><dd>${escape(input.intent.requester)}</dd><dt>To</dt><dd><code>${escape(input.intent.recipient_address)}</code> <span class="muted">${escape(shortAddress(input.intent.recipient_address))}</span></dd>
 <dt>Amount</dt><dd><span class="amount">${escape(fromStroops(input.intent.amount))}</span> USDC</dd><dt>Network</dt><dd>Stellar ${escape(c.network)}</dd></dl>
-<p class="muted">Your account has no USDC trustline yet. Accepting signs one authorization: the trustline and the payment land together in one transaction.</p></div>
+<p class="muted">${input.receipt === undefined ? 'Your account has no USDC trustline yet. Accepting signs one authorization: the trustline and the payment land together in one transaction.' : 'Your USDC trustline and this payment landed in one transaction.'}</p></div>
 ${input.receipt === undefined ? receiptPending(input) : receiptBlock(input.receipt)}<p id="status" class="muted" role="status"></p>`,
     input.receipt === undefined && input.recipientEntryXdr !== null
       ? `const ctx=JSON.parse(document.getElementById('ctx').textContent);
