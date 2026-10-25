@@ -5,7 +5,7 @@ Plans and queues live in the release plan (.local/brainstorm/FINAL-REVIEW.md §K
 **Deploys: session A ("ops and hardening") only, since 19:10 UTC 2026-10-25**, testnet and mainnet, from the worktree
 below; mainnet only on the orchestrator's explicit go, never during a recording.
 
-Live: **testnet at `4bb4a89`** (20:56 UTC: person links and migration 0011, the five K5 fixes, the backfill fix) on
+Live: **testnet at `4501c48`** (21:18 UTC: page fixes, llms.txt and landing words for the person link) on
 https://testnet.trynod.si (MCP at `/mcp`; the workers.dev host redirects there); **mainnet at `4bb4a89`** (21:03 UTC; deposit router bound) on https://trynod.si. Dated sections
 below are the history.
 
@@ -379,3 +379,14 @@ unbind; `SEED_DEMO_CONTACTS` unset, so a stranger's new wallet starts empty); de
 and `/claim/cl_…` → 404 pages; `/api/links`, `/api/wallet/deposit-address` and `POST /mcp` 401 anonymous. Backfill
 (read-only): one wallet and three contact destinations, all `stellar:pubnet`; the code path was proven live on testnet
 at 20:56. No wallet created, nothing spent.
+
+## 21:18 UTC: testnet at `4501c48` (orchestrator's go)
+
+D's `6de4d15` (llms.txt and the landing's third Why point: the person link), C's `ea47a9e` (page wrapping, claim
+receipt tense), B's `4501c48` (page strings, a test id, one explorer link). No migration, no binding. Gate green, plan
+`[Web] update` + RELEASE, deploy `"deletedClasses":[]`, health release `4501c487…`. smoke 9/9
+(`evidence/probe/smoke-testnet-2026-10-25T21-18-15Z.json`); `/llms.txt` byte-identical; `landing-shots testnet` 9/9 and the
+rendered landing contains "create a wallet with a passkey, and the USDC lands in it"; unknown `/approve/link/cl_…` and
+`/approve/revoke-link/cl_…` → 404; events-check 8/8
+(https://stellar.expert/explorer/testnet/tx/dcbe9d1c8ddc18c43cdd6e664f76e8699db74cdeb67cb969ac8e92bf5b36cc3c). No
+rehearsal (page strings only; the treasury holds 23.5 USDC).
