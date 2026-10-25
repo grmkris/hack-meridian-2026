@@ -66,3 +66,15 @@ crons or route prefixes. Deploys testnet itself per this document, twice (~23:00
 minutes before; holds for a recording or a rehearsal; final deploy verified by 07:00 UTC, rollback = re-pin `4dd5d42`.
 Before each deploy: gate green, local real-chain rehearsal s1–s11 and sample tests; after: release, smoke 9/9, `/sample`
 run or testnet rehearsal with hashes.
+
+## Queue update 16:45 UTC
+
+Main's history now interleaves the MCP-Apps session's cards/events commits (migrations 0004/0005) with the landing's
+pass-2 commit `07ef929`, so every testnet deploy from main needs that session's pre-deploy gate first (clean-worktree
+check, fresh local stage from the worktree on the real chain, rehearsal s1–s11, sample tests, events-check). Next deploy:
+**one combined deploy at the MCP-Apps session's SHA, ~17:30 UTC**, carrying landing part 1 (and part 2 if committed),
+the mainnet agent's four small fixes, and, if the trynod.si zone is active by then, the testnet cutover (ORIGIN and RP_ID
+lines set in both `.env.testnet` copies before the pin; expect two binding updates and the hostname in
+`plan:testnet --detailed --include Web`). Post-deploy: docs/DEPLOY.md checks plus docs/DOMAIN.md verification, then the
+pitch session's URL sweep, then Kristjan re-adds the connector and records. The local dev stage on :18960 is being
+restarted by that session (migration 0004 needs a fresh start).
