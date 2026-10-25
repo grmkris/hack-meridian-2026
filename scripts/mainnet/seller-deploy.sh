@@ -3,7 +3,8 @@
 # mainnet key are in place. A deploy is real: run it only on Kristjan's "go M4" with HM26_MAINNET_GO=yes.
 #
 #   scripts/mainnet/seller-deploy.sh --dry-run                    checks + `wrangler deploy --dry-run` (nothing uploaded)
-#   HM26_MAINNET_GO=yes scripts/mainnet/seller-deploy.sh [--write-web-env]
+#   HM26_MAINNET_GO=yes scripts/mainnet/seller-deploy.sh [--write-web-env] [--verify-only]
+#     --verify-only   skip the wrangler deploy: steps 1, 2, 4 and 5 against the deployed Worker
 #
 # 1. PAY_TO in apps/seller/wrangler.mainnet.jsonc must be the seller key in scripts/demo/.env.pubnet and hold a USDC
 #    trustline on mainnet (`bun scripts/mainnet/seed.ts --network pubnet --only trustlines` creates it).
@@ -26,10 +27,12 @@ OZ="https://channels.openzeppelin.com/x402"
 SAC="CCW67TSZV3SSS2HXMBQ5JFGCKJNXKZM7UQUWUZPUTHXSTZLEO7SJMI75"
 DRY=0
 WRITE_WEB=0
+VERIFY_ONLY=0
 for arg in "$@"; do
   case "$arg" in
     --dry-run) DRY=1 ;;
     --write-web-env) WRITE_WEB=1 ;;
+    --verify-only) VERIFY_ONLY=1 ;;
     *) echo "unknown argument: $arg" >&2; exit 2 ;;
   esac
 done
@@ -83,10 +86,15 @@ if [ $DRY = 1 ]; then
   echo "  dry run done: bundled to a temp dir, nothing uploaded"
   exit 0
 fi
-./node_modules/.bin/wrangler deploy -c wrangler.mainnet.jsonc --secrets-file .dev.vars.mainnet
+[ $VERIFY_ONLY = 1 ] || ./node_modules/.bin/wrangler deploy -c wrangler.mainnet.jsonc --secrets-file .dev.vars.mainnet
 
-# 4. verify
-HEALTH="$(curl -s -m 20 "$URL/health")"
+# 4. verify (a new workers.dev hostname can take a minute to answer)
+HEALTH=""
+for _ in $(seq 1 20); do
+  HEALTH="$(curl -s -m 20 "$URL/health")"
+  jq -e .network <<<"$HEALTH" >/dev/null 2>&1 && break
+  sleep 5
+done
 [ "$(jq -r .network <<<"$HEALTH")" = "stellar:pubnet" ] || fail "/health network: $(jq -c .network <<<"$HEALTH")"
 [ "$(jq -r .pay_to <<<"$HEALTH")" = "$PAY_TO" ] || fail "/health pay_to is not $PAY_TO"
 CODE="$(curl -s -m 20 -D "$TMP/headers" -o /dev/null -w '%{http_code}' "$URL/api/market-brief")"
