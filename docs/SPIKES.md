@@ -31,7 +31,7 @@ Plan:
 - **Testnet only.** Friendbot for XLM. Never touch mainnet. Never commit a secret: keys go in `spikes/<id>/.env` (gitignored) and
   are printed to the results doc only as public keys / contract ids.
 - **Own paths only**: code in `spikes/<id>/`, results in `docs/spikes/<id>.md`. Do not edit `apps/`, `contracts/`, `package.json`
-  or another spike's files. Commit only your own paths with `git add <paths>`; on `index.lock` wait and retry. Work on `main`.
+  or another spike's files. Commit only your own paths **with a pathspec on the commit too**: `git add <paths> && git commit -m "…" -- <paths>`. A plain `git commit` commits whatever other sessions have staged in the shared index (this happened once today). On `index.lock` wait and retry. Work on `main`.
 - **Rust builds share a target dir**: `export CARGO_TARGET_DIR=/srv/cache/hm26-target/<id>` (the home volume is 90% full).
   Run builds and test suites through `heavy` (exit 75 = busy, retry). Never pipe `heavy`.
 - **Pins**: use the versions in `docs/research/*.md`. If a pin is wrong, say so in the results and pick the version that works.
