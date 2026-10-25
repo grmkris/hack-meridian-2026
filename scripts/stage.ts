@@ -9,7 +9,7 @@ import { join, resolve } from 'node:path'
  *
  *   bun scripts/stage.ts dev                         local stage under alchemy dev, http://localhost:18960
  *   bun scripts/stage.ts plan:testnet                what a testnet deploy would change
- *   bun scripts/stage.ts deploy:testnet              deploy https://hack-meridian-testnet.kristjan-grm11775.workers.dev
+ *   bun scripts/stage.ts deploy:testnet              deploy https://testnet.trynod.si
  *   bun scripts/stage.ts destroy:testnet --confirm   remove the testnet Worker
  *
  * The token comes from CLOUDFLARE_API_TOKEN in the shell or ~/.config/secrets.env (mode 600); it is never printed.

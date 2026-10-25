@@ -144,6 +144,6 @@ const service = (name: string, base: string): Target => ({
 
 export const TARGETS: Record<string, Target> = {
   stub,
-  testnet: service('testnet', 'https://hack-meridian-testnet.kristjan-grm11775.workers.dev'),
+  testnet: service('testnet', 'https://testnet.trynod.si'),
   local: service('local', 'http://localhost:18960'),
 }

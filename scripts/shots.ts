@@ -12,7 +12,7 @@ import { chromium } from 'playwright-core'
 const ROOT = resolve(import.meta.dir, '..')
 const ORIGINS: Record<string, string> = {
   local: 'http://localhost:18960',
-  testnet: 'https://hack-meridian-testnet.kristjan-grm11775.workers.dev',
+  testnet: 'https://testnet.trynod.si',
 }
 const VIEWPORTS = [
   { name: 'phone', width: 390, height: 844, deviceScaleFactor: 3, isMobile: true },
