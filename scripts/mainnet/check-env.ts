@@ -18,8 +18,9 @@ import { FILES, ROLE_LIST, ROLES, ROOT, assertPrivate, readEnvFile, routerId, xl
  * 2. Formats: secrets are valid and match scripts/demo/.env.pubnet, caps and ceilings parse, RP_ID covers ORIGIN, the
  *    invite code, the router id, DEMO_CONTACTS.
  * 3. The bindings through the same Config layers the Worker uses (@hm/stellar's chainSettingsConfig and stellarLayer,
- *    the Worker's Settings and WalletSettings): once as alchemy binds them today, once with every file value bound.
- * Exit 1 when the stage as bound today would not boot.
+ *    the Worker's Settings and WalletSettings), as alchemy binds them; while ONBOARD_ROUTER_ID is empty (before M3),
+ *    again with the router id precomputed from relayer A.
+ * Exit 1 on a format failure or when the stage would not boot (with the router id once M3 has run).
  */
 const failures: Array<string> = []
 const notes: Array<string> = []
@@ -38,22 +39,34 @@ const alchemy = readFileSync(join(ROOT, 'apps/web/alchemy.run.ts'), 'utf8')
 const namesIn = (block: string | undefined, pattern: RegExp) =>
   block === undefined ? [] : Array.from(block.matchAll(pattern), m => m[1] ?? '').filter(n => n !== '')
 const secretNames = namesIn(/const SECRETS = \[([\s\S]*?)\] as const/u.exec(alchemy)?.[1], /'([A-Z0-9_]+)'/gu)
+const switchBlock = /const switchesFor = [\s\S]*?=> \(\{([\s\S]*?)\n\}\)/u.exec(alchemy)?.[1]
 const switchNames = namesIn(
-  /const switchesFor = [\s\S]*?=> \(\{([\s\S]*?)\n\}\)/u.exec(alchemy)?.[1],
-  /^\s*([A-Z0-9_]+):/gmu,
+  switchBlock
+    ?.split('\n')
+    .filter(line => !line.trim().startsWith('//'))
+    .join('\n'),
+  /\b([A-Z][A-Z0-9_]{2,}):/gu,
 )
 const literals = Object.fromEntries(
   Array.from(
-    (/isMainnet\(stage\)\s*\?\s*\{([^}]*)\}/u.exec(alchemy)?.[1] ?? '').matchAll(/([A-Z0-9_]+): '([^']*)'/gu),
+    (/RELEASE: release,[\s\S]*?isMainnet\(stage\)\s*\?\s*\{([^}]*)\}/u.exec(alchemy)?.[1] ?? '').matchAll(
+      /([A-Z0-9_]+): '([^']*)'/gu,
+    ),
     m => [m[1] ?? '', m[2] ?? ''],
   ),
 )
+if (literals['STELLAR_NETWORK'] !== 'pubnet') throw new Error('could not read the mainnet stage literals')
 if (secretNames.length === 0 || switchNames.length === 0) throw new Error('could not read SECRETS/switchesFor')
-const bound: Record<string, string> = { STAGE: 'mainnet', RELEASE: 'check-env', ...literals }
-for (const name of [...secretNames, ...switchNames]) {
-  const value = file[name]
-  if (value !== undefined && value !== '') bound[name] = value
+/** What the Worker would see: the stage literals, then the SECRETS and switches names the file sets (non-empty). */
+const bindingsOf = (values: Record<string, string>) => {
+  const out: Record<string, string> = { STAGE: 'mainnet', RELEASE: 'check-env', ...literals }
+  for (const name of [...secretNames, ...switchNames]) {
+    const value = values[name]
+    if (value !== undefined && value !== '') out[name] = value
+  }
+  return out
 }
+const bound = bindingsOf(file)
 const ignored = Object.keys(file)
   .filter(name => !secretNames.includes(name) && !switchNames.includes(name))
   .map(name =>
@@ -172,16 +185,18 @@ async function boot(label: string, record: Record<string, string>) {
   return true
 }
 
-const today = await boot('as apps/web/alchemy.run.ts binds it today', bound)
-const everything: Record<string, string> = { ...bound }
-for (const [name, value] of Object.entries(file)) if (value !== '') everything[name] = value
-if ((everything['ONBOARD_ROUTER_ID'] ?? '') === '') everything['ONBOARD_ROUTER_ID'] = routerId()
-const all = await boot(
-  'with every file value bound (ONBOARD_ROUTER_ID = the precomputed M3 id if still empty)',
-  everything,
-)
+const today = await boot('as apps/web/alchemy.run.ts binds the file today', bound)
+const routerPending = router === ''
+const afterM3 = routerPending
+  ? await boot(
+      'the same, with ONBOARD_ROUTER_ID set to the precomputed M3 id',
+      bindingsOf({ ...file, ONBOARD_ROUTER_ID: routerId() }),
+    )
+  : today
 
 console.log(`\n${failures.length === 0 ? 'formats ok' : `format failures: ${failures.join('; ')}`}`)
 for (const n of notes) console.log(`note: ${n}`)
-console.log(`boots as bound today: ${today ? 'yes' : 'NO'}; boots with every file value bound: ${all ? 'yes' : 'NO'}`)
-process.exit(failures.length === 0 && today ? 0 : 1)
+console.log(
+  `boots as bound today: ${today ? 'yes' : routerPending ? 'no, ONBOARD_ROUTER_ID is empty until M3' : 'NO'}${routerPending ? `; once ONBOARD_ROUTER_ID is set: ${afterM3 ? 'yes' : 'NO'}` : ''}`,
+)
+process.exit(failures.length === 0 && afterM3 ? 0 : 1)

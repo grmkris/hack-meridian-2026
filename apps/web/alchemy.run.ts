@@ -81,6 +81,10 @@ const switchesFor = (stage: string): Record<string, string> => ({
   // /sample: a server-side sample agent on Nod's demo wallet (testnet only; the page refuses on any other network).
   SAMPLE_ENABLED: isMainnet(stage) ? 'false' : 'true',
   WALLET_TTL_LEDGERS: '',
+  // The CAP-73 router: the testnet preset has S3's; pubnet has none until scripts/mainnet/router-deploy.ts (M3).
+  ONBOARD_ROUTER_ID: '',
+  // Mainnet's contacts come from .env.mainnet (scripts/mainnet/seed.ts prints them); the other stages use seeds.json.
+  ...(isMainnet(stage) ? { DEMO_CONTACTS: '[]' } : {}),
   // Testnet rent runs at ~110× normal (25 Oct, rising): a grant's first pull costs 40–60 XLM, later ones up to ~20 XLM. Ceilings in
   // stroops; the relayer pays, never the owner. Mainnet keeps the chain package's preset.
   // The ceiling for everything without its own (grant install and removal, pocket, claim): at rent 278× (25 Oct 15:40
@@ -216,7 +220,7 @@ export default Alchemy.Stack(
         RELEASE: release,
         // Mainnet takes every network field from the chain package's pubnet preset; the counter is testnet only.
         ...(isMainnet(stage)
-          ? { STELLAR_NETWORK: 'pubnet', DEMO_CONTACTS: '[]' }
+          ? { STELLAR_NETWORK: 'pubnet' }
           : {
               STELLAR_NETWORK: deployment.network,
               STELLAR_RPC_URL: deployment.rpcUrl,
