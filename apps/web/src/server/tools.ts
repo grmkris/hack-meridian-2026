@@ -14,7 +14,6 @@ import {
   type Receipt,
   type SpendingGrant,
   toStroops,
-  USDC_SAC,
   type Wallet,
   type X402Quote,
   type X402QuoteHook,
@@ -23,6 +22,7 @@ import {
 import { nowMillis, randomId } from './clock.ts'
 import type { DbError } from './db.ts'
 import { Ledger, type LedgerError, type Outcome } from './ledger.ts'
+import { Network } from './network.ts'
 import type { ConnectionProps } from './props.ts'
 import { revokeConnection } from './revoke.ts'
 import {
@@ -72,16 +72,22 @@ const storage = (error: DbError | LedgerError) =>
 
 const ADDRESS = /^(?:[CG][A-Z2-7]{55}|M[A-Z2-7]{68})$/u
 
-/** The connection, its wallet and its grant; refuses a revoked connection for writes. */
+/** PAYMENTS_ENABLED=false: every tool that could move money answers this instead (revoke still works). */
+const requirePayments = Effect.gen(function* () {
+  const network = yield* Network
+  if (!network.caps.paymentsEnabled)
+    return yield* fail('Payments are paused on Nod right now. Nothing was paid; try again later.')
+  return network
+})
+
+/** The connection, its wallet and its allowance; refuses a revoked connection for writes. */
 const scope = (ctx: ToolContext, write: boolean) =>
   Effect.gen(function* () {
     const connection = yield* connectionById(ctx.props.connection_id)
     if (connection === undefined || connection.wallet_id !== ctx.props.wallet_id)
-      return yield* fail('This connection is unknown to the wallet. Reconnect.')
+      return yield* fail('Nod does not know this AI app any more. Reconnect it.')
     if (write && connection.status === 'revoked')
-      return yield* fail(
-        'This connection was revoked by the wallet owner. It can no longer pay; reconnect to ask again.',
-      )
+      return yield* fail('The user revoked this AI app in Nod. It can no longer pay; reconnect to ask again.')
     const wallet = yield* walletById(connection.wallet_id)
     if (wallet === undefined) return yield* fail('The wallet of this connection is gone.')
     const grant = yield* grantOfConnection(connection.id)
@@ -96,6 +102,7 @@ export const walletOverview = (ctx: ToolContext) =>
   Effect.gen(function* () {
     const { connection, wallet, grant, nowMs } = yield* scope(ctx, false)
     const chain = yield* Chain
+    const network = yield* Network
     const balances = yield* chain.balances(wallet.contract_id).pipe(
       Effect.map(b => ({ usdc: fromStroops(b.usdc), xlm: fromStroops(b.xlm) })),
       Effect.catchTag('ChainError', () => Effect.succeed({ usdc: 'unavailable', xlm: 'unavailable' })),
@@ -104,8 +111,10 @@ export const walletOverview = (ctx: ToolContext) =>
     const receipts = yield* receiptsOfWallet(wallet.id, 5, connection.id)
     const remaining = grantRemaining(grant, nowMs)
     return {
-      sentence: `Wallet ${wallet.name} holds ${balances.usdc} USDC. This connection may still spend ${remaining} USDC${grant === undefined ? '' : ` until ${grant.valid_until}`}; larger payments need the owner's approval.`,
+      sentence: `Nod wallet ${wallet.name} (Stellar ${network.label}) holds ${balances.usdc} USDC. This AI app may still spend ${remaining} USDC on its own${grant === undefined ? '' : ` until ${grant.valid_until}`}; anything bigger needs the user's nod.`,
       value: {
+        network: network.caip,
+        explorer_base: network.explorerBase,
         wallet: { id: wallet.id, name: wallet.name, contract_id: wallet.contract_id, network: wallet.network },
         balances,
         grant: grant === undefined ? null : toolGrantView(grant, nowMs),
@@ -179,8 +188,13 @@ const resolveRecipient = (ownerId: string, recipient: string) =>
 export const paymentPrepare = (ctx: ToolContext, input: PaymentPrepareInput) =>
   Effect.gen(function* () {
     const { connection, wallet, grant } = yield* scope(ctx, true)
+    const network = yield* requirePayments
     const amount = toStroops(input.amount)
     if (amount <= 0n) return yield* fail('The amount must be more than zero.')
+    if (amount > network.caps.maxOwnerPaymentStroops)
+      return yield* fail(
+        `Nod caps a single payment at ${fromStroops(network.caps.maxOwnerPaymentStroops)} USDC on ${network.label}. Nothing was prepared.`,
+      )
     const recipient = yield* resolveRecipient(ctx.props.owner_id, input.recipient)
     if (recipient.address === wallet.contract_id) return yield* fail('That is this wallet itself.')
     const chain = yield* Chain
@@ -212,6 +226,8 @@ export const paymentPrepare = (ctx: ToolContext, input: PaymentPrepareInput) =>
       claim: false,
       operationKind: 'transfer',
       pocketBalance: null,
+      network: network.caip,
+      feeCeilings: network.fees,
     })
     const view = paymentView(
       prepared.intent,
@@ -224,7 +240,7 @@ export const paymentPrepare = (ctx: ToolContext, input: PaymentPrepareInput) =>
     return {
       sentence:
         view.approval_url !== null
-          ? `This payment of ${view.amount} USDC to ${recipient.name ?? recipient.address} needs the wallet owner's approval. Ask the user to open ${view.approval_url} and approve it with their passkey, then call payment_status with payment_id ${view.payment_id}.`
+          ? `This payment of ${view.amount} USDC to ${recipient.name ?? recipient.address} is above what this AI app may spend on its own, so it needs the user's nod. Ask the user to open ${view.approval_url} and approve it with their passkey, then call payment_status with payment_id ${view.payment_id}.${view.claim_url === null ? '' : ` ${recipient.name ?? 'The recipient'} has no USDC trustline yet: they accept at ${view.claim_url}.`}`
           : view.next_step,
       value: { ...view, outcome: status === 'prepared' ? 'ready_to_execute' : status },
     }
@@ -240,6 +256,7 @@ const outcomeOf = (error: ChainError, pull: Receipt | null, pulled: bigint): Out
 export const paymentExecute = (ctx: ToolContext, paymentId: string) =>
   Effect.gen(function* () {
     const { connection, wallet } = yield* scope(ctx, true)
+    yield* requirePayments
     const ledger = yield* Ledger
     const claim = yield* ledger
       .claimAutonomous(wallet.id, { intentId: paymentId, connectionId: connection.id })
@@ -279,9 +296,9 @@ export const paymentExecute = (ctx: ToolContext, paymentId: string) =>
     const view = paymentView(intent, yield* receiptOfIntent(intent.id), grant, ctx.origin, nowMs)
     const sentence =
       view.status === 'confirmed' && view.receipt !== null
-        ? `Paid ${view.amount} USDC to ${view.recipient.name ?? view.recipient.address}. Transaction ${view.receipt.tx_hash} (${view.receipt.explorer_url}). The connection may still spend ${view.grant_remaining} USDC.`
+        ? `Paid ${view.amount} USDC to ${view.recipient.name ?? view.recipient.address} from the allowance; Nod paid the network fee. Transaction ${view.receipt.tx_hash} (${view.receipt.explorer_url}). This AI app may still spend ${view.grant_remaining} USDC.`
         : view.approval_url !== null
-          ? `Not paid: this needs the wallet owner's approval. Ask the user to open ${view.approval_url}, then call payment_status with payment_id ${view.payment_id}.`
+          ? `Not paid: this needs the user's nod. Ask the user to open ${view.approval_url} and approve it with their passkey, then call payment_status with payment_id ${view.payment_id}.`
           : view.next_step
     return { sentence, value: view }
   })
@@ -305,7 +322,7 @@ export const paymentStatus = (ctx: ToolContext, paymentId: string) =>
       view.status === 'confirmed' && view.receipt !== null
         ? `Confirmed. Transaction ${view.receipt.tx_hash} in ledger ${view.receipt.ledger} (${view.receipt.explorer_url}).`
         : view.approval_url !== null
-          ? `Still waiting for the owner to approve at ${view.approval_url}.`
+          ? `Still waiting for the user's nod at ${view.approval_url}.`
           : view.next_step
     return { sentence, value: view }
   })
@@ -318,7 +335,7 @@ export const paymentApproveUrl = (ctx: ToolContext, paymentId: string) =>
     return {
       sentence:
         view.approval_url !== null
-          ? `Ask the user to open ${view.approval_url} and approve with their passkey, then call payment_status.`
+          ? `Ask the user to open ${view.approval_url} and approve it with their passkey, then call payment_status.`
           : `Payment ${paymentId} is ${view.status}; there is nothing to approve.`,
       value: {
         payment_id: intent.id,
@@ -366,9 +383,14 @@ const quoteHook =
   }) =>
   (quote: X402Quote) =>
     Effect.gen(function* () {
-      if (quote.network !== 'stellar:testnet')
-        return yield* decline(`the seller wants ${quote.network}, not stellar:testnet`)
-      if (quote.asset !== USDC_SAC) return yield* decline(`the seller wants asset ${quote.asset}, not testnet USDC`)
+      const network = yield* Network
+      if (quote.network !== network.caip)
+        return yield* decline(`the seller wants ${quote.network}, but this wallet is on ${network.caip}`)
+      if (quote.asset !== network.usdcSac) return yield* decline(`the seller wants asset ${quote.asset}, not USDC`)
+      if (quote.amountStroops > network.caps.maxX402PriceStroops)
+        return yield* decline(
+          `the price ${fromStroops(quote.amountStroops)} USDC is above Nod's cap of ${fromStroops(network.caps.maxX402PriceStroops)} USDC per purchase`,
+        )
       if (!ADDRESS.test(quote.payTo)) return yield* decline('the seller gave no Stellar address to pay')
       if (quote.amountStroops > input.maxAmount)
         return yield* decline(
@@ -406,6 +428,8 @@ const quoteHook =
           claim: true,
           operationKind: 'x402_settlement',
           pocketBalance,
+          network: network.caip,
+          feeCeilings: network.fees,
         })
         .pipe(Effect.mapError(error => new ChainError({ kind: 'declined', message: error.message })))
       yield* Ref.update(input.state, s => ({ ...s, intentId: prepared.intent.id }))
@@ -482,6 +506,7 @@ const paid = <Body>(
 ) =>
   Effect.gen(function* () {
     const { connection, wallet, grant, nowMs } = yield* scope(ctx, true)
+    yield* requirePayments
     const existing = yield* intentByKey(wallet.id, connection.id, request.key)
     if (existing !== undefined) {
       if ((yield* fingerprintOf(existing.id)) !== request.fingerprint)
@@ -489,7 +514,7 @@ const paid = <Body>(
       return { body: null, ...(yield* existingPaid(ctx, existing.id, grant, nowMs)) }
     }
     if (grant === undefined || grant.status !== 'active')
-      return yield* fail('This connection has no live spending grant; ask the owner (connection_grant_create).')
+      return yield* fail('This AI app has no live allowance; ask the user to set one (connection_grant_create).')
     const remaining = grant.total - grant.spent - grant.reserved + grant.pocket_balance
     const maxAmount = request.maxAmount === undefined ? remaining : toStroops(request.maxAmount)
     const intentId = yield* randomId('pi')
@@ -501,7 +526,7 @@ const paid = <Body>(
       quote: null,
       ownerLane: false,
     })
-    const services = yield* Effect.context<Chain | Ledger>()
+    const services = yield* Effect.context<Chain | Ledger | Network>()
     const hook = quoteHook({
       ctx,
       wallet,
@@ -546,7 +571,7 @@ const paid = <Body>(
         price: fromStroops(intent.amount),
         receipt: receipt === undefined ? null : receiptView(receipt),
         approval_url: null,
-        message: `Paid ${fromStroops(intent.amount)} USDC from the connection's allowance.`,
+        message: `Paid ${fromStroops(intent.amount)} USDC from this AI app's allowance; the facilitator paid the network fee.`,
         grant_remaining: grantRemaining(fresh, yield* nowMillis),
       }
     }
@@ -569,7 +594,7 @@ const paid = <Body>(
         price: after.quote === null ? null : fromStroops(after.quote.amountStroops),
         receipt: null,
         approval_url: view?.approval_url ?? null,
-        message: `The price does not fit this connection's remaining allowance. Nothing was paid. Ask the user to open ${view?.approval_url ?? 'the wallet'} to approve it, then call this tool again with the same idempotency key.`,
+        message: `The price is more than this AI app's allowance has left, so it needs the user's nod. Nothing was paid. Ask the user to open ${view?.approval_url ?? 'Nod'} and approve it with their passkey, then call this tool again with the same idempotency key.`,
         grant_remaining: grantRemaining(fresh, yield* nowMillis),
       }
     }
@@ -672,11 +697,11 @@ export const connectionGrantCreate = (ctx: ToolContext, key: string) =>
     const value = {
       url,
       message:
-        'This tool never grants anything itself. The owner raises or renews an allowance by reconnecting this client: the consent page asks for a new amount and expiry and their passkey signs it.',
+        'This tool never grants anything itself. The user raises or renews the allowance by reconnecting this AI app to Nod: the consent page asks for an amount and an expiry, and their passkey signs it.',
       grant_remaining: grantRemaining(grant, nowMs),
     }
     yield* saveToolResult(ctx.props.connection_id, key, 'connection_grant_create', JSON.stringify(value))
-    return { sentence: `Ask the user to open ${url} to change this connection's allowance.`, value }
+    return { sentence: `Ask the user to open ${url} to change this AI app's allowance.`, value }
   })
 
 export const connectionGrantRevoke = (ctx: ToolContext, key: string) =>
@@ -695,8 +720,8 @@ export const connectionGrantRevoke = (ctx: ToolContext, key: string) =>
       approval_url: removed ? null : url,
       sweep_tx: null,
       message: removed
-        ? 'Revoked: the service stopped signing and the onchain rule is gone.'
-        : `Revoked in the service: this connection can no longer pay. Removing its rule onchain needs the owner's passkey at ${url}.`,
+        ? 'Revoked: Nod stopped paying for this AI app and its allowance is gone from the Stellar account.'
+        : `Revoked: Nod stops paying for this AI app now. The user removes the allowance from their Stellar account with their passkey at ${url}.`,
       grant_remaining: '0.00',
     }
     if (saved === undefined)

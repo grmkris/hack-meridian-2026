@@ -10,6 +10,7 @@ import type { DbError } from './db.ts'
 import type { Db } from './db.ts'
 import type { LedgerError } from './ledger.ts'
 import type { Ledger } from './ledger.ts'
+import { Network, type NetworkShape } from './network.ts'
 import type { OAuthGrants } from './oauth-grants.ts'
 import { assertionOptions, createWallet, OwnerError, registrationOptions, signIn, walletOfSession } from './owner.ts'
 import { revokeConnection } from './revoke.ts'
@@ -82,8 +83,11 @@ const summary = (wallet: { id: string; name: string; contract_id: string; networ
   network: wallet.network,
 })
 
-const chainStatus = (mode: 'fixture' | 'testnet', health: ChainHealth): ChainStatus => ({
-  mode,
+const chainStatus = (fixture: boolean, network: NetworkShape, health: ChainHealth): ChainStatus => ({
+  mode: fixture ? 'fixture' : network.name,
+  network: network.caip,
+  explorer_base: network.explorerBase,
+  payments_enabled: network.caps.paymentsEnabled,
   latest_ledger: health.latestLedger,
   relayers: health.relayers.map(relayer => ({ address: relayer.address, xlm: relayer.xlmStroops.toString() })),
   treasury:
@@ -109,11 +113,12 @@ const SystemHandlers = HttpApiBuilder.group(
   Effect.fn(function* (handlers) {
     const settings = yield* Settings
     const wallet = yield* WalletSettings
+    const network = yield* Network
     const chain = yield* Chain
     return handlers.handle('health', () =>
       Effect.gen(function* () {
         const health = yield* chain.health.pipe(
-          Effect.map(reading => chainStatus(wallet.chain, reading)),
+          Effect.map(reading => chainStatus(wallet.chain === 'fixture', network, reading)),
           Effect.timeoutOrElse({ duration: '6 seconds', orElse: () => Effect.succeed(null) }),
           Effect.catchTag('ChainError', error => Effect.as(Effect.logWarning('health', error.message), null)),
         )
@@ -142,7 +147,7 @@ const SessionHandlers = HttpApiBuilder.group(
   Api,
   'session',
   Effect.fn(function* (handlers) {
-    const context = yield* Effect.context<Db | Chain | WalletSettings>()
+    const context = yield* Effect.context<Db | Chain | WalletSettings | Network>()
     const run = <A, E, R>(effect: Effect.Effect<A, E, R>) => Effect.provide(effect, context)
     return handlers
       .handle('current', () =>
@@ -152,7 +157,9 @@ const SessionHandlers = HttpApiBuilder.group(
         ),
       )
       .handle('registrationOptions', ({ payload }) =>
-        run(Effect.flatMap(site, here => registrationOptions(here, payload.name))).pipe(Effect.mapError(fromOwner)),
+        run(Effect.flatMap(site, here => registrationOptions(here, payload.name, payload.invite_code))).pipe(
+          Effect.mapError(fromOwner),
+        ),
       )
       .handle('createWallet', ({ payload }) =>
         run(
@@ -162,6 +169,7 @@ const SessionHandlers = HttpApiBuilder.group(
               credentialId: payload.credential_id,
               publicKey: payload.public_key,
               clientDataJSON: payload.client_data_json,
+              inviteCode: payload.invite_code,
             }),
           ),
         ).pipe(
@@ -202,7 +210,8 @@ const WalletHandlers = HttpApiBuilder.group(
   Api,
   'wallet',
   Effect.fn(function* (handlers) {
-    const context = yield* Effect.context<Db | Chain | WalletSettings | Ledger | OAuthGrants>()
+    const context = yield* Effect.context<Db | Chain | WalletSettings | Ledger | OAuthGrants | Network>()
+    const network = yield* Network
     const run = <A, R>(
       effect: Effect.Effect<A, DbError | LedgerError | Unauthorized | BadRequest | NotFound | Unavailable, R>,
     ) =>
@@ -227,6 +236,8 @@ const WalletHandlers = HttpApiBuilder.group(
             const pending = yield* pendingOfWallet(wallet.id)
             return {
               wallet: summary(wallet),
+              network: network.caip,
+              explorer_base: network.explorerBase,
               balances,
               grants: connections.map(entry => apiGrantView(entry.connection, entry.grant)),
               pending: pending.map(intent => pendingApproval(intent, here.origin)),
@@ -320,7 +331,7 @@ const WalletHandlers = HttpApiBuilder.group(
   }),
 )
 
-export type ApiServices = Settings | Counter | WalletSettings | Db | Chain | Ledger | OAuthGrants
+export type ApiServices = Settings | Counter | WalletSettings | Db | Chain | Ledger | OAuthGrants | Network
 
 /**
  * The typed API as a fetch handler over the given services. Build it once per isolate. Services that fail to build

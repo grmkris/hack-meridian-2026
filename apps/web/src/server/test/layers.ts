@@ -1,10 +1,11 @@
 import { Effect, Layer, Option } from 'effect'
 
-import { Chain, type FixtureChain, makeFixtureChain } from '@hm/protocol'
+import { Chain, type FixtureChain, makeFixtureChain, USDC_SAC } from '@hm/protocol'
 
 import { Counter } from '../counter.ts'
 import { Db } from '../db.ts'
 import { Ledger, makeLocalLedger } from '../ledger.ts'
+import { Network, type NetworkShape } from '../network.ts'
 import { OAuthGrants } from '../oauth-grants.ts'
 import { Settings } from '../settings.ts'
 import { WalletSettings } from '../wallet-settings.ts'
@@ -28,11 +29,32 @@ export const testWalletSettings = Layer.succeed(WalletSettings, {
   demoContacts: [],
 })
 
+export const testNetwork: NetworkShape = {
+  name: 'testnet',
+  caip: 'stellar:testnet',
+  label: 'Testnet',
+  explorerBase: 'https://stellar.expert/explorer/testnet',
+  usdcSac: USDC_SAC,
+  caps: {
+    maxGrantStroops: 200_000_000n,
+    maxOwnerPaymentStroops: 1_000_000_000n,
+    maxX402PriceStroops: 10_000_000n,
+    paymentsEnabled: true,
+  },
+  fees: { firstXlm: 35, laterXlm: 4, ownerXlm: 1 },
+  welcomeFunding: true,
+  inviteCodes: [],
+}
+
 /**
  * Every service the Worker runs, on fakes: SQLite with the D1 migration, the local Ledger (what the wallet's Durable
  * Object hosts), the FixtureChain, no OAuth provider. One build per test.
  */
-export const testServices = (fixture: FixtureChain = makeFixtureChain(), counter?: Counter['Service']) => {
+export const testServices = (
+  fixture: FixtureChain = makeFixtureChain(),
+  counter?: Counter['Service'],
+  network: NetworkShape = testNetwork,
+) => {
   const db = Layer.unwrap(Effect.promise(async () => Db.fromEngine(await sqliteEngine())))
   const ledger = Layer.effect(Ledger, makeLocalLedger)
   return Layer.mergeAll(
@@ -40,6 +62,7 @@ export const testServices = (fixture: FixtureChain = makeFixtureChain(), counter
     testWalletSettings,
     Layer.succeed(Chain, fixture.chain),
     OAuthGrants.none,
+    Layer.succeed(Network, network),
     Layer.succeed(Counter, counter ?? { read: Effect.die('no counter in this test') }),
     ledger,
   ).pipe(Layer.provideMerge(db))

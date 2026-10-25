@@ -10,7 +10,9 @@ import { fileURLToPath } from 'node:url'
  * Alchemy state in this checkout (.alchemy/, gitignored), so nothing here touches the account's shared state store,
  * whose version moves with myapps and goblin. Run it only through scripts/stage.ts.
  */
-const STAGES = ['local', 'testnet'] as const
+const STAGES = ['local', 'testnet', 'mainnet'] as const
+/** Stellar mainnet: real money. Defined here, deployed only on Kristjan's explicit call. */
+const isMainnet = (stage: string) => stage === 'mainnet'
 const path = (relative: string) => fileURLToPath(new URL(relative, import.meta.url))
 
 /** The public record of the contracts on testnet (ids and hashes), written by `bun run contracts:deploy`. */
@@ -32,11 +34,27 @@ const deployment = Schema.decodeUnknownSync(Deployment)(
 const SECRETS = [
   'VAULT_KEY',
   'RELAYER_SECRET',
+  'RELAYER_SECRETS',
   'TREASURY_SECRET',
   'OZ_FACILITATOR_KEY',
   'DEMO_RECIPIENT_SECRET',
+  'INVITE_CODES',
 ] as const
-const SWITCHES = { CHAIN: 'fixture', X402_FACILITATOR_URL: 'https://www.x402.org/facilitator', RP_ID: '', ORIGIN: '' }
+/**
+ * Switches with their defaults per stage ('' = unset: the chain package's network preset decides). CHAIN picks the
+ * fixture or the real chain; the caps and PAYMENTS_ENABLED are checked by the service before any chain call.
+ */
+const switchesFor = (stage: string): Record<string, string> => ({
+  CHAIN: isMainnet(stage) ? 'stellar' : 'fixture',
+  X402_FACILITATOR_URL: '',
+  RP_ID: '',
+  ORIGIN: '',
+  MAX_GRANT_USDC: '20',
+  MAX_OWNER_PAYMENT_USDC: isMainnet(stage) ? '50' : '100',
+  MAX_X402_PRICE_USDC: '1',
+  PAYMENTS_ENABLED: 'true',
+  WALLET_TTL_LEDGERS: '',
+})
 
 const readEnvFile = (file: string): Record<string, string> =>
   existsSync(file)
@@ -62,12 +80,15 @@ const walletEnv = (stage: string) =>
       if (value !== '') secrets[name] = Redacted.make(value)
     }
     const switches: Record<string, string> = {}
-    for (const [name, fallback] of Object.entries(SWITCHES)) {
+    for (const [name, fallback] of Object.entries(switchesFor(stage))) {
       const value = file[name] ?? (yield* Config.String(name).pipe(Config.withDefault(fallback)))
       if (value !== '') switches[name] = value
     }
-    if (switches['CHAIN'] === 'testnet' && (!secrets['RELAYER_SECRET'] || !secrets['VAULT_KEY']))
-      return yield* Effect.die(new Error('CHAIN=testnet needs RELAYER_SECRET and VAULT_KEY (apps/web/.env.<stage>)'))
+    const real = switches['CHAIN'] === 'testnet' || switches['CHAIN'] === 'stellar'
+    if (real && (!(secrets['RELAYER_SECRET'] ?? secrets['RELAYER_SECRETS']) || !secrets['VAULT_KEY']))
+      return yield* Effect.die(
+        new Error(`CHAIN=${switches['CHAIN']} needs RELAYER_SECRET and VAULT_KEY (apps/web/.env.${stage})`),
+      )
     return { ...secrets, ...switches }
   })
 
@@ -137,11 +158,16 @@ export default Alchemy.Stack(
       env: {
         STAGE: stage,
         RELEASE: release,
-        STELLAR_NETWORK: deployment.network,
-        STELLAR_RPC_URL: deployment.rpcUrl,
-        STELLAR_NETWORK_PASSPHRASE: deployment.networkPassphrase,
-        COUNTER_CONTRACT_ID: deployment.contracts.counter.id,
-        DEMO_CONTACTS: demoContacts(),
+        // Mainnet takes every network field from the chain package's pubnet preset; the counter is testnet only.
+        ...(isMainnet(stage)
+          ? { STELLAR_NETWORK: 'pubnet', DEMO_CONTACTS: '[]' }
+          : {
+              STELLAR_NETWORK: deployment.network,
+              STELLAR_RPC_URL: deployment.rpcUrl,
+              STELLAR_NETWORK_PASSPHRASE: deployment.networkPassphrase,
+              COUNTER_CONTRACT_ID: deployment.contracts.counter.id,
+              DEMO_CONTACTS: demoContacts(),
+            }),
         WALLET_DB: db,
         WALLET_OBJECT: Cloudflare.DurableObject('WalletObject', { className: 'WalletObject' }),
         OAUTH_STORE: Cloudflare.DurableObject('OAuthStore', { className: 'OAuthStore' }),

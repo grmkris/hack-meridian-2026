@@ -1,11 +1,12 @@
 import { Effect, Schema } from 'effect'
 
 import { Assertion } from '@hm/api'
-import { Chain, type ChainError, PreparedOwnerAuth } from '@hm/protocol'
+import { Chain, type ChainError, fromStroops, PreparedOwnerAuth } from '@hm/protocol'
 
 import { nowMillis, randomId } from './clock.ts'
 import type { DbError } from './db.ts'
 import { effectiveStatus, Ledger, type LedgerError, type Outcome } from './ledger.ts'
+import { Network } from './network.ts'
 import { checkAssertion, OwnerError, requireWallet, sessionToken, walletOfSession } from './owner.ts'
 import { approvalPage, claimPage, html, messagePage, revokePage } from './pages.ts'
 import { revokeConnection } from './revoke.ts'
@@ -28,7 +29,12 @@ import { siteOf } from './wallet-settings.ts'
  * prepare (the chain builds the invocation and its challenge) followed by a POST with the passkey's assertion over it.
  */
 
-const nonce = Effect.map(randomId('n'), id => id.slice(2))
+/** This response's script nonce and the network label every page shows. */
+const chrome = Effect.gen(function* () {
+  const id = yield* randomId('n')
+  const network = yield* Network
+  return { nonce: id.slice(2), network: network.label }
+})
 /** Owner auth for ≈ 400 ledgers (≈ 33 min): the approval page's validity. */
 const OWNER_AUTH_LEDGERS = 400
 
@@ -68,7 +74,9 @@ const page = (runtime: AppRuntime, effect: Effect.Effect<Response, RouteError, A
   runtime.runPromise(
     effect.pipe(
       Effect.catch(error =>
-        Effect.map(nonce, n => html(n, messagePage(n, 'Not available', messageOf(error)), { status: statusOf(error) })),
+        Effect.map(chrome, n =>
+          html(n, messagePage(n, 'Not available', messageOf(error)), { status: statusOf(error) }),
+        ),
       ),
     ),
   )
@@ -99,6 +107,20 @@ const decodePrepared = (text: string | null) =>
         Effect.mapError(() => new OwnerError({ kind: 'bad_request', message: 'the prepared payment is unreadable' })),
       )
 
+/** The kill switch and the per-payment cap, checked before the chain prepares or submits anything. */
+const paymentsAllowed = (amount: bigint) =>
+  Effect.gen(function* () {
+    const network = yield* Network
+    if (!network.caps.paymentsEnabled)
+      return yield* new OwnerError({ kind: 'unavailable', message: 'Payments are paused on Nod right now.' })
+    if (amount > network.caps.maxOwnerPaymentStroops)
+      return yield* new OwnerError({
+        kind: 'bad_request',
+        message: `Nod caps a single payment at ${fromStroops(network.caps.maxOwnerPaymentStroops)} USDC on ${network.label}.`,
+      })
+    return undefined
+  })
+
 const ownedIntent = (intentId: string, walletId: string) =>
   Effect.flatMap(intentById(intentId), intent =>
     intent === undefined || intent.wallet_id !== walletId
@@ -112,7 +134,7 @@ const approvalGet = (runtime: AppRuntime, request: Request, intentId: string) =>
   page(
     runtime,
     Effect.gen(function* () {
-      const n = yield* nonce
+      const n = yield* chrome
       const site = yield* siteOf(request)
       const intent = yield* intentById(intentId)
       if (intent === undefined) return html(n, messagePage(n, 'Not found', `No payment ${intentId}.`), { status: 404 })
@@ -151,6 +173,7 @@ const approvalPrepare = (runtime: AppRuntime, request: Request, intentId: string
     Effect.gen(function* () {
       const wallet = yield* requireWallet(request)
       const intent = yield* ownedIntent(intentId, wallet.id)
+      yield* paymentsAllowed(intent.amount)
       if (effectiveStatus(intent, yield* nowMillis) !== 'awaiting_approval')
         return yield* new OwnerError({ kind: 'bad_request', message: `this payment is ${intent.status}` })
       const grant = intent.grant_id === null ? undefined : yield* grantById(intent.grant_id)
@@ -175,6 +198,7 @@ const approvalPost = (runtime: AppRuntime, request: Request, intentId: string) =
       const wallet = yield* requireWallet(request)
       const site = yield* siteOf(request)
       const intent = yield* ownedIntent(intentId, wallet.id)
+      yield* paymentsAllowed(intent.amount)
       const prepared = yield* decodePrepared((yield* approvalPreparedOf(intent.id)) ?? null)
       const assertion = yield* checkAssertion(site, wallet, yield* readAssertion(request), prepared.challenge)
       const ledger = yield* Ledger
@@ -208,7 +232,7 @@ const revokeGet = (runtime: AppRuntime, request: Request, connectionId: string) 
   page(
     runtime,
     Effect.gen(function* () {
-      const n = yield* nonce
+      const n = yield* chrome
       const site = yield* siteOf(request)
       const connection = yield* connectionById(connectionId)
       if (connection === undefined)
@@ -274,7 +298,7 @@ const claimGet = (runtime: AppRuntime, request: Request, intentId: string) =>
   page(
     runtime,
     Effect.gen(function* () {
-      const n = yield* nonce
+      const n = yield* chrome
       const intent = yield* intentById(intentId)
       if (intent === undefined || intent.recipient_readiness !== 'trustline_required')
         return html(n, messagePage(n, 'Not found', 'This claim link is not valid.'), { status: 404 })

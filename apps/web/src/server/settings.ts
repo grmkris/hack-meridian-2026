@@ -26,8 +26,9 @@ const load = Effect.gen(function* () {
     stage: yield* Config.String('STAGE'),
     release: yield* Config.String('RELEASE').pipe(Config.withDefault('local')),
     network: yield* Config.String('STELLAR_NETWORK'),
-    rpcUrl: yield* Config.String('STELLAR_RPC_URL'),
-    networkPassphrase: yield* Config.String('STELLAR_NETWORK_PASSPHRASE'),
+    // Unset on the mainnet stage, where the chain package's pubnet preset supplies both (no counter there).
+    rpcUrl: yield* Config.String('STELLAR_RPC_URL').pipe(Config.withDefault('')),
+    networkPassphrase: yield* Config.String('STELLAR_NETWORK_PASSPHRASE').pipe(Config.withDefault('')),
     counterContractId: yield* Config.option(Config.String('COUNTER_CONTRACT_ID')),
   }
 })

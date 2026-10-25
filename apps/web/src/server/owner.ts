@@ -4,6 +4,7 @@ import { Chain, type ChainError, type Wallet, type WebAuthnAssertion } from '@hm
 
 import { randomToken } from './clock.ts'
 import type { DbError } from './db.ts'
+import { inviteRequired, Network } from './network.ts'
 import {
   consumeChallenge,
   createChallenge,
@@ -36,28 +37,44 @@ const unavailable = (error: DbError | ChainError) =>
     message: error._tag === 'DbError' ? `storage failed (${error.operation}); retry` : error.message,
   })
 
-export const registrationOptions = (site: Site, name: string) =>
+/** Mainnet: wallet creation needs one of the configured invite codes. */
+const checkInvite = (code: string | undefined) =>
   Effect.gen(function* () {
+    const network = yield* Network
+    if (!inviteRequired(network)) return undefined
+    if (code === undefined || !network.inviteCodes.includes(code.trim()))
+      return yield* new OwnerError({
+        kind: 'unauthorized',
+        message: 'Wallets on mainnet need an invite code during the beta.',
+      })
+    return undefined
+  })
+
+export const registrationOptions = (site: Site, name: string, inviteCode?: string) =>
+  Effect.gen(function* () {
+    yield* checkInvite(inviteCode)
     const challenge = yield* createChallenge('register')
     return {
       challenge,
       rp_id: site.rpId,
-      rp_name: 'stellarmcpwallet',
+      rp_name: 'Nod',
       user_id: yield* randomToken,
       user_name: name.trim() === '' ? 'Personal' : name.trim().slice(0, 40),
     }
-  }).pipe(Effect.mapError(unavailable))
+  }).pipe(Effect.catchTag('DbError', error => Effect.fail(unavailable(error))))
 
 export interface NewWalletInput {
   readonly name: string
   readonly credentialId: string
   readonly publicKey: string
   readonly clientDataJSON: string
+  readonly inviteCode?: string | undefined
 }
 
 /** Registration → the relayer deploys the smart account with the passkey as admin → treasury sends welcome USDC. */
 export const createWallet = (site: Site, input: NewWalletInput) =>
   Effect.gen(function* () {
+    yield* checkInvite(input.inviteCode)
     const clientData = yield* b64urlDecode(input.clientDataJSON).pipe(Effect.mapError(badRequest))
     const challenge = (yield* readClientData(clientData).pipe(Effect.mapError(badRequest))).challenge
     if (!(yield* consumeChallenge(challenge, 'register')))
@@ -74,12 +91,16 @@ export const createWallet = (site: Site, input: NewWalletInput) =>
     const chain = yield* Chain
     const deployed = yield* chain.deployAccount({ pubkey: publicKey, credentialId })
     const settings = yield* WalletSettings
-    const funded = yield* chain.fundNewWallet(deployed.contractId, settings.welcomeUsdc).pipe(
-      Effect.map(result => result.tx),
-      Effect.catchTag('ChainError', error =>
-        Effect.as(Effect.logWarning('welcome USDC failed', error.kind, error.message), null),
-      ),
-    )
+    const network = yield* Network
+    // Welcome USDC from the treasury: testnet only (the judge path), never on mainnet.
+    const funded = network.welcomeFunding
+      ? yield* chain.fundNewWallet(deployed.contractId, settings.welcomeUsdc).pipe(
+          Effect.map(result => result.tx),
+          Effect.catchTag('ChainError', error =>
+            Effect.as(Effect.logWarning('welcome USDC failed', error.kind, error.message), null),
+          ),
+        )
+      : null
     const wallet = yield* createOwnerWallet({
       name: input.name.trim().slice(0, 40) || 'Personal',
       contractId: deployed.contractId,

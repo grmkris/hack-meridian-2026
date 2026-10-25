@@ -75,12 +75,23 @@ export const laneFor = (input: {
     ? 'autonomous'
     : 'owner'
 
-export const feeCeilingFor = (lane: Lane, grant: SpendingGrant | undefined): number =>
-  lane === 'owner'
-    ? FEE_CEILING_OWNER_PAYMENT_XLM
-    : grant?.first_payment_done === true
-      ? FEE_CEILING_LATER_PAYMENT_XLM
-      : FEE_CEILING_FIRST_PAYMENT_XLM
+/** XLM fee ceilings for an intent, from the network preset (defaults: the protocol's testnet numbers). */
+export interface FeeCeilings {
+  readonly firstXlm: number
+  readonly laterXlm: number
+  readonly ownerXlm: number
+}
+export const DEFAULT_FEE_CEILINGS: FeeCeilings = {
+  firstXlm: FEE_CEILING_FIRST_PAYMENT_XLM,
+  laterXlm: FEE_CEILING_LATER_PAYMENT_XLM,
+  ownerXlm: FEE_CEILING_OWNER_PAYMENT_XLM,
+}
+
+export const feeCeilingFor = (
+  lane: Lane,
+  grant: SpendingGrant | undefined,
+  fees: FeeCeilings = DEFAULT_FEE_CEILINGS,
+) => (lane === 'owner' ? fees.ownerXlm : grant?.first_payment_done === true ? fees.laterXlm : fees.firstXlm)
 
 export class LedgerError extends Schema.TaggedError<LedgerError>()('LedgerError', {
   reason: Schema.Literals(['not_found', 'idempotency_conflict', 'invalid_state', 'storage']),
@@ -113,6 +124,9 @@ export interface NewIntent {
   readonly operationKind: 'transfer' | 'x402_settlement'
   /** x402: the pocket's USDC balance as the chain reports it now; reconciles the stored float before the lane check. */
   readonly pocketBalance: bigint | null
+  /** CAIP-2 network of the stage (default stellar:testnet). */
+  readonly network?: 'stellar:testnet' | 'stellar:pubnet'
+  readonly feeCeilings?: FeeCeilings
 }
 
 export interface Prepared {
@@ -338,9 +352,9 @@ const prepareIntent = Effect.fnUntraced(function* (walletId: string, input: NewI
     recipient_readiness: input.recipientReadiness,
     resource: input.resource,
     asset: 'USDC',
-    network: 'stellar:testnet',
+    network: input.network ?? 'stellar:testnet',
     amount: input.amount,
-    fee_ceiling_xlm: feeCeilingFor(lane, grant),
+    fee_ceiling_xlm: feeCeilingFor(lane, grant, input.feeCeilings),
     lane,
     status,
     failure: null,

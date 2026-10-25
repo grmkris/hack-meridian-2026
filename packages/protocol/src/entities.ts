@@ -7,7 +7,7 @@ import { Stroops } from './money.ts'
  * stroops (7-dp integers, `bigint` in memory, decimal strings on the wire); times are ISO-8601 UTC strings.
  */
 
-export const Network = Schema.Literal('stellar:testnet')
+export const Network = Schema.Literals(['stellar:testnet', 'stellar:pubnet'])
 export type Network = typeof Network.Type
 
 export const Asset = Schema.Literal('USDC')

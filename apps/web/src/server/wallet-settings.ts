@@ -27,8 +27,8 @@ export class WalletSettings extends Context.Service<
   WalletSettings,
   {
     readonly stage: string
-    /** `fixture`: the deterministic in-memory chain; `testnet`: @hm/stellar on Stellar testnet. */
-    readonly chain: 'fixture' | 'testnet'
+    /** `fixture`: the deterministic in-memory chain; `testnet`/`stellar`: @hm/stellar on STELLAR_NETWORK. */
+    readonly chain: 'fixture' | 'testnet' | 'stellar'
     /** WebAuthn relying party id; defaults to the request's host name. */
     readonly rpId: Option.Option<string>
     /** The page origin passkeys are bound to; defaults to the request's origin. */
@@ -48,7 +48,9 @@ export class WalletSettings extends Context.Service<
 const load = Effect.gen(function* () {
   return {
     stage: yield* Config.String('STAGE').pipe(Config.withDefault('local')),
-    chain: yield* Config.Literals(['fixture', 'testnet'], 'CHAIN').pipe(Config.withDefault('fixture' as const)),
+    chain: yield* Config.Literals(['fixture', 'testnet', 'stellar'], 'CHAIN').pipe(
+      Config.withDefault('fixture' as const),
+    ),
     rpId: yield* Config.option(Config.String('RP_ID')),
     origin: yield* Config.option(Config.String('ORIGIN')),
     welcomeUsdc: yield* Config.String('WELCOME_USDC_STROOPS').pipe(

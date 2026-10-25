@@ -81,7 +81,7 @@ const TOOLS = [
   spec(
     'wallet_overview',
     'Wallet overview',
-    "The wallet's USDC balance, this connection's spending allowance (remaining and expiry), payments waiting for the owner, and recent receipts. The wallet balance and the allowance are different numbers: only the allowance can be spent without the owner.",
+    "The Nod wallet's USDC balance and network, the allowance this AI app may spend on its own (left and expiry), payments waiting for the user's nod, and recent receipts. The wallet balance and the allowance are different numbers: only the allowance can be spent without asking the user.",
     WalletOverviewInput,
     { readOnlyHint: true, openWorldHint: false },
     ctx => walletOverview(ctx),
@@ -89,7 +89,7 @@ const TOOLS = [
   spec(
     'contacts_search',
     'Search contacts',
-    "Find the owner's saved contacts by name, alias or address. Each destination says whether it can receive USDC now (usdc_ready), needs the recipient to accept first (trustline_required), does not exist (account_missing), and whether it was paid before.",
+    "Find the user's saved contacts by name, alias or address. Each destination says whether it can receive USDC now (usdc_ready), needs the recipient to accept a claim link first (trustline_required), does not exist (account_missing), and whether it was paid before.",
     ContactsSearchInput,
     { readOnlyHint: true, openWorldHint: false },
     (ctx, args) => contactsSearch(ctx, args.query),
@@ -97,7 +97,7 @@ const TOOLS = [
   spec(
     'payment_prepare',
     'Prepare a payment',
-    'Freeze a USDC payment to a contact or address into an intent with a quote: lane autonomous (inside the allowance: call payment_execute next) or owner (status awaiting_approval with an approval_url the user must open and approve with their passkey). Never pays by itself. Repeat with the same idempotency_key to get the same intent.',
+    "Freeze a USDC payment to a contact or address into an intent. Inside this AI app's allowance it comes back ready (call payment_execute next); anything bigger needs the user's nod: status awaiting_approval with an approval_url the user opens and approves with their passkey. Never pays by itself. Repeat with the same idempotency_key to get the same intent.",
     PaymentPrepareInput,
     { readOnlyHint: false, idempotentHint: true, openWorldHint: false },
     (ctx, args) => paymentPrepare(ctx, args),
@@ -105,7 +105,7 @@ const TOOLS = [
   spec(
     'payment_execute',
     'Execute a payment',
-    "Pay a prepared intent in the autonomous lane with this connection's key, within its onchain allowance. Refuses owner-lane intents and returns their approval_url instead. Returns the confirmed receipt; a repeat never pays twice.",
+    "Pay a prepared intent from this AI app's allowance (the limit is enforced by the user's Stellar account; Nod pays the network fee). Intents that need the user's nod are refused and their approval_url returned instead. Returns the confirmed receipt; a repeat never pays twice.",
     PaymentExecuteInput,
     { readOnlyHint: false, idempotentHint: true, openWorldHint: true },
     (ctx, args) => paymentExecute(ctx, args.payment_id),
@@ -113,7 +113,7 @@ const TOOLS = [
   spec(
     'payment_approve_url',
     'Approval link',
-    'The link the wallet owner opens to approve an intent that needs their passkey. Opening it has no side effect.',
+    'The link the user opens to approve an intent that needs their nod (passkey). Opening it has no side effect.',
     PaymentApproveUrlInput,
     { readOnlyHint: true, openWorldHint: false },
     (ctx, args) => paymentApproveUrl(ctx, args.payment_id),
@@ -121,7 +121,7 @@ const TOOLS = [
   spec(
     'payment_status',
     'Payment status',
-    'The state of a payment intent (prepared, awaiting_approval, submitted, confirmed, failed, expired) and its receipt once confirmed onchain. Never triggers a payment; poll it after the owner approves.',
+    'The state of a payment intent (prepared, awaiting_approval, submitted, confirmed, failed, expired) and its receipt once confirmed on Stellar. Never triggers a payment; poll it after the user approves.',
     PaymentStatusInput,
     { readOnlyHint: true, openWorldHint: false },
     (ctx, args) => paymentStatus(ctx, args.payment_id),
@@ -129,7 +129,7 @@ const TOOLS = [
   spec(
     'paid_resource_fetch',
     'Fetch a paid resource (x402)',
-    'GET a URL. If it answers 402 with a Stellar testnet USDC price that fits the allowance, pay it from this connection (no owner prompt) and return the content with the receipt; otherwise return requires_approval or refused. Same idempotency_key = never pays twice.',
+    "GET a URL. If it answers 402 (x402) with a Stellar USDC price that fits this AI app's allowance, pay it without asking the user and return the content with the receipt; otherwise return requires_approval (the user's nod) or refused. Same idempotency_key = never pays twice.",
     PaidResourceFetchInput,
     { readOnlyHint: false, idempotentHint: true, openWorldHint: true },
     (ctx, args) => paidResourceFetch(ctx, args),
@@ -137,7 +137,7 @@ const TOOLS = [
   spec(
     'paid_mcp_call',
     'Call a paid MCP tool (x402)',
-    "Call a tool on another MCP server that charges over x402, paying from this connection's allowance like paid_resource_fetch.",
+    "Call a tool on another MCP server that charges over x402, paying from this AI app's allowance like paid_resource_fetch.",
     PaidMcpCallInput,
     { readOnlyHint: false, idempotentHint: true, openWorldHint: true },
     (ctx, args) => paidMcpCall(ctx, args),
@@ -145,7 +145,7 @@ const TOOLS = [
   spec(
     'connection_grant_create',
     'Ask for an allowance',
-    "Return the link where the owner creates or renews this connection's allowance. Never grants anything itself.",
+    "Return the link where the user sets or renews this AI app's allowance. Never grants anything itself.",
     ConnectionGrantCreateInput,
     { readOnlyHint: true, openWorldHint: false },
     (ctx, args) => connectionGrantCreate(ctx, args.idempotency_key),
@@ -153,7 +153,7 @@ const TOOLS = [
   spec(
     'connection_grant_revoke',
     'Revoke this connection',
-    "Stop this connection's allowance immediately (the service refuses to sign from now on) and sweep its pocket back to the wallet; removing the onchain rule needs the owner's passkey at the returned link.",
+    "Stop this AI app's allowance now (Nod refuses to pay for it from here on) and return its unspent USDC to the wallet; the user removes the allowance from their Stellar account with their passkey at the returned link.",
     ConnectionGrantRevokeInput,
     { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: true },
     (ctx, args) => connectionGrantRevoke(ctx, args.idempotency_key),
@@ -220,11 +220,11 @@ export const serveMcp = async (
 ) => {
   if (request.method !== 'POST') return new Response('Method Not Allowed', { status: 405, headers: { Allow: 'POST' } })
   const server = new Server(
-    { name: 'stellarmcpwallet', version: '0.1.0' },
+    { name: 'Nod', version: '0.1.0' },
     {
       capabilities: { tools: {} },
       instructions:
-        'A Stellar testnet USDC wallet with a spending allowance for this connection. Payments inside the allowance go through on their own; anything bigger returns an approval_url that you must show the user verbatim, then poll payment_status. Always pass a fresh idempotency_key per intended payment and reuse it on retries.',
+        "Nod: the user's Stellar USDC wallet with an allowance for you. Small stuff, it just pays; big stuff needs the user's nod. Payments inside the allowance go through on their own; anything bigger returns an approval_url that you must show the user verbatim, then poll payment_status. Always pass a fresh idempotency_key per intended payment and reuse it on retries. Always mention the network (testnet) when you talk about money.",
     },
   )
   server.setRequestHandler(ListToolsRequestSchema, async () => ({ tools: listTools() }))

@@ -9,12 +9,13 @@ import {
   type OAuthResourceContext,
 } from '@cloudflare/workers-oauth-provider'
 import { Assertion } from '@hm/api'
-import { Chain, PreparedOwnerAuth, toStroops } from '@hm/protocol'
+import { Chain, fromStroops, PreparedOwnerAuth, toStroops } from '@hm/protocol'
 
 import { isoIn, nowIso, nowMillis, randomId } from './clock.ts'
 import { serveMcp } from './mcp.ts'
+import { inviteRequired, Network } from './network.ts'
 import { OwnerError, checkAssertion, requireWallet, walletOfSession, sessionToken } from './owner.ts'
-import { consentGrantPage, consentSignInPage, html, messagePage, type ConsentView } from './pages.ts'
+import { type Chrome, consentGrantPage, consentSignInPage, html, messagePage, type ConsentView } from './pages.ts'
 import { ConnectionProps, type ConnectionMetadata } from './props.ts'
 import type { AppRuntime } from './runtime.ts'
 import { createConnection, createPendingGrant, pendingGrant } from './store.ts'
@@ -34,7 +35,12 @@ export interface ProviderEnv {
   readonly OAUTH_PROVIDER: OAuthHelpers
 }
 
-const nonce = Effect.map(randomId('n'), id => id.slice(2))
+/** This response's script nonce and the network label every page shows. */
+const chrome = Effect.gen(function* () {
+  const id = yield* randomId('n')
+  const network = yield* Network
+  return { nonce: id.slice(2), network: network.label }
+})
 
 /** A workers-oauth-provider call that threw (AuthorizationError, CimdFetchError, …), kept for the error page. */
 class OAuthCallError extends Schema.TaggedError<OAuthCallError>()('OAuthCallError', {
@@ -42,10 +48,7 @@ class OAuthCallError extends Schema.TaggedError<OAuthCallError>()('OAuthCallErro
   cause: Schema.Defect(),
 }) {}
 
-/** Run an Effect that renders a page; an OwnerError becomes a message page with the right status. */
-export const renderPage = (runtime: AppRuntime, effect: Effect.Effect<Response, unknown>) => runtime.runPromise(effect)
-
-const pageError = (n: string, title: string, error: OwnerError) =>
+const pageError = (n: Chrome, title: string, error: OwnerError) =>
   html(n, messagePage(n, title, error.message), {
     status: error.kind === 'unauthorized' ? 401 : error.kind === 'bad_request' ? 400 : 503,
   })
@@ -83,6 +86,14 @@ export const prepareGrant = (runtime: AppRuntime, request: Request) =>
       )
       if (!ALLOWANCE.test(input.allowance) || toStroops(input.allowance) <= 0n)
         return yield* new OwnerError({ kind: 'bad_request', message: 'the allowance must be a USDC amount like 5.00' })
+      const network = yield* Network
+      if (!network.caps.paymentsEnabled)
+        return yield* new OwnerError({ kind: 'unavailable', message: 'Payments are paused on Nod right now.' })
+      if (toStroops(input.allowance) > network.caps.maxGrantStroops)
+        return yield* new OwnerError({
+          kind: 'bad_request',
+          message: `Nod caps an allowance at ${fromStroops(network.caps.maxGrantStroops)} USDC on ${network.label}.`,
+        })
       const lifetime = Math.min(Math.max(input.lifetime_seconds, 300), MAX_LIFETIME_S)
       const chain = yield* Chain
       const signer = yield* chain.newSigner
@@ -133,7 +144,7 @@ const decodeAssertionJson = Schema.decodeUnknownEffect(Schema.fromJsonString(Ass
 export const authorize = (runtime: AppRuntime, request: Request, env: ProviderEnv) =>
   runtime.runPromise(
     Effect.gen(function* () {
-      const n = yield* nonce
+      const n = yield* chrome
       const oauth = env.OAUTH_PROVIDER
       const site = yield* siteOf(request)
       if (request.method === 'GET') {
@@ -142,7 +153,8 @@ export const authorize = (runtime: AppRuntime, request: Request, env: ProviderEn
         const consent = yield* call('begin', () => oauth.beginConsent(authRequest))
         const view = consentView(consent.handle, details)
         const wallet = yield* walletOfSession(sessionToken(request))
-        if (wallet === undefined) return html(n, consentSignInPage(n, view), { headers: consent.headers })
+        if (wallet === undefined)
+          return html(n, consentSignInPage(n, view, inviteRequired(yield* Network)), { headers: consent.headers })
         const balance = yield* Chain.use(chain => chain.balances(wallet.contract_id)).pipe(
           Effect.map(b => b.usdc),
           Effect.catchTag('ChainError', () => Effect.succeed(null)),
@@ -247,7 +259,7 @@ export const authorize = (runtime: AppRuntime, request: Request, env: ProviderEn
     }).pipe(
       Effect.catch(error =>
         Effect.gen(function* () {
-          const n = yield* nonce
+          const n = yield* chrome
           if (error instanceof OwnerError) return pageError(n, 'Cannot connect', error)
           if (typeof error === 'object' && error !== null && '_tag' in error && error._tag === 'ChainError')
             return html(
@@ -330,7 +342,7 @@ export const providerOptions = <Env>(
     resource: `${origin}/mcp`,
     authorization_servers: [origin],
     bearer_methods_supported: ['header'],
-    resource_name: 'stellarmcpwallet',
+    resource_name: 'Nod',
   },
   clientIdMetadataDocumentEnabled: true,
   accessTokenTTL: 3600,

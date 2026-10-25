@@ -14,7 +14,12 @@ export const ContractId = Schema.String.check(Schema.isPattern(/^C[A-Z2-7]{55}$/
 
 /** The relayer pool and fee conditions, as the chain reports them (null when the chain did not answer). */
 export const ChainStatus = Schema.Struct({
-  mode: Schema.Literals(['fixture', 'testnet']),
+  /** `fixture` (in-memory), or the real chain's network. */
+  mode: Schema.Literals(['fixture', 'testnet', 'pubnet']),
+  /** CAIP-2 network and the explorer base links are built from. */
+  network: Schema.Literals(['stellar:testnet', 'stellar:pubnet']),
+  explorer_base: Schema.String,
+  payments_enabled: Schema.Boolean,
   latest_ledger: Schema.Int,
   relayers: Schema.Array(Schema.Struct({ address: Schema.String, xlm: Schema.String })),
   treasury: Schema.NullOr(Schema.Struct({ address: Schema.String, usdc: Schema.String, xlm: Schema.String })),
@@ -98,6 +103,8 @@ export const NewWallet = Schema.Struct({
   public_key: Schema.String,
   client_data_json: Schema.String,
   attestation_object: Schema.String,
+  /** Required on mainnet. */
+  invite_code: Schema.optionalKey(Schema.String),
 })
 export const AssertionOptions = Schema.Struct({
   challenge: Schema.String,
@@ -148,6 +155,10 @@ export type PendingApproval = typeof PendingApproval.Type
 
 export const Overview = Schema.Struct({
   wallet: WalletSummary,
+  /** The network the wallet lives on; show it everywhere. Always sent by the Worker. */
+  network: Schema.optionalKey(Schema.Literals(['stellar:testnet', 'stellar:pubnet'])),
+  /** e.g. https://stellar.expert/explorer/testnet: links are `<base>/tx/<hash>`. Always sent by the Worker. */
+  explorer_base: Schema.optionalKey(Schema.String),
   /** The wallet's own balance, never the allowance. */
   balances: Schema.Struct({ usdc: Schema.String, xlm: Schema.String }),
   grants: Schema.Array(GrantView),
@@ -194,7 +205,8 @@ export class Api extends HttpApi.make('hack-meridian')
       .add(HttpApiEndpoint.get('current', '/api/session', { success: WalletReply, error: Errors }))
       .add(
         HttpApiEndpoint.post('registrationOptions', '/api/wallets/options', {
-          payload: Schema.Struct({ name: Schema.String }),
+          /** `invite_code` is required on mainnet. */
+          payload: Schema.Struct({ name: Schema.String, invite_code: Schema.optionalKey(Schema.String) }),
           success: RegistrationOptions,
           error: Errors,
         }),
