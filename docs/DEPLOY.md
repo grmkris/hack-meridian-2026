@@ -118,6 +118,10 @@ releases are superseded.
 
 ## 19:10 UTC: the orchestrator session closes; deploys move to the MCP-Apps session
 
+**Superseded at 19:10 UTC itself:** Kristjan handed deploys to the delivery session (`nod-hackathon-delivery-orchestration`,
+formerly the Fable session), not to `nod-mcp-apps-wallet`; every section from "20:25 UTC" on is that session's. The
+procedure and the open findings below remain valid; the ownership sentence does not.
+
 Kristjan closes the orchestrator session after the mainnet run (`evidence/mainnet/claude-run-2026-10-25.md`). From here
 the **MCP-Apps session (`nod-mcp-apps-wallet`) owns every deploy, testnet and mainnet**, from the same worktree
 `/srv/cache/hm26/deploy-testnet` (both stages' Alchemy state and both `.env` files live there; `plan:mainnet` /

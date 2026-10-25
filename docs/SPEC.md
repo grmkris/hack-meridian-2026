@@ -264,3 +264,32 @@ Show the explorer for two transactions (a delegated one and the owner-approved o
   allowance, payments under the line go alone; at or above it the AI app asks for the nod. The chain still enforces the
   total; the service enforces the line. Demo uses 1 (beats: brief 0.10 and Alice 0.50 alone; Bob 5, the repeat, 2 USDC and
   Carol 1 need the nod). Work item W1; copy changes only after it is deployed.
+- 2026-10-25 18:14–18:20 UTC, Kristjan: **no payment caps** ("if people want to, let them": `MAX_GRANT_USDC`,
+  `MAX_OWNER_PAYMENT_USDC`, `MAX_X402_PRICE_USDC` at 1,000,000 on both stages; kept: the kill switch, fee ceilings,
+  wallet-creation rate caps), **mainnet is open signup** (`INVITE_REQUIRED=false`), and **one number**: the allowance is
+  the total the AI app may spend on its own until the expiry; past it the passkey, every time, with no upper limit. This
+  supersedes the 17:10 nod line (W1), which was removed from the lane rule, the consent page and the views. Demo beats for a
+  10 USDC wallet: allowance 5, brief 0.10, Alice 2, Bob 5 by nod, same request same receipt, 4 by nod, Carol 1 by claim
+  link, revoke.
+- 2026-10-25 18:39–18:59 UTC: **the whole flow ran on mainnet in claude.ai on Kristjan's own wallet and passkey**
+  (`evidence/mainnet/claude-run-2026-10-25.md`), then Claude bought Stellar's own x402 demo endpoint for 0.01 USDC
+  (settlement `3a63573a…`). Other Stellar x402 sellers found: Nulucre names the testnet USDC on its pubnet price,
+  RouteDock is MPP, StellarSight lists examples; `paid_resource_fetch` takes a GET URL.
+- 2026-10-25 18:30–21:46 UTC: **deposit address** per wallet (Nido #165's pattern with the bound in our own immutable
+  router contract so no passkey is needed; approval expires in ~180 days, rotation planned; `docs/spikes/s8-deposit.md`)
+  and **deposit-first signup** (a wallet is a planned `C…` until money arrives), routers on testnet `CAFLFU5G…` and pubnet
+  `CBWDC7KR…`, proven on mainnet 21:44 UTC (`evidence/mainnet/deposit-2026-10-25T21-46Z.md`).
+- 2026-10-25 20:30–21:20 UTC, Kristjan: **a link that is an allowance for one person** (onboarding someone with no
+  wallet): the sender's nod installs a one-shot rule for a key that lives only in the link's URL fragment; the recipient
+  creates a Nod wallet with a passkey and her page signs the transfer; nothing moves until she claims; expiry and revoke
+  are the rule's. Live on testnet (`evidence/person-link/`), copy kept off mainnet until a recorded hash.
+- 2026-10-25 21:40–22:40 UTC, Kristjan: **top up from any chain through NEAR Intents** (`docs/NEAR-INTENTS.md`): 1Click
+  pays Stellar only to a `G…` with a trustline and no memo, which is the deposit address; routes, an Add money tab, tools
+  `wallet_topup_quote` / `wallet_topup_status`, a low-balance hint, and `topup.*` events, so a client that implements MCP
+  Events hears the arrival. Mainnet only (no testnet at 1Click); evidence so far is a real dry quote through Nod's own
+  client (`evidence/topup/`); a funded top-up is Kristjan's live test. Sending out through a muxed address (the 1Click
+  Stellar memo is numeric) is the stretch.
+- Standing temporary things, each with its exit: the **pocket** (until x402 PRs #3399/#3860 let the account pay sellers
+  directly; shrink to exact pulls meanwhile), the **demo claim signer** for our own demo contacts only, the deposit
+  address's **180-day approval** (rotation before expiry), **MCP Events delivered live only where the host subscribes**
+  (Goblin; claude.ai, Claude Code and ChatGPT poll).
