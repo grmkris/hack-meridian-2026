@@ -5,7 +5,7 @@ Plans and queues live in the release plan (.local/brainstorm/FINAL-REVIEW.md §K
 **Deploys: session A ("ops and hardening") only, since 19:10 UTC 2026-10-25**, testnet and mainnet, from the worktree
 below; mainnet only on the orchestrator's explicit go, never during a recording.
 
-Live: **testnet at `2a86e7e`** (20:28 UTC: four relayers, K5 memo / network label / claim demo line) on
+Live: **testnet at `4bb4a89`** (20:56 UTC: person links and migration 0011, the five K5 fixes, the backfill fix) on
 https://testnet.trynod.si (MCP at `/mcp`; the workers.dev host redirects there); **mainnet at `2a86e7e`** (20:33 UTC, deposit router bound) on https://trynod.si. Dated sections
 below are the history.
 
@@ -342,3 +342,29 @@ deposit-first. The real deposit test waits for the orchestrator's go.
 
 Rollback: testnet re-pin `3473ee4` (restore `.env.testnet.pre-relayers` to drop the relayers); mainnet re-pin
 `3d4364f` after `sed -i '/^DEPOSIT_ROUTER_ID=/d'` on both `.env.mainnet` copies.
+
+## 20:56 UTC: testnet at `4bb4a89` (orchestrator's go)
+
+Carries B's person links (`b370da6`, `5743f82`; migration `0011_person_links.sql`), C's Links section and claim wording
+(`06870cf`, `292c3a7`, `717d0e8`), D's llms.txt (`a3e8a93`), K5 (d) demo contacts `9ef674a`, (e) fee overrides
+`0170451`, the backfill fix `ce1b12a` and the watch script. Gate green; plan `[WalletDb] update` + `[Web] update` +
+`[Web/MAX_FEE_STROOPS] unbind` + `[Web/FIRST_PULL_MAX_FEE_STROOPS] unbind` + `[Web/PULL_MAX_FEE_STROOPS] unbind` +
+RELEASE, exactly as expected; deploy `"deletedClasses":[]`; 0011 applied 20:56:15 UTC. Health: release `4bb4a891…`,
+four relayers, **fee ceilings 35 / 4 XLM** (were 100 / 40), treasury 37.5 USDC.
+
+- **Backfill, live proof**: my disposable site-e2e wallet `wal_d528…` (`CCYFIFX2…4ZHZ`) was set to `stellar:pubnet` on D1
+  at 20:52 and still read `stellar:pubnet` at 20:56:09 on `2a86e7e` (the bug); after this deploy, the first request
+  that touched the database (`POST /api/wallets/options` at 20:56:51) moved it back: `stellar:testnet` at 20:56:54, all
+  30 testnet wallets on `stellar:testnet`.
+- smoke 9/9 (`evidence/probe/smoke-testnet-2026-10-25T20-56-45Z.json`); `/llms.txt` byte-identical to the repository.
+- Unknown `/approve/link/cl_0123…` and `/approve/revoke-link/cl_0123…` → 404 "Not found · Nod"; anonymous `/api/links`
+  401; `payment_prepare` to a new person ("Jan", 50 USDC, past the 4.30 left) → `awaiting_approval`, lane owner,
+  `approval_url` `/approve/link/cl_de35…`, `claim_url` null, outcome `person_link` (nothing paid).
+- events-check 8/8 (`efcf04de…`).
+- rehearsal s1–s11 green, acceptance 1, 2, 4–9 PASS, 3 REF (`evidence/demo/2026-10-25T20-57-29-486Z/`; seven hashes
+  `successful`; claim https://stellar.expert/explorer/testnet/tx/577f12cd56e27d871ac84d0cdef1df3f3e0b8ec2b67097da3cab164984177180);
+  `connections.png` shows the Links panel ("No links yet…").
+- probe green with 2 warns: no saved tools/list connection, treasury 33.5 USDC under its 50 floor
+  (`evidence/probe/2026-10-25T21-01-51-005Z.json`).
+
+Rollback: re-pin `2a86e7e` and restore `.env.testnet.pre-fee-overrides` (0011 additive).
