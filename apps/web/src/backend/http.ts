@@ -68,6 +68,9 @@ export const httpBackend = Layer.effect(
       receipts: call(client.wallet.receipts()),
       depositAddress: call(client.wallet.depositAddress()),
       links: call(client.wallet.links()),
+      topupAssets: call(client.wallet.topupAssets()),
+      topupQuote: request => call(client.wallet.topupQuote({ payload: request })),
+      topupStatus: id => call(client.wallet.topupStatus({ params: { id } })),
     })
   }),
 ).pipe(Layer.provide(Http.layer))

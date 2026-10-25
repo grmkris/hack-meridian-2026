@@ -10,6 +10,8 @@ export {
   PendingApproval,
   ReceiptRecord,
   RevokeReply,
+  TopupChain,
+  TopupQuoteView,
   WalletSummary,
 } from '@hm/api'
 

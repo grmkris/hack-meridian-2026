@@ -22,5 +22,11 @@ const choice = import.meta.env['VITE_BACKEND']
 
 export const resources =
   choice === 'fixture' || choice === 'fixture-signed-out'
-    ? Layer.mergeAll(fixtureBackend({ signedIn: choice === 'fixture' }), fixturePasskey)
+    ? Layer.mergeAll(
+        fixtureBackend({
+          signedIn: choice === 'fixture',
+          topup: import.meta.env['VITE_TOPUP'] === 'unavailable' ? 'unavailable' : 'available',
+        }),
+        fixturePasskey,
+      )
     : Layer.mergeAll(httpBackend, livePasskey)

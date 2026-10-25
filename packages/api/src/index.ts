@@ -161,6 +161,46 @@ export const LinkView = Schema.Struct({
 })
 export type LinkView = typeof LinkView.Type
 
+/** One asset that can top a Nod wallet up from another chain (NEAR Intents 1Click asset id, e.g. `nep141:base-0x8335….omft.near`). */
+export const TopupAsset = Schema.Struct({ id: Schema.String, symbol: Schema.String, decimals: Schema.Int })
+export type TopupAsset = typeof TopupAsset.Type
+
+/** The assets of one origin chain (stablecoins and the native asset), as `GET /api/topup/assets` groups them. */
+export const TopupChain = Schema.Struct({ chain: Schema.String, assets: Schema.Array(TopupAsset) })
+export type TopupChain = typeof TopupChain.Type
+
+export const TopupQuoteRequest = Schema.Struct({
+  /** A TopupAsset id. */
+  origin_asset: Schema.String,
+  /** Decimal amount in the origin asset, as the person typed it ("5", "0.01"). */
+  amount: Schema.String,
+  /** An address on the origin chain where 1Click refunds the deposit if the swap cannot complete (required by 1Click). */
+  refund_to: Schema.String,
+})
+export type TopupQuoteRequest = typeof TopupQuoteRequest.Type
+
+/**
+ * A top-up from another chain (docs/NEAR-INTENTS.md, Flow A): send `amount_in` of `asset` on `origin_chain` to `pay_to`
+ * before `deadline`; it arrives as about `amount_out` USDC (decimal) through the wallet's deposit address, swept into the
+ * wallet (`sweep_tx` once `arrived`). Failures before a quote answer 503 `topup_unavailable`.
+ */
+export const TopupQuoteView = Schema.Struct({
+  id: Schema.String,
+  pay_to: Schema.String,
+  /** Decimal, in the origin asset. */
+  amount_in: Schema.String,
+  /** Decimal USDC, an estimate until it arrives. */
+  amount_out: Schema.String,
+  origin_chain: Schema.String,
+  /** The origin asset's symbol, e.g. USDC or ETH. */
+  asset: Schema.String,
+  /** ISO 8601 UTC; after it, 1Click refunds a late deposit to the refund address. */
+  deadline: Schema.String,
+  status: Schema.Literals(['pending', 'processing', 'arrived', 'failed', 'expired']),
+  sweep_tx: Schema.optionalKey(Schema.NullOr(Schema.String)),
+})
+export type TopupQuoteView = typeof TopupQuoteView.Type
+
 export const SweepReply = Schema.Struct({
   /** Stroops moved into the wallet by this sweep; "0" when there was nothing to sweep (nothing was submitted). */
   swept: Schema.String,
@@ -359,5 +399,22 @@ export class Api extends HttpApi.make('hack-meridian')
         }),
       )
       .add(HttpApiEndpoint.post('sweepDeposit', '/api/wallet/sweep', { success: SweepReply, error: Errors }))
-      .add(HttpApiEndpoint.get('links', '/api/links', { success: Schema.Array(LinkView), error: Errors })),
+      .add(HttpApiEndpoint.get('links', '/api/links', { success: Schema.Array(LinkView), error: Errors }))
+      .add(
+        HttpApiEndpoint.get('topupAssets', '/api/topup/assets', { success: Schema.Array(TopupChain), error: Errors }),
+      )
+      .add(
+        HttpApiEndpoint.post('topupQuote', '/api/wallet/topup/quote', {
+          payload: TopupQuoteRequest,
+          success: TopupQuoteView,
+          error: Errors,
+        }),
+      )
+      .add(
+        HttpApiEndpoint.get('topupStatus', '/api/wallet/topup/:id', {
+          params: IdParam,
+          success: TopupQuoteView,
+          error: Errors,
+        }),
+      ),
   ) {}

@@ -282,166 +282,175 @@ const WalletHandlers = HttpApiBuilder.group(
         }),
       )
     const chain = yield* Chain
-    return handlers
-      .handle('overview', () =>
-        run(
-          Effect.gen(function* () {
-            const wallet = yield* sessionWallet
-            const here = yield* site
-            // A deposit-first wallet whose USDC arrived while nobody watched deploys now (one row read otherwise).
-            yield* activateIfFunded(wallet.id).pipe(
-              Effect.catch(error => Effect.logWarning('activation on overview', error.message)),
-            )
-            const balances = yield* chain.balances(wallet.contract_id).pipe(
-              Effect.map(b => ({ usdc: b.usdc.toString(), xlm: b.xlm.toString() })),
-              Effect.catchTag('ChainError', () => Effect.fail(new Unavailable({ error: 'the chain did not answer' }))),
-            )
-            const connections = yield* connectionsOfWallet(wallet.id)
-            const pending = yield* pendingOfWallet(wallet.id)
-            return {
-              wallet: {
-                ...summary(wallet, network),
-                deposit_address: yield* depositAddressOf(wallet.id),
-                account_status: yield* accountStatusOf(wallet.id),
-              },
-              network: network.caip,
-              explorer_base: network.explorerBase,
-              balances,
-              deposits_available: chain.depositsAvailable,
-              grants: connections.map(entry => apiGrantView(entry.connection, entry.grant)),
-              pending: pending.map(intent => pendingApproval(intent, here.origin)),
-              receipts: yield* receiptsOfWallet(wallet.id, 5),
-            }
-          }),
-        ),
-      )
-      .handle('connections', () =>
-        run(
-          Effect.gen(function* () {
-            const wallet = yield* sessionWallet
-            const connections = yield* connectionsOfWallet(wallet.id)
-            return connections.map(entry => apiGrantView(entry.connection, entry.grant))
-          }),
-        ),
-      )
-      .handle('revokeConnection', ({ params }) =>
-        run(
-          Effect.gen(function* () {
-            const wallet = yield* sessionWallet
-            const here = yield* site
-            const result = yield* revokeConnection(wallet.id, wallet.contract_id, params.id)
-            if (result === undefined || result.connection === undefined)
-              return yield* new NotFound({ error: `no connection ${params.id}` })
-            return {
-              connection: apiGrantView(result.connection, result.grant),
-              approve_url:
-                result.grant !== undefined && result.grant.rule_status !== 'removed'
-                  ? revokeUrl(here.origin, params.id)
-                  : null,
-            }
-          }),
-        ),
-      )
-      .handle('contacts', () => run(Effect.flatMap(sessionWallet, wallet => contactsOfOwner(wallet.owner_id))))
-      .handle('createContact', ({ payload }) =>
-        run(
-          Effect.gen(function* () {
-            const wallet = yield* sessionWallet
-            const readiness = yield* chain.readiness(payload.address).pipe(
-              Effect.map(r => (r === 'contract' ? ('usdc_ready' as const) : r)),
-              Effect.catchTag('ChainError', () => Effect.succeed('unverified' as const)),
-            )
-            if (!/^(?:[CG][A-Z2-7]{55}|M[A-Z2-7]{68})$/u.test(payload.address))
-              return yield* new BadRequest({ error: 'not a Stellar address (C…, G… or M…)' })
-            if (hasMemo(payload.memo)) return yield* new BadRequest({ error: MEMO_REFUSED_FOR_CONTACT })
-            return yield* createContact({
-              ownerId: wallet.owner_id,
-              displayName: payload.display_name.trim(),
-              aliases: payload.aliases ?? [],
-              address: payload.address,
-              memo: payload.memo ?? null,
-              readiness,
-            })
-          }),
-        ),
-      )
-      .handle('changeContactDestination', ({ params, payload }) =>
-        run(
-          Effect.gen(function* () {
-            const wallet = yield* sessionWallet
-            if ((yield* contactById(wallet.owner_id, params.id)) === undefined)
-              return yield* new NotFound({ error: `no contact ${params.id}` })
-            if (!/^(?:[CG][A-Z2-7]{55}|M[A-Z2-7]{68})$/u.test(payload.address))
-              return yield* new BadRequest({ error: 'not a Stellar address (C…, G… or M…)' })
-            if (hasMemo(payload.memo)) return yield* new BadRequest({ error: MEMO_REFUSED_FOR_CONTACT })
-            const readiness = yield* chain.readiness(payload.address).pipe(
-              Effect.map(r => (r === 'contract' ? ('usdc_ready' as const) : r)),
-              Effect.catchTag('ChainError', () => Effect.succeed('unverified' as const)),
-            )
-            const contact = yield* replaceDestination({
-              ownerId: wallet.owner_id,
-              contactId: params.id,
-              address: payload.address,
-              memo: payload.memo ?? null,
-              readiness,
-            })
-            return contact === undefined ? yield* new NotFound({ error: `no contact ${params.id}` }) : contact
-          }),
-        ),
-      )
-      .handle('receipts', () => run(Effect.flatMap(sessionWallet, wallet => receiptsOfWallet(wallet.id, 100))))
-      .handle('depositAddress', () =>
-        run(
-          Effect.gen(function* () {
-            const wallet = yield* sessionWallet
-            const row = yield* ensureDepositAddress(wallet).pipe(
-              Effect.catchTag('DepositError', error => Effect.fail(fromDeposit(error))),
-            )
-            // Shown now: the wallet's Durable Object sweeps it every minute for the next day.
-            yield* watchDeposit(wallet.id)
-            return depositView(row, yield* pendingOf(row))
-          }),
-        ),
-      )
-      .handle('sweepDeposit', () =>
-        run(
-          Effect.gen(function* () {
-            const wallet = yield* sessionWallet
-            const row = yield* depositOfWallet(wallet.id)
-            if (row === undefined || row.status !== 'active' || row.address === null)
-              return yield* new NotFound({ error: 'no deposit address yet: GET /api/wallet/deposit-address' })
-            const result = yield* sweepDeposit({ ...row, status: 'active', address: row.address }).pipe(
-              Effect.catchTag('DepositError', error => Effect.fail(fromDeposit(error))),
-            )
-            yield* activateIfFunded(wallet.id, result.swept).pipe(
-              Effect.catch(error => Effect.logWarning('activation after sweep', error.message)),
-            )
-            return {
-              swept: result.swept.toString(),
-              tx: result.tx,
-              deposit: depositView(result.row, yield* pendingOf(result.row)),
-            }
-          }),
-        ),
-      )
-      .handle('links', () =>
-        run(
-          Effect.gen(function* () {
-            const wallet = yield* sessionWallet
-            const here = yield* site
-            return yield* linksOfWallet(wallet.id, here.origin)
-          }),
-        ),
-      )
-      .handle('pending', () =>
-        run(
-          Effect.gen(function* () {
-            const wallet = yield* sessionWallet
-            const here = yield* site
-            return (yield* pendingOfWallet(wallet.id)).map(intent => pendingApproval(intent, here.origin))
-          }),
-        ),
-      )
+    return (
+      handlers
+        .handle('overview', () =>
+          run(
+            Effect.gen(function* () {
+              const wallet = yield* sessionWallet
+              const here = yield* site
+              // A deposit-first wallet whose USDC arrived while nobody watched deploys now (one row read otherwise).
+              yield* activateIfFunded(wallet.id).pipe(
+                Effect.catch(error => Effect.logWarning('activation on overview', error.message)),
+              )
+              const balances = yield* chain.balances(wallet.contract_id).pipe(
+                Effect.map(b => ({ usdc: b.usdc.toString(), xlm: b.xlm.toString() })),
+                Effect.catchTag('ChainError', () =>
+                  Effect.fail(new Unavailable({ error: 'the chain did not answer' })),
+                ),
+              )
+              const connections = yield* connectionsOfWallet(wallet.id)
+              const pending = yield* pendingOfWallet(wallet.id)
+              return {
+                wallet: {
+                  ...summary(wallet, network),
+                  deposit_address: yield* depositAddressOf(wallet.id),
+                  account_status: yield* accountStatusOf(wallet.id),
+                },
+                network: network.caip,
+                explorer_base: network.explorerBase,
+                balances,
+                deposits_available: chain.depositsAvailable,
+                grants: connections.map(entry => apiGrantView(entry.connection, entry.grant)),
+                pending: pending.map(intent => pendingApproval(intent, here.origin)),
+                receipts: yield* receiptsOfWallet(wallet.id, 5),
+              }
+            }),
+          ),
+        )
+        .handle('connections', () =>
+          run(
+            Effect.gen(function* () {
+              const wallet = yield* sessionWallet
+              const connections = yield* connectionsOfWallet(wallet.id)
+              return connections.map(entry => apiGrantView(entry.connection, entry.grant))
+            }),
+          ),
+        )
+        .handle('revokeConnection', ({ params }) =>
+          run(
+            Effect.gen(function* () {
+              const wallet = yield* sessionWallet
+              const here = yield* site
+              const result = yield* revokeConnection(wallet.id, wallet.contract_id, params.id)
+              if (result === undefined || result.connection === undefined)
+                return yield* new NotFound({ error: `no connection ${params.id}` })
+              return {
+                connection: apiGrantView(result.connection, result.grant),
+                approve_url:
+                  result.grant !== undefined && result.grant.rule_status !== 'removed'
+                    ? revokeUrl(here.origin, params.id)
+                    : null,
+              }
+            }),
+          ),
+        )
+        .handle('contacts', () => run(Effect.flatMap(sessionWallet, wallet => contactsOfOwner(wallet.owner_id))))
+        .handle('createContact', ({ payload }) =>
+          run(
+            Effect.gen(function* () {
+              const wallet = yield* sessionWallet
+              const readiness = yield* chain.readiness(payload.address).pipe(
+                Effect.map(r => (r === 'contract' ? ('usdc_ready' as const) : r)),
+                Effect.catchTag('ChainError', () => Effect.succeed('unverified' as const)),
+              )
+              if (!/^(?:[CG][A-Z2-7]{55}|M[A-Z2-7]{68})$/u.test(payload.address))
+                return yield* new BadRequest({ error: 'not a Stellar address (C…, G… or M…)' })
+              if (hasMemo(payload.memo)) return yield* new BadRequest({ error: MEMO_REFUSED_FOR_CONTACT })
+              return yield* createContact({
+                ownerId: wallet.owner_id,
+                displayName: payload.display_name.trim(),
+                aliases: payload.aliases ?? [],
+                address: payload.address,
+                memo: payload.memo ?? null,
+                readiness,
+              })
+            }),
+          ),
+        )
+        .handle('changeContactDestination', ({ params, payload }) =>
+          run(
+            Effect.gen(function* () {
+              const wallet = yield* sessionWallet
+              if ((yield* contactById(wallet.owner_id, params.id)) === undefined)
+                return yield* new NotFound({ error: `no contact ${params.id}` })
+              if (!/^(?:[CG][A-Z2-7]{55}|M[A-Z2-7]{68})$/u.test(payload.address))
+                return yield* new BadRequest({ error: 'not a Stellar address (C…, G… or M…)' })
+              if (hasMemo(payload.memo)) return yield* new BadRequest({ error: MEMO_REFUSED_FOR_CONTACT })
+              const readiness = yield* chain.readiness(payload.address).pipe(
+                Effect.map(r => (r === 'contract' ? ('usdc_ready' as const) : r)),
+                Effect.catchTag('ChainError', () => Effect.succeed('unverified' as const)),
+              )
+              const contact = yield* replaceDestination({
+                ownerId: wallet.owner_id,
+                contactId: params.id,
+                address: payload.address,
+                memo: payload.memo ?? null,
+                readiness,
+              })
+              return contact === undefined ? yield* new NotFound({ error: `no contact ${params.id}` }) : contact
+            }),
+          ),
+        )
+        .handle('receipts', () => run(Effect.flatMap(sessionWallet, wallet => receiptsOfWallet(wallet.id, 100))))
+        .handle('depositAddress', () =>
+          run(
+            Effect.gen(function* () {
+              const wallet = yield* sessionWallet
+              const row = yield* ensureDepositAddress(wallet).pipe(
+                Effect.catchTag('DepositError', error => Effect.fail(fromDeposit(error))),
+              )
+              // Shown now: the wallet's Durable Object sweeps it every minute for the next day.
+              yield* watchDeposit(wallet.id)
+              return depositView(row, yield* pendingOf(row))
+            }),
+          ),
+        )
+        .handle('sweepDeposit', () =>
+          run(
+            Effect.gen(function* () {
+              const wallet = yield* sessionWallet
+              const row = yield* depositOfWallet(wallet.id)
+              if (row === undefined || row.status !== 'active' || row.address === null)
+                return yield* new NotFound({ error: 'no deposit address yet: GET /api/wallet/deposit-address' })
+              const result = yield* sweepDeposit({ ...row, status: 'active', address: row.address }).pipe(
+                Effect.catchTag('DepositError', error => Effect.fail(fromDeposit(error))),
+              )
+              yield* activateIfFunded(wallet.id, result.swept).pipe(
+                Effect.catch(error => Effect.logWarning('activation after sweep', error.message)),
+              )
+              return {
+                swept: result.swept.toString(),
+                tx: result.tx,
+                deposit: depositView(result.row, yield* pendingOf(result.row)),
+              }
+            }),
+          ),
+        )
+        .handle('links', () =>
+          run(
+            Effect.gen(function* () {
+              const wallet = yield* sessionWallet
+              const here = yield* site
+              return yield* linksOfWallet(wallet.id, here.origin)
+            }),
+          ),
+        )
+        .handle('pending', () =>
+          run(
+            Effect.gen(function* () {
+              const wallet = yield* sessionWallet
+              const here = yield* site
+              return (yield* pendingOfWallet(wallet.id)).map(intent => pendingApproval(intent, here.origin))
+            }),
+          ),
+        )
+        // Top up from another chain (docs/NEAR-INTENTS.md Flow A): the contract is in @hm/api; until topup.ts lands every
+        // call answers topup_unavailable, which the Add money tab shows as "Top-ups from other chains are next here".
+        .handle('topupAssets', () => Effect.fail(new Unavailable({ error: 'topup_unavailable' })))
+        .handle('topupQuote', () => Effect.fail(new Unavailable({ error: 'topup_unavailable' })))
+        .handle('topupStatus', () => Effect.fail(new Unavailable({ error: 'topup_unavailable' })))
+    )
   }),
 )
 

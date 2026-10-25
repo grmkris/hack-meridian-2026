@@ -9,6 +9,8 @@ import type {
   Overview,
   ReceiptRecord,
   RevokeReply,
+  TopupChain,
+  TopupQuoteView,
   WalletSummary,
 } from './views'
 
@@ -71,5 +73,13 @@ export class Backend extends Context.Service<
     readonly depositAddress: Effect.Effect<DepositAddressView, BackendError>
     /** Person links: allowances for a person on this wallet's account, newest first (Connections lists them). */
     readonly links: Effect.Effect<ReadonlyArray<LinkView>, BackendError>
+    /** Top up from another chain (NEAR Intents): the origin chains and assets, a quote with a pay-to address, its status. */
+    readonly topupAssets: Effect.Effect<ReadonlyArray<TopupChain>, BackendError>
+    readonly topupQuote: (request: {
+      readonly origin_asset: string
+      readonly amount: string
+      readonly refund_to: string
+    }) => Effect.Effect<TopupQuoteView, BackendError>
+    readonly topupStatus: (id: string) => Effect.Effect<TopupQuoteView, BackendError>
   }
 >()('hm/Backend') {}
