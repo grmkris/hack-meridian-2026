@@ -1,0 +1,14 @@
+{
+  "network": "testnet",
+  "rpcUrl": "https://soroban-testnet.stellar.org",
+  "networkPassphrase": "Test SDF Network ; September 2015",
+  "contracts": {
+    "counter": {
+      "id": "CAKTREEYOPERBZGP4FHTUZP4WRCMTM5X4WSC3UVTBNG3DEL2LGUC4ON2",
+      "wasmHash": "d3730bec38a9538ca92c1d21788c257cd87078c10042df05d8b1f97de461ff77",
+      "deployer": "GA64JNQLXMCZTNR5IKCDTHUC2HCH34FYODNEOJ7H2MK5HKE4MC62VLKM",
+      "deployedAt": "2026-10-25T11:14:43.100Z",
+      "release": "uncommitted"
+    }
+  }
+}
