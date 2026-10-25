@@ -1,0 +1,71 @@
+{
+  "stage": "testnet",
+  "origin": "https://hack-meridian-testnet.kristjan-grm11775.workers.dev",
+  "at": "2026-10-25T14:33:49.908Z",
+  "release": "c80a786d0a1965550ee4a238cb55e04095799c3f",
+  "checks": [
+    {
+      "name": "app shell",
+      "ok": true,
+      "status": 200,
+      "ms": 194,
+      "detail": "ok"
+    },
+    {
+      "name": "client route falls back to the app",
+      "ok": true,
+      "status": 200,
+      "ms": 273,
+      "detail": "ok"
+    },
+    {
+      "name": "health",
+      "ok": true,
+      "status": 200,
+      "ms": 2365,
+      "detail": "ok"
+    },
+    {
+      "name": "counter reads the contract",
+      "ok": true,
+      "status": 200,
+      "ms": 1114,
+      "detail": "ok"
+    },
+    {
+      "name": "unknown API path is a 404",
+      "ok": true,
+      "status": 404,
+      "ms": 141,
+      "detail": "ok"
+    },
+    {
+      "name": "owner API needs a passkey session",
+      "ok": true,
+      "status": 401,
+      "ms": 145,
+      "detail": "ok"
+    },
+    {
+      "name": "MCP refuses an anonymous client and names its metadata",
+      "ok": true,
+      "status": 401,
+      "ms": 116,
+      "detail": "ok"
+    },
+    {
+      "name": "protected-resource metadata",
+      "ok": true,
+      "status": 200,
+      "ms": 132,
+      "detail": "ok"
+    },
+    {
+      "name": "authorization-server metadata (DCR, PKCE S256)",
+      "ok": true,
+      "status": 200,
+      "ms": 125,
+      "detail": "ok"
+    }
+  ]
+}
