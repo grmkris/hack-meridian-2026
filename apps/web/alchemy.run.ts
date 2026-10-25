@@ -94,6 +94,8 @@ const switchesFor = (stage: string): Record<string, string> => ({
   DEPOSIT_ROUTER_ID: '',
   // The claim page's server-side demo signer off testnet ('' = testnet only); .env.mainnet sets it for our own Carol.
   DEMO_CLAIM_SIGNER: '',
+  // New wallets start with the demo contacts: '' = testnet only; 'true' in .env.mainnet for a recording wallet.
+  SEED_DEMO_CONTACTS: '',
   // Mainnet's contacts come from .env.mainnet (scripts/mainnet/seed.ts prints them); the other stages use seeds.json.
   ...(isMainnet(stage) ? { DEMO_CONTACTS: '[]' } : {}),
   // Testnet rent runs at ~110× normal (25 Oct, rising): a grant's first pull costs 40–60 XLM, later ones up to ~20 XLM. Ceilings in

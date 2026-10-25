@@ -129,8 +129,10 @@ export const createWallet = (site: Site, input: NewWalletInput) =>
       fundTx: funded,
       plan,
     })
-    // Demo stages: the wallet starts with Alice, Bob and Carol, readiness read from the chain now.
-    yield* Effect.forEach(settings.demoContacts, contact =>
+    // Demo contacts (Alice, Bob, Carol), readiness read from the chain now: every new wallet on testnet; on mainnet
+    // only with SEED_DEMO_CONTACTS=true (the recording wallet), so a stranger never starts with Nod's seed accounts.
+    const seedContacts = settings.seedDemoContacts ?? network.name === 'testnet'
+    yield* Effect.forEach(seedContacts ? settings.demoContacts : [], contact =>
       chain.readiness(contact.address).pipe(
         Effect.map(readiness => (readiness === 'contract' ? ('usdc_ready' as const) : readiness)),
         Effect.catchTag('ChainError', () => Effect.succeed('unverified' as const)),

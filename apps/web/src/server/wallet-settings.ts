@@ -39,6 +39,11 @@ export class WalletSettings extends Context.Service<
     readonly demoContacts: ReadonlyArray<DemoContact>
     /** DEMO_CLAIM_SIGNER: the demo recipient's key signs claims off testnet too (mainnet, Carol is ours). */
     readonly demoClaimSigner?: boolean
+    /**
+     * SEED_DEMO_CONTACTS: new wallets start with the demo contacts. Unset: on testnet only, so a stranger's new mainnet
+     * wallet starts empty and "pay Bob" never pays Nod's seed account; true on mainnet for a recording wallet.
+     */
+    readonly seedDemoContacts?: boolean
   }
 >()('hm/WalletSettings') {
   static readonly fromBindings = (bindings: object) =>
@@ -61,6 +66,10 @@ const load = Effect.gen(function* () {
     ),
     demoContacts: parseDemoContacts(yield* Config.String('DEMO_CONTACTS').pipe(Config.withDefault(''))),
     demoClaimSigner: yield* Config.Boolean('DEMO_CLAIM_SIGNER').pipe(Config.withDefault(false)),
+    ...Option.match(yield* Config.option(Config.Boolean('SEED_DEMO_CONTACTS')), {
+      onNone: () => ({}),
+      onSome: seedDemoContacts => ({ seedDemoContacts }),
+    }),
   }
 })
 
