@@ -102,37 +102,39 @@ export const TESTNET: NetworkParams = {
 }
 
 /**
- * Mainnet. The SACs are derived from their assets; the account WASM, verifiers, policy and router must be deployed
- * or confirmed on mainnet (docs/research/mainnet.md) and are empty until then: `missingFields` names them and the
- * layer refuses to start with any missing.
+ * Mainnet, from docs/research/mainnet.md (verified read-only 2026-10-25): the same account WASM bytes are uploaded,
+ * the verifiers and spending-limit policy are OpenZeppelin's mainnet instances, the SACs are derived from their
+ * assets. The CAP-73 router is not deployed on mainnet yet, so `ONBOARD_ROUTER_ID` stays a required override and the
+ * layer refuses to start without it.
  */
 export const PUBNET: NetworkParams = {
   name: 'pubnet',
   passphrase: PUBNET_PASSPHRASE,
-  rpcUrl: '',
-  rpcFallbackUrl: null,
+  rpcUrl: 'https://mainnet.sorobanrpc.com',
+  rpcFallbackUrl: 'https://soroban-rpc.mainnet.stellar.gateway.fm',
   horizonUrl: 'https://horizon.stellar.org',
   explorerBase: 'https://stellar.expert/explorer/public',
   friendbotUrl: null,
   x402Network: 'stellar:pubnet',
   usdcIssuer: PUBNET_USDC_ISSUER,
   contracts: {
-    accountWasmHash: '',
-    ed25519Verifier: '',
-    webauthnVerifier: '',
-    spendingLimitPolicy: '',
+    accountWasmHash: ACCOUNT_WASM_HASH,
+    ed25519Verifier: 'CBOOZV2BK5OETGL4Q4KGEBESPRLJFN7DOFWDT7OZGLD7EQEZUVOWUEMC',
+    webauthnVerifier: 'CB7HENHJ7NF34I5FFXQK7D5I3WWQRGB5O5XO77D3NXMT7LM7LOKRQ5YR',
+    spendingLimitPolicy: 'CBCGTERZ6W2M6SMKVKQDTNKWFQXEPXEQO6ZCEKNZHT3QMA4X7Z2IYUS4',
     usdcSac: new Asset(USDC_CODE, PUBNET_USDC_ISSUER).contractId(PUBNET_PASSPHRASE),
     onboardRouter: '',
     nativeSac: Asset.native().contractId(PUBNET_PASSPHRASE),
   },
-  facilitatorUrl: '',
+  // x402.org has no pubnet; OpenZeppelin Channels lists stellar:pubnet (Bearer key from its /gen endpoint).
+  facilitatorUrl: 'https://channels.openzeppelin.com/x402',
   fallbackFacilitatorUrl: '',
-  // Mainnet rent is at or below target (~1/50 of today's testnet), and XLM is real: tight ceilings.
+  // Mainnet rent is ~660× cheaper than testnet today (a delegated payment ≈ 0.015 XLM), and XLM is real.
   fees: {
-    maxFeeStroops: XLM(2),
-    firstPullMaxFeeStroops: XLM(1),
-    pullMaxFeeStroops: XLM(0.2),
-    ownerMaxFeeStroops: XLM(0.2),
+    maxFeeStroops: XLM(1),
+    firstPullMaxFeeStroops: XLM(0.5),
+    pullMaxFeeStroops: XLM(0.1),
+    ownerMaxFeeStroops: XLM(0.1),
   },
 }
 

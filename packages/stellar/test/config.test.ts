@@ -17,19 +17,14 @@ const withEnv = <A, E>(env: Record<string, string>, effect: Effect.Effect<A, E>)
 const secrets = { RELAYER_SECRET: 'SA' + 'A'.repeat(54), VAULT_KEY: 'v'.repeat(32) }
 
 describe('network presets', () => {
-  it('testnet is complete; pubnet derives its SACs and lists what it still needs', () => {
+  it('testnet is complete; pubnet has the mainnet ids and only lacks the router', () => {
     expect(missingFields(TESTNET)).toEqual([])
-    expect(PUBNET.contracts.usdcSac).toMatch(/^C[A-Z2-7]{55}$/u)
+    // docs/research/mainnet.md: Circle USDC's mainnet SAC, derived here from the issuer.
+    expect(PUBNET.contracts.usdcSac).toBe('CCW67TSZV3SSS2HXMBQ5JFGCKJNXKZM7UQUWUZPUTHXSTZLEO7SJMI75')
     expect(PUBNET.contracts.nativeSac).toMatch(/^C[A-Z2-7]{55}$/u)
-    expect(PUBNET.contracts.usdcSac).not.toBe(USDC_SAC)
-    expect(missingFields(PUBNET)).toEqual([
-      'rpcUrl (STELLAR_RPC_URL)',
-      'accountWasmHash (ACCOUNT_WASM_HASH)',
-      'ed25519Verifier (ED25519_VERIFIER_ID)',
-      'webauthnVerifier (WEBAUTHN_VERIFIER_ID)',
-      'spendingLimitPolicy (SPENDING_LIMIT_POLICY_ID)',
-      'onboardRouter (ONBOARD_ROUTER_ID)',
-    ])
+    expect(PUBNET.contracts.accountWasmHash).toBe(TESTNET.contracts.accountWasmHash)
+    expect(missingFields(PUBNET)).toEqual(['onboardRouter (ONBOARD_ROUTER_ID)'])
+    expect(PUBNET.fees.maxFeeStroops).toBe(10_000_000n)
   })
 
   it('defaults to testnet and applies per-field overrides', async () => {
@@ -51,25 +46,17 @@ describe('network presets', () => {
     expect(n.contracts.usdcSac).toBe(USDC_SAC)
   })
 
-  it('refuses pubnet until its ids are configured, then accepts it', async () => {
+  it('refuses pubnet until the router is configured, then accepts it', async () => {
     const refused = await withEnv({ STELLAR_NETWORK: 'pubnet' }, networkConfig)
-    expect(String(Exit.isFailure(refused) ? refused.cause : '')).toContain('SPENDING_LIMIT_POLICY_ID')
-    const c = TESTNET.contracts
+    expect(String(Exit.isFailure(refused) ? refused.cause : '')).toContain('ONBOARD_ROUTER_ID')
     const ok = await withEnv(
-      {
-        STELLAR_NETWORK: 'mainnet',
-        STELLAR_RPC_URL: 'https://mainnet.rpc.example',
-        ACCOUNT_WASM_HASH: c.accountWasmHash,
-        ED25519_VERIFIER_ID: c.ed25519Verifier,
-        WEBAUTHN_VERIFIER_ID: c.webauthnVerifier,
-        SPENDING_LIMIT_POLICY_ID: c.spendingLimitPolicy,
-        ONBOARD_ROUTER_ID: c.onboardRouter,
-      },
+      { STELLAR_NETWORK: 'mainnet', ONBOARD_ROUTER_ID: TESTNET.contracts.onboardRouter },
       networkConfig,
     )
     expect(Exit.isSuccess(ok) && ok.value.name).toBe('pubnet')
     expect(Exit.isSuccess(ok) && ok.value.x402Network).toBe('stellar:pubnet')
     expect(Exit.isSuccess(ok) && ok.value.explorerBase).toBe('https://stellar.expert/explorer/public')
+    expect(Exit.isSuccess(ok) && ok.value.rpcFallbackUrl).toBe('https://soroban-rpc.mainnet.stellar.gateway.fm')
     expect(Exit.isFailure(await withEnv({ STELLAR_NETWORK: 'futurenet' }, networkConfig))).toBe(true)
   })
 })
