@@ -345,6 +345,8 @@ export interface TxReport {
   returnValue?: unknown
   resultCode?: string
   diagnostic?: string
+  /** charged resource fee split, from the tx meta (rent is computed at apply time, not taken from the declared fee) */
+  feeBreakdown?: { nonRefundable: string; refundable: string; rent: string }
   /** credential types of the simulated auth entries (CAP-71 ADDRESS_V2 on protocol ≥ 28) */
   credentialTypes?: string
   explorer: string
@@ -404,6 +406,7 @@ async function sendAndPoll(
       feeCharged: r.resultXdr?.feeCharged().toString(),
       resultCode: r.resultXdr?.result().switch().name,
     }
+    report.feeBreakdown = feeBreakdown(r.resultMetaXdr)
     if (r.status === rpc.Api.GetTransactionStatus.SUCCESS) {
       report.returnValue = r.returnValue ? scValToNative(r.returnValue) : undefined
       return report
@@ -413,6 +416,22 @@ async function sendAndPoll(
     throw new InvokeError('onchain', report.diagnostic, report)
   }
   throw new InvokeError('send', `not final after 60 s: ${hashHex}`)
+}
+
+/** Charged resource fee split (stroops) from the tx meta: non-refundable (cpu/io/size) vs refundable (rent + events). */
+export function feeBreakdown(meta: xdr.TransactionMeta | undefined): TxReport['feeBreakdown'] {
+  try {
+    const sm = meta?.switch() === 4 ? meta.v4().sorobanMeta() : meta?.v3().sorobanMeta()
+    const ext = sm?.ext()
+    if (!ext || ext.switch() !== 1) return undefined
+    return {
+      nonRefundable: ext.v1().totalNonRefundableResourceFeeCharged().toString(),
+      refundable: ext.v1().totalRefundableResourceFeeCharged().toString(),
+      rent: ext.v1().rentFeeCharged().toString(),
+    }
+  } catch {
+    return undefined
+  }
 }
 
 /** Pull every ScError out of diagnostic events, e.g. "Error(Contract, #3221)". */
@@ -488,6 +507,7 @@ export async function prepareInvocation(
   const sim = await server.simulateTransaction(buildTx(sponsor, seq, Operation.invokeHostFunction({ func, auth: [] })))
   timings.recordSim = Math.round(now() - t0)
   if (!rpc.Api.isSimulationSuccess(sim)) throw new InvokeError('simulate', sim.error)
+  timings.recordSimMinResourceFee = Number(sim.minResourceFee)
   const validUntilLedger = sim.latestLedger + authValidForLedgers
   return { func, seq, entries: sim.result?.auth ?? [], validUntilLedger, recordSim: sim, timings }
 }
@@ -525,6 +545,8 @@ export async function finalizeInvocation(
         throw e
       }
     }
+    // Assemble from the ENFORCE simulation (footprint, resources and fee include __check_auth, verifier, policy).
+    timings.enforceSimMinResourceFee = Number(sim.minResourceFee)
     tx = rpc.assembleTransaction(signed, sim).build()
   }
   tx.sign(sponsor)
@@ -731,6 +753,24 @@ export const transferAs = (
     },
   )
 
+/**
+ * Pocket model (S2 + S5): the connection key K pulls `amount` USDC from the smart account into its OWN classic
+ * account G(K) under its spending-limit rule. K is both the rule signer and G(K)'s key; the relayer pays the fee.
+ * G(K) must exist with a USDC trustline (S2 creates it with sponsored reserves, 0 XLM).
+ */
+export const pullToPocket = (
+  relayer: Keypair,
+  account: string,
+  conn: Keypair,
+  ruleId: number,
+  amount: bigint,
+  opts: { label?: string; token?: string } = {},
+) =>
+  transferAs(relayer, account, ed25519Signer(conn, 'conn'), ruleId, conn.publicKey(), amount, {
+    label: opts.label ?? `pull ${amount} into pocket ${conn.publicKey().slice(0, 6)} (rule ${ruleId})`,
+    ...opts,
+  })
+
 export interface SpendingLimitData {
   spending_limit: bigint
   period_ledgers: number
@@ -743,6 +783,19 @@ export const readSpendingLimit = (source: string, account: string, ruleId: numbe
     u32(ruleId),
     addr(account),
   ]) as Promise<SpendingLimitData>
+
+/**
+ * What the grant can still spend at `atLedger` (default: latest), replaying the policy's eviction rule
+ * (`entry.ledger_sequence <= ledger - period_ledgers` is dropped). Pre-check with this; the policy is the final word.
+ */
+export async function remainingAllowance(source: string, account: string, ruleId: number, atLedger?: number) {
+  const d = await readSpendingLimit(source, account, ruleId)
+  const ledger = atLedger ?? (await latestLedger())
+  const cutoff = ledger - d.period_ledgers
+  const live = d.spending_history.filter(e => Number(e.ledger_sequence) > cutoff)
+  const spent = live.reduce((a, e) => a + BigInt(e.amount), 0n)
+  return { limit: BigInt(d.spending_limit), spent, remaining: BigInt(d.spending_limit) - spent, ledger, data: d }
+}
 
 export const tokenBalance = async (source: string, holder: string, token = USDC_SAC) =>
   (await view(source, token, 'balance', [addr(holder)])) as bigint

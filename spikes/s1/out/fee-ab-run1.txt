@@ -1,0 +1,10 @@
+network: live soroban state 4013716884 B vs target 4000000000 B (0.343 % over) → rent fee 473038 stroops/KB (at target: 10000); persistentRentRateDenominator 1215
+A pull 0 stroops   b48faae0e2ac7897e6c205c38741302b041e343891d5c4b67a3a7ee896ff4432 ledger=5381233
+   recordSim minResourceFee=48964763  enforceSim minResourceFee=28367  declared resourceFee=28367 maxFee=29367
+   feeCharged=21904  nonRefundable=10073 refundable=11731 rent=11125
+   https://stellar.expert/explorer/testnet/tx/b48faae0e2ac7897e6c205c38741302b041e343891d5c4b67a3a7ee896ff4432
+B pull 0.1 USDC    0122f487036951f56758e2a7e7cb6431f554559ce65d535d83c2822b75db625f ledger=5381234
+   recordSim minResourceFee=48964763  enforceSim minResourceFee=18157893  declared resourceFee=18157893 maxFee=18158893
+   feeCharged=15786873  nonRefundable=11565 refundable=15775208 rent=15773313
+   https://stellar.expert/explorer/testnet/tx/0122f487036951f56758e2a7e7cb6431f554559ce65d535d83c2822b75db625f
+predicted rent for +80 B over ≤ 518400 ledgers: 15767933 stroops now; 333333 at target; 33333 at the 1000/KB floor
