@@ -1,0 +1,53 @@
+import { DateTime, Option, Predicate, Schema, String } from 'effect'
+
+import { Stroops, fromStroops } from '@hm/protocol'
+
+/** An amount from the Worker: stroops as a decimal string on the wire, or already a bigint. */
+export type Amount = string | bigint
+
+const decodeStroops = Schema.decodeUnknownOption(Stroops)
+
+export const toStroops = (amount: Amount): Option.Option<bigint> =>
+  Predicate.isString(amount) ? decodeStroops(amount) : Option.some(amount)
+
+const formatAmount = (amount: Amount, unit: string): string =>
+  Option.match(toStroops(amount), {
+    onNone: () => `${globalThis.String(amount)} ${unit}`,
+    onSome: value => `${fromStroops(value)} ${unit}`,
+  })
+
+export const usdc = (amount: Amount): string => formatAmount(amount, 'USDC')
+
+export const xlm = (amount: Amount): string => formatAmount(amount, 'XLM')
+
+const ADDRESS_EDGE = 4
+
+export const shortAddress = (address: string): string =>
+  `${String.slice(0, ADDRESS_EDGE)(address)}…${String.slice(-ADDRESS_EDGE)(address)}`
+
+const DATE_TIME: Intl.DateTimeFormatOptions = {
+  weekday: 'short',
+  day: 'numeric',
+  month: 'short',
+  hour: '2-digit',
+  minute: '2-digit',
+  hourCycle: 'h23',
+}
+
+export const dateTime = (iso: string): string =>
+  Option.match(DateTime.make(iso), {
+    onNone: () => iso,
+    onSome: value => `${DateTime.formatUtc(value, { ...DATE_TIME, locale: 'en-GB' })} UTC`,
+  })
+
+export const explorerAccountUrl = (address: string): string =>
+  `https://stellar.expert/explorer/testnet/${String.startsWith('C')(address) ? 'contract' : 'account'}/${address}`
+
+const FULL = 100n
+
+/** How much of `total` is gone, given what `remaining` is left: 0 to 100. */
+export const percentUsed = (total: Amount, remaining: Amount): number =>
+  Option.match(Option.all([toStroops(total), toStroops(remaining)]), {
+    onNone: () => 0,
+    onSome: ([whole, left]) => (whole > 0n && left <= whole ? Number(((whole - left) * FULL) / whole) : 0),
+  })

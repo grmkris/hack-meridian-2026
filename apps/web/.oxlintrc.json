@@ -2,12 +2,25 @@
   "$schema": "../../node_modules/oxlint/configuration_schema.json",
   "extends": ["../../.oxlintrc.json", "./node_modules/@foldkit/oxlint-plugin/recommended.json"],
   "rules": {
-    "typescript/consistent-type-assertions": ["error", { "assertionStyle": "never" }]
+    "typescript/consistent-type-assertions": [
+      "error",
+      {
+        "assertionStyle": "never"
+      }
+    ],
+    "vitest/expect-expect": [
+      "error",
+      {
+        "assertFunctionNames": ["expect", "story", "scene"]
+      }
+    ]
   },
   "overrides": [
     {
       "files": ["**/*.test.ts", "**/server/**/*.ts", "src/worker.ts"],
-      "rules": { "typescript/consistent-type-assertions": "off" }
+      "rules": {
+        "typescript/consistent-type-assertions": "off"
+      }
     }
   ]
 }

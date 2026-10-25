@@ -1,37 +1,44 @@
-import { Command, click, expect, given, role, scene, text } from 'foldkit/scene'
+import { Option } from 'effect'
+import { expect, given, role, scene, text } from 'foldkit/scene'
+import { modifyFields } from 'foldkit/struct'
 import { describe, test } from 'vitest'
 
-import { CounterData, FetchCounter, FetchHealth, Message, type Model, update, view } from './main'
-import { health, loadedModel, loadingModel, reading } from './main.fixture'
+import { type Model, Session, update, view } from './main'
+import { Home, Welcome } from './page'
+import { fixture, overview } from './page/fixtures'
+import { AppRoute } from './route'
 
-describe('view', () => {
-  test('shows loading for both panels before the Worker answers', () => {
-    scene({ update, view }, given(loadingModel), expect(role('heading', { name: 'HackMeridian 2026' })).toExist())
-  })
+const signedIn: Model = {
+  route: AppRoute.Home(),
+  session: Session.SignedIn({ wallet: fixture.wallet }),
+  home: modifyFields(Home.init().model, { overview: () => Home.OverviewData.Success({ data: overview }) }),
+  connections: { connections: { _tag: 'Idle' }, revoke: { _tag: 'Idle' }, maybeRuleRemovalUrl: Option.none() },
+  contacts: { contacts: { _tag: 'Idle' }, name: '', address: '', submission: { _tag: 'Idle' } },
+  receipts: { receipts: { _tag: 'Idle' } },
+}
 
-  test('shows the count and the contract link once loaded', () => {
+describe('signed in', () => {
+  test('home shows the wallet balance and the allowance as two separate numbers', () => {
     scene(
       { update, view },
-      given(loadedModel),
-      expect(text('7')).toExist(),
-      expect(role('link', { name: 'CAKTREEYOPERBZGP4FHTUZP4WRCMTM5X4WSC3UVTBNG3DEL2LGUC4ON2' })).toExist(),
-      expect(text('testnet')).toExist(),
+      given(signedIn),
+      expect(text('47.90 USDC')).toExist(),
+      expect(text('2.90 USDC left')).toExist(),
+      expect(role('link', { name: 'Home' })).toHaveAttr('aria-current', 'page'),
+      expect(role('link', { name: 'Review' })).toHaveAttr('href', '/approve/int_dinner'),
     )
   })
+})
 
-  test('shows a failed counter read as an alert', () => {
-    const failed: Model = { ...loadedModel, counter: CounterData.Failure({ error: 'Soroban RPC took too long.' }) }
-    scene({ update, view }, given(failed), expect(role('alert')).toHaveText('Soroban RPC took too long.'))
-  })
-
-  test('refresh shows the new count once both reads come back', () => {
+describe('signed out', () => {
+  test('offers to create a passkey wallet or sign in', () => {
     scene(
       { update, view },
-      given(loadedModel),
-      click(role('button', { name: 'Refresh' })),
-      Command.resolve(FetchHealth, Message.SucceededFetchHealth({ health })),
-      Command.resolve(FetchCounter, Message.SucceededFetchCounter({ reading: { ...reading, count: 8 } })),
-      expect(text('8')).toExist(),
+      given(
+        modifyFields(signedIn, { session: () => Session.SignedOut({ welcome: Welcome.init(Option.none()).model }) }),
+      ),
+      expect(role('button', { name: 'Create wallet with a passkey' })).toExist(),
+      expect(role('button', { name: 'Sign in with your passkey' })).toExist(),
     )
   })
 })
