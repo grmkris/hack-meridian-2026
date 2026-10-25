@@ -37,7 +37,7 @@ Built at HackMeridian 2026 (Lisbon, 25–26 October 2026), Genesis builder track
 
 ## Proof on testnet
 
-One rehearsal on the live site (release 19e1c13, 25 October 2026, 15:12 UTC), all nine acceptance tests passed:
+One rehearsal on the live site (release 19e1c13, 25 October 2026, 15:12 UTC): acceptance tests 1, 2 and 4–9 passed live; test 3 (a forced over-limit transfer, not reachable through MCP by design) is proven in spike S1:
 - The passkey wallet this run created: https://stellar.expert/explorer/testnet/contract/CA357ZQSG54XPLIZF4NTNOYUU7R3IBOKZ7UALM5WVZCT5C2GJZWD45W2
 - x402: the AI app's key pulls 1.00 USDC into its pocket under the allowance: https://stellar.expert/explorer/testnet/tx/978479126c9339de3a2cf4140dcef4958aa13d95ea39408b50cbf4ae413ed702
 - x402: the pocket pays the seller 0.10 USDC, settled by OpenZeppelin Channels: https://stellar.expert/explorer/testnet/tx/e3e62e07dbf11f0bd75ac795a3bef5a50fcc6ffd64e610c98a70dc9676890990

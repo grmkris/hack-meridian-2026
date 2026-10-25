@@ -66,8 +66,9 @@ service), with a live log of amounts, nods, fees and stellar.expert links. It sh
 
 ## Proof on testnet
 
-One rehearsal on the live site (release `19e1c13`, 25 October, 15:12 UTC): all nine acceptance tests passed in 204
-seconds. Record: [`evidence/demo/2026-10-25T15-12-52-316Z/run.json`](evidence/demo/2026-10-25T15-12-52-316Z/run.json).
+One rehearsal on the live site (release `19e1c13`, 25 October, 15:12 UTC), 204 seconds: acceptance tests 1, 2 and 4–9
+passed live. Test 3, a forced over-limit transfer, cannot be sent through MCP by design; its onchain rejection is
+proven in spike S1 (below). Record: [`evidence/demo/2026-10-25T15-12-52-316Z/run.json`](evidence/demo/2026-10-25T15-12-52-316Z/run.json).
 
 | What happened                                                                                  | Transaction                                                                                                                   |
 | ---------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |

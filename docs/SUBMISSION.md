@@ -100,7 +100,8 @@ transactions appear on the receipt.
 
 #### Proof on testnet
 
-One rehearsal on the live site passed all nine acceptance tests:
+One rehearsal on the live site passed acceptance tests 1, 2 and 4–9; test 3 (a forced over-limit transfer, not
+reachable through MCP by design) is proven onchain in a spike:
 
 - x402 purchase: pull into the pocket under the allowance [`97847912`](https://stellar.expert/explorer/testnet/tx/978479126c9339de3a2cf4140dcef4958aa13d95ea39408b50cbf4ae413ed702), settlement by OpenZeppelin Channels [`e3e62e07`](https://stellar.expert/explorer/testnet/tx/e3e62e07dbf11f0bd75ac795a3bef5a50fcc6ffd64e610c98a70dc9676890990)
 - 2 USDC to Alice inside the allowance: [`fb77bd0f`](https://stellar.expert/explorer/testnet/tx/fb77bd0f01aeb515b967e7bf5f7d0b1f8ec5c4c6af7889263ed3172a0a8ebefe) · 20 USDC to Bob approved with the passkey: [`fbfd200c`](https://stellar.expert/explorer/testnet/tx/fbfd200cc85525ee65a0a55f4b3dc338eedf37c1c8273abcc0ac7701f09e97da)
