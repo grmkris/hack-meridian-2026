@@ -6,9 +6,46 @@
     <link href="/src/styles.css" rel="stylesheet" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <title>Nod</title>
+    <meta
+      name="description"
+      content="Give your AI an allowance. Nod is a Stellar wallet you add to Claude: small payments go through on their own inside the allowance you set, and anything bigger waits for your nod."
+    />
+    <meta name="theme-color" content="#faf8f4" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Nod" />
+    <meta property="og:title" content="Nod: give your AI an allowance" />
+    <meta
+      property="og:description"
+      content="A Stellar wallet you add to Claude. Small payments go through on their own inside the allowance you set; anything bigger waits for your nod. Built at HackMeridian 2026."
+    />
+    <meta name="twitter:card" content="summary" />
+    <link rel="alternate" type="text/plain" href="/llms.txt" title="Nod for AI readers" />
   </head>
   <body>
     <div id="root"></div>
+    <noscript>
+      <main
+        style="
+          max-width: 40rem;
+          margin: 3rem auto;
+          padding: 0 1rem;
+          font-family: system-ui, sans-serif;
+          line-height: 1.5;
+        "
+      >
+        <h1>Nod: give your AI an allowance</h1>
+        <p>
+          Nod is a Stellar wallet you add to Claude. Give each AI app an allowance, such as 5 USDC until tomorrow, and
+          it pays for APIs and pays people on its own. Anything bigger comes to you, and one passkey tap approves that
+          exact payment. The allowance is an OpenZeppelin spending-limit policy on your Stellar account, not a setting
+          on our server. Stellar testnet. Built at HackMeridian 2026.
+        </p>
+        <p>
+          This page needs JavaScript. For a plain-text summary read <a href="/llms.txt">/llms.txt</a>; the source is on
+          <a href="https://github.com/grmkris/hack-meridian-2026">GitHub</a>.
+        </p>
+      </main>
+    </noscript>
     <script type="module" src="./src/entry.ts"></script>
   </body>
 </html>
