@@ -1,10 +1,9 @@
 # Nod: judge test path (draft)
 
-Status: **live endpoints checked 2026-10-25 14:33 UTC; full deployed payment rehearsal pending**. The site and MCP
-connector are deployed at release `c80a786`; all nine HTTP smoke checks passed
-([receipt](review/2026-10-25-testnet-smoke.json)).
-The recorded real-chain rehearsal below used the local Worker against Stellar testnet and still had one failing payment.
-The steps here describe the intended complete path; rerun them after the pending fee-ceiling deployment before recording.
+Status: **full deployed rehearsal passed 2026-10-25 15:12 UTC** against release `19e1c13`
+(`bun scripts/demo/rehearse.ts --target testnet`): every step s1–s11 green, acceptance checks 1, 2 and 4–9 pass, check 3
+cites the forced-over-limit spike. Live endpoints were checked at 14:33 UTC
+([smoke receipt](review/2026-10-25-testnet-smoke.json)) and by `probe.ts` at 13:45 UTC.
 Testnet only: the path uses testnet tokens and testnet transactions.
 
 ## What you need
@@ -69,27 +68,28 @@ stage uses different relayers from the local reference run). Your wallet holds *
 
 ## 3. Reference run (explorer links)
 
-The [13:38 UTC run](demo/2026-10-25T13-38-30-890Z/run.json) used the local Worker with real Stellar testnet transactions.
-It passed acceptance checks 1, 2, 4, 5, 6, 8 and 9; check 3 cites the earlier forced-over-limit spike. Check 7 failed
-because the delegated 2 USDC payment to Alice exceeded the then-configured fee ceiling. The fee-ceiling fix is committed
-and awaits deployment and a fresh rehearsal. The Bob and Carol links below prove the recorded demo amounts (20 and
-5 USDC), not the smaller self-serve amounts above. The seller and setup transactions are separate earlier checks.
+The [15:12 UTC run](demo/2026-10-25T15-12-52-316Z/run.json) drove the deployed Worker (`19e1c13`) through Claude's
+path headlessly: OAuth with a new passkey wallet, then the recorded demo amounts (30 USDC wallet, 0.10 x402, 2 to Alice,
+20 to Bob with the passkey, 4 over the allowance, 5 to Carol by claim link, revoke). It took 204 s. Fees are in stroops;
+smart-account transactions are paid by Nod's relayers `GBCALSA3…` and `GAWYWVMH…`, the x402 settlement by OpenZeppelin
+Channels (fee bump `GA6THKUY…`).
 
-| What                                                    | Transaction                                                                                                              |
-| ------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| x402 settlement, HTTP route, x402.org facilitator       | [73290009…](https://stellar.expert/explorer/testnet/tx/73290009ae67ee94a5db1a53e44009b84e771edca240a61a5d70c16575fae554) |
-| x402 settlement, MCP tool `market_brief`, x402.org      | [29be4c03…](https://stellar.expert/explorer/testnet/tx/29be4c0309d6b08cb114daea11554d9490be6d2634850e46c402b761aa0fbbba) |
-| x402 settlement, HTTP route, OpenZeppelin Channels      | [5dd944b0…](https://stellar.expert/explorer/testnet/tx/5dd944b054a71511673cdbbecc8e6f780e2950049968332d69f972b73fb165af) |
-| Alice's smart account deployed (contact `C…`)           | [992066b6…](https://stellar.expert/explorer/testnet/tx/992066b615bfd675fcab4341dd611f706c41d5695efe2cb9568165f1379726e3) |
-| Treasury bought 300 testnet USDC on the DEX             | [1c89d8ce…](https://stellar.expert/explorer/testnet/tx/1c89d8cedaa1b187bdecca4d51b1e7a61a175ec2d3b9b4235e67642ba19f6781) |
-| Shared allowance policy contract kept alive (TTL)       | [19339ef0…](https://stellar.expert/explorer/testnet/tx/19339ef0102e3941c986172b3dde3c3eeec4bcbf66488f9e0dbdf8d3a13ae136) |
-| Product x402 pull into the pocket (step 4, local Worker) | [646d95c9…](https://stellar.expert/explorer/testnet/tx/646d95c918bc43e1ea22f8ffc6efd48b197344d3add94599b2e40c1248a62945) |
-| Product x402 settlement (step 4, local Worker)          | [1c680612…](https://stellar.expert/explorer/testnet/tx/1c6806128d7020f4fe4aa4906c8d0158cc403dd3e1c38ba9988f649442138a19) |
-| Payment inside the allowance (step 5)                   | Pending successful rerun after the fee-ceiling deployment                                                                  |
-| 20 USDC approved with your nod (passkey, step 7, local Worker) | [8f9e79cb…](https://stellar.expert/explorer/testnet/tx/8f9e79cb0df7f06dd7b813988a5b6d71ad5afb32ed57e306c108303b74d44a9f) |
-| Over-allowance transfer rejected onchain (`#3221`, S1)  | [3daf4b00…](https://stellar.expert/explorer/testnet/tx/3daf4b000cb58ad1bbef3629c13a02d44403c4b690dd51815020cbc89723b42a) |
-| Claim: trustline + 5 USDC in one transaction (step 10, local Worker) | [8457e9cb…](https://stellar.expert/explorer/testnet/tx/8457e9cb67895e86155535a37b64308a60bfb3112c6050b60049537860536bf1) |
-| Allowance removed onchain on revoke (step 9)            | Chain read passed in the local run; removal transaction link pending a fresh run with the committed receipt fix             |
+| Step | What                                                         | Fee (stroops) | Transaction                                                                                                              |
+| ---- | ------------------------------------------------------------ | ------------: | ------------------------------------------------------------------------------------------------------------------------ |
+| 4    | x402: 1.00 USDC from the wallet into the AI app's pocket     |   909,648,553 | [97847912…](https://stellar.expert/explorer/testnet/tx/978479126c9339de3a2cf4140dcef4958aa13d95ea39408b50cbf4ae413ed702) |
+| 4    | x402: pocket pays the seller 0.10 (OpenZeppelin Channels)    |        63,263 | [e3e62e07…](https://stellar.expert/explorer/testnet/tx/e3e62e07dbf11f0bd75ac795a3bef5a50fcc6ffd64e610c98a70dc9676890990) |
+| 5    | 2 USDC to Alice inside the allowance                         |    78,350,140 | [fb77bd0f…](https://stellar.expert/explorer/testnet/tx/fb77bd0f01aeb515b967e7bf5f7d0b1f8ec5c4c6af7889263ed3172a0a8ebefe) |
+| 7    | 20 USDC to Bob, approved with the passkey                    |        61,945 | [fbfd200c…](https://stellar.expert/explorer/testnet/tx/fbfd200cc85525ee65a0a55f4b3dc338eedf37c1c8273abcc0ac7701f09e97da) |
+| 10   | Carol: USDC trustline + 5 USDC in one transaction (CAP-73)   |       120,656 | [565b7f07…](https://stellar.expert/explorer/testnet/tx/565b7f0740d2cb73975939107c6b3329a03d60d26925101ba7e9a7ae5660735c) |
+| 9    | allowance removed from the account onchain                   |        69,010 | [55beab6d…](https://stellar.expert/explorer/testnet/tx/55beab6dd2866dd95f6bfcc7209d4c3c7e8a423d4955de5607a6009da1003279) |
+| 9    | the pocket's 0.90 swept back to the wallet                   |        62,452 | [00129674…](https://stellar.expert/explorer/testnet/tx/00129674edaed2fcce96c73745587f2c599704850c182c38f7d7c12ab5ee55a6) |
+| 3    | over-allowance transfer rejected onchain (`#3221`, spike S1) |             – | [3daf4b00…](https://stellar.expert/explorer/testnet/tx/3daf4b000cb58ad1bbef3629c13a02d44403c4b690dd51815020cbc89723b42a) |
+
+The large fee on the pocket move is storage rent: testnet's rent factor was ~219× normal at the time (S1, S5). Earlier
+separate checks: the demo seller settled through x402.org ([73290009…](https://stellar.expert/explorer/testnet/tx/73290009ae67ee94a5db1a53e44009b84e771edca240a61a5d70c16575fae554))
+and OpenZeppelin Channels ([5dd944b0…](https://stellar.expert/explorer/testnet/tx/5dd944b054a71511673cdbbecc8e6f780e2950049968332d69f972b73fb165af)),
+Alice's smart account was deployed ([992066b6…](https://stellar.expert/explorer/testnet/tx/992066b615bfd675fcab4341dd611f706c41d5695efe2cb9568165f1379726e3)),
+and the shared policy contract was kept alive ([19339ef0…](https://stellar.expert/explorer/testnet/tx/19339ef0102e3941c986172b3dde3c3eeec4bcbf66488f9e0dbdf8d3a13ae136)).
 
 ## If something goes wrong
 
