@@ -1,0 +1,19 @@
+{
+  "network": "pubnet",
+  "rpcUrl": "https://mainnet.sorobanrpc.com",
+  "networkPassphrase": "Public Global Stellar Network ; September 2015",
+  "contracts": {
+    "onboard": {
+      "id": "CBWYFI6XWQI5C43GISIIUFXTJXBUI52QSNKKYC55GWMPLQRL2RAXT6TM",
+      "wasmHash": "39c97734a92ac1057da3d4785cbc2307d937a3275fc6bcbb76bf6aa5bd503888",
+      "deployer": "GBVYA2V4SMVPXFRPVB5FEFCADW7RXFIACR2HBLN2WP3RHAZKL267YG5X",
+      "salt": "hm26/mainnet/onboard-router/v1",
+      "deployedAt": "2026-10-25T17:56:05.152Z",
+      "uploadTx": "0cf6a48f9c6cf64627bde57bb79e753b8e7f5554fc07e5e9076b0cfb1455d948",
+      "deployTx": "eaaf4d5f5acc58cb6a422c8066bd29b4366703fda9b7ad73bc103b4a8e6870ed",
+      "source": "contracts/onboard",
+      "testnetTwin": "CCLFB4I4CNGWHHL53UO33CSWKKXJBANMDGOGL43J7RBT7SWK2H2BPGN4",
+      "explorer": "https://stellar.expert/explorer/public/contract/CBWYFI6XWQI5C43GISIIUFXTJXBUI52QSNKKYC55GWMPLQRL2RAXT6TM"
+    }
+  }
+}
