@@ -114,3 +114,18 @@ the relayer and treasury secrets are Worker secrets. No secret leaves the chain 
 - Testnet only. Secrets in `.env`/`.dev.vars` (gitignored) and Alchemy secrets; never in code, logs or docs.
 - Acceptance tests in `docs/SPEC.md` are the definition of done; each stream names which numbers it covers.
 - When blocked for more than 20 minutes, write the blocker in your reply and move to the next item.
+
+## Mainnet (from `docs/research/mainnet.md`, 13:20 UTC)
+
+Pubnet preset: RPC `https://mainnet.sorobanrpc.com` (60 req / 10 s), fallback `https://soroban-rpc.mainnet.stellar.gateway.fm`,
+Horizon `https://horizon.stellar.org`; account WASM hash `1b5f4534…` (same as testnet); WebAuthn verifier
+`CB7HENHJ7NF34I5FFXQK7D5I3WWQRGB5O5XO77D3NXMT7LM7LOKRQ5YR`; Ed25519 verifier `CBOOZV2BK5OETGL4Q4KGEBESPRLJFN7DOFWDT7OZGLD7EQEZUVOWUEMC`;
+spending-limit policy `CBCGTERZ6W2M6SMKVKQDTNKWFQXEPXEQO6ZCEKNZHT3QMA4X7Z2IYUS4` (lives to ~14 Nov); USDC SAC
+`CCW67TSZV3SSS2HXMBQ5JFGCKJNXKZM7UQUWUZPUTHXSTZLEO7SJMI75` (issuer `GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN`);
+onboarding router: deploy ours (~2.5 XLM); facilitator OpenZeppelin Channels `https://channels.openzeppelin.com/x402`
+(`stellar:pubnet`, fees sponsored, key from `/gen`), Vellar as keyless fallback; third-party seller for the video:
+Stellar's `/x402-demo/api/protected/mainnet` (0.01 USDC). Costs: deploy 0.15, grant install ~0.2, delegated payment 0.015,
+passkey payment 0.0012 XLM. Rules: invite-only signup on pubnet, no 10 USDC auto-fund, caps + kill switch on, never add a
+Delegated signer to the account. Funding Kristjan provides: ~50 XLM and 25–115 USDC. Go/no-go at ~06:00 UTC: testnet
+rehearsal green, one real 0.10 USDC settlement through OZ Channels on mainnet, caps tested, accounts funded. Judges stay on
+testnet either way.

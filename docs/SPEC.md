@@ -43,7 +43,7 @@ with a stable `grant_id`; the allowance belongs to it, not to the session.
    (WebAuthn registration → relayer deploys the smart account with the passkey as admin signer).
 2. Consent screen: "Allow **ChatGPT** to spend up to **5 USDC** total from **Personal** until **tomorrow 12:00**.
    Larger payments need your passkey." Passkey signs the context-rule install. Connection becomes active.
-3. Agent calls `wallet_overview`: balance 50 USDC, allowance 5.00 remaining, expiry, pending approvals.
+3. Agent calls `wallet_overview`: balance 120 USDC (the video wallet is topped up from the treasury; a judge's fresh wallet gets 10 USDC and a 5 USDC dinner), allowance 5.00 remaining, expiry, pending approvals.
 4. Agent buys one x402 resource for 0.10 USDC (`paid_resource_fetch`). No owner prompt. Allowance 4.90.
 5. Agent sends 2 USDC to saved contact Alice (`payment_prepare` → `payment_execute`). Allowance 2.90.
 6. Agent requests 100 USDC "dinner" to Bob → `requires_approval` + approval URL.
