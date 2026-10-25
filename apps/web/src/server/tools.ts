@@ -17,6 +17,7 @@ import {
   USDC_SAC,
   type Wallet,
   type X402Quote,
+  type X402QuoteHook,
 } from '@hm/protocol'
 
 import { nowMillis, randomId } from './clock.ts'
@@ -423,8 +424,9 @@ const quoteHook =
           prepared.pullAmount,
         )
         yield* Ref.update(input.state, s => ({ ...s, pull, pulled: prepared.pullAmount }))
+        return pull
       }
-      return undefined
+      return null
     })
 
 const bodyText = (response: Response) =>
@@ -475,7 +477,7 @@ const paid = <Body>(
     grant: SpendingGrant,
     paymentId: string,
     maxAmount: bigint,
-    onQuote: (quote: X402Quote) => Effect.Effect<void, ChainError>,
+    onQuote: X402QuoteHook,
   ) => Effect.Effect<{ readonly body: Body; readonly settlement: Receipt | null }, ChainError>,
 ) =>
   Effect.gen(function* () {

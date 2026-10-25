@@ -25,6 +25,7 @@ export const testWalletSettings = Layer.succeed(WalletSettings, {
   rpId: Option.some('wallet.test'),
   origin: Option.some('https://wallet.test'),
   welcomeUsdc: 100_000_000n,
+  demoContacts: [],
 })
 
 /**

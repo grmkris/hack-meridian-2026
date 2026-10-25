@@ -56,8 +56,9 @@ export interface Page {
   readonly headers?: HeadersInit
 }
 
-const page = (title: string, nonce: string, body: string, script = '') =>
-  `<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="no-referrer"><title>${escape(title)}</title>${STYLE}<body><p class="brand">stellarmcpwallet · testnet</p>${body}${script === '' ? '' : `<script nonce="${nonce}">${PASSKEY_JS}${script}</script>`}</body></html>`
+/** `data` becomes a JSON block the script reads as `document.getElementById('ctx')`. */
+const page = (title: string, nonce: string, body: string, script = '', data?: unknown) =>
+  `<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="no-referrer"><title>${escape(title)}</title>${STYLE}<body><p class="brand">stellarmcpwallet · testnet</p>${body}${data === undefined ? '' : jsonBlock('ctx', data)}${script === '' ? '' : `<script nonce="${nonce}">${PASSKEY_JS}${script}</script>`}</body></html>`
 
 /** S4's headers (frame-deny, no-store) and a CSP that only runs this response's scripts. */
 export const html = (nonce: string, body: string, init: { status?: number; headers?: HeadersInit } = {}) => {
@@ -107,9 +108,9 @@ export const consentSignInPage = (nonce: string, view: ConsentView) =>
     `Connect ${view.clientName}`,
     nonce,
     `${consentHeader(view)}
-<div class="card"><h2>Sign in to your wallet</h2><p class="row"><button class="primary" id="signin">Sign in with passkey</button></p></div>
 <div class="card"><h2>New here?</h2><p>Create a wallet secured by a passkey on this device. It is a Stellar smart account; you never need XLM, and on testnet it starts with 10 USDC.</p>
-<label>Wallet name <input id="name" value="Personal" maxlength="40"></label><p class="row"><button id="create">Create wallet</button></p></div>
+<label>Wallet name <input id="name" value="Personal" maxlength="40"></label><p class="row"><button class="primary" id="create" data-testid="passkey-create">Create wallet</button></p></div>
+<div class="card"><h2>Already have a wallet?</h2><p class="row"><button id="signin" data-testid="passkey-signin">Sign in with passkey</button></p></div>
 <p id="status" class="muted" role="status"></p>
 <form method="post" action="/authorize"><input type="hidden" name="handle" value="${escape(view.handle)}"><button name="decision" value="deny">Deny</button></form>`,
     `document.getElementById('signin').onclick=async e=>{const done=busy(e.target,'Waiting for passkey…');try{await signIn();location.reload()}catch(x){done();show('status',x.message)}};
@@ -149,19 +150,19 @@ export const consentGrantPage = (
 <form method="post" action="/authorize" id="grant">
 <input type="hidden" name="handle" value="${escape(view.handle)}"><input type="hidden" name="pending_id"><input type="hidden" name="assertion"><input type="hidden" name="approve" value="">
 <div class="card"><p>Allow <strong>${escape(view.clientName)}</strong> to spend up to
-<input name="allowance" value="5.00" inputmode="decimal" pattern="\\d{1,6}(\\.\\d{1,2})?" required> <strong>USDC</strong> total until
+<input name="allowance" data-testid="allowance" value="5.00" inputmode="decimal" pattern="\\d{1,6}(\\.\\d{1,2})?" required> <strong>USDC</strong> total until
 <select name="lifetime">${expiryOptions(nowMs)}</select>.</p>
 <p><strong>Larger payments need your passkey.</strong> They come back to you as an approval link. Your passkey now signs this allowance into your account onchain; you can revoke it at any time.</p></div>
 <p id="status" class="muted" role="status"></p>
-<p class="row"><button class="primary" id="allow" type="button">Allow with passkey</button> <button name="decision" value="deny" formnovalidate>Deny</button></p>
+<p class="row"><button class="primary" id="allow" type="button" data-testid="consent-allow">Allow with passkey</button> <button name="decision" value="deny" formnovalidate>Deny</button></p>
 </form>`,
-    `${jsonBlock('ctx', { credential: wallet.passkey_credential_id, rpId })}
-const ctx=JSON.parse(document.getElementById('ctx').textContent);const f=document.getElementById('grant');
+    `const ctx=JSON.parse(document.getElementById('ctx').textContent);const f=document.getElementById('grant');
 document.getElementById('allow').onclick=async e=>{if(!f.reportValidity())return;const done=busy(e.target,'Preparing…');
 try{const p=await post('/oauth/grant/prepare',{handle:f.handle.value,allowance:f.allowance.value,lifetime_seconds:Number(f.lifetime.value)});
 e.target.textContent='Waiting for passkey…';const a=await assertion(p.challenge,ctx.rpId,[ctx.credential]);
 f.pending_id.value=p.pending_id;f.assertion.value=JSON.stringify(a);f.approve.value='1';
 e.target.textContent='Installing allowance onchain…';f.submit()}catch(x){done();show('status',x.message)}};`,
+    { credential: wallet.passkey_credential_id, rpId },
   )
 
 // Owner approval
@@ -198,23 +199,23 @@ export const approvalPage = (nonce: string, view: ApprovalView) => {
     ? ''
     : view.signedIn === undefined
       ? `<div class="card"><p>Sign in with the wallet's passkey to approve.</p><p class="row"><button class="primary" id="signin">Sign in with passkey</button></p></div>`
-      : `<p class="row"><button class="primary" id="approve">Approve with passkey</button></p>`
+      : `<p class="row"><button class="primary" id="approve" data-testid="approve">Approve with passkey</button></p>`
   return page(
     title,
     nonce,
-    `<h1>${escape(title)}</h1>${view.notice === undefined ? '' : `<p class="card warn">${escape(view.notice)}</p>`}
+    `<h1${open ? '' : ` data-testid="${view.status === 'confirmed' ? 'approval-done' : `approval-${escape(view.status)}`}"`}>${escape(title)}</h1>${view.notice === undefined ? '' : `<p class="card warn">${escape(view.notice)}</p>`}
 ${view.intent.failure !== null && open ? `<p class="card warn">Last attempt: ${escape(view.intent.failure)}</p>` : ''}
 <div class="card">${intentFacts(view.intent, view.connectionName)}</div>
 ${view.receipt === undefined ? '' : receiptBlock(view.receipt)}${action}<p id="status" class="muted" role="status"></p>`,
     open
-      ? `${jsonBlock('ctx', { id: view.intent.id, rpId: view.rpId, credential: view.signedIn?.passkey_credential_id ?? null })}
-const ctx=JSON.parse(document.getElementById('ctx').textContent);
+      ? `const ctx=JSON.parse(document.getElementById('ctx').textContent);
 const si=document.getElementById('signin');if(si)si.onclick=async e=>{const done=busy(e.target,'Waiting for passkey…');try{await signIn();location.reload()}catch(x){done();show('status',x.message)}};
 const ap=document.getElementById('approve');if(ap)ap.onclick=async e=>{const done=busy(e.target,'Preparing…');
 try{const p=await post('/approve/'+ctx.id+'/prepare');e.target.textContent='Waiting for passkey…';
 const a=await assertion(p.challenge,ctx.rpId,[ctx.credential]);e.target.textContent='Submitting (about 10 s)…';
 await post('/approve/'+ctx.id,{assertion:a});location.reload()}catch(x){done();show('status',x.message)}};`
       : '',
+    { id: view.intent.id, rpId: view.rpId, credential: view.signedIn?.passkey_credential_id ?? null },
   )
 }
 
@@ -235,20 +236,20 @@ export const revokePage = (
   return page(
     `Revoke ${input.clientName}`,
     nonce,
-    `<h1>${removed ? `${escape(input.clientName)} is revoked` : `Revoke ${escape(input.clientName)}?`}</h1>
+    `<h1${removed ? ' data-testid="revoked"' : ''}>${removed ? `${escape(input.clientName)} is revoked` : `Revoke ${escape(input.clientName)}?`}</h1>
 <div class="card"><dl><dt>Connection</dt><dd>${escape(input.clientName)} <span class="muted">${escape(input.connectionStatus)}</span></dd>
 ${input.grant === undefined ? '' : `<dt>Allowance</dt><dd>${escape(usdc(input.grant.total))}, spent ${escape(usdc(input.grant.spent))}</dd><dt>Onchain rule</dt><dd>#${escape(String(input.grant.rule_id))} · ${escape(input.grant.rule_status.replace('_', ' '))}</dd><dt>Pocket</dt><dd>${escape(usdc(input.grant.pocket_balance))} <span class="muted">swept back to your wallet on revoke</span></dd>`}</dl></div>
-${removed ? '' : input.signedIn === undefined ? `<div class="card"><p>Sign in with the wallet's passkey.</p><p class="row"><button class="primary" id="signin">Sign in with passkey</button></p></div>` : `<p>The connection stops at once. Your passkey then removes its spending rule from your account onchain.</p><p class="row"><button class="primary" id="revoke">Revoke with passkey</button></p>`}
+${removed ? '' : input.signedIn === undefined ? `<div class="card"><p>Sign in with the wallet's passkey.</p><p class="row"><button class="primary" id="signin">Sign in with passkey</button></p></div>` : `<p>The connection stops at once. Your passkey then removes its spending rule from your account onchain.</p><p class="row"><button class="primary" id="revoke" data-testid="revoke" data-connection="${escape(input.connectionId)}">Revoke with passkey</button></p>`}
 <p id="status" class="muted" role="status"></p>`,
     removed
       ? ''
-      : `${jsonBlock('ctx', { id: input.connectionId, rpId: input.rpId, credential: input.signedIn?.passkey_credential_id ?? null })}
-const ctx=JSON.parse(document.getElementById('ctx').textContent);
+      : `const ctx=JSON.parse(document.getElementById('ctx').textContent);
 const si=document.getElementById('signin');if(si)si.onclick=async e=>{const done=busy(e.target,'Waiting for passkey…');try{await signIn();location.reload()}catch(x){done();show('status',x.message)}};
 const rv=document.getElementById('revoke');if(rv)rv.onclick=async e=>{const done=busy(e.target,'Revoking…');
 try{const p=await post('/approve/revoke/'+ctx.id+'/prepare');e.target.textContent='Waiting for passkey…';
 const a=await assertion(p.challenge,ctx.rpId,[ctx.credential]);e.target.textContent='Removing the rule onchain…';
 await post('/approve/revoke/'+ctx.id,{assertion:a});location.reload()}catch(x){done();show('status',x.message)}};`,
+    { id: input.connectionId, rpId: input.rpId, credential: input.signedIn?.passkey_credential_id ?? null },
   )
 }
 
@@ -268,20 +269,20 @@ export const claimPage = (
   page(
     `Accept ${fromStroops(input.intent.amount)} USDC`,
     nonce,
-    `<h1>${input.receipt === undefined ? `Accept ${escape(fromStroops(input.intent.amount))} USDC` : 'USDC received'}</h1>
+    `<h1${input.receipt === undefined ? '' : ' data-testid="claim-done"'}>${input.receipt === undefined ? `Accept ${escape(fromStroops(input.intent.amount))} USDC` : 'USDC received'}</h1>
 ${input.notice === undefined ? '' : `<p class="card warn">${escape(input.notice)}</p>`}
 <div class="card"><dl><dt>From</dt><dd>${escape(input.intent.requester)}</dd><dt>To</dt><dd><code>${escape(input.intent.recipient_address)}</code> <span class="muted">${escape(shortAddress(input.intent.recipient_address))}</span></dd>
 <dt>Amount</dt><dd><span class="amount">${escape(fromStroops(input.intent.amount))}</span> USDC</dd><dt>Network</dt><dd>stellar:testnet</dd></dl>
 <p class="muted">Your account has no USDC trustline yet. Accepting signs one authorization: the trustline and the payment land together in one transaction.</p></div>
 ${input.receipt === undefined ? receiptPending(input) : receiptBlock(input.receipt)}<p id="status" class="muted" role="status"></p>`,
     input.receipt === undefined && input.recipientEntryXdr !== null
-      ? `${jsonBlock('ctx', { id: input.intent.id, entry: input.recipientEntryXdr, demo: input.demo })}
-const ctx=JSON.parse(document.getElementById('ctx').textContent);
+      ? `const ctx=JSON.parse(document.getElementById('ctx').textContent);
 document.getElementById('accept').onclick=async e=>{const done=busy(e.target,'Signing…');try{let signed=null;
 if(!ctx.demo){const w=window.freighterApi||window.stellarWallet;if(!w||!w.signAuthEntry)throw new Error('No browser wallet with signAuthEntry was found (Freighter supports it).');
 const r=await w.signAuthEntry(ctx.entry,{networkPassphrase:'Test SDF Network ; September 2015'});signed=r.signedAuthEntry||r}
 e.target.textContent='Submitting…';await post('/claim/'+ctx.id+(ctx.demo?'?demo=1':''),{signed_entry:signed});location.reload()}catch(x){done();show('status',x.message)}};`
       : '',
+    { id: input.intent.id, entry: input.recipientEntryXdr, demo: input.demo },
   )
 
 const receiptPending = (input: {
@@ -291,4 +292,4 @@ const receiptPending = (input: {
 }) =>
   input.recipientEntryXdr === null
     ? `<div class="card"><p>This link is ${escape(input.status.replace('_', ' '))}.</p></div>`
-    : `${input.demo ? '<p class="card warn"><strong>Demo wallet.</strong> The seeded demo recipient key on the server signs instead of a browser wallet (testnet only).</p>' : ''}<p class="row"><button class="primary" id="accept">${input.demo ? 'Accept with the demo wallet' : 'Accept with my wallet'}</button></p>`
+    : `${input.demo ? '<p class="card warn"><strong>Demo wallet.</strong> The seeded demo recipient key on the server signs instead of a browser wallet (testnet only).</p>' : ''}<p class="row"><button class="primary" id="accept" data-testid="claim-accept">${input.demo ? 'Accept with the demo wallet' : 'Accept with my wallet'}</button></p>`

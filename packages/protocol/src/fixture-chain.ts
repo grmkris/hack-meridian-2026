@@ -13,16 +13,19 @@ import { USDC_SAC } from './entities.ts'
  */
 
 const BASE32 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567'
-const strkey = (prefix: 'C' | 'G', n: number, tag: string): string => {
+const strkey = (prefix: 'C' | 'G', n: number, tag: string, seed = ''): string => {
   let body = ''
   let rest = n
   do {
     body = `${BASE32[rest % 32] ?? 'A'}${body}`
     rest = Math.floor(rest / 32)
   } while (rest > 0)
-  const head = `${prefix}${tag}`
+  const head = `${prefix}${tag}${seed}`
   return `${head}${'A'.repeat(56 - head.length - body.length)}${body}`
 }
+
+/** Eight random base32 characters: keeps ids unique across fixture instances (isolate restarts). */
+const randomSeed = () => [...crypto.getRandomValues(new Uint8Array(8))].map(byte => BASE32[byte % 32] ?? 'A').join('')
 
 /** FNV-1a over a string, as 32 bytes (eight rounds with different seeds): deterministic, not cryptographic. */
 const digest = (text: string): Uint8Array => {
@@ -130,13 +133,16 @@ export const makeFixtureChain = (options: FixtureOptions = {}): FixtureChain => 
     ),
   )
   const trustlineMissing = new Set(options.trustlineMissing ?? [])
+  // Strict fixtures are fully deterministic; a lenient (dev stage) one is reborn with every isolate, so its ids carry
+  // a random seed or a second wallet would collide with the first.
+  const seed = options.lenient === true ? randomSeed() : ''
   const accountsMissing = new Set(options.accountsMissing ?? [])
   const price = options.x402PriceStroops ?? 1_000_000n
 
   const next = () => ++counter
   const txHash = () => next().toString(16).padStart(64, '0')
   const balance = (address: string) =>
-    balances.get(address) ?? (options.lenient === true && address.startsWith('C') ? 500_000_000n : 0n)
+    balances.get(address) ?? (options.lenient === true && address.startsWith('C') ? 2_000_000_000n : 0n)
   const credit = (address: string, amount: bigint) => balances.set(address, balance(address) + amount)
   const receipt = (feePayer = FIXTURE_RELAYER, feeStroops = 15_000_000n): Receipt => {
     const tx = txHash()
@@ -211,7 +217,7 @@ export const makeFixtureChain = (options: FixtureOptions = {}): FixtureChain => 
     deployAccount: ownerPasskey =>
       call('deployAccount', [ownerPasskey], () =>
         Effect.sync(() => {
-          const contractId = strkey('C', next(), 'WALLET')
+          const contractId = strkey('C', next(), 'WALLET', seed)
           nextRuleId.set(contractId, 1)
           return { contractId, tx: receipt().tx }
         }),
@@ -226,7 +232,7 @@ export const makeFixtureChain = (options: FixtureOptions = {}): FixtureChain => 
     newSigner: Effect.suspend(() =>
       call('newSigner', [], () =>
         Effect.sync(() => {
-          const address = strkey('G', next(), 'SIGNER')
+          const address = strkey('G', next(), 'SIGNER', seed)
           return { signerKeyRef: `fixture:${address}`, publicKey: digest(address), address }
         }),
       ),

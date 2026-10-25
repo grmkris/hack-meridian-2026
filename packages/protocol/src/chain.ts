@@ -20,6 +20,8 @@ export const Receipt = Schema.Struct({
   /** Who paid the fee: the relayer `G…` for smart-account transactions, the facilitator for x402 settlements. */
   feePayer: Schema.String,
   explorer: Schema.String,
+  /** Rent the transaction paid (testnet rent runs at ~47–73× normal), when the meta reports it. */
+  rentStroops: Schema.optionalKey(Stroops),
 })
 export type Receipt = typeof Receipt.Type
 
@@ -116,6 +118,14 @@ export const ChainErrorKind = Schema.Literals([
   'submit_failed',
   /** The service's quote hook declined an x402 payment (it does not fit the grant): nothing was signed. */
   'declined',
+  /** The enforce simulation's fee is above the ceiling: not submitted. */
+  'fee_ceiling_exceeded',
+  /** PAYMENTS_ENABLED=false: money-moving signatures are refused (revoke and sweep still work). */
+  'payments_disabled',
+  /** A safety cap (MAX_GRANT_USDC, MAX_OWNER_PAYMENT_USDC, MAX_X402_PRICE_USDC) refused it. */
+  'cap_exceeded',
+  /** The passkey assertion does not match the prepared challenge or does not verify. */
+  'bad_assertion',
   'unknown',
 ])
 export type ChainErrorKind = typeof ChainErrorKind.Type
@@ -147,8 +157,12 @@ export interface ChainHealth {
   readonly latestLedger: number
   readonly relayers: ReadonlyArray<{ readonly address: string; readonly xlmStroops: bigint }>
   readonly treasury: { readonly address: string; readonly usdcStroops: bigint; readonly xlmStroops: bigint } | null
-  /** Testnet rent relative to normal (≈ 47 on 2026-10-25); null when unknown. */
+  /** Testnet rent relative to normal (≈ 47–73 on 2026-10-25); null when unknown. */
   readonly rentFactor: number | null
+  /** The x402 facilitators and whether they answered `/supported`. */
+  readonly facilitators?: ReadonlyArray<{ readonly url: string; readonly ok: boolean; readonly ms?: number }>
+  /** Explorer base for this network, e.g. https://stellar.expert/explorer/testnet. */
+  readonly explorerBase?: string
   /** The shared contracts (verifiers, policy, USDC) and when their instance/code entries expire. */
   readonly contracts?: ReadonlyArray<{
     readonly name: string
@@ -158,8 +172,12 @@ export interface ChainHealth {
   }>
 }
 
-/** The quote hook: called with the seller's terms before anything is signed. Fail with `declined` to stop. */
-export type X402QuoteHook = (quote: X402Quote) => Effect.Effect<void, ChainError>
+/**
+ * The quote hook: called with the seller's terms before anything is signed. It validates, reserves and pulls the
+ * shortfall into the pocket, returning the pull's receipt (null when the pocket already held enough). Fail with
+ * `declined` to stop.
+ */
+export type X402QuoteHook = (quote: X402Quote) => Effect.Effect<Receipt | null | void, ChainError>
 
 export interface ChainShape {
   /** Relayer deploys the smart account with the passkey as rule 0. */
@@ -205,6 +223,8 @@ export interface ChainShape {
     signerKeyRef: string,
     to: string,
     amountStroops: bigint,
+    /** Refuse (fee_ceiling_exceeded) when the enforce simulation's fee is above this. */
+    maxFeeStroops?: bigint,
   ) => Effect.Effect<Receipt, ChainError>
   /** G(K) with sponsored reserves and a USDC trustline. */
   readonly createPocket: (signerKeyRef: string) => Effect.Effect<{ address: string; tx: string }, ChainError>
@@ -220,7 +240,10 @@ export interface ChainShape {
     maxAmountStroops: bigint,
     paymentId: string,
     onQuote: X402QuoteHook,
-  ) => Effect.Effect<{ body: Response; settlement: Receipt | null; quote: X402Quote | null }, ChainError>
+  ) => Effect.Effect<
+    { body: Response; settlement: Receipt | null; quote: X402Quote | null; pull?: Receipt | null },
+    ChainError
+  >
   readonly payX402Mcp: (
     signerKeyRef: string,
     mcpUrl: string,
@@ -229,7 +252,10 @@ export interface ChainShape {
     maxAmountStroops: bigint,
     paymentId: string,
     onQuote: X402QuoteHook,
-  ) => Effect.Effect<{ result: unknown; settlement: Receipt | null; quote: X402Quote | null }, ChainError>
+  ) => Effect.Effect<
+    { result: unknown; settlement: Receipt | null; quote: X402Quote | null; pull?: Receipt | null },
+    ChainError
+  >
   /** Pocket balance, so a pull takes only the shortfall. */
   readonly balances: (address: string) => Effect.Effect<{ usdc: bigint; xlm: bigint }, ChainError>
   readonly readiness: (address: string) => Effect.Effect<ChainReadiness, ChainError>

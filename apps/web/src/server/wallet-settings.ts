@@ -1,4 +1,23 @@
-import { Config, ConfigProvider, Context, Effect, Layer, Option } from 'effect'
+import { Config, ConfigProvider, Context, Effect, Layer, Option, Schema } from 'effect'
+
+/** A contact every new wallet starts with on the demo stages (scripts/demo/seeds.json). */
+export const DemoContact = Schema.Struct({
+  name: Schema.String,
+  address: Schema.String,
+  trustline_required: Schema.Boolean,
+})
+export type DemoContact = typeof DemoContact.Type
+export const DemoContacts = Schema.Array(DemoContact)
+
+/** DEMO_CONTACTS as a binding string → the list; anything unreadable is no contacts. */
+export const parseDemoContacts = (text: string | undefined): ReadonlyArray<DemoContact> => {
+  if (text === undefined || text === '') return []
+  try {
+    return Schema.decodeUnknownOption(DemoContacts)(JSON.parse(text)).pipe(Option.getOrElse(() => []))
+  } catch {
+    return []
+  }
+}
 
 /**
  * The wallet service's switches, from the Worker's string bindings (apps/web/alchemy.run.ts). Secrets (relayer,
@@ -16,6 +35,8 @@ export class WalletSettings extends Context.Service<
     readonly origin: Option.Option<string>
     /** USDC a new wallet receives from the treasury on testnet (the judge path), in stroops. */
     readonly welcomeUsdc: bigint
+    /** Contacts every new wallet starts with (demo stages only). */
+    readonly demoContacts: ReadonlyArray<DemoContact>
   }
 >()('hm/WalletSettings') {
   static readonly fromBindings = (bindings: object) =>
@@ -34,6 +55,7 @@ const load = Effect.gen(function* () {
       Config.map(text => BigInt(text)),
       Config.withDefault(100_000_000n),
     ),
+    demoContacts: parseDemoContacts(yield* Config.String('DEMO_CONTACTS').pipe(Config.withDefault(''))),
   }
 })
 

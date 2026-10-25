@@ -139,6 +139,10 @@ export const paymentView = (
     reason: intent.reason,
     expires_at: intent.expires_at,
     approval_url: url,
+    claim_url:
+      intent.recipient_readiness === 'trustline_required' && status !== 'confirmed'
+        ? claimUrl(origin, intent.id)
+        : null,
     receipt: status === 'confirmed' && receipt !== undefined ? receiptView(receipt) : null,
     failure: intent.failure,
     next_step: nextStep(intent, status, url),

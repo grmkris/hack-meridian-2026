@@ -8,7 +8,7 @@ import type { Ledger } from './ledger.ts'
 import { type GrantHelpers, OAuthGrants } from './oauth-grants.ts'
 import { Settings } from './settings.ts'
 import { ledgerViaObject, type WalletObject } from './wallet-object.ts'
-import { WalletSettings } from './wallet-settings.ts'
+import { parseDemoContacts, WalletSettings } from './wallet-settings.ts'
 
 /** The Worker's bindings (apps/web/alchemy.run.ts). */
 export interface WorkerEnv {
@@ -17,6 +17,7 @@ export interface WorkerEnv {
   readonly WALLET_OBJECT: DurableObjectNamespace<WalletObject>
   readonly OAUTH_STORE: DurableObjectNamespace<import('./kv-shim.ts').OAuthStore>
   readonly CHAIN?: string
+  readonly DEMO_CONTACTS?: string
 }
 
 export type AppServices = Settings | Counter | WalletSettings | Db | Chain | Ledger | OAuthGrants
@@ -32,7 +33,15 @@ const chainLayer = (env: WorkerEnv) =>
         Chain,
         Effect.die(new Error('CHAIN=testnet: @hm/stellar is not wired into this build yet (stream A2)')),
       )
-    : Layer.succeed(Chain, makeFixtureChain({ lenient: true }).chain)
+    : Layer.succeed(
+        Chain,
+        makeFixtureChain({
+          lenient: true,
+          trustlineMissing: parseDemoContacts(env.DEMO_CONTACTS)
+            .filter(contact => contact.trustline_required)
+            .map(contact => contact.address),
+        }).chain,
+      )
 
 export const appLayer = (env: WorkerEnv, helpers: GrantHelpers) =>
   Layer.mergeAll(

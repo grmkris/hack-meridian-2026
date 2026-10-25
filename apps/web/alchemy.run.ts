@@ -71,6 +71,26 @@ const walletEnv = (stage: string) =>
     return { ...secrets, ...switches }
   })
 
+/**
+ * The demo contacts (Alice C…, Bob G… ready, Carol G… without a trustline) from stream C's public seed record; every
+ * new wallet on a testnet-network stage starts with them. Public addresses only.
+ */
+const SeedContacts = Schema.Struct({
+  contacts: Schema.Record(Schema.String, Schema.Struct({ address: Schema.String, expected_readiness: Schema.String })),
+})
+const demoContacts = (): string => {
+  const file = path('../../scripts/demo/seeds.json')
+  if (!existsSync(file)) return '[]'
+  const seeds = Schema.decodeUnknownSync(SeedContacts)(JSON.parse(readFileSync(file, 'utf8')))
+  return JSON.stringify(
+    Object.entries(seeds.contacts).map(([name, contact]) => ({
+      name,
+      address: contact.address,
+      trustline_required: contact.expected_readiness.startsWith('trustline_required'),
+    })),
+  )
+}
+
 /** What a rebuild depends on: the app, the workspace packages it bundles and the contract record. */
 const BUILD_INPUTS = [
   'src/**',
@@ -121,6 +141,7 @@ export default Alchemy.Stack(
         STELLAR_RPC_URL: deployment.rpcUrl,
         STELLAR_NETWORK_PASSPHRASE: deployment.networkPassphrase,
         COUNTER_CONTRACT_ID: deployment.contracts.counter.id,
+        DEMO_CONTACTS: demoContacts(),
         WALLET_DB: db,
         WALLET_OBJECT: Cloudflare.DurableObject('WalletObject', { className: 'WalletObject' }),
         OAUTH_STORE: Cloudflare.DurableObject('OAuthStore', { className: 'OAuthStore' }),

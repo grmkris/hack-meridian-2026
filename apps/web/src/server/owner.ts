@@ -7,6 +7,7 @@ import type { DbError } from './db.ts'
 import {
   consumeChallenge,
   createChallenge,
+  createContact,
   createOwnerWallet,
   createSession,
   ownerOfSession,
@@ -30,7 +31,10 @@ export const SESSION_COOKIE = 'hm_owner'
 
 const badRequest = (error: WebAuthnError) => new OwnerError({ kind: 'bad_request', message: error.message })
 const unavailable = (error: DbError | ChainError) =>
-  new OwnerError({ kind: 'unavailable', message: error._tag === 'DbError' ? 'storage failed' : error.message })
+  new OwnerError({
+    kind: 'unavailable',
+    message: error._tag === 'DbError' ? `storage failed (${error.operation}); retry` : error.message,
+  })
 
 export const registrationOptions = (site: Site, name: string) =>
   Effect.gen(function* () {
@@ -84,8 +88,26 @@ export const createWallet = (site: Site, input: NewWalletInput) =>
       deployTx: deployed.tx,
       fundTx: funded,
     })
+    // Demo stages: the wallet starts with Alice, Bob and Carol, readiness read from the chain now.
+    yield* Effect.forEach(settings.demoContacts, contact =>
+      chain.readiness(contact.address).pipe(
+        Effect.map(readiness => (readiness === 'contract' ? ('usdc_ready' as const) : readiness)),
+        Effect.catchTag('ChainError', () => Effect.succeed('unverified' as const)),
+        Effect.flatMap(readiness =>
+          createContact({
+            ownerId: wallet.owner_id,
+            displayName: contact.name,
+            aliases: ['demo contact'],
+            address: contact.address,
+            memo: null,
+            readiness,
+          }),
+        ),
+      ),
+    )
     return { wallet, token: yield* createSession(wallet.owner_id) }
   }).pipe(
+    Effect.tapError(error => Effect.logError('createWallet failed', error)),
     Effect.catchTags({
       DbError: error => Effect.fail(unavailable(error)),
       ChainError: error => Effect.fail(unavailable(error)),

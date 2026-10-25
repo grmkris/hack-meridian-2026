@@ -73,6 +73,8 @@ export const PaymentView = Schema.Struct({
   reason: Schema.NullOr(Schema.String),
   expires_at: IsoTime,
   approval_url: Schema.NullOr(Schema.String),
+  /** For a recipient without a USDC trustline: the link they open to accept (CAP-73 claim). */
+  claim_url: Schema.NullOr(Schema.String),
   receipt: Schema.NullOr(ReceiptView),
   failure: Schema.NullOr(Schema.String),
   /** What the agent should do next, in one sentence. */
