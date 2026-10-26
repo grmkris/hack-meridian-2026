@@ -79,11 +79,15 @@ describe('recipient memory', () => {
     for (const contact of await w.runtime.runPromise(searchContacts(OWNER, 'Sam')))
       await w.runtime.runPromise(contactRemove(w.ctx, { contact: contact.id, idempotency_key: `rm-${contact.id}` }))
     const refused = await w.runtime.runPromise(Effect.flip(resolveRecipient(OWNER, 'wal_s', 'Sam')))
-    expect(refused.code).toBe('ambiguous_recipient')
-    expect(refused.candidates?.map(candidate => [candidate.contact_id, candidate.address]).toSorted()).toEqual([
-      [null, DAVE],
-      [null, ERIN],
-    ])
+    expect(refused).toMatchObject({ _tag: 'ToolError', code: 'ambiguous_recipient' })
+    const candidates = refused._tag === 'ToolError' ? (refused.candidates ?? []) : []
+    expect(candidates.map(candidate => [candidate.contact_id, candidate.address])).toEqual(
+      expect.arrayContaining([
+        [null, DAVE],
+        [null, ERIN],
+      ]),
+    )
+    expect(candidates).toHaveLength(2)
   })
 
   test('wallet_overview lists recent recipients, newest first, with the name and the address prefix', async () => {
