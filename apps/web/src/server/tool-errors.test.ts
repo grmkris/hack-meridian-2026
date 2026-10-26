@@ -26,9 +26,9 @@ const SKILL_CODES = [
   'idempotency_conflict',
   'upstream_unavailable',
   'topup_unavailable',
+  'invalid_input',
+  'not_found',
 ]
-/** Codes the skill does not list yet (they cover bad arguments and unknown ids). */
-const SERVER_ONLY = ['invalid_input', 'not_found']
 
 const Refusal = Schema.Struct({
   error: Schema.Struct({
@@ -54,12 +54,12 @@ const refusalOf = (result: Record<string, unknown>) => {
 }
 
 describe('tool refusals', () => {
-  test('RECOVERY says what the skill says, for every code the skill lists', () => {
+  test('RECOVERY says what the skill says, code for code', () => {
     const block = /```json\n([\s\S]*?)\n```/u.exec(errorsMarkdown)?.[1] ?? '{}'
     const skill = Schema.decodeUnknownSync(Schema.fromJsonString(Schema.Record(Schema.String, Schema.String)))(block)
     expect(Object.keys(skill)).toEqual(SKILL_CODES)
     for (const [code, sentence] of Object.entries(skill)) expect(RECOVERY).toHaveProperty(code, sentence)
-    expect(Object.keys(RECOVERY).filter(code => !(code in skill))).toEqual(SERVER_ONLY)
+    expect(Object.keys(RECOVERY)).toEqual(SKILL_CODES)
   })
 
   test('an unknown name is no_contact: JSON text, isError, no structuredContent, the recovery and a new key', async () => {
