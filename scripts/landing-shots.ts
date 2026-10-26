@@ -6,7 +6,7 @@ import { chromium } from 'playwright-core'
  * Looks at the signed-out landing the way its art has to hold up: phone, tablet, laptop, desktop and wide, light and
  * dark, and with reduced motion. Each look saves its first screen and the whole page to .local/landing-shots/ and
  * fails on page errors, console errors, sideways overflow, or an etching that does not draw as an alpha mask
- * (scripts/landing-alpha.ts). Each look then taps the example wallet's Approve and saves the nod. `scripts/shots.ts`
+ * (scripts/landing-alpha.ts). The hero has one connect action; a separate check exercises the passkey recovery flow. `scripts/shots.ts`
  * stays the quick phone + desktop check for every page.
  *
  *   bun scripts/landing-shots.ts [local|testnet|<origin>] [path] [label prefix]
@@ -75,7 +75,7 @@ const LOOKS: ReadonlyArray<Look> = [
   wide.light,
 ]
 
-/** How long entrance motion may run before the first screen is taken: the hero's nod plays for about six seconds. */
+/** Capture after the hero video and font have settled. */
 const SETTLE_MS = 6800
 
 /** A signed-out visit asks the Worker for a session and gets 401; the browser logs that, and it is not a failure. */
@@ -156,15 +156,6 @@ try {
     await page.screenshot({ path: whole, fullPage: true })
     await page.evaluate(() => window.scrollTo(0, 0))
 
-    // The hero's example waits for the visitor's nod: tap it, and the card must show the approved outcome.
-    const approve = page.getByTestId('example-approve')
-    if ((await approve.count()) > 0) {
-      await approve.click()
-      await page.waitForTimeout(reducedMotion === 'reduce' ? 200 : 1600)
-      if (!(await page.getByTestId('example-replay').isVisible()))
-        problems.push('approving the example shows no replay')
-      await page.screenshot({ path: join(directory, `${stage}-${label}-nod.png`) })
-    }
     const size = `${viewport.width}x${viewport.height}`
     console.log(`${problems.length === 0 ? 'PASS' : 'FAIL'} ${label} ${size} etchings=${etchings.length} → ${first}`)
     for (const problem of problems) console.log(`  ${problem}`)

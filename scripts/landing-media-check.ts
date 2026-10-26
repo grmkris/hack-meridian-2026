@@ -36,7 +36,7 @@ try {
     const videoRequests: Array<string> = []
     page.on('pageerror', error => errors.push(error.message))
     page.on('request', request => {
-      if (request.url().includes('/landing/night-flight.mp4')) videoRequests.push(request.url())
+      if (request.url().includes('/landing/night-flight-loop.mp4')) videoRequests.push(request.url())
     })
     if (scenario === 'blocked') {
       await page.addInitScript(() => {
@@ -47,7 +47,7 @@ try {
       await page.addInitScript(() => Object.defineProperty(navigator, 'connection', { value: { saveData: true } }))
     }
     if (scenario === 'slow' || scenario === 'missing') {
-      await page.route('**/landing/night-flight.mp4', async route => {
+      await page.route('**/landing/night-flight-loop.mp4', async route => {
         if (scenario === 'missing') {
           await route.fulfill({ status: 404, body: '' })
         } else {
@@ -75,12 +75,49 @@ try {
       playing: element.getAttribute('data-playing') === 'true',
       muted: element instanceof HTMLVideoElement && element.muted,
       inline: element instanceof HTMLVideoElement && element.playsInline,
+      loop: element instanceof HTMLVideoElement && element.loop,
     }))
     assert.equal(video.playing, shouldPlay, `${scenario}: playback outcome`)
     assert.equal(video.visible, shouldPlay, `${scenario}: only reveal video when playing`)
-    assert(video.muted && video.inline, `${scenario}: muted inline video`)
+    assert(video.muted && video.inline && video.loop, `${scenario}: muted inline looping video`)
     if (scenario === 'reduced' || scenario === 'save-data') assert.equal(videoRequests.length, 0, scenario)
     if (!shouldPlay) assert.equal(video.source, null, `${scenario}: release unused source`)
+    if (scenario === 'phone' || scenario === 'desktop') {
+      const wrap = await page.locator('video').evaluate(async element => {
+        if (!(element instanceof HTMLVideoElement)) throw new Error('Missing video')
+        return new Promise<{ before: number; after: number }>((resolveWrap, rejectWrap) => {
+          let before = element.currentTime
+          const timedOut = setTimeout(
+            () => {
+              element.removeEventListener('timeupdate', tick)
+              rejectWrap(new Error('The video reached its end without looping.'))
+            },
+            (element.duration + 2) * 1000,
+          )
+          const tick = () => {
+            if (element.currentTime < before && !element.paused) {
+              clearTimeout(timedOut)
+              element.removeEventListener('timeupdate', tick)
+              resolveWrap({ before, after: element.currentTime })
+            }
+            before = element.currentTime
+          }
+          element.addEventListener('timeupdate', tick)
+        })
+      })
+      assert(wrap.before > wrap.after, `${scenario}: observed a natural loop`)
+      await page.getByRole('button', { name: 'Pause animation' }).click()
+      await page.waitForFunction(() => document.querySelector('video')?.paused === true)
+      const pausedAt = await page.evaluate(() => document.querySelector('video')?.currentTime)
+      await page.waitForTimeout(250)
+      assert.equal(
+        await page.evaluate(() => document.querySelector('video')?.currentTime),
+        pausedAt,
+        'pause holds its frame',
+      )
+      await page.getByRole('button', { name: 'Play animation' }).click()
+      await page.waitForFunction(() => document.querySelector('video')?.paused === false)
+    }
     await page.screenshot({ path: `${directory}/${engineName}-${scenario}-hero.png` })
 
     // Reproduce the iPhone's luminance-as-alpha failure. With an opaque JPG this paints a solid blue rectangle.

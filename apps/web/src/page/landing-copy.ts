@@ -41,31 +41,6 @@ export const HERO = {
   lede: 'Nod is a Stellar wallet that lives inside the AI you already use. You set one number for each AI app. Inside it, the app pays on its own. Anything past it waits for your nod.',
 } as const
 
-// The hero's example wallet. It plays the demo once: the allowance goes 5.00 → 4.90 → 2.90 as Claude pays on its own,
-// then Bob's 5.00 is more than what is left, so it needs your nod; the passkey approves it and the allowance stays 2.90.
-// Numbers match the demo beats in docs/PITCH.md.
-export const EXAMPLE_WALLET = {
-  label: 'Example wallet: Claude paying from its allowance',
-  allowanceLabel: 'Claude may spend',
-  allowanceFigures: ['5.00', '4.90', '2.90'],
-  unit: 'USDC',
-  allowanceMeterLabel: 'Claude’s allowance left: 2.90 of 5.00',
-  allowanceLine: 'of 5.00, until tomorrow 12:00 UTC',
-  balanceLabel: 'In your wallet',
-  balance: '10.00 USDC',
-  payments: [
-    { id: 'brief', who: 'Market brief', why: 'A paid API, over x402', amount: '0.10', paid: 'Paid' },
-    { id: 'alice', who: 'Alice', why: 'Your contact', amount: '2.00', paid: 'Paid' },
-    { id: 'bob', who: 'Bob', why: 'Dinner, Claude asked', amount: '5.00', paid: 'Paid with your nod' },
-  ],
-  askBadge: 'Needs your nod',
-  approve: 'Approve 5.00 USDC to Bob',
-  tryNote: 'An example. Tapping it moves no money.',
-  replay: 'Play it again',
-  approved: 'Approved with your passkey. The allowance stays 2.90.',
-  caption: 'Example wallet. The allowance is the one number you set; past it, every payment waits for your nod.',
-} as const
-
 export const WHY = {
   title: 'Why Nod',
   lead: 'Apps are turning into conversations and agents. Wallets have to follow them into the chat.',

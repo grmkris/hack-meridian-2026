@@ -1,4 +1,3 @@
-/* Hallmark · v2.0.0 · redesign: full · custom direction · genre editorial · built: the project · copy: verbatim (landing-copy.ts, a3) · signature: the nod card plays once over an etched night in Lisbon */
 /* Critique: the old landing was the SaaS card kit on cream (Inter named but never loaded, tracked caps labels, middle-dot meta lines); this one tells the product as one night: a swallow carries the allowance, and one lit window is the person who gives the nod. */
 
 /*
@@ -20,8 +19,6 @@
     --lamp-ink: oklch(0.52 0.12 62);
     --intaglio: oklch(0.38 0.085 262);
     --etch-page: oklch(0.38 0.085 262 / 0.9);
-    --card-edge: oklch(0 0 0 / 0.08);
-    --card-drop: oklch(0.12 0.05 264 / 0.7);
     --alert-line: oklch(0.7 0.16 27 / 0.6);
     --alert-fill: oklch(0.3 0.08 27 / 0.55);
     --alert-ink: oklch(0.93 0.04 27);
@@ -168,9 +165,6 @@
     mix-blend-mode: screen;
     opacity: 0.8;
   }
-  .landing-hero[data-nod='asking'] .landing-glow {
-    opacity: 1;
-  }
 
   .landing-bar {
     display: flex;
@@ -221,12 +215,11 @@
     display: grid;
     gap: 2.5rem;
     padding-block: clamp(1.5rem, 5vw, 4rem) 2rem;
+    min-block-size: 24rem;
   }
   @media (min-width: 64rem) {
     .landing-hero-grid {
-      grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
-      column-gap: clamp(3rem, 6vw, 6rem);
-      align-items: start;
+      grid-template-columns: minmax(0, 38rem);
     }
   }
 
@@ -263,7 +256,7 @@
     color: var(--starlight-muted);
   }
 
-  /* ─── Starting: the wallet form and the connector, on the night ─────────── */
+  /* ─── Starting: wallet entry on the night, connector in the chapters ───── */
 
   .landing-actions {
     display: flex;
@@ -273,6 +266,7 @@
   }
   .landing-start {
     display: flex;
+    align-items: flex-start;
     flex-direction: column;
     gap: 0.75rem;
   }
@@ -283,6 +277,7 @@
     color: var(--starlight);
   }
   .landing-start-form {
+    inline-size: 100%;
     display: grid;
     gap: 0.5rem;
   }
@@ -321,6 +316,8 @@
     outline-offset: 0;
   }
   .landing-hint {
+    max-inline-size: 42ch;
+    line-height: 1.5;
     margin: 0;
     font-size: 0.875rem;
     color: var(--starlight-muted);
@@ -337,15 +334,18 @@
     font: inherit;
     font-size: 0.9375rem;
     font-weight: 600;
-    white-space: nowrap;
+    white-space: normal;
+    text-align: center;
+    padding-block: 0.625rem;
     cursor: pointer;
     transition:
       background-color 160ms ease,
-      border-color 160ms ease,
-      transform 120ms var(--ease-out);
+      border-color 160ms ease;
   }
-  .landing-button:active:not(:disabled) {
-    transform: scale(0.96);
+  @media (prefers-reduced-motion: no-preference) {
+    .landing-button:active:not(:disabled) {
+      transform: scale(0.96);
+    }
   }
   .landing-button:disabled {
     cursor: not-allowed;
@@ -373,15 +373,71 @@
     }
   }
 
-  .landing-or {
+  .landing-entry-actions {
     display: flex;
     flex-wrap: wrap;
-    align-items: center;
     gap: 0.75rem;
-    font-size: 0.9375rem;
-    color: var(--starlight-muted);
   }
-
+  .landing-text-button {
+    min-block-size: 2.75rem;
+    border: 0;
+    background: none;
+    color: var(--starlight-muted);
+    padding: 0;
+    text-decoration: underline;
+    text-underline-offset: 0.25em;
+    font: inherit;
+    cursor: pointer;
+  }
+  .landing-text-button:active {
+    color: var(--starlight);
+  }
+  .landing-motion-control {
+    display: none;
+    position: absolute;
+    inset-block-end: 0.75rem;
+    inset-inline-end: var(--gutter);
+    min-block-size: 2.75rem;
+    padding-inline: 0.875rem;
+    border: 1px solid oklch(from var(--starlight) l c h / 0.3);
+    border-radius: 999px;
+    background: color-mix(in oklch, var(--night) 85%, transparent);
+    color: var(--starlight-muted);
+    font: inherit;
+    font-size: 0.8125rem;
+    cursor: pointer;
+  }
+  .landing-motion-control:active {
+    color: var(--starlight);
+    background: var(--night-raised);
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .landing-motion-control {
+      display: block;
+    }
+  }
+  .landing-page .landing-connector {
+    align-items: flex-start;
+    margin-block-start: 1.25rem;
+  }
+  .landing-page .landing-connector .landing-button {
+    background: var(--page);
+    color: var(--ink);
+    border-color: var(--rule);
+  }
+  .landing-page .landing-connector :is(p, code) {
+    color: var(--muted);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .landing-text-button:hover,
+    .landing-motion-control:hover {
+      color: var(--starlight);
+    }
+    .landing-page .landing-connector .landing-button:hover {
+      background: var(--sheet);
+      border-color: var(--ink);
+    }
+  }
   .landing-connector {
     display: flex;
     flex-direction: column;
@@ -408,267 +464,6 @@
   }
   .landing-input-code {
     font-family: var(--font-code);
-  }
-
-  /* ─── The nod: the hero's one moment ────────────────────────────────────── */
-
-  .nod-card {
-    position: relative;
-    margin: 0;
-    padding: 1.25rem 1.25rem 1rem;
-    border-radius: 1.25rem;
-    background: var(--sheet);
-    color: var(--ink);
-    box-shadow:
-      0 0 0 1px var(--card-edge),
-      0 24px 48px -16px var(--card-drop);
-  }
-  @media (max-width: 63.99rem) {
-    .nod-card {
-      max-width: 30rem;
-    }
-  }
-  @media (min-width: 64rem) {
-    .nod-card {
-      margin-block-start: 0.75rem;
-    }
-  }
-
-  .nod-head {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    align-items: end;
-    gap: 0.25rem 1rem;
-  }
-  .nod-label {
-    margin: 0;
-    font-size: 0.875rem;
-    font-weight: 500;
-    color: var(--muted);
-  }
-  .nod-allowance {
-    display: flex;
-    align-items: baseline;
-    gap: 0.375rem;
-    margin: 0;
-    font-family: var(--font-display);
-    font-size: 2.5rem;
-    font-weight: 700;
-    line-height: 1;
-    letter-spacing: -0.02em;
-    font-variant-numeric: tabular-nums lining-nums;
-  }
-  .nod-allowance-unit {
-    font-family: var(--font-body);
-    font-size: 1rem;
-    font-weight: 600;
-    letter-spacing: 0;
-    color: var(--muted);
-  }
-  /* The allowance as an odometer: each figure in one cell, only the last one shown when nothing moves. */
-  .nod-figures {
-    display: inline-grid;
-  }
-  .nod-figures > span {
-    grid-area: 1 / 1;
-  }
-  .nod-figure-was {
-    opacity: 0;
-  }
-  .nod-wallet {
-    margin: 0;
-    text-align: end;
-    font-size: 0.875rem;
-    color: var(--muted);
-  }
-  .nod-wallet strong {
-    display: block;
-    font-size: 1.0625rem;
-    font-weight: 600;
-    color: var(--ink);
-    font-variant-numeric: tabular-nums;
-  }
-  .nod-until {
-    grid-column: 1 / -1;
-    margin: 0;
-    font-size: 0.875rem;
-    color: var(--muted);
-  }
-
-  .nod-meter {
-    height: 0.375rem;
-    margin-block: 0.875rem 1rem;
-    overflow: hidden;
-    border-radius: 999px;
-    background: var(--color-mist);
-  }
-  .nod-meter-fill {
-    /* What is left of the allowance at the end: 2.90 of 5.00. */
-    --left: 0.58;
-    height: 100%;
-    border-radius: inherit;
-    background: var(--intaglio);
-    transform: scaleX(var(--left));
-    transform-origin: left center;
-  }
-
-  .nod-feed {
-    display: grid;
-    margin: 0;
-    padding: 0;
-    list-style: none;
-    border-top: 1px solid var(--rule);
-  }
-  .nod-row {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto auto;
-    align-items: center;
-    gap: 0.25rem 0.875rem;
-    padding-block: 0.75rem;
-    border-bottom: 1px solid var(--rule);
-  }
-  .nod-who {
-    min-width: 0;
-    font-weight: 600;
-  }
-  .nod-why {
-    display: block;
-    font-size: 0.8125rem;
-    font-weight: 400;
-    color: var(--muted);
-  }
-  .nod-amount {
-    font-weight: 600;
-    font-variant-numeric: tabular-nums;
-  }
-  .nod-state {
-    display: inline-grid;
-    justify-items: end;
-    font-size: 0.8125rem;
-    font-weight: 600;
-  }
-  .nod-state > span {
-    grid-area: 1 / 1;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.25rem;
-    white-space: nowrap;
-  }
-  .nod-paid {
-    color: var(--good);
-  }
-  .nod-asked {
-    padding: 0.125rem 0.5rem;
-    border-radius: 999px;
-    background: var(--lamp-soft);
-    color: var(--lamp-ink);
-    box-shadow: inset 0 0 0 1px oklch(from var(--lamp-ink) l c h / 0.3);
-  }
-  .nod-row-asked .nod-paid {
-    color: var(--lamp-ink);
-  }
-
-  /* The nod itself: the visitor's own Approve (an example, said beside it), then the outcome and a replay. */
-  .nod-card :focus-visible {
-    outline-color: var(--link);
-  }
-  .nod-approval {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    margin-block-start: 0.875rem;
-  }
-  .nod-approve,
-  .nod-approved {
-    display: flex;
-    align-items: center;
-    gap: 0.625rem;
-    margin: 0;
-    min-height: 2.75rem;
-    padding: 0.5rem 0.875rem;
-    border-radius: 0.875rem;
-    font-size: 0.875rem;
-    font-weight: 600;
-    text-align: start;
-  }
-  .nod-approval svg {
-    flex: none;
-    width: 1.25rem;
-    height: 1.25rem;
-  }
-  .nod-approve {
-    width: 100%;
-    border: 0;
-    background: var(--ink);
-    color: var(--sheet);
-    font: inherit;
-    font-size: 0.9375rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition:
-      background-color 160ms ease,
-      transform 120ms var(--ease-out);
-  }
-  .nod-approve:active {
-    transform: scale(0.96);
-  }
-  @media (hover: hover) and (pointer: fine) {
-    .nod-approve:hover {
-      background: oklch(from var(--ink) calc(l + 0.08) c h);
-    }
-  }
-  .nod-try-note {
-    margin: 0;
-    font-size: 0.8125rem;
-    color: var(--muted);
-  }
-  .nod-approved {
-    background: var(--lamp-soft);
-    color: var(--lamp-ink);
-  }
-  .nod-replay {
-    justify-self: start;
-    min-height: 2.75rem;
-    padding: 0;
-    border: 0;
-    background: none;
-    color: var(--link);
-    font: inherit;
-    font-size: 0.875rem;
-    font-weight: 600;
-    text-decoration: underline;
-    text-decoration-color: oklch(from var(--link) l c h / 0.35);
-    text-underline-offset: 0.25em;
-    cursor: pointer;
-  }
-  @media (hover: hover) and (pointer: fine) {
-    .nod-replay:hover {
-      text-decoration-color: currentColor;
-    }
-  }
-  .nod-approval-stack,
-  .nod-approval-foot {
-    display: grid;
-  }
-  .nod-approval-stack > *,
-  .nod-approval-foot > * {
-    grid-area: 1 / 1;
-  }
-  .nod-try-note {
-    align-self: start;
-  }
-  /* The half that is not this state's keeps its place for the height, out of sight, reach and the reading order. */
-  .nod-approval[data-nod='asking'] :is(.nod-approved, .nod-replay),
-  .nod-approval[data-nod='approved'] :is(.nod-approve, .nod-try-note) {
-    visibility: hidden;
-    opacity: 0;
-  }
-  .nod-caption {
-    margin: 0.875rem 0 0;
-    font-size: 0.8125rem;
-    line-height: 1.5;
-    color: var(--muted);
-    text-wrap: pretty;
   }
 
   /* ─── The page ──────────────────────────────────────────────────────────── */
@@ -1077,78 +872,6 @@
     }
   }
 
-  /* ─── Motion: the nod plays once, only for those who want motion ───────── */
-
-  @media (prefers-reduced-motion: no-preference) {
-    .nod-row {
-      animation: nod-enter 420ms var(--ease-out) var(--at) both;
-    }
-    .nod-row[data-step='brief'] {
-      --at: 650ms;
-    }
-    .nod-row[data-step='alice'] {
-      --at: 1750ms;
-    }
-    .nod-row[data-step='bob'] {
-      --at: 2900ms;
-    }
-    /* 5.00 until the brief is paid, 4.90 until Alice is, then 2.90: each old figure leaves as the next arrives. */
-    .nod-figure-was[data-figure='0'] {
-      animation: nod-figure-out 200ms var(--ease-out) 1150ms both;
-    }
-    .nod-figure-was[data-figure='1'] {
-      animation:
-        nod-figure-show 280ms var(--ease-out) 1150ms both,
-        nod-figure-out 200ms var(--ease-out) 2250ms forwards;
-    }
-    .nod-figure-now {
-      animation: nod-figure-show 280ms var(--ease-out) 2250ms both;
-    }
-    .nod-meter-fill {
-      animation: nod-meter 1650ms var(--ease-out) 1150ms both;
-    }
-    /* Asking: Bob's row arrives with its badge, then the visitor's Approve and its note, then the caption. */
-    .nod-card[data-nod='asking'] .nod-asked {
-      animation: nod-enter 420ms var(--ease-out) 2900ms both;
-    }
-    .nod-approval[data-nod='asking'] > * {
-      animation: nod-arrive 420ms var(--ease-out) 3400ms both;
-    }
-    .nod-card[data-nod='asking'] .nod-caption {
-      animation: nod-enter 420ms var(--ease-out) 3800ms both;
-    }
-    /* Approved: Approve gives way to the outcome in the same place, Bob's status turns, the replay follows. */
-    .nod-approval[data-nod='approved'] :is(.nod-approve, .nod-try-note) {
-      animation: nod-leave 160ms var(--ease-out) both;
-    }
-    .nod-approval[data-nod='approved'] .nod-approved {
-      animation: nod-show 280ms var(--ease-out) 60ms both;
-    }
-    .nod-card[data-nod='approved'] .nod-row-asked .nod-paid {
-      animation: nod-show 280ms var(--ease-out) 80ms both;
-    }
-    .nod-approval[data-nod='approved'] .nod-replay {
-      animation: nod-show 280ms var(--ease-out) 700ms both;
-    }
-    /* The window lights when Claude asks and breathes while it waits for you; your nod makes it flare once. */
-    .landing-hero[data-nod='asking'] .landing-glow {
-      animation:
-        nod-lamp-ask 4100ms var(--ease-out) both,
-        nod-lamp-wait 3200ms ease-in-out 4100ms 6 alternate;
-    }
-    .landing-hero[data-nod='approved'] .landing-glow {
-      animation: nod-lamp-flare 1400ms var(--ease-out) both;
-    }
-  }
-
-  /* Reduced motion keeps the nod's outcome legible: an opacity fade, no movement. */
-  @media (prefers-reduced-motion: reduce) {
-    .nod-approval[data-nod='approved'] .nod-approved,
-    .nod-card[data-nod='approved'] .nod-row-asked .nod-paid {
-      animation: nod-fade 200ms ease both;
-    }
-  }
-
   /*
    * The page's one scroll pattern: each plate and the dawn print in as they come into view, the way a sheet comes off
    * an engraving press. Scrubbed (linear) by the scroll, never on words; the base CSS is the finished page, so reduced
@@ -1189,122 +912,6 @@
       transform: translateY(101%);
     }
   }
-  @keyframes nod-enter {
-    from {
-      opacity: 0;
-      transform: translateY(6px);
-    }
-  }
-  /* The odometer: a figure leaves upwards as the next comes up from below, a 2px blur masking the overlap. */
-  @keyframes nod-figure-out {
-    from {
-      opacity: 1;
-      transform: none;
-      filter: blur(0);
-    }
-    to {
-      opacity: 0;
-      transform: translateY(-0.3em);
-      filter: blur(2px);
-    }
-  }
-  @keyframes nod-figure-show {
-    from {
-      opacity: 0;
-      transform: translateY(0.3em);
-      filter: blur(2px);
-    }
-    to {
-      opacity: 1;
-      transform: none;
-      filter: blur(0);
-    }
-  }
-  /* The nod's swap: the button steps back and goes, the outcome comes up through a short blur, both in one place. */
-  @keyframes nod-leave {
-    from {
-      opacity: 1;
-      visibility: visible;
-    }
-    to {
-      opacity: 0;
-      transform: scale(0.97);
-      visibility: hidden;
-    }
-  }
-  @keyframes nod-show {
-    from {
-      opacity: 0;
-      transform: translateY(0.25em);
-      filter: blur(2px);
-      visibility: hidden;
-    }
-    to {
-      opacity: 1;
-      transform: none;
-      filter: blur(0);
-      visibility: visible;
-    }
-  }
-  @keyframes nod-fade {
-    from {
-      opacity: 0;
-    }
-  }
-  /* An entrance that also keeps the element out of reach (and out of focus order) until it arrives. */
-  @keyframes nod-arrive {
-    from {
-      opacity: 0;
-      transform: translateY(6px);
-      visibility: hidden;
-    }
-  }
-  /* From wherever the lamp is (lit at the end of a run, so a replay never snaps it dark), down to 0.35, up when Claude asks. */
-  @keyframes nod-lamp-ask {
-    0% {
-      opacity: 0.8;
-      transform: none;
-    }
-    7%,
-    78% {
-      opacity: 0.35;
-      transform: scale(0.92);
-    }
-    100% {
-      opacity: 1;
-      transform: none;
-    }
-  }
-  @keyframes nod-lamp-wait {
-    to {
-      opacity: 0.72;
-    }
-  }
-  @keyframes nod-lamp-flare {
-    0% {
-      opacity: 0.9;
-    }
-    22% {
-      opacity: 1;
-      transform: scale(1.16);
-    }
-    100% {
-      opacity: 0.8;
-      transform: none;
-    }
-  }
-  @keyframes nod-meter {
-    0% {
-      transform: scaleX(1);
-    }
-    14%,
-    70% {
-      transform: scaleX(0.98);
-    }
-    100% {
-      transform: scaleX(var(--left));
-    }
-  }
 }
 
 /*
@@ -1312,6 +919,7 @@
  * rule, and its paper-coloured alert would be unreadable on the night. Floor 4 also wants no sideways page scroll.
  */
 .landing-start [role='alert'] {
+  overflow-wrap: anywhere;
   margin: 0;
   padding: 0.75rem 1rem;
   border: 1px solid var(--alert-line);

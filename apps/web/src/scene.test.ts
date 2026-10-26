@@ -39,7 +39,7 @@ describe('signed in', () => {
 })
 
 describe('signed out', () => {
-  test('offers to create a passkey wallet or sign in', () => {
+  test('offers one connect action before the passkey prompt', () => {
     scene(
       { update, view },
       given(
@@ -47,8 +47,8 @@ describe('signed out', () => {
           session: () => Session.SignedOut({ welcome: Welcome.init(Option.none(), 'https://wallet.test/mcp').model }),
         }),
       ),
-      expect(role('button', { name: 'Create your wallet' })).toExist(),
-      expect(role('button', { name: 'Sign in with your passkey' })).toExist(),
+      expect(role('button', { name: 'Connect wallet' })).toExist(),
+      expect(role('textbox', { name: 'Wallet name' })).not.toExist(),
       // The hero's night flight decides in the browser whether to play; here it settles without playing.
       Mount.resolve(Welcome.PlayNightFlight, Welcome.Message.SettledNightFlight({ playing: false })),
     )

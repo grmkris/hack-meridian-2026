@@ -19,6 +19,7 @@ export interface CreatedPasskey {
 export class Passkey extends Context.Service<
   Passkey,
   {
+    readonly supported: Effect.Effect<boolean>
     readonly create: (options: RegistrationOptions) => Effect.Effect<CreatedPasskey, PasskeyFailed>
     readonly assert: (options: AssertionOptions) => Effect.Effect<Assertion, PasskeyFailed>
   }
@@ -41,7 +42,7 @@ const dismissed = (cause: unknown) =>
   new PasskeyFailed({
     error:
       cause instanceof DOMException && cause.name === 'NotAllowedError'
-        ? 'The passkey prompt was closed before it finished. Try again.'
+        ? 'The passkey step did not finish. Try again.'
         : 'This browser could not use a passkey here.',
   })
 
@@ -49,6 +50,9 @@ const isPublicKeyCredential = (value: Credential | null): value is PublicKeyCred
   value !== null && value.type === 'public-key'
 
 const live = Passkey.of({
+  supported: Effect.sync(
+    () => typeof PublicKeyCredential !== 'undefined' && typeof navigator.credentials?.get === 'function',
+  ),
   create: options =>
     Effect.gen(function* () {
       const challenge = yield* decode(options.challenge)
@@ -113,6 +117,7 @@ export const livePasskey = Layer.succeed(Passkey, live)
 export const fixturePasskey = Layer.succeed(
   Passkey,
   Passkey.of({
+    supported: Effect.succeed(true),
     create: () =>
       Effect.succeed({
         credential_id: 'Zml4dHVyZS1jcmVkZW50aWFs',

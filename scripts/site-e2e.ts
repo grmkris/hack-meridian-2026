@@ -90,7 +90,20 @@ try {
 
   const walletName = `E2E ${new Date().toISOString().slice(11, 19)}`
   const created = await step('a new visitor creates a wallet with a passkey', async () => {
+    await page.addInitScript(() => {
+      const get = navigator.credentials.get.bind(navigator.credentials)
+      let first = true
+      navigator.credentials.get = options => {
+        if (first) {
+          first = false
+          return Promise.reject(new DOMException('No credential selected', 'NotAllowedError'))
+        }
+        return get(options)
+      }
+    })
     await page.goto(origin)
+    await page.getByRole('button', { name: 'Connect wallet' }).click()
+    await page.getByTestId('choose-create-wallet').click()
     await page.getByLabel('Wallet name').fill(walletName)
     await page.getByTestId('create-wallet').click()
     await page.getByRole('heading', { name: 'Home', level: 1 }).or(page.getByRole('alert')).first().waitFor()

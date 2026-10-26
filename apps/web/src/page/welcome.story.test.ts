@@ -10,7 +10,7 @@ import {
   Copy,
   CopyConnectorUrl,
   CreateWallet,
-  ExampleNod,
+  EntryMode,
   InviteField,
   Message,
   OutMessage,
@@ -25,7 +25,7 @@ describe('Welcome', () => {
   test('creating a wallet runs one passkey ceremony and starts the session', () => {
     story(
       update,
-      given(init(Option.none(), CONNECTOR).model),
+      given(modifyFields(init(Option.none(), CONNECTOR).model, { entryMode: () => EntryMode.Creating() })),
       message(Message.UpdatedWalletName({ value: '  Travel ' })),
       message(Message.SubmittedCreateWallet()),
       Command.expectExact(CreateWallet({ name: 'Travel', maybeInviteCode: Option.none() })),
@@ -47,7 +47,7 @@ describe('Welcome', () => {
   test('when the network needs an invite, the field appears and the code goes with the next attempt', () => {
     story(
       update,
-      given(init(Option.none(), CONNECTOR).model),
+      given(modifyFields(init(Option.none(), CONNECTOR).model, { entryMode: () => EntryMode.Creating() })),
       message(Message.SubmittedCreateWallet()),
       Command.resolve(CreateWallet, Message.RequiredInviteCode()),
       model(nextModel => {
@@ -67,7 +67,7 @@ describe('Welcome', () => {
   test('an empty name falls back to Personal', () => {
     story(
       update,
-      given(init(Option.none(), CONNECTOR).model),
+      given(modifyFields(init(Option.none(), CONNECTOR).model, { entryMode: () => EntryMode.Creating() })),
       message(Message.UpdatedWalletName({ value: '   ' })),
       message(Message.SubmittedCreateWallet()),
       Command.expectExact(CreateWallet({ name: 'Personal', maybeInviteCode: Option.none() })),
@@ -99,28 +99,6 @@ describe('Welcome', () => {
       Command.expectExact(SignIn),
       Command.resolve(SignIn, Message.SucceededSignIn({ wallet: fixture.wallet })),
       expectOutMessage(OutMessage.StartedSession({ wallet: fixture.wallet })),
-    )
-  })
-
-  test('the example wallet waits for the visitor’s nod, moves no money, and plays again', () => {
-    story(
-      update,
-      given(init(Option.none(), CONNECTOR).model),
-      model(nextModel => {
-        expect(nextModel.exampleNod).toEqual(ExampleNod.Asking())
-      }),
-      message(Message.ClickedExampleApprove()),
-      Command.expectNone(),
-      model(nextModel => {
-        expect(nextModel.exampleNod).toEqual(ExampleNod.Approved())
-        expect(nextModel.ceremony).toEqual(Ceremony.Idle())
-      }),
-      message(Message.ClickedExampleReplay()),
-      Command.expectNone(),
-      model(nextModel => {
-        expect(nextModel.exampleNod).toEqual(ExampleNod.Asking())
-        expect(nextModel.exampleRun).toBe(1)
-      }),
     )
   })
 })

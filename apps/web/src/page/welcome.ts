@@ -1,5 +1,5 @@
 import { Effect, Option, Schema, String } from 'effect'
-import { Command, Mount, Submodel, type Update } from 'foldkit'
+import { Command, Dom, Mount, Submodel, type Update } from 'foldkit'
 import type { Html, HtmlBuilder } from 'foldkit/html'
 import { defineMessageUnion } from 'foldkit/message'
 import { defineTaggedUnion } from 'foldkit/schema'
@@ -16,6 +16,7 @@ export const Ceremony = defineTaggedUnion({
   Idle: {},
   CreatingWallet: {},
   SigningIn: {},
+  Unavailable: {},
   Failed: { error: Schema.String },
 })
 export type Ceremony = typeof Ceremony.Type
@@ -33,23 +34,30 @@ export const InviteField = defineTaggedUnion({
 })
 export type InviteField = typeof InviteField.Type
 
-// The hero's example wallet stops at "Needs your nod" until the visitor taps Approve; nothing leaves the page. Each replay
-// counts up, and the landing keys the card on the count so its sequence plays again from the start.
-export const ExampleNod = defineTaggedUnion({
-  Asking: {},
-  Approved: {},
+export const EntryMode = defineTaggedUnion({
+  SignIn: {},
+  Choice: {},
+  Creating: {},
 })
-export type ExampleNod = typeof ExampleNod.Type
+export type EntryMode = typeof EntryMode.Type
+
+export const Playback = defineTaggedUnion({
+  Unavailable: {},
+  Playing: {},
+  Paused: {},
+  Changing: {},
+})
+export type Playback = typeof Playback.Type
 
 export const Model = Schema.Struct({
   walletName: Schema.String,
   inviteCode: Schema.String,
   inviteField: InviteField,
+  entryMode: EntryMode,
   ceremony: Ceremony,
   connectorUrl: Schema.String,
   copy: Copy,
-  exampleNod: ExampleNod,
-  exampleRun: Schema.Int,
+  playback: Playback,
 })
 export type Model = typeof Model.Type
 
@@ -59,6 +67,11 @@ export const Message = defineMessageUnion({
   UpdatedWalletName: { value: Schema.String },
   SubmittedCreateWallet: {},
   ClickedSignIn: {},
+  ClickedCreateWallet: {},
+  ClickedBackToSignIn: {},
+  UnavailablePasskey: {},
+  CompletedFocusWalletName: {},
+  CompletedFocusConnectWallet: {},
   SucceededCreateWallet: { wallet: WalletSummary },
   FailedCreateWallet: { problem: Problem },
   SucceededSignIn: { wallet: WalletSummary },
@@ -68,9 +81,10 @@ export const Message = defineMessageUnion({
   FailedCopyConnectorUrl: {},
   UpdatedInviteCode: { value: Schema.String },
   RequiredInviteCode: {},
-  ClickedExampleApprove: {},
-  ClickedExampleReplay: {},
   SettledNightFlight: { playing: Schema.Boolean },
+  ClickedToggleNightFlight: {},
+  CompletedSetNightFlightPlayback: { playing: Schema.Boolean },
+  FailedSetNightFlightPlayback: {},
 })
 export type Message = typeof Message.Type
 
@@ -89,10 +103,10 @@ export const init = (
     walletName: DEFAULT_WALLET_NAME,
     connectorUrl,
     copy: Copy.Idle(),
+    playback: Playback.Unavailable(),
     inviteCode: '',
     inviteField: InviteField.Hidden(),
-    exampleNod: ExampleNod.Asking(),
-    exampleRun: 0,
+    entryMode: EntryMode.SignIn(),
     ceremony: Option.match(maybeError, {
       onNone: () => Ceremony.Idle(),
       onSome: error => Ceremony.Failed({ error }),
@@ -110,11 +124,19 @@ const problemMessage = (problem: Problem): string =>
 
 export const CreateWallet = Command.define('CreateWallet', {
   args: { name: Schema.String, maybeInviteCode: Schema.Option(Schema.String) },
-  messages: [Message.SucceededCreateWallet, Message.FailedCreateWallet, Message.RequiredInviteCode],
+  messages: [
+    Message.SucceededCreateWallet,
+    Message.FailedCreateWallet,
+    Message.RequiredInviteCode,
+    Message.UnavailablePasskey,
+  ],
   execute: ({ name, maybeInviteCode }) =>
     Effect.gen(function* () {
       const backend = yield* Backend
       const passkey = yield* Passkey
+      if (!(yield* passkey.supported)) {
+        return Message.UnavailablePasskey()
+      }
       const options = yield* backend.registrationOptions(name, maybeInviteCode)
       const created = yield* passkey.create(options)
       const wallet = yield* backend.createWallet(
@@ -131,15 +153,52 @@ export const CreateWallet = Command.define('CreateWallet', {
 })
 
 export const SignIn = Command.define('SignIn', {
-  messages: [Message.SucceededSignIn, Message.FailedSignIn],
+  messages: [Message.SucceededSignIn, Message.FailedSignIn, Message.UnavailablePasskey],
   execute: Effect.gen(function* () {
     const backend = yield* Backend
     const passkey = yield* Passkey
+    if (!(yield* passkey.supported)) {
+      return Message.UnavailablePasskey()
+    }
     const options = yield* backend.assertionOptions
     const assertion = yield* passkey.assert(options)
     const wallet = yield* backend.signIn(assertion)
     return Message.SucceededSignIn({ wallet })
   }).pipe(recoverProblem(problem => Message.FailedSignIn({ problem }))),
+})
+
+export const FocusWalletName = Command.define('FocusWalletName', {
+  messages: [Message.CompletedFocusWalletName],
+  execute: Dom.focus('#wallet-name').pipe(
+    Effect.as(Message.CompletedFocusWalletName()),
+    Effect.orElseSucceed(() => Message.CompletedFocusWalletName()),
+  ),
+})
+
+export const FocusConnectWallet = Command.define('FocusConnectWallet', {
+  messages: [Message.CompletedFocusConnectWallet],
+  execute: Dom.focus('#connect-wallet').pipe(
+    Effect.as(Message.CompletedFocusConnectWallet()),
+    Effect.orElseSucceed(() => Message.CompletedFocusConnectWallet()),
+  ),
+})
+
+export const SetNightFlightPlayback = Command.define('SetNightFlightPlayback', {
+  args: { playing: Schema.Boolean },
+  messages: [Message.CompletedSetNightFlightPlayback, Message.FailedSetNightFlightPlayback],
+  execute: ({ playing }) =>
+    Effect.tryPromise(async () => {
+      const video = document.getElementById('landing-night-flight')
+      if (!(video instanceof HTMLVideoElement)) {
+        throw new Error('The landing video is no longer mounted.')
+      }
+      if (playing) {
+        await video.play()
+      } else {
+        video.pause()
+      }
+      return Message.CompletedSetNightFlightPlayback({ playing })
+    }).pipe(Effect.orElseSucceed(() => Message.FailedSetNightFlightPlayback())),
 })
 
 export const CopyConnectorUrl = Command.define('CopyConnectorUrl', {
@@ -163,7 +222,7 @@ const wantsNightFlight = (): boolean =>
   )
 
 /**
- * Plays the night flight once: the swallow flies home to the lit window and the last frame stays. The video has no
+ * Loops the night flight with the transition baked into its asset. The video has no
  * source until this decides to play it, so reduced motion or Save-Data never downloads it. Slow connections keep
  * the etching visible while loading; autoplay refusal keeps it still. Unmount cancels a pending load.
  */
@@ -207,6 +266,7 @@ const isBusy = (ceremony: Ceremony): boolean =>
     Idle: () => false,
     CreatingWallet: () => true,
     SigningIn: () => true,
+    Unavailable: () => false,
     Failed: () => false,
   })
 
@@ -228,7 +288,7 @@ export const update = (model: Model, message: Message) =>
   Message.match<UpdateReturn>(message, {
     UpdatedWalletName: ({ value }) => ({ model: modifyFields(model, { walletName: () => value }) }),
     SubmittedCreateWallet: () => {
-      if (isBusy(model.ceremony) || !hasInviteIfShown(model)) {
+      if (isBusy(model.ceremony) || !hasInviteIfShown(model) || !EntryMode.guards.Creating(model.entryMode)) {
         return { model }
       }
       return {
@@ -237,6 +297,23 @@ export const update = (model: Model, message: Message) =>
       }
     },
     UpdatedInviteCode: ({ value }) => ({ model: modifyFields(model, { inviteCode: () => value }) }),
+    ClickedCreateWallet: () =>
+      isBusy(model.ceremony)
+        ? { model }
+        : {
+            model: modifyFields(model, { entryMode: () => EntryMode.Creating(), ceremony: () => Ceremony.Idle() }),
+            commands: [FocusWalletName()],
+          },
+    ClickedBackToSignIn: () =>
+      isBusy(model.ceremony)
+        ? { model }
+        : {
+            model: modifyFields(model, { entryMode: () => EntryMode.SignIn(), ceremony: () => Ceremony.Idle() }),
+            commands: [FocusConnectWallet()],
+          },
+    UnavailablePasskey: () => ({ model: modifyFields(model, { ceremony: () => Ceremony.Unavailable() }) }),
+    CompletedFocusWalletName: () => ({ model }),
+    CompletedFocusConnectWallet: () => ({ model }),
     RequiredInviteCode: () => ({
       model: modifyFields(model, { inviteField: () => InviteField.Shown(), ceremony: () => Ceremony.Idle() }),
     }),
@@ -244,7 +321,10 @@ export const update = (model: Model, message: Message) =>
       if (isBusy(model.ceremony)) {
         return { model }
       }
-      return { model: modifyFields(model, { ceremony: () => Ceremony.SigningIn() }), commands: [SignIn()] }
+      return {
+        model: modifyFields(model, { entryMode: () => EntryMode.SignIn(), ceremony: () => Ceremony.SigningIn() }),
+        commands: [SignIn()],
+      }
     },
     SucceededCreateWallet: ({ wallet }) => ({
       model: modifyFields(model, { ceremony: () => Ceremony.Idle() }),
@@ -258,16 +338,35 @@ export const update = (model: Model, message: Message) =>
       outMessage: OutMessage.StartedSession({ wallet }),
     }),
     FailedSignIn: ({ problem }) => ({
-      model: modifyFields(model, { ceremony: () => Ceremony.Failed({ error: problemMessage(problem) }) }),
+      model: modifyFields(model, {
+        entryMode: () => EntryMode.Choice(),
+        ceremony: () => Ceremony.Failed({ error: problemMessage(problem) }),
+      }),
+      commands: [FocusConnectWallet()],
     }),
     ClickedAddToClaude: () => ({ model, commands: [CopyConnectorUrl({ url: model.connectorUrl })] }),
     CompletedCopyConnectorUrl: () => ({ model: modifyFields(model, { copy: () => Copy.Copied() }) }),
     FailedCopyConnectorUrl: () => ({ model: modifyFields(model, { copy: () => Copy.Failed() }) }),
-    ClickedExampleApprove: () => ({ model: modifyFields(model, { exampleNod: () => ExampleNod.Approved() }) }),
-    ClickedExampleReplay: () => ({
-      model: modifyFields(model, { exampleNod: () => ExampleNod.Asking(), exampleRun: run => run + 1 }),
+    SettledNightFlight: ({ playing }) => ({
+      model: modifyFields(model, { playback: () => (playing ? Playback.Playing() : Playback.Unavailable()) }),
     }),
-    SettledNightFlight: () => ({ model }),
+    ClickedToggleNightFlight: () =>
+      Playback.match(model.playback, {
+        Unavailable: () => ({ model }),
+        Changing: () => ({ model }),
+        Playing: () => ({
+          model: modifyFields(model, { playback: () => Playback.Changing() }),
+          commands: [SetNightFlightPlayback({ playing: false })],
+        }),
+        Paused: () => ({
+          model: modifyFields(model, { playback: () => Playback.Changing() }),
+          commands: [SetNightFlightPlayback({ playing: true })],
+        }),
+      }),
+    CompletedSetNightFlightPlayback: ({ playing }) => ({
+      model: modifyFields(model, { playback: () => (playing ? Playback.Playing() : Playback.Paused()) }),
+    }),
+    FailedSetNightFlightPlayback: () => ({ model: modifyFields(model, { playback: () => Playback.Unavailable() }) }),
   })
 
 // VIEW
@@ -279,6 +378,12 @@ const ceremonyNotice = (ceremony: Ceremony, h: HtmlBuilder<Message>): ReadonlyAr
       h.p([h.AriaLive('polite'), h.Class('landing-hint')], ['Follow your device’s passkey prompt…']),
     ],
     SigningIn: () => [h.p([h.AriaLive('polite'), h.Class('landing-hint')], ['Follow your device’s passkey prompt…'])],
+    Unavailable: () => [
+      h.p(
+        [h.Role('status'), h.Class('landing-hint')],
+        ['This browser cannot use passkeys. Open Nod in Safari, Chrome, or another browser that supports them.'],
+      ),
+    ],
     Failed: ({ error }) => [errorRow(error, h)],
   })
 
@@ -306,11 +411,65 @@ const inviteFieldView = (model: Model, h: HtmlBuilder<Message>): ReadonlyArray<H
     ],
   })
 
-export const walletFormView = (model: Model, h: HtmlBuilder<Message>): Html =>
+const signInButton = (label: string, model: Model, h: HtmlBuilder<Message>): Html =>
+  h.button(
+    [
+      h.Id('connect-wallet'),
+      h.Type('button'),
+      h.Disabled(isBusy(model.ceremony)),
+      h.OnClick(Message.ClickedSignIn()),
+      h.DataAttribute('testid', 'sign-in'),
+      h.Class('landing-button landing-button-primary'),
+    ],
+    [label],
+  )
+
+const signInView = (model: Model, h: HtmlBuilder<Message>): Html =>
   h.div(
     [h.Class('landing-start')],
     [
-      h.h2([h.Class('landing-start-title')], ['Start with a passkey']),
+      signInButton(
+        Ceremony.matchOrElse(model.ceremony, { SigningIn: () => 'Connecting…' }, () => 'Connect wallet'),
+        model,
+        h,
+      ),
+      ...ceremonyNotice(model.ceremony, h),
+      h.p([h.Class('landing-hint')], ['Sign in with your passkey. New to Nod? You can create one next.']),
+    ],
+  )
+
+const entryChoiceView = (model: Model, h: HtmlBuilder<Message>): Html =>
+  h.div(
+    [h.Class('landing-start')],
+    [
+      ...ceremonyNotice(model.ceremony, h),
+      h.div(
+        [h.Class('landing-entry-actions')],
+        [
+          signInButton('Try signing in again', model, h),
+          h.button(
+            [
+              h.Type('button'),
+              h.OnClick(Message.ClickedCreateWallet()),
+              h.DataAttribute('testid', 'choose-create-wallet'),
+              h.Class('landing-button landing-button-quiet'),
+            ],
+            ['Create a new wallet'],
+          ),
+        ],
+      ),
+      h.p(
+        [h.Class('landing-hint')],
+        ['If you already have a wallet, use its passkey. Creating a new wallet will not recover an existing one.'],
+      ),
+    ],
+  )
+
+const createWalletView = (model: Model, h: HtmlBuilder<Message>): Html =>
+  h.div(
+    [h.Class('landing-start')],
+    [
+      h.h2([h.Class('landing-start-title')], ['Create a new wallet']),
       h.form(
         [h.Class('landing-start-form'), h.OnSubmit(Message.SubmittedCreateWallet())],
         [
@@ -325,7 +484,9 @@ export const walletFormView = (model: Model, h: HtmlBuilder<Message>): Html =>
                 h.Value(model.walletName),
                 h.Placeholder(DEFAULT_WALLET_NAME),
                 h.Autocomplete('off'),
+                h.Maxlength(40),
                 h.Class('landing-input'),
+                h.Disabled(isBusy(model.ceremony)),
                 h.OnInput(value => Message.UpdatedWalletName({ value })),
               ]),
               h.button(
@@ -339,7 +500,7 @@ export const walletFormView = (model: Model, h: HtmlBuilder<Message>): Html =>
                   Ceremony.matchOrElse(
                     model.ceremony,
                     { CreatingWallet: () => 'Creating your wallet…' },
-                    () => 'Create your wallet',
+                    () => 'Create with a passkey',
                   ),
                 ],
               ),
@@ -347,30 +508,46 @@ export const walletFormView = (model: Model, h: HtmlBuilder<Message>): Html =>
           ),
         ],
       ),
-      h.div(
-        [h.Class('landing-or')],
-        [
-          'or',
-          h.button(
-            [
-              h.Type('button'),
-              h.Disabled(isBusy(model.ceremony)),
-              h.OnClick(Message.ClickedSignIn()),
-              h.DataAttribute('testid', 'sign-in'),
-              h.Class('landing-button landing-button-quiet'),
-            ],
-            [
-              Ceremony.matchOrElse(
-                model.ceremony,
-                { SigningIn: () => 'Signing in…' },
-                () => 'Sign in with your passkey',
-              ),
-            ],
-          ),
-        ],
-      ),
       ...ceremonyNotice(model.ceremony, h),
+      h.p([h.Class('landing-hint')], ['Your device will save a new passkey for this wallet.']),
+      h.button(
+        [
+          h.Type('button'),
+          h.Disabled(isBusy(model.ceremony)),
+          h.OnClick(Message.ClickedBackToSignIn()),
+          h.Class('landing-text-button'),
+        ],
+        ['Back to sign in'],
+      ),
     ],
+  )
+
+export const walletFormView = (model: Model, h: HtmlBuilder<Message>): Html =>
+  EntryMode.match(model.entryMode, {
+    SignIn: () => signInView(model, h),
+    Choice: () => entryChoiceView(model, h),
+    Creating: () => createWalletView(model, h),
+  })
+
+const motionControlView = (model: Model, h: HtmlBuilder<Message>): Html =>
+  Playback.matchOrElse(model.playback, { Unavailable: () => h.empty }, () =>
+    h.button(
+      [
+        h.Type('button'),
+        h.OnClick(Message.ClickedToggleNightFlight()),
+        h.AriaControls('landing-night-flight'),
+        h.Disabled(Playback.guards.Changing(model.playback)),
+        h.Class('landing-motion-control'),
+      ],
+      [
+        Playback.match(model.playback, {
+          Unavailable: () => '',
+          Playing: () => 'Pause animation',
+          Paused: () => 'Play animation',
+          Changing: () => 'Updating animation…',
+        }),
+      ],
+    ),
   )
 
 export const addToClaudeView = (model: Model, h: HtmlBuilder<Message>): Html =>
@@ -386,9 +563,9 @@ export const addToClaudeView = (model: Model, h: HtmlBuilder<Message>): Html =>
         ],
         [
           Copy.match(model.copy, {
-            Idle: () => 'Add to Claude',
+            Idle: () => 'Copy connector URL',
             Copied: () => 'Copied. Paste it in Claude’s connectors',
-            Failed: () => 'Add to Claude',
+            Failed: () => 'Copy connector URL',
           }),
         ],
       ),
@@ -409,12 +586,7 @@ export const view = Submodel.defineView<Model, Message>((model, h): Html =>
       addToClaude: addToClaudeView(model, h),
       connectorUrl: model.connectorUrl,
       nightFlight: h.OnMount(PlayNightFlight({ src: Landing.NIGHT_FLIGHT_SRC })),
-      example: {
-        approved: ExampleNod.match(model.exampleNod, { Asking: () => false, Approved: () => true }),
-        run: model.exampleRun,
-        approve: Message.ClickedExampleApprove(),
-        replay: Message.ClickedExampleReplay(),
-      },
+      motionControl: motionControlView(model, h),
     },
     h,
   ),

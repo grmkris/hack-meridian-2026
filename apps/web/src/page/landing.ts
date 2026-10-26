@@ -4,7 +4,6 @@ import type { Attribute, Html, HtmlBuilder } from 'foldkit/html'
 import {
   CLAIM,
   DAWN,
-  EXAMPLE_WALLET,
   EXPLORER_TX_URL,
   FOOTER,
   HERO,
@@ -21,14 +20,12 @@ import {
   WHY,
 } from './landing-copy'
 
-// The signed-out home as one story: a night over Lisbon behind the hero (landing.css), where the example wallet waits
-// for the visitor's nod; then the chapters on paper, each beside its own plate of the same swallow; then the same
-// rooftops at dawn. Words come from landing-copy.ts.
+// The signed-out home: a night over Lisbon, one wallet entry, chapters on paper, and rooftops at dawn.
 
 type Plate = 'hand' | 'seal' | 'door' | 'ledger' | 'flight'
 
-/** The night scene as a moving etching, played once by welcome.ts's PlayNightFlight. */
-export const NIGHT_FLIGHT_SRC = '/landing/night-flight.mp4'
+/** A six-second loop with its transition baked into the asset by scripts/landing-loop.ts. */
+export const NIGHT_FLIGHT_SRC = '/landing/night-flight-loop.mp4'
 
 type Side = 'start' | 'end'
 
@@ -44,34 +41,6 @@ export const networkOf = (connectorUrl: string): NetworkKind => {
     : 'mainnet'
 }
 
-// ICONS (Lucide, ISC)
-
-const fingerprintPaths: ReadonlyArray<string> = [
-  'M12 10a2 2 0 0 0-2 2c0 1.02-.1 2.51-.26 4',
-  'M14 13.12c0 2.38 0 6.38-1 8.88',
-  'M17.29 21.02c.12-.6.43-2.3.5-3.02',
-  'M2 12a10 10 0 0 1 18-6',
-  'M2 16h.01',
-  'M21.8 16c.2-2 .131-5.354 0-6',
-  'M5 19.5C5.5 18 6 15 6 12a6 6 0 0 1 .34-2',
-  'M8.65 22c.21-.66.45-1.32.57-2',
-  'M9 6.8a6 6 0 0 1 9 5.2v2',
-]
-
-const icon = <Message>(paths: ReadonlyArray<string>, h: HtmlBuilder<Message>): Html =>
-  h.svg(
-    [
-      h.ViewBox('0 0 24 24'),
-      h.Fill('none'),
-      h.Stroke('currentColor'),
-      h.StrokeWidth('2'),
-      h.StrokeLinecap('round'),
-      h.StrokeLinejoin('round'),
-      h.AriaHidden(true),
-    ],
-    Array.map(paths, d => h.path([h.D(d)])),
-  )
-
 // HERO
 
 const sceneView = <Message>(nightFlight: Attribute<Message>, h: HtmlBuilder<Message>): Html =>
@@ -82,7 +51,15 @@ const sceneView = <Message>(nightFlight: Attribute<Message>, h: HtmlBuilder<Mess
         [h.Class('landing-scene')],
         [
           h.div([h.Class('landing-etching')]),
-          h.video([h.Class('landing-scene-video'), h.Muted(true), h.Playsinline(true), h.Preload('none'), nightFlight]),
+          h.video([
+            h.Id('landing-night-flight'),
+            h.Class('landing-scene-video'),
+            h.Muted(true),
+            h.Playsinline(true),
+            h.Loop(true),
+            h.Preload('none'),
+            nightFlight,
+          ]),
           h.div([h.Class('landing-glow')]),
         ],
       ),
@@ -102,168 +79,21 @@ const barView = <Message>(network: NetworkKind, h: HtmlBuilder<Message>): Html =
     ],
   )
 
-const [figureStart, figureMiddle, figureEnd] = EXAMPLE_WALLET.allowanceFigures
-
-const allowanceView = <Message>(h: HtmlBuilder<Message>): Html =>
-  h.div(
-    [h.Class('nod-head')],
-    [
-      h.div(
-        [],
-        [
-          h.p([h.Class('nod-label')], [EXAMPLE_WALLET.allowanceLabel]),
-          h.p(
-            [h.Class('nod-allowance')],
-            [
-              h.span(
-                [h.Class('nod-figures')],
-                [
-                  h.span(
-                    [h.Class('nod-figure-was'), h.DataAttribute('figure', '0'), h.AriaHidden(true)],
-                    [figureStart],
-                  ),
-                  h.span(
-                    [h.Class('nod-figure-was'), h.DataAttribute('figure', '1'), h.AriaHidden(true)],
-                    [figureMiddle],
-                  ),
-                  h.span([h.Class('nod-figure-now')], [figureEnd]),
-                ],
-              ),
-              h.span([h.Class('nod-allowance-unit')], [EXAMPLE_WALLET.unit]),
-            ],
-          ),
-        ],
-      ),
-      h.p([h.Class('nod-wallet')], [EXAMPLE_WALLET.balanceLabel, h.strong([], [EXAMPLE_WALLET.balance])]),
-      h.p([h.Class('nod-until')], [EXAMPLE_WALLET.allowanceLine]),
-    ],
-  )
-
-const meterView = <Message>(h: HtmlBuilder<Message>): Html =>
-  h.div(
-    [
-      h.Role('meter'),
-      h.AriaLabel(EXAMPLE_WALLET.allowanceMeterLabel),
-      h.AriaValuenow(58),
-      h.AriaValuemin(0),
-      h.AriaValuemax(100),
-      h.Class('nod-meter'),
-    ],
-    [h.div([h.Class('nod-meter-fill')])],
-  )
-
-type Payment = (typeof EXAMPLE_WALLET.payments)[number]
-
-/** The hero's example wallet: what welcome.ts tells it (asking or approved, which run) and the two Messages it sends. */
-export type Example<Message> = Readonly<{ approved: boolean; run: number; approve: Message; replay: Message }>
-
-const paymentView = <Message>(payment: Payment, approved: boolean, h: HtmlBuilder<Message>): Html => {
-  const asked = payment.id === 'bob'
-  return h.keyed('li')(
-    payment.id,
-    [h.Class(asked ? 'nod-row nod-row-asked' : 'nod-row'), h.DataAttribute('step', payment.id)],
-    [
-      h.span([h.Class('nod-who')], [payment.who, h.span([h.Class('nod-why')], [payment.why])]),
-      h.span([h.Class('nod-amount')], [payment.amount]),
-      h.span(
-        [h.Class('nod-state')],
-        [
-          asked && !approved
-            ? h.span([h.Class('nod-asked')], [EXAMPLE_WALLET.askBadge])
-            : h.span([h.Class('nod-paid')], [payment.paid]),
-        ],
-      ),
-    ],
-  )
-}
-
-/**
- * Both states stay rendered, each pair in one grid cell (landing.css), so the visitor's Approve gives way to the outcome
- * as one change and the card never changes height. The hidden half is disabled and out of the accessibility tree; the
- * status line is empty until the nod, so a screen reader hears the outcome when it arrives.
- */
-const approvalView = <Message>(example: Example<Message>, h: HtmlBuilder<Message>): Html =>
-  h.div(
-    [h.Class('nod-approval'), h.DataAttribute('nod', example.approved ? 'approved' : 'asking')],
-    [
-      h.div(
-        [h.Class('nod-approval-stack')],
-        [
-          h.button(
-            [
-              h.Type('button'),
-              h.Class('nod-approve'),
-              h.DataAttribute('testid', 'example-approve'),
-              h.AriaDescribedBy('nod-try-note'),
-              h.Disabled(example.approved),
-              h.OnClick(example.approve),
-            ],
-            [icon(fingerprintPaths, h), EXAMPLE_WALLET.approve],
-          ),
-          h.p(
-            [h.Class('nod-approved'), h.Role('status')],
-            example.approved ? [icon(fingerprintPaths, h), EXAMPLE_WALLET.approved] : [],
-          ),
-        ],
-      ),
-      h.div(
-        [h.Class('nod-approval-foot')],
-        [
-          h.p([h.Id('nod-try-note'), h.Class('nod-try-note')], [EXAMPLE_WALLET.tryNote]),
-          h.button(
-            [
-              h.Type('button'),
-              h.Class('nod-replay'),
-              h.DataAttribute('testid', 'example-replay'),
-              h.Disabled(!example.approved),
-              h.OnClick(example.replay),
-            ],
-            [EXAMPLE_WALLET.replay],
-          ),
-        ],
-      ),
-    ],
-  )
-
-const exampleWalletView = <Message>(example: Example<Message>, h: HtmlBuilder<Message>): Html =>
-  h.keyed('figure')(
-    `example-${example.run}`,
-    [
-      h.Class('nod-card'),
-      h.DataAttribute('nod', example.approved ? 'approved' : 'asking'),
-      h.AriaLabel(EXAMPLE_WALLET.label),
-    ],
-    [
-      allowanceView(h),
-      meterView(h),
-      h.ol(
-        [h.Class('nod-feed')],
-        Array.map(EXAMPLE_WALLET.payments, payment => paymentView(payment, example.approved, h)),
-      ),
-      approvalView(example, h),
-      h.figcaption([h.Class('nod-caption')], [EXAMPLE_WALLET.caption]),
-    ],
-  )
-
 type Slots<Message> = Readonly<{
   walletForm: Html
   addToClaude: Html
   connectorUrl: string
   nightFlight: Attribute<Message>
-  example: Example<Message>
+  motionControl: Html
 }>
 
 const heroView = <Message>(slots: Slots<Message>, network: NetworkKind, h: HtmlBuilder<Message>): Html =>
   h.section(
-    [
-      h.Class('landing-hero'),
-      h.DataAttribute('scene', 'night'),
-      h.DataAttribute('nod', slots.example.approved ? 'approved' : 'asking'),
-      h.AriaLabelledBy('landing-title'),
-    ],
+    [h.Class('landing-hero'), h.DataAttribute('scene', 'night'), h.AriaLabelledBy('landing-title')],
     [
       barView(network, h),
       sceneView(slots.nightFlight, h),
+      slots.motionControl,
       h.div(
         [h.Class('landing-hero-grid landing-width')],
         [
@@ -272,10 +102,9 @@ const heroView = <Message>(slots: Slots<Message>, network: NetworkKind, h: HtmlB
             [
               h.h1([h.Id('landing-title'), h.Class('landing-title')], [HERO.title]),
               h.p([h.Class('landing-lede')], [HERO.lede]),
-              h.div([h.Class('landing-actions')], [slots.walletForm, slots.addToClaude]),
+              h.div([h.Class('landing-actions')], [slots.walletForm]),
             ],
           ),
-          exampleWalletView(slots.example, h),
         ],
       ),
     ],
@@ -313,7 +142,7 @@ const stepView = <Message>(step: Point, position: number, h: HtmlBuilder<Message
     ],
   )
 
-const howItWorksView = <Message>(h: HtmlBuilder<Message>): Html =>
+const howItWorksView = <Message>(addToClaude: Html, h: HtmlBuilder<Message>): Html =>
   chapterView(
     'how-it-works',
     'hand',
@@ -324,6 +153,7 @@ const howItWorksView = <Message>(h: HtmlBuilder<Message>): Html =>
         [h.Class('landing-steps')],
         Array.map(HOW_IT_WORKS.steps, (step, index) => stepView(step, index + 1, h)),
       ),
+      addToClaude,
     ],
     h,
   )
@@ -484,7 +314,7 @@ export const view = <Message>(slots: Slots<Message>, h: HtmlBuilder<Message>): H
         [h.Class('landing-page')],
         [
           whyView(h),
-          howItWorksView(h),
+          howItWorksView(slots.addToClaude, h),
           trustView(h),
           claimView(h),
           proofView(h),
