@@ -35,23 +35,23 @@ describe('connecting a wallet', () => {
         }),
       ),
       Command.resolve(FocusConnectWallet, Message.CompletedFocusConnectWallet()),
-      expect(role('button', { name: 'Try signing in again' })).toExist(),
-      expect(role('button', { name: 'Create a new wallet' })).toExist(),
+      expect(role('button', { name: 'Sign in again' })).toExist(),
+      expect(role('button', { name: 'Create your wallet' })).toExist(),
       expect(role('textbox', { name: 'Wallet name' })).not.toExist(),
       Command.expectNone(),
-      click(role('button', { name: 'Create a new wallet' })),
+      click(role('button', { name: 'Create your wallet' })),
       Command.resolve(FocusWalletName, Message.CompletedFocusWalletName()),
       expect(role('textbox', { name: 'Wallet name' })).toExist(),
       Command.expectNone(),
       type(role('textbox', { name: 'Wallet name' }), 'Travel'),
-      click(role('button', { name: 'Create with a passkey' })),
+      click(role('button', { name: 'Continue with a passkey' })),
       Command.resolve(
         CreateWallet,
         Message.FailedCreateWallet({ problem: Problem.Failed({ error: 'Nod did not answer. Try again.' }) }),
       ),
       expect(role('alert')).toHaveText('Nod did not answer. Try again.'),
       expect(role('textbox', { name: 'Wallet name' })).toHaveValue('Travel'),
-      expect(role('button', { name: 'Create with a passkey' })).toExist(),
+      expect(role('button', { name: 'Continue with a passkey' })).toExist(),
     )
   })
 
@@ -65,7 +65,7 @@ describe('connecting a wallet', () => {
       expect(
         text('This browser cannot use passkeys. Open Nod in Safari, Chrome, or another browser that supports them.'),
       ).toExist(),
-      expect(role('button', { name: 'Create a new wallet' })).not.toExist(),
+      expect(role('button', { name: 'Create your wallet' })).not.toExist(),
       Command.expectNone(),
     )
   })

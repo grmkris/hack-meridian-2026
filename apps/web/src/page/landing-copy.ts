@@ -14,94 +14,94 @@ export const NETWORK_COPY = {
   },
   mainnet: {
     badge: 'Live',
-    footerNote: 'Nod gives your AI room to act while you stay in control. ',
+    footerNote: 'Your wallet, wherever the conversation goes. ',
   },
 } as const satisfies Record<NetworkKind, Readonly<{ badge: string; footerNote: string }>>
 
 export const HERO = {
   wordmark: 'nod',
-  title: 'Give your AI an allowance.',
-  lede: 'Nod gives your AI a small budget. It can pay for the things you ask, and anything beyond that waits for you.',
+  title: 'The wallet that lives inside your AI.',
+  lede: 'Connect Nod to Claude or ChatGPT. Pay for APIs and send USDC to people, right from your chat.',
 } as const
 
 export const WHY = {
-  title: 'Why Nod',
-  lead: 'Let your AI handle small payments while you stay in charge.',
+  title: 'Payments, inside the conversation.',
+  lead: 'Let your AI finish the tasks that need a payment.',
   points: [
     {
       id: 'conversations',
-      title: 'It works where you work',
-      body: 'Nod lives alongside your AI, so you can ask, plan, and pay in one conversation.',
+      title: 'Keep it in the chat',
+      body: 'Check your balance and manage contacts in the same chat you use to make a payment.',
     },
     {
-      id: 'allowance',
-      title: 'Set the boundary',
-      body: 'Give each AI app a budget. It can act freely inside it, then ask when it reaches the edge.',
+      id: 'services',
+      title: 'Pay for what your AI needs',
+      body: 'Your AI can buy data and API access from services that accept USDC over x402.',
     },
     {
       id: 'onboarding',
-      title: 'Send money simply',
-      body: 'Share a payment link with anyone. They can open it and receive the money with a passkey.',
+      title: 'Send money to people',
+      body: 'Ask your AI to pay a contact or make a payment link for someone new to Nod.',
     },
   ] satisfies ReadonlyArray<Point>,
 } as const
 
 export const HOW_IT_WORKS = {
-  title: 'Connect your AI',
-  lead: 'A few steps once. Then your AI can act within the limit you choose.',
+  title: 'How it works',
+  lead: 'Create your wallet, add USDC, and connect your AI.',
   steps: [
     {
       id: 'connect',
-      title: 'Connect',
-      body: 'Add Nod to Claude or another AI app with one connector URL.',
+      title: 'Add Nod to your AI',
+      body: 'Paste the connector URL into Claude or a compatible AI app. In ChatGPT, use a developer-mode connector.',
     },
     {
       id: 'allowance',
-      title: 'Set a limit',
-      body: 'Choose how much it can spend. Your passkey saves the limit.',
+      title: 'Choose what it can spend',
+      body: 'Set a total for routine payments and how long it lasts. Confirm with your passkey.',
     },
     {
       id: 'pay',
-      title: 'Let it act',
-      body: 'It pays inside that limit and asks you when a payment needs your say.',
+      title: 'Ask it to pay',
+      body: 'Small payments go through on their own. When a payment needs your nod, your AI gives you a link to approve it.',
     },
   ] satisfies ReadonlyArray<Point>,
 } as const
 
 export const TRUST = {
   title: 'You stay in control',
-  lead: 'Nod makes room for your AI without handing over your wallet.',
+  lead: 'You decide what your AI can pay for on its own.',
   points: [
     {
       id: 'onchain',
-      title: 'Set the limit',
-      body: 'Choose what an AI app can spend. It cannot go past that amount on its own.',
+      title: 'A limit for each app',
+      body: 'Each AI app has its own spending limit. Anything beyond it needs your approval.',
     },
     {
       id: 'exact',
-      title: 'Approve the rest',
-      body: 'When a payment needs your say, Nod shows who gets paid and how much. Your passkey confirms it.',
+      title: 'Know what you approve',
+      body: 'See the recipient and exact amount before you confirm a payment with your passkey.',
     },
     {
       id: 'revoke',
-      title: 'Change it anytime',
-      body: 'Raise, lower, or remove an allowance whenever you want.',
+      title: 'Change your mind',
+      body: 'Adjust a spending limit or disconnect an AI app from your wallet.',
     },
     {
       id: 'gas',
-      title: 'No seed phrase',
-      body: 'Your passkey protects the wallet. Nod handles the network fees.',
+      title: 'No seed phrase. No gas to manage.',
+      body: 'You use USDC and a passkey. Nod pays the network fee.',
     },
   ] satisfies ReadonlyArray<Point>,
 } as const
 
 export const CLAIM = {
-  title: 'Pays people too',
-  body: 'Send money to someone who has never used Nod. They open a link, create a passkey wallet, and receive it.',
+  title: 'Send money with a link.',
+  body: 'Send USDC to a friend with a payment link. They open it, create a wallet with a passkey, and receive the money. If they already use Nod, they can sign in.',
 } as const
 
 export const DAWN = {
-  line: 'The small stuff got paid. The big one waited for your nod.',
+  line: 'Small stuff, it just pays. Big stuff needs your nod.',
 } as const
 
 export const FOOTER = {

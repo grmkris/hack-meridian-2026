@@ -571,7 +571,7 @@ const routeTitle = (route: AppRoute): string =>
 const pageTitle = (model: Model): string =>
   Session.match<string>(model.session, {
     Checking: () => 'Nod',
-    SignedOut: () => 'Nod | Give your AI an allowance',
+    SignedOut: () => 'Nod | The wallet that lives inside your AI',
     SignedIn: () => `${routeTitle(model.route)} | Nod`,
   })
 

@@ -3,6 +3,8 @@ import { join, resolve } from 'node:path'
 import { chromium } from 'playwright-core'
 import sharp from 'sharp'
 
+import { DAWN, HERO } from '../apps/web/src/page/landing-copy'
+
 /**
  * Draws Nod's link preview and icons from the landing's own etchings, the way the site draws them: the committed ink
  * maps (scripts/landing-art.ts) as luminance masks over the night tokens of apps/web/src/landing.css, with Besley and
@@ -47,8 +49,8 @@ const OG = page(
   `<div class="scene"><div class="etching lines"></div><div class="glow"></div></div>
    <div class="copy">
      <p class="mark"><span class="wordmark">nod</span><span class="pill">Stellar</span></p>
-     <h1>Give your AI an allowance.</h1>
-     <p class="line">Small stuff, it just pays. Big stuff needs your nod.</p>
+     <h1>${HERO.title}</h1>
+     <p class="line">${DAWN.line}</p>
    </div>`,
   `.scene { position: absolute; left: 0; bottom: 0; width: 1200px; height: ${Math.round(1200 / 1.7715)}px;
      -webkit-mask-image: linear-gradient(to bottom, rgb(0 0 0 / 0.25), rgb(0 0 0 / 1) 50%); mask-image: linear-gradient(to bottom, rgb(0 0 0 / 0.25), rgb(0 0 0 / 1) 50%); }

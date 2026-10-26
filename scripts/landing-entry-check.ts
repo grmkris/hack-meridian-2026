@@ -188,9 +188,10 @@ try {
         assert.equal(await page.getByLabel('Wallet name').evaluate(element => element === document.activeElement), true)
         await page.screenshot({ path: `${directory}/${engineName}-create.png` })
         if (engineName === 'chromium') {
-          await page.getByRole('button', { name: 'Create with a passkey' }).click()
+          await page.getByRole('button', { name: 'Continue with a passkey' }).click()
           await page.getByRole('heading', { name: 'Home', exact: true }).waitFor()
           assert(registered)
+          await page.getByRole('button', { name: 'Wallet details', exact: true }).click()
           await page.getByRole('button', { name: 'Sign out' }).click()
           await page.getByRole('button', { name: 'Connect wallet' }).click()
           await page.getByRole('heading', { name: 'Home', exact: true }).waitFor()

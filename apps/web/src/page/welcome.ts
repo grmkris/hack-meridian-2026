@@ -384,7 +384,7 @@ const signInView = (model: Model, h: HtmlBuilder<Message>): Html =>
         h,
       ),
       ...ceremonyNotice(model.ceremony, h),
-      h.p([h.Class('landing-hint')], ['Sign in with your passkey. New to Nod? You can create one next.']),
+      h.p([h.Class('landing-hint')], ['Sign in with a passkey, or create a wallet in the next step.']),
     ],
   )
 
@@ -396,7 +396,7 @@ const entryChoiceView = (model: Model, h: HtmlBuilder<Message>): Html =>
       h.div(
         [h.Class('landing-entry-actions')],
         [
-          signInButton('Try signing in again', model, h),
+          signInButton('Sign in again', model, h),
           h.button(
             [
               h.Type('button'),
@@ -404,7 +404,7 @@ const entryChoiceView = (model: Model, h: HtmlBuilder<Message>): Html =>
               h.DataAttribute('testid', 'choose-create-wallet'),
               h.Class('landing-button landing-button-quiet'),
             ],
-            ['Create a new wallet'],
+            ['Create your wallet'],
           ),
         ],
       ),
@@ -415,7 +415,7 @@ const createWalletView = (model: Model, h: HtmlBuilder<Message>): Html =>
   h.div(
     [h.Class('landing-start')],
     [
-      h.h2([h.Class('landing-start-title')], ['Create a new wallet']),
+      h.h2([h.Class('landing-start-title')], ['Create your wallet']),
       h.form(
         [h.Class('landing-start-form'), h.OnSubmit(Message.SubmittedCreateWallet())],
         [
@@ -446,7 +446,7 @@ const createWalletView = (model: Model, h: HtmlBuilder<Message>): Html =>
                   Ceremony.matchOrElse(
                     model.ceremony,
                     { CreatingWallet: () => 'Creating your wallet…' },
-                    () => 'Create with a passkey',
+                    () => 'Continue with a passkey',
                   ),
                 ],
               ),
@@ -455,7 +455,10 @@ const createWalletView = (model: Model, h: HtmlBuilder<Message>): Html =>
         ],
       ),
       ...ceremonyNotice(model.ceremony, h),
-      h.p([h.Class('landing-hint')], ['Your device will save a new passkey for this wallet.']),
+      h.p(
+        [h.Class('landing-hint')],
+        ['Use Face ID, Touch ID, or your screen lock. No seed phrase or password to remember.'],
+      ),
       h.button(
         [
           h.Type('button'),
@@ -463,7 +466,7 @@ const createWalletView = (model: Model, h: HtmlBuilder<Message>): Html =>
           h.OnClick(Message.ClickedBackToSignIn()),
           h.Class('landing-text-button'),
         ],
-        ['Back to sign in'],
+        ['Already have a wallet? Sign in'],
       ),
     ],
   )
@@ -489,7 +492,7 @@ export const addToClaudeView = (model: Model, h: HtmlBuilder<Message>): Html =>
         [
           Copy.match(model.copy, {
             Idle: () => 'Copy connector URL',
-            Copied: () => 'Copied. Paste it in Claude’s connectors',
+            Copied: () => 'Copied. Add it to your AI app',
             Failed: () => 'Copy connector URL',
           }),
         ],

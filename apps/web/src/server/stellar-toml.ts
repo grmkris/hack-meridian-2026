@@ -9,7 +9,7 @@ import { stringBindings } from './wallet-settings.ts'
 export const STELLAR_TOML_PATH = '/.well-known/stellar.toml'
 
 const ORG_DESCRIPTION =
-  'Give your AI an allowance: a Stellar wallet your AI app spends from, with a passkey for anything bigger.'
+  'The wallet that lives inside your AI: pay for APIs, send USDC to people, and keep bigger payments behind your passkey.'
 
 /**
  * The file's inputs, read with the chain package's own config so they are what the running stage signs with: the
