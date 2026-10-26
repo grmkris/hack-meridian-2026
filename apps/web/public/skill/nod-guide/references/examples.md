@@ -56,13 +56,28 @@ link they send is an allowance for that one person: exactly the amount, valid se
 > **User:** Base, USDC. My address is 0x4838…5f97.
 
 2. `wallet_topup_quote { "origin_chain": "base", "asset": "USDC", "amount": "5", "refund_address": "0x4838…5f97",
-   "idempotency_key": "topup-1" }` → `pay_to: "0x…"`, `amount_out: "4.98"`, `deadline` in 30 minutes, `status: "pending"`.
+   "idempotency_key": "topup-1" }` → `id: "tp_123"`, `pay_to: "0x…"`, `amount_out: "4.98"`, `deadline` in 30 minutes,
+   `status: "pending"`.
+
+3. Without asking the user for another prompt, use the host's MCP Events capability to set up the all-events wallet
+   monitor described in `SKILL.md`. Reuse it for this top-up; if it is not available, add `topup.arrived` and
+   `topup.expired`, both filtered with `arguments: { "topup_id": "tp_123" }`. The host supplies the webhook and
+   signing secret. Respect host-required confirmation; claim monitoring only after setup succeeds.
+4. Immediately call `wallet_topup_status { "id": "tp_123" }` to cover an arrival during setup. If still pending and
+   monitoring was confirmed:
 
 > **Assistant:** Send 5 USDC on Base to (pay_to) within 30 minutes. About 4.98 USDC arrives in your Nod wallet, usually
-> within a minute or two. If the swap cannot finish, it is refunded to your Base address.
+> within a minute or two. I've set up an arrival notification for this top-up. If the swap cannot finish, it is
+> refunded to your Base address.
 
-3. `wallet_topup_status { "id": "…" }` every 10 seconds, or wait for the `topup.arrived` event where the host
-   subscribes → `status: "arrived"`, `sweep_tx`.
-4. Then the market brief (`paid_resource_fetch`) and Bob (`payment_prepare`, `payment_execute`) as usual.
+5. On `topup.arrived` for `tp_123`, call `wallet_topup_status { "id": "tp_123" }` → `status: "arrived"`,
+   `arrived_amount`, `sweep_tx`; then `wallet_overview` for the current balance and allowance. Report the actual
+   received amount and transaction. Stop only a scoped top-up monitor; keep the all-events wallet monitor. If the result is `failed` or `expired`, report it
+   and stop instead; do not retry a new quote without the user's request.
+6. Continue the already-requested market brief and Bob payment through the usual allowance and approval flow.
+   Check any existing payment before retrying; a duplicate event must not pay Bob twice.
+
+_If the host cannot subscribe, call `wallet_topup_status` every 10 seconds during the active turn for up to 10 minutes.
+Say when you stop waiting. Do not claim an arrival notification was set up. There is no `topup.failed` event._
 
 _Never ask for a private key or seed phrase to move the user's funds; the user sends from their own wallet._

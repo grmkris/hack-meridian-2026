@@ -30,6 +30,14 @@ Every write takes an `idempotency_key`: a fresh one per new intent, the same one
 | `wallet_topup_quote`      | A top-up from Base, Solana, Ethereum, Arbitrum or Polygon through NEAR Intents: where to send what, within 30 minutes. Mainnet only. Moves nothing itself.                                 |
 | `wallet_topup_status`     | Where a top-up stands: `pending`, `processing`, `arrived` (with the sweep transaction), `failed`, `expired`.                                                                               |
 
+In a Nod chat, automatically use the host's MCP Events monitoring for every event returned by `events/list`, with
+empty arguments for the current wallet-wide events. Reuse existing subscriptions and wait for host confirmation
+before claiming it is active. Follow **Automatic wallet updates** in `SKILL.md` for event responses, refresh, and
+cancellation. A narrower incoming-payment monitor uses `payment.received` with `{}`, or `min_amount` for a decimal
+USDC threshold. After a requested top-up, reuse that monitor or add `topup.arrived` and `topup.expired` filtered by
+the returned `id` as `topup_id`. Without event support, check status during the active turn. There is no
+`topup.failed` event.
+
 Recipient QR tools:
 
 - `recipient_scan`: open a camera/image scanner card; the user reviews the exact address and returns it to chat.

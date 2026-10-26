@@ -50,6 +50,8 @@ export const instructions = (label: NetworkLabel, origin: string) =>
     '- recipient "new" with recipient_name makes a claim link for someone without a wallet or address.',
     '- QR recipient: recipient_read with the attached image, or recipient_scan for camera/upload. Confirm the exact address before payment_prepare. Scanning never pays.',
     '- low_balance on wallet_overview → offer wallet_topup_quote (top up from another chain).',
+    '- In a Nod chat, automatically ask the host to set up MCP Events monitoring for every event from events/list (empty arguments = all current wallet events). Reuse subscriptions; respect opt-outs, narrower requests and host confirmation. Claim monitoring only after success. Read wallet_overview and in-progress statuses after setup; follow the guide for event responses, refresh and cancellation. An alert never authorizes a new payment.',
+    '- After a requested wallet_topup_quote, reuse the all-events monitor or add topup.arrived/topup.expired scoped to its returned id while pending/processing. Recheck wallet_topup_status after setup and on events; stop only the scoped top-up monitor at terminal status. No events: poll during this turn only.',
     `- skill://nod-guide/SKILL.md and ${origin}/SKILL.md have the full workflows.`,
   ].join('\n')
 

@@ -297,7 +297,7 @@ const TOOLS = [
   spec(
     'wallet_topup_quote',
     'Top up from another chain',
-    "Top the Nod wallet up from another chain through NEAR Intents: the user sends USDC (or the chain's own coin) on Base, Solana, Ethereum, Arbitrum or Polygon to the returned address within 30 minutes, and it arrives as USDC in the wallet. Offer it when the wallet holds less than the user wants to pay (wallet_overview's low_balance). Moves nothing itself.",
+    "Top the Nod wallet up from another chain through NEAR Intents: the user sends USDC (or the chain's own coin) on Base, Solana, Ethereum, Arbitrum or Polygon to the returned address within 30 minutes, and it arrives as USDC in the wallet. Offer it when the wallet holds less than the user wants to pay (wallet_overview's low_balance). In a Nod chat, automatically use the host's MCP Events monitor for this top-up, reusing the all-events monitor or adding topup.arrived and topup.expired filtered by the returned id as topup_id while pending/processing. Follow get_guide for host confirmation, status recheck and cleanup; if unavailable, use wallet_topup_status during this turn. Moves nothing itself.",
     WalletTopupQuoteInput,
     { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: true },
     (ctx, args) => walletTopupQuote(ctx, args),

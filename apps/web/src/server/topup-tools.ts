@@ -59,13 +59,14 @@ export const walletTopupQuote = (ctx: ToolContext, input: WalletTopupQuoteInput)
     })
     const nowMs = DateTime.toEpochMillis(yield* DateTime.now)
     const view = topupView(row, nowMs)
-    const sentence = `Send ${view.amount_in} ${view.asset} on ${chainName(view.origin_chain)} to ${view.pay_to} within ${minutesLeft(view, nowMs)} minutes; it arrives as about ${view.amount_out} USDC in your Nod wallet. Follow it with wallet_topup_status (id ${view.id}), or on Nod's Add money card at ${ctx.origin}/.`
+    const message = `Send ${view.amount_in} ${view.asset} on ${chainName(view.origin_chain)} to ${view.pay_to} within ${minutesLeft(view, nowMs)} minutes; it arrives as about ${view.amount_out} USDC in your Nod wallet.`
+    const sentence = `${message} In this Nod chat, use the host's MCP Events monitor for this top-up (id ${view.id}) while pending or processing: reuse the all-events monitor or add topup.arrived and topup.expired with topup_id ${view.id}. Respect host confirmation and claim monitoring only after setup succeeds. Follow get_guide for the monitoring workflow; check wallet_topup_status after setup and on events, then stop only the scoped top-up monitor when terminal. Without event support, check wallet_topup_status during this turn only. Nod's Add money page: ${ctx.origin}/.`
     return {
       sentence,
       value: {
         ...view,
         add_money_url: `${ctx.origin}/`,
-        message: sentence,
+        message,
         grant_remaining: grantRemaining(grant, nowMs),
       },
     }
