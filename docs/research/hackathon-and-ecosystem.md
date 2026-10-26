@@ -1,5 +1,8 @@
 # Research: HackMeridian submission, CAP-73, CCTP, MCP hosts, Raven
 
+Historical research before the portal form was inspected. The confirmed form fields and limits are in
+[SUBMISSION.md](../SUBMISSION.md); later host tests are in [the host evidence](../../evidence/mcp-apps/README.md).
+
 Checked 2026-10-25 10:55–11:50 UTC. Sources are linked inline. Anything marked **UNVERIFIED** was not confirmed from
 a primary source or was not executed. Testnet facts marked **VERIFIED (testnet)** were run with `stellar` 28.1.0
 against `soroban-testnet.stellar.org`, using throwaway keys in `/tmp/hm-research/stellarcfg` (no repo files touched).

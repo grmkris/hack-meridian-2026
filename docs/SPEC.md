@@ -1,10 +1,14 @@
 # Spec: Nod, a Stellar wallet with budgets for your AI (repo: hack-meridian-2026)
 
-Status: draft v0, 2026-10-25 11:30 UTC. Scope frozen for HackMeridian 2026. Submission deadline **Mon 26 Oct 2026
+Design record begun 2026-10-25, with later scope changes in the [decisions log](#decisions-log). Submission deadline **Mon 26 Oct 2026
 12:00 Lisbon = 12:00 UTC** (EU daylight time ended 25 Oct; this box runs CET = UTC+1, so 13:00 box time). Judging is
 asynchronous: demo video, pitch deck, GitHub repo, written answers. Finalists pitch live Wed 28 Oct.
 
 Product name: **Nod** (Kristjan, 2026-10-25 13:00 UTC; words in `docs/PITCH.md`). Engineering name in code and package ids stays as is; repo: grmkris/hack-meridian-2026.
+
+The initial design below is retained to explain the build. Later decisions supersede its original demo amounts,
+tool list, and backlog. Use the [README](../README.md) for the implemented product, [PITCH.md](PITCH.md) for submission
+wording, and [tool reference](../apps/web/public/skill/nod-guide/references/tools.md) for the current MCP surface.
 
 ## One line
 
@@ -37,7 +41,7 @@ spend 5.
 A new chat, reconnect, token refresh or wallet top-up never creates a fresh allowance. The grant is a durable record
 with a stable `grant_id`; the allowance belongs to it, not to the session.
 
-## Scope freeze: the demo flow
+## Original demo flow
 
 1. Connect an MCP client; the OAuth consent page opens the wallet site. Owner signs in / creates a passkey wallet
    (WebAuthn registration → relayer deploys the smart account with the passkey as admin signer).
@@ -195,11 +199,11 @@ transaction, so the policy counts both paths against the same N.
    signing the acceptance.
 9. The relayer paid every fee; the owner account holds no XLM.
 
-## Non-goals for the hackathon
+## Deferred scope
 
 Circle Gateway (Stellar unsupported), MPP sessions, anchors/cash-out, swaps/DEX, confidential payments/ZK, Passkey Kit
 (different account contracts), publishing to the ChatGPT store (OpenAI's policy prohibits executing crypto transfers;
-we demo in a host we control and keep the server host-agnostic), mainnet.
+we demo in a host we control and keep the server host-agnostic), and cross-chain withdrawals through NEAR Intents.
 
 ## Tracks and framing
 
@@ -208,7 +212,7 @@ we demo in a host we control and keep the server host-agnostic), mainnet.
   The track text literally suggests "agent wallets, OpenZeppelin spending policies, paid APIs over x402".
 - CAP-73 SAC `trust` (recipient onboarding inside the payment) is presented as a protocol feature we use, not a
   second track (submission form, 2026-10-25 14:00 UTC).
-- Genesis path. Submit one project; mention both tracks in the answers.
+- Genesis builder path; Stellar Composed thematic track. Submit one project.
 
 Pitch: _Give your AI a spending budget you control. Pay people and services from one passkey wallet; larger payments
 come back to you for approval._
@@ -216,23 +220,21 @@ come back to you for approval._
 Demo video (≤ 3 min, screen recording with voice): the nine steps above, then the trustline onboarding, then revoke.
 Show the explorer for two transactions (a delegated one and the owner-approved one).
 
-## Ideas backlog (post-hackathon, written down so we stop debating them)
+## Remaining ideas
 
-- **Payment requests**: "send me 20 USDC" links/QR, including dinner splitting across contacts.
 - **Task budgets**: a connection with 5 USDC allocates 1 USDC to one task; application-level, parent limit intact.
 - **Agent-to-agent escrow**: reserve funds for another agent's work, release on approval (Sidequest / Trustless Work).
-- **CCTP top-up**: "I have USDC on Base/Arc, move enough to my Stellar wallet" via CctpForwarder to the `C…` account.
 - **Recovery signer**: a second passkey or guardian rule.
 - **Merchant allowlists** and per-payment ceilings as extra policies.
 - **MPP sessions** for many tiny calls to one service; **anchors** for cash-out; **privacy** when the verifier is ZK.
 
-## Open decisions (owner's call)
+## Resolved choices
 
-1. ~~Name~~ decided: **Nod** (user-facing); `docs/PITCH.md` owns the words.
-2. Demo host: Goblin (ours, OAuth client proven), Claude (custom connector), or ChatGPT developer mode. Recommendation
-   pending research in `docs/research/hackathon-and-ecosystem.md`.
-3. Foldkit for the wallet site, as the previous session planned, or the plainest thing that renders four pages.
-4. Attempt CCTP top-up only if S1–S4 are green by 16:00 UTC.
+- **Name:** Nod. `docs/PITCH.md` owns the user-facing words.
+- **Hosts:** Claude, Goblin, and ChatGPT developer mode have [recorded product runs](../evidence/mcp-apps/README.md).
+- **Site:** the wallet uses Foldkit, with the Worker and Effect services behind its HTTP API.
+- **Top-up:** NEAR Intents has deployed routes and dry-quote evidence; a funded top-up is unproven in this record.
+  CCTP and cross-chain withdrawals remain out of scope.
 
 ## Decisions log
 

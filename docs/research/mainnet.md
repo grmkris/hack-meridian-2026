@@ -1,5 +1,8 @@
 # Mainnet readiness (spike S7)
 
+Historical readiness study before the mainnet release. For later execution evidence, see
+[MAINNET.md](../MAINNET.md). The costs and proposed launch conditions below describe this study only.
+
 Status: done 2026-10-25 12:41–13:15 UTC. **Read-only**: nothing was signed, sent or spent, and no secret of ours was
 used. Mainnet numbers come from RPC reads and **unsigned simulations** (public funded accounts as source); S1/S3/S5
 testnet transactions were re-read and their ledger-entry changes re-priced at mainnet parameters. Scratch scripts (not

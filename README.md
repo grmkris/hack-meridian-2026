@@ -31,7 +31,7 @@ The old `hack-meridian-testnet.kristjan-grm11775.workers.dev` host redirects to 
 
 Built at [HackMeridian 2026](https://www.hackmeridian.com/) (Lisbon, 25–26 October 2026): Genesis builder track,
 **Stellar Composed** thematic track. Product spec: [docs/SPEC.md](docs/SPEC.md). Pitch and wording:
-[docs/PITCH.md](docs/PITCH.md).
+[docs/PITCH.md](docs/PITCH.md). All documentation: [docs/README.md](docs/README.md).
 
 ## Problem
 

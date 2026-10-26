@@ -1,8 +1,10 @@
 # S8 · Deposit addresses: a `G…` anyone can pay that lands in the passkey wallet
 
 Status: **PASS** on Stellar testnet (protocol 29), 2026-10-25 18:10–18:45 UTC. Evidence: unit (Rust and TypeScript),
-fixture service tests, and one live testnet run with hashes below. **Nothing on mainnet**: the pubnet preset has no
-deposit router, so the feature answers `404 deposit_unavailable` there until it is deployed on Kristjan's go.
+fixture service tests, and live testnet runs with hashes below. Mainnet was not part of this spike. Later deployment
+and deposit-first signup are recorded separately in the
+[mainnet deposit receipt](../../evidence/mainnet/deposit-2026-10-25T21-46Z.md) and
+[contract record](../../contracts/deployments/mainnet.json).
 
 ## Question
 
@@ -212,7 +214,7 @@ Wallets that never come back keep their G and its 2 XLM until a janitor tears do
   whatever address the server says. After creation, nobody can redirect funds. `deposit(g)` on the router lets
   anyone check the binding.
 
-## Compared with Nido #165, after the fact (orchestrator, 22:55 UTC)
+## Compared with Nido #165, after the fact (22:55 UTC)
 
 Same idea, different spender. Nido approves the burner G's USDC to the wallet's own C and installs a signer-less sweep
 policy on the C (the standard OpenZeppelin policy library, upgradable by a governance key); we approve it to an immutable

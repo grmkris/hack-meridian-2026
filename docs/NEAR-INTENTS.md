@@ -1,18 +1,38 @@
-# NEAR Intents: top up a Nod wallet from any chain (and send out to any chain)
+# NEAR Intents top-ups
 
-Written 2026-10-25 21:45 UTC by the orchestrator from live checks against the hosted 1Click API. Kristjan's decision
-21:40 UTC: deliver the onboarding direction as part of the demo, also through MCP, so an agent can ask for a top-up when
-the balance runs low. The Composed track names this: "Bring users and liquidity to Stellar: use Near Intents …".
+The top-up integration uses 1Click to pay Stellar USDC into a wallet's classic deposit address. Nod's deposit router
+then sweeps it to the passkey wallet. The [deposit design](spikes/s8-deposit.md) explains why the payout goes to a
+classic `G…` address with a trustline and no memo.
 
-## Why it fits what we have
+## Evidence boundary
 
-1Click pays out on Stellar only to a **classic `G…` that exists, holds the asset's trustline and takes no memo**
-(their SDK's `validateAddress`). That is exactly a Nod **deposit address** (`docs/spikes/s8-deposit.md`): a sponsored
-`G…` per wallet, key thrown away, bound to the wallet's `C…` through the deposit router, swept automatically. So the
-money path exists; the integration is a quote, a status poll and a card tab. With **deposit-first signup** (same spike)
-a brand-new wallet can be funded from another chain before it is even deployed.
+The repository records deployed top-up routes and tools plus a
+[dry quote through Nod's own client](../evidence/topup/dry-quote-2026-10-25T22-07-19-789Z.json):
+5 USDC on Base quoted about 4.98 USDC on Stellar in about 50 seconds. The
+[deployment log](../evidence/deployments/2026-10-25.md) records the `843bdfd` testnet and `f6510d0` mainnet releases.
+A funded cross-chain top-up is not proven by that quote. Keep this distinction in the [pitch](PITCH.md) and
+[submission](SUBMISSION.md); ordinary Stellar deposits have their own separate
+[mainnet proof](../evidence/mainnet/deposit-2026-10-25T21-46Z.md).
 
-## Verified facts (21:00–21:40 UTC, no API key)
+## Flow A: top up from another chain
+
+[`topup.ts`](../apps/web/src/server/topup.ts) owns the 1Click client and quote lifecycle. D1 stores quotes in
+[`0012_topups.sql`](../apps/web/src/server/migrations/0012_topups.sql); the wallet's Durable Object polls pending
+quotes and journals events.
+
+- `GET /api/topup/assets` lists supported origin assets.
+- `POST /api/wallet/topup/quote` takes `origin_asset`, `amount`, and `refund_to`; it ensures a deposit address,
+  requests a quote, and returns where to send the funds and when the quote expires.
+- `GET /api/wallet/topup/:id` reports progress. `arrived` requires a recorded sweep, not only a successful quote.
+- `wallet_topup_quote` and `wallet_topup_status` expose the same flow over MCP. `wallet_overview.low_balance` lets the
+  agent offer funding when the wallet holds less than the allowance.
+- The Add money interface offers From another chain. Testnet reports `topup_unavailable`; local tests exercise the
+  lifecycle with a stand-in provider.
+
+The [HTTP schemas](../packages/api/src/index.ts), [tool schemas](../packages/protocol/src/tools.ts), and
+[agent guide](../apps/web/public/skill/nod-guide/SKILL.md) define the current inputs and results.
+
+## API observations (25 October 2026, 21:00–21:40 UTC)
 
 - Token list `GET https://1click.chaindefuser.com/v0/tokens`: 205 assets on 37 chains; Stellar has XLM and USDC
   (`nep245:v2_1.omni.hot.tg:1100_111bzQBB65GxAPAVoxqmMcgYo5oS3txhqs1Uh1cgahKQUeTUq1TJu`, Circle's issuer
@@ -27,55 +47,10 @@ a brand-new wallet can be funded from another chain before it is even deployed.
   User-Agent (the default Python agent gets Cloudflare error 1010). No JWT needed; one is optional for fee sharing.
 - Status: `GET /v0/status?depositAddress=…` (plus `depositMemo` when the quote had one): PENDING_DEPOSIT → PROCESSING
   → SUCCESS with `swapDetails.destinationChainTxHashes`.
-- There is no testnet. Everything below runs on mainnet or not at all.
+- 1Click has no testnet. Live top-ups run on mainnet; local tests use a stand-in client.
 
-## Flow A (deliver): top up from another chain
+## Sending out to another chain
 
-1. **Prerequisite, already met (21:50 UTC check):** the deposit router is live on pubnet
-   (`CBWDC7KRPOHSUIPADS6NHXHPYZ2KXHUZ7TONHBPVK7AKIWYXNLRFI6YX`, `contracts/deployments/mainnet.json`, bound through
-   `DEPOSIT_ROUTER_ID` since release `2a86e7e`), and both stages serve `1cd71c7` with deposit-first signup. Relayer A
-   pays 2 XLM reserve per address (reclaimed at teardown); Kristjan topped it up to 101 XLM at 21:40 UTC.
-2. **Service** (`apps/web/src/server/topup.ts`, Effect service, schemas at the boundary, fixture for tests):
-   - `POST /api/wallet/topup/quote` `{ origin_asset, amount, refund_to }` → ensures the wallet's deposit address exists
-     (creates it on first use, ~15 s), calls 1Click with `recipient = deposit G`, `recipientType DESTINATION_CHAIN`,
-     `depositType ORIGIN_CHAIN`, `dry: false`, deadline +30 min; stores `{ wallet_id, quote_id, deposit_address,
-     origin_asset, amount_in, amount_out, deadline, status }` (migration 0009, additive) → returns
-     `TopupQuoteView { id, pay_to (origin-chain address), amount_in, amount_out, origin_chain, asset, deadline, status }`.
-   - `GET /api/wallet/topup/:id` → proxies 1Click status, and arms the deposit watcher (same poke as a GET on the
-     deposit address) so the sweep lands within ~60 s of arrival; `status` becomes `arrived` when the wallet's
-     balance rose (sweep tx on the view).
-   - `GET /api/topup/assets` → cached token list, filtered to stablecoins + native assets, grouped by chain.
-   - 1Click calls go through one client with a fixed browser User-Agent and a 10 s timeout; failures map to
-     `topup_unavailable`, never a 500.
-3. **Card** (Add money, MCP-Apps session's files): a "From another chain" tab: chain and asset, amount, refund
-   address on that chain (required by 1Click), "Get address" → address + QR + amount + countdown + "arrives as USDC in
-   your Nod wallet", status line. Copy on mainnet only; on a network without a router the tab says deposits are next.
-4. **MCP tools** (additive, both lanes, descriptions in the product's voice):
-   - `wallet_topup_quote { origin_chain, asset, amount, refund_address }` → the same view; text: "Send 5 USDC on Base
-     to 0x… within 30 minutes; it arrives as about 4.98 USDC in your Nod wallet." Plus `structuredContent` and a link
-     to the wallet's Add money card.
-   - `wallet_topup_status { id }` → status and, when arrived, the sweep receipt.
-   - `wallet_overview` gains `low_balance` (balance below the agent's remaining allowance) so the model can offer a
-     top-up unprompted.
-5. **Live test** (Kristjan, ~5 USDC from Base or Solana): quote → pay → status SUCCESS → sweep tx → wallet balance.
-   Evidence to `evidence/mainnet/topup-<time>.md` with the 1Click status JSON and both hashes.
-
-## Flow B (stretch, after A): send out to another chain
-
-1. **Muxed destinations** (`packages/stellar`): a contact destination with a numeric memo becomes an `M…` at transfer
-   time (`new Address('M…').toScVal()`); readiness checks the underlying `G…`'s trustline; receipts show `G…` and the
-   id. This also fixes paying exchange deposit addresses.
-2. `POST /api/wallet/withdraw/quote` `{ destination_asset, amount, recipient }` → 1Click with `depositMode MEMO` →
-   `G… + memo` → an **owner-lane payment intent** to `M(G, memo)` for `amount` (the nod page shows "to NEAR Intents,
-   arrives on Base as ~0.4975 USDC") → after confirmation the view polls 1Click until the destination hash exists.
-3. Tool `wallet_withdraw_quote` on the same shape. Test with 0.5 USDC.
-
-## Gates and ownership
-
-- Build: an Opus agent under the delivery session (`nod-hackathon-delivery-orchestration`), pathspec commits,
-  `heavy bun run check`, additive hunks in the MCP-Apps session's files.
-- Deploy: the delivery session (`nod-hackathon-delivery-orchestration`), which has owned testnet and mainnet deploys
-  since 19:10 UTC (`docs/DEPLOY.md` from "20:25 UTC" on); testnet first, then mainnet; never during a recording.
-- Freeze 04:00 UTC. If Flow A is not green on mainnet with a real top-up by then, the card tab and the tools stay
-  behind the `topup_unavailable` answer and the pitch keeps "top up from any chain via NEAR Intents" as the next line,
-  backed by the live quotes above.
+Cross-chain withdrawals remain future work. The research found that a Stellar-origin 1Click quote returns a classic
+address plus a numeric memo, which could be encoded as a muxed address for a contract-account transfer. No withdrawal
+route or tool is claimed here. The old implementation queue and deadline are retained only in Git history.

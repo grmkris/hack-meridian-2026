@@ -1,5 +1,8 @@
 # x402 on Stellar: verified research for spike S2
 
+Historical research before S2. Its recommendation for a custom facilitator was superseded by the pocket model;
+see [S2 results](../spikes/s2.md) and [the spec](../SPEC.md#x402-the-pocket-model-decided-1300-utc).
+
 Verified 2026-10-25 against npm, the `x402-foundation/x402` repo (`main` at commit 62fc03e5, 2026-10-23), the published
 tarballs (I read `dist/` directly), Stellar docs, and live probes. Testnet RPC reports `protocolVersion: 29`
 (stellar-core 30.0.0). Anything not checked first-hand is marked **UNVERIFIED**.

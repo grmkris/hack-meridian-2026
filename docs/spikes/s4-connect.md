@@ -1,5 +1,9 @@
 # S4 · Connecting real hosts to the spike server
 
+Historical connection procedure for the isolated S4 spike server. For the product, use the
+[README demo instructions](../../README.md#demo-instructions); later host runs are in
+[the MCP Apps evidence](../../evidence/mcp-apps/README.md).
+
 For Kristjan. The spike agent cannot sign in to your Claude, Goblin or ChatGPT accounts, so these are the exact steps.
 Results go in `docs/spikes/s4.md`. Claude comes first, because it is the recommended demo host (no transfer prohibition,
 CIMD, and Claude Code has URL elicitation). Goblin is the fallback. ChatGPT is a cameo at most.

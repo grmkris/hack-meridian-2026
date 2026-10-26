@@ -1,5 +1,8 @@
 # Smart accounts on Stellar: verified research (2026-10-25)
 
+Historical research before S1. The [S1 results](../spikes/s1.md#contradictions-with-docsresearchsmart-accountsmd)
+record corrections to these recommendations and the account implementation that actually passed.
+
 Scope: a passkey-owned C-account, an Ed25519 "connection" key with an expiring onchain USDC allowance, and fees paid by our funded G account.
 Everything below was checked today against npm, crates.io, GitHub, live testnet RPC (protocol 29) and stellar-cli 28.1.0.
 **UNVERIFIED** marks anything we did not confirm directly.

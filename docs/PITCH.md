@@ -1,9 +1,8 @@
 # Pitch: Nod
 
-Status: v2, 2026-10-25 19:30 UTC. Owner: session D (copy, deck, video, submission). Product facts come from
-`docs/SPEC.md`, evidence from `evidence/` and `docs/spikes/`. This file decides the words; every user-facing surface
-(landing page, README, portal answers, deck, video, `llms.txt`) uses them. A claim enters copy only when its proof
-exists, and only in the wording below. "What we may say" lists the proof behind each one.
+Submission copy revised during the 25 October 2026 build. Product facts come from
+`docs/SPEC.md`, evidence from `evidence/` and `docs/spikes/`. This file records submission wording and claim limits.
+The landing page keeps its current copy in source. A claim enters submission copy only when its proof exists. "What we may say" lists the proof behind each one.
 
 ## Name and lines
 
@@ -91,9 +90,9 @@ look-alikes here too. Nod's first 15 seconds must show what the others did not h
 | Live on testnet, always with those words: "sign up with a passkey and a deposit: the account deploys when the first USDC lands"; "pay someone who is not on Stellar: they open the link, create a wallet with a passkey, and the USDC lands in it"; "Claude adds contacts; the first payment to one it added needs your nod"; "Claude asks to change its allowance with a link your passkey signs".  | public host `testnet.trynod.si` at `3473ee4`: `evidence/deposit-first/` (deposit `06bd7d2e…`, sweep `04704caf…`, deploy `8c356236…`), `evidence/claims/` (Jan `eb9def8c…`, his wallet `bccfbc61…`), `evidence/tools/` (Dave `b5efd05d…` by nod, `016a0772…` alone, allowance `3ff0e2e0…`), `evidence/shots/` |
 | Live on testnet: "Past the allowance, your one passkey tap makes a link that is an allowance for one person: a rule for exactly the amount, valid seven days. The key is made in your browser and lives only in the link." Trust line, verbatim: "Nod never holds the link key or the funds; a leaked link can take at most the amount, once, before it expires."                                    | public host at `4bb4a89`: `evidence/person-link/` (rule `929c79eb…`, Jan's claim `fd54c526…`, Jan's wallet `fee254cc…`, 6.0000001 refused `#3221` in enforcing simulation while exactly 6 passes, second claim refused, take-back `1803a30c…`)                                                               |
 
-Not yet, until the orchestrator says the proof exists: mainnet wording for wallet-creating links, the link as an
-allowance for one person and AI-added contacts (the person link goes to mainnet copy only after the recording's mainnet
-hash), and a ChatGPT app store listing.
+Not yet: mainnet wording for wallet-creating links, the link as an allowance for one person and AI-added contacts, and
+a ChatGPT app store listing. The person-link and AI-contact flows are proven on testnet; their mainnet copy needs a
+mainnet receipt first.
 
 ## Never say
 
@@ -188,18 +187,11 @@ one take per line, so any structure can use them.
 | mainnet | "This is Stellar mainnet, in claude.ai, with my own wallet and real dollars."                                                                                   |
 | end     | "Nod. Small stuff, it just pays. Big stuff needs your nod."                                                                                                     |
 
-## Landing page (the app's signed-out home)
+## Landing page
 
-1. **Hero.** "Give your AI an allowance." The example wallet plays the beats: Claude may spend 5.00 → 4.90 → 2.90; Bob's
-   5.00 needs your nod; the passkey approves it and the allowance stays 2.90.
-2. **Why**, three plates: apps become conversations; autonomy needs an allowance; every payment can bring someone on.
-3. **How it works**: connect, set an allowance, let it pay.
-4. **Why you can trust it**: the limit lives on your account; your passkey approves the payment it shows; revoke any
-   time; no seed phrase, no XLM.
-5. **Pays people too**: the claim link, trustline and payment in one transaction.
-6. **Proof**: the mainnet run first, then the testnet rehearsal and the spikes, each with its stellar.expert link.
-7. **Try it** on the testnet sandbox (10 testnet USDC, `/sample`).
-8. **Footer**: built with OpenZeppelin smart accounts, Circle USDC, x402, passkeys, Stellar; both hosts; source.
+The current landing copy is in [`landing-copy.ts`](../apps/web/src/page/landing-copy.ts). The original eight-section
+outline was superseded by the [landing trim](../evidence/landing-trim/2026-10-26/README.md) and later product copy.
+Use the claim evidence above when adapting it for the submission.
 
 ## Deck (PDF, 10 slides, each headline a claim)
 
@@ -218,8 +210,8 @@ one take per line, so any structure can use them.
 
 ## Next (say "next", never "live")
 
-- Mainnet for what runs on testnet tonight: deposit-first signup with an exchange deposit address, links that create a
-  wallet and act as an allowance for one person, contacts the AI adds.
+- Mainnet evidence for links that create a wallet and act as an allowance for one person, and contacts the AI adds.
+- A funded cross-chain top-up; the existing NEAR Intents evidence is a dry quote. Cross-chain withdrawals follow.
 - Recovery passkey and shared wallets; cash-out through a Stellar anchor; no pocket step once facilitators accept
   smart-account payers.
 
