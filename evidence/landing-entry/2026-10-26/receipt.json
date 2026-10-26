@@ -1,0 +1,1363 @@
+{
+  "recorded_at": "2026-10-26T00:47:55.261776+00:00",
+  "release": "aca87d320d125af5b6e825778431f3e68d10c1e7",
+  "release_checkout": "/srv/cache/hm26/deploy-testnet",
+  "gate": {
+    "command": "heavy bun run check",
+    "exit_code": 0,
+    "vitest_passed": 334,
+    "vitest_skipped": 16,
+    "rust_tests_passed": 24,
+    "clean_release_checkout": true
+  },
+  "deployment": {
+    "testnet_exit_code": 0,
+    "mainnet_exit_code": 0,
+    "testnet_completed": "2026-10-26T00:44:44.431Z",
+    "mainnet_completed": "2026-10-26T00:45:44.102Z",
+    "plans": "Web update and RELEASE binding only; WalletDb and other bindings noop",
+    "deletedClasses": [],
+    "renamedClasses": [],
+    "transferredClasses": [],
+    "newSqliteClasses": []
+  },
+  "local": {
+    "chromium_entry": {
+      "origin": "http://localhost:18965",
+      "engine": "chromium",
+      "results": [
+        {
+          "scenario": "new-wallet",
+          "requests": [
+            "GET /api/session",
+            "POST /api/session/options",
+            "POST /api/wallets/options",
+            "POST /api/wallets",
+            "GET /api/overview",
+            "POST /api/session/sign-out",
+            "POST /api/session/options",
+            "POST /api/session",
+            "GET /api/overview"
+          ],
+          "registered": true,
+          "asserted": true,
+          "pageErrors": []
+        },
+        {
+          "scenario": "unavailable",
+          "requests": [
+            "GET /api/session"
+          ],
+          "registered": false,
+          "asserted": false,
+          "pageErrors": []
+        },
+        {
+          "scenario": "network-failure",
+          "requests": [
+            "GET /api/session",
+            "POST /api/session/options"
+          ],
+          "registered": false,
+          "asserted": false,
+          "pageErrors": []
+        }
+      ]
+    },
+    "webkit_entry": {
+      "origin": "http://localhost:18965",
+      "engine": "webkit",
+      "results": [
+        {
+          "scenario": "new-wallet",
+          "requests": [
+            "GET /api/session",
+            "POST /api/session/options"
+          ],
+          "registered": false,
+          "asserted": false,
+          "credentialApiStubbed": true,
+          "pageErrors": []
+        },
+        {
+          "scenario": "unavailable",
+          "requests": [
+            "GET /api/session"
+          ],
+          "registered": false,
+          "asserted": false,
+          "credentialApiStubbed": false,
+          "pageErrors": []
+        },
+        {
+          "scenario": "network-failure",
+          "requests": [
+            "GET /api/session",
+            "POST /api/session/options"
+          ],
+          "registered": false,
+          "asserted": false,
+          "credentialApiStubbed": true,
+          "pageErrors": []
+        }
+      ]
+    },
+    "stress": [
+      {
+        "label": "narrow",
+        "bottom": {
+          "scrollHeight": 8261,
+          "bottom": 8213.296875
+        },
+        "requests": [
+          "/api/session",
+          "/api/session/options",
+          "/api/wallets/options",
+          "/api/wallets/options"
+        ],
+        "errors": []
+      },
+      {
+        "label": "large-text",
+        "bottom": {
+          "scrollHeight": 24280,
+          "bottom": 24184.1875
+        },
+        "requests": [
+          "/api/session",
+          "/api/session/options",
+          "/api/wallets/options",
+          "/api/wallets/options"
+        ],
+        "errors": []
+      },
+      {
+        "label": "dark",
+        "bottom": {
+          "scrollHeight": 7806,
+          "bottom": 7757.859375
+        },
+        "requests": [
+          "/api/session",
+          "/api/session/options",
+          "/api/wallets/options",
+          "/api/wallets/options"
+        ],
+        "errors": []
+      },
+      {
+        "label": "desktop",
+        "bottom": {
+          "scrollHeight": 5995,
+          "bottom": 5946.765625
+        },
+        "requests": [
+          "/api/session",
+          "/api/session/options",
+          "/api/wallets/options",
+          "/api/wallets/options"
+        ],
+        "errors": []
+      }
+    ],
+    "media": {
+      "chromium": {
+        "origin": "http://127.0.0.1:18965",
+        "engine": "chromium",
+        "version": "156.0.8078.4",
+        "results": [
+          {
+            "scenario": "phone",
+            "video": {
+              "source": "/landing/night-flight-loop.mp4",
+              "visible": true,
+              "playing": true,
+              "muted": true,
+              "inline": true,
+              "loop": true
+            },
+            "videoRequests": 1,
+            "pixels": [
+              {
+                "index": 0,
+                "paper": 0.8950129731379731,
+                "ink": 0.0877817205942206
+              },
+              {
+                "index": 1,
+                "paper": 0.7888384291445516,
+                "ink": 0.14750753781366027
+              },
+              {
+                "index": 2,
+                "paper": 0.7432753813350829,
+                "ink": 0.17850308895085015
+              },
+              {
+                "index": 3,
+                "paper": 0.6028138528138528,
+                "ink": 0.25273164335664333
+              },
+              {
+                "index": 4,
+                "paper": 0.7836136086136086,
+                "ink": 0.16144688644688646
+              },
+              {
+                "index": 5,
+                "paper": 0.8950129731379731,
+                "ink": 0.0877817205942206
+              }
+            ]
+          },
+          {
+            "scenario": "desktop",
+            "video": {
+              "source": "/landing/night-flight-loop.mp4",
+              "visible": true,
+              "playing": true,
+              "muted": true,
+              "inline": true,
+              "loop": true
+            },
+            "videoRequests": 1,
+            "pixels": [
+              {
+                "index": 0,
+                "paper": 0.8943519444125793,
+                "ink": 0.08825513620993866
+              },
+              {
+                "index": 1,
+                "paper": 0.7889502145511972,
+                "ink": 0.1466086554259918
+              },
+              {
+                "index": 2,
+                "paper": 0.7437261869336648,
+                "ink": 0.17777310997916995
+              },
+              {
+                "index": 3,
+                "paper": 0.6574242464764248,
+                "ink": 0.24997548429657762
+              },
+              {
+                "index": 4,
+                "paper": 0.7826458515096472,
+                "ink": 0.16244737808163012
+              },
+              {
+                "index": 5,
+                "paper": 0.8943519444125793,
+                "ink": 0.08825513620993866
+              }
+            ]
+          },
+          {
+            "scenario": "slow",
+            "video": {
+              "source": "/landing/night-flight-loop.mp4",
+              "visible": true,
+              "playing": true,
+              "muted": true,
+              "inline": true,
+              "loop": true
+            },
+            "videoRequests": 1,
+            "pixels": [
+              {
+                "index": 0,
+                "paper": 0.8950129731379731,
+                "ink": 0.0877817205942206
+              },
+              {
+                "index": 1,
+                "paper": 0.7888384291445516,
+                "ink": 0.14750753781366027
+              },
+              {
+                "index": 2,
+                "paper": 0.7432753813350829,
+                "ink": 0.17850308895085015
+              },
+              {
+                "index": 3,
+                "paper": 0.6028138528138528,
+                "ink": 0.25273164335664333
+              },
+              {
+                "index": 4,
+                "paper": 0.7836136086136086,
+                "ink": 0.16144688644688646
+              },
+              {
+                "index": 5,
+                "paper": 0.8950129731379731,
+                "ink": 0.0877817205942206
+              }
+            ]
+          },
+          {
+            "scenario": "blocked",
+            "video": {
+              "source": null,
+              "visible": false,
+              "playing": false,
+              "muted": true,
+              "inline": true,
+              "loop": true
+            },
+            "videoRequests": 0,
+            "pixels": [
+              {
+                "index": 0,
+                "paper": 0.8950129731379731,
+                "ink": 0.0877817205942206
+              },
+              {
+                "index": 1,
+                "paper": 0.7888384291445516,
+                "ink": 0.14750753781366027
+              },
+              {
+                "index": 2,
+                "paper": 0.7432753813350829,
+                "ink": 0.17850308895085015
+              },
+              {
+                "index": 3,
+                "paper": 0.6028138528138528,
+                "ink": 0.25273164335664333
+              },
+              {
+                "index": 4,
+                "paper": 0.7836136086136086,
+                "ink": 0.16144688644688646
+              },
+              {
+                "index": 5,
+                "paper": 0.8950129731379731,
+                "ink": 0.0877817205942206
+              }
+            ]
+          },
+          {
+            "scenario": "missing",
+            "video": {
+              "source": null,
+              "visible": false,
+              "playing": false,
+              "muted": true,
+              "inline": true,
+              "loop": true
+            },
+            "videoRequests": 1,
+            "pixels": [
+              {
+                "index": 0,
+                "paper": 0.8950129731379731,
+                "ink": 0.0877817205942206
+              },
+              {
+                "index": 1,
+                "paper": 0.7888384291445516,
+                "ink": 0.14750753781366027
+              },
+              {
+                "index": 2,
+                "paper": 0.7432753813350829,
+                "ink": 0.17850308895085015
+              },
+              {
+                "index": 3,
+                "paper": 0.6028138528138528,
+                "ink": 0.25273164335664333
+              },
+              {
+                "index": 4,
+                "paper": 0.7836136086136086,
+                "ink": 0.16144688644688646
+              },
+              {
+                "index": 5,
+                "paper": 0.8950129731379731,
+                "ink": 0.0877817205942206
+              }
+            ]
+          },
+          {
+            "scenario": "reduced",
+            "video": {
+              "source": null,
+              "visible": false,
+              "playing": false,
+              "muted": true,
+              "inline": true,
+              "loop": true
+            },
+            "videoRequests": 0,
+            "pixels": [
+              {
+                "index": 0,
+                "paper": 0.8950129731379731,
+                "ink": 0.0877817205942206
+              },
+              {
+                "index": 1,
+                "paper": 0.7888384291445516,
+                "ink": 0.14750753781366027
+              },
+              {
+                "index": 2,
+                "paper": 0.7432753813350829,
+                "ink": 0.17850308895085015
+              },
+              {
+                "index": 3,
+                "paper": 0.6028138528138528,
+                "ink": 0.25273164335664333
+              },
+              {
+                "index": 4,
+                "paper": 0.7836136086136086,
+                "ink": 0.16144688644688646
+              },
+              {
+                "index": 5,
+                "paper": 0.8950129731379731,
+                "ink": 0.0877817205942206
+              }
+            ]
+          },
+          {
+            "scenario": "save-data",
+            "video": {
+              "source": null,
+              "visible": false,
+              "playing": false,
+              "muted": true,
+              "inline": true,
+              "loop": true
+            },
+            "videoRequests": 0,
+            "pixels": [
+              {
+                "index": 0,
+                "paper": 0.8950129731379731,
+                "ink": 0.0877817205942206
+              },
+              {
+                "index": 1,
+                "paper": 0.7888384291445516,
+                "ink": 0.14750753781366027
+              },
+              {
+                "index": 2,
+                "paper": 0.7432753813350829,
+                "ink": 0.17850308895085015
+              },
+              {
+                "index": 3,
+                "paper": 0.6028138528138528,
+                "ink": 0.25273164335664333
+              },
+              {
+                "index": 4,
+                "paper": 0.7836136086136086,
+                "ink": 0.16144688644688646
+              },
+              {
+                "index": 5,
+                "paper": 0.8950129731379731,
+                "ink": 0.0877817205942206
+              }
+            ]
+          }
+        ]
+      },
+      "webkit": {
+        "origin": "http://127.0.0.1:18965",
+        "engine": "webkit",
+        "version": "27.2",
+        "results": [
+          {
+            "scenario": "phone",
+            "video": {
+              "source": "/landing/night-flight-loop.mp4",
+              "visible": true,
+              "playing": true,
+              "muted": true,
+              "inline": true,
+              "loop": true
+            },
+            "videoRequests": 3,
+            "pixels": [
+              {
+                "index": 0,
+                "paper": 0.8951051841676841,
+                "ink": 0.08741923585673586
+              },
+              {
+                "index": 1,
+                "paper": 0.7891966310333657,
+                "ink": 0.14648899852981487
+              },
+              {
+                "index": 2,
+                "paper": 0.743787928489421,
+                "ink": 0.1770201191842983
+              },
+              {
+                "index": 3,
+                "paper": 0.6588976854946524,
+                "ink": 0.25379136029411764
+              },
+              {
+                "index": 4,
+                "paper": 0.784088134088134,
+                "ink": 0.16063936063936063
+              },
+              {
+                "index": 5,
+                "paper": 0.8951051841676841,
+                "ink": 0.08741923585673586
+              }
+            ]
+          },
+          {
+            "scenario": "desktop",
+            "video": {
+              "source": "/landing/night-flight-loop.mp4",
+              "visible": true,
+              "playing": true,
+              "muted": true,
+              "inline": true,
+              "loop": true
+            },
+            "videoRequests": 3,
+            "pixels": [
+              {
+                "index": 0,
+                "paper": 0.894489875070331,
+                "ink": 0.08801341614635398
+              },
+              {
+                "index": 1,
+                "paper": 0.7894061690780413,
+                "ink": 0.1455186183647317
+              },
+              {
+                "index": 2,
+                "paper": 0.7443913482352804,
+                "ink": 0.17650696960679632
+              },
+              {
+                "index": 3,
+                "paper": 0.6613913330302301,
+                "ink": 0.24979718827168748
+              },
+              {
+                "index": 4,
+                "paper": 0.7830475182478271,
+                "ink": 0.16163093382153124
+              },
+              {
+                "index": 5,
+                "paper": 0.894489875070331,
+                "ink": 0.08801341614635398
+              }
+            ]
+          },
+          {
+            "scenario": "slow",
+            "video": {
+              "source": "/landing/night-flight-loop.mp4",
+              "visible": true,
+              "playing": true,
+              "muted": true,
+              "inline": true,
+              "loop": true
+            },
+            "videoRequests": 2,
+            "pixels": [
+              {
+                "index": 0,
+                "paper": 0.8951051841676841,
+                "ink": 0.08741923585673586
+              },
+              {
+                "index": 1,
+                "paper": 0.7891966310333657,
+                "ink": 0.14648899852981487
+              },
+              {
+                "index": 2,
+                "paper": 0.743787928489421,
+                "ink": 0.1770201191842983
+              },
+              {
+                "index": 3,
+                "paper": 0.6588976854946524,
+                "ink": 0.25379136029411764
+              },
+              {
+                "index": 4,
+                "paper": 0.784088134088134,
+                "ink": 0.16063936063936063
+              },
+              {
+                "index": 5,
+                "paper": 0.8951051841676841,
+                "ink": 0.08741923585673586
+              }
+            ]
+          },
+          {
+            "scenario": "blocked",
+            "video": {
+              "source": null,
+              "visible": false,
+              "playing": false,
+              "muted": true,
+              "inline": true,
+              "loop": true
+            },
+            "videoRequests": 0,
+            "pixels": [
+              {
+                "index": 0,
+                "paper": 0.8951051841676841,
+                "ink": 0.08741923585673586
+              },
+              {
+                "index": 1,
+                "paper": 0.7891966310333657,
+                "ink": 0.14648899852981487
+              },
+              {
+                "index": 2,
+                "paper": 0.743787928489421,
+                "ink": 0.1770201191842983
+              },
+              {
+                "index": 3,
+                "paper": 0.6588976854946524,
+                "ink": 0.25379136029411764
+              },
+              {
+                "index": 4,
+                "paper": 0.784088134088134,
+                "ink": 0.16063936063936063
+              },
+              {
+                "index": 5,
+                "paper": 0.8951051841676841,
+                "ink": 0.08741923585673586
+              }
+            ]
+          },
+          {
+            "scenario": "missing",
+            "video": {
+              "source": null,
+              "visible": false,
+              "playing": false,
+              "muted": true,
+              "inline": true,
+              "loop": true
+            },
+            "videoRequests": 2,
+            "pixels": [
+              {
+                "index": 0,
+                "paper": 0.8951051841676841,
+                "ink": 0.08741923585673586
+              },
+              {
+                "index": 1,
+                "paper": 0.7891966310333657,
+                "ink": 0.14648899852981487
+              },
+              {
+                "index": 2,
+                "paper": 0.743787928489421,
+                "ink": 0.1770201191842983
+              },
+              {
+                "index": 3,
+                "paper": 0.6588976854946524,
+                "ink": 0.25379136029411764
+              },
+              {
+                "index": 4,
+                "paper": 0.784088134088134,
+                "ink": 0.16063936063936063
+              },
+              {
+                "index": 5,
+                "paper": 0.8951051841676841,
+                "ink": 0.08741923585673586
+              }
+            ]
+          },
+          {
+            "scenario": "reduced",
+            "video": {
+              "source": null,
+              "visible": false,
+              "playing": false,
+              "muted": true,
+              "inline": true,
+              "loop": true
+            },
+            "videoRequests": 0,
+            "pixels": [
+              {
+                "index": 0,
+                "paper": 0.8951051841676841,
+                "ink": 0.08741923585673586
+              },
+              {
+                "index": 1,
+                "paper": 0.7891966310333657,
+                "ink": 0.14648899852981487
+              },
+              {
+                "index": 2,
+                "paper": 0.743787928489421,
+                "ink": 0.1770201191842983
+              },
+              {
+                "index": 3,
+                "paper": 0.6588976854946524,
+                "ink": 0.25379136029411764
+              },
+              {
+                "index": 4,
+                "paper": 0.784088134088134,
+                "ink": 0.16063936063936063
+              },
+              {
+                "index": 5,
+                "paper": 0.8951051841676841,
+                "ink": 0.08741923585673586
+              }
+            ]
+          },
+          {
+            "scenario": "save-data",
+            "video": {
+              "source": null,
+              "visible": false,
+              "playing": false,
+              "muted": true,
+              "inline": true,
+              "loop": true
+            },
+            "videoRequests": 0,
+            "pixels": [
+              {
+                "index": 0,
+                "paper": 0.8951051841676841,
+                "ink": 0.08741923585673586
+              },
+              {
+                "index": 1,
+                "paper": 0.7891966310333657,
+                "ink": 0.14648899852981487
+              },
+              {
+                "index": 2,
+                "paper": 0.743787928489421,
+                "ink": 0.1770201191842983
+              },
+              {
+                "index": 3,
+                "paper": 0.6588976854946524,
+                "ink": 0.25379136029411764
+              },
+              {
+                "index": 4,
+                "paper": 0.784088134088134,
+                "ink": 0.16063936063936063
+              },
+              {
+                "index": 5,
+                "paper": 0.8951051841676841,
+                "ink": 0.08741923585673586
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "mutation": {
+      "change": "CreateWallet command emitted automatically by FailedSignIn",
+      "exit_code": 1,
+      "failure": "Expected no Commands but found CreateWallet",
+      "restored_focused_tests": 12
+    }
+  },
+  "live": {
+    "testnet": {
+      "assets": {
+        "at": "2026-10-26T00:44:55.584Z",
+        "origin": "https://testnet.trynod.si",
+        "stage": "testnet",
+        "release": "aca87d320d125af5b6e825778431f3e68d10c1e7",
+        "network": "testnet",
+        "assets": [
+          {
+            "path": "/assets/index-B5zIK69W.css",
+            "bytes": 46139,
+            "sha256": "caa673b6f24f76105b58a5260f56dc9655b8970585b2bef9c558ff9a702b57e4",
+            "contentType": "text/css"
+          },
+          {
+            "path": "/assets/index-C75fT8Av.js",
+            "bytes": 512147,
+            "sha256": "5fb9d12edce54221925fa4b848ce08b91acf05ac03ce389ca4fbf22357d7115f",
+            "contentType": "text/javascript"
+          },
+          {
+            "path": "/assets/etching-night-1200-bCWW6TGk.webp",
+            "bytes": 244782,
+            "sha256": "0243599f438eaedc31ae41c98fc2817104d3f142358fb621880874024940dc7d",
+            "contentType": "image/webp"
+          },
+          {
+            "path": "/assets/etching-night-2000-CuwbWlxk.webp",
+            "bytes": 609120,
+            "sha256": "22e4324dc7af26f422f2dd5929bb3f2b0f6d2177765d622dd1bcfc83ed4acff6",
+            "contentType": "image/webp"
+          },
+          {
+            "path": "/assets/etching-plate-hand-Ucxakp-x.webp",
+            "bytes": 166546,
+            "sha256": "ae3fb5e21ddfc3c75bed056a3855d4ab14ac4a17b26f3f305ff2e0041c3dae0a",
+            "contentType": "image/webp"
+          },
+          {
+            "path": "/assets/etching-plate-seal-BLwD8cVB.webp",
+            "bytes": 312416,
+            "sha256": "4ca3ea41c699af33f59a92e71d971ec6dbe8946e48f5838036d6969a4ce80173",
+            "contentType": "image/webp"
+          },
+          {
+            "path": "/assets/etching-plate-door-eBmUgpYT.webp",
+            "bytes": 260634,
+            "sha256": "16ee98260d7f9ec0f4646d2db32904d6203e66643b1168f8879d4326e5b97531",
+            "contentType": "image/webp"
+          },
+          {
+            "path": "/assets/etching-plate-ledger-ybXUrmn_.webp",
+            "bytes": 207680,
+            "sha256": "7e2973774ca6a26dbd1296f459a332ef0e5b0123698ca8b6fdb13e29c69760fd",
+            "contentType": "image/webp"
+          },
+          {
+            "path": "/assets/etching-plate-flight-BA05GoV2.webp",
+            "bytes": 79420,
+            "sha256": "0e2fa6c8745f1fa70cc935ac8ac90257521a3f1e54cb685a0b0bf6d01c68bcd4",
+            "contentType": "image/webp"
+          },
+          {
+            "path": "/assets/etching-dawn-1200-y2k8QRdL.webp",
+            "bytes": 349850,
+            "sha256": "3a5f9687abe83b1b374a6b9feeaf918e5c74d0b1c25cfaebaeaf6923ba08dd73",
+            "contentType": "image/webp"
+          },
+          {
+            "path": "/assets/etching-dawn-2000-Cfs8qjIc.webp",
+            "bytes": 884704,
+            "sha256": "17ef5f2fbcb0235d7715e5696ed9c9105637c07c86393e4ebfd74f1e49b6568d",
+            "contentType": "image/webp"
+          },
+          {
+            "path": "/landing/night-flight-loop.mp4",
+            "bytes": 1149479,
+            "sha256": "bcb12d69b3979fe3f2a7a2ddc2e84f18629349341e9c46c27a55287c390b87d2",
+            "contentType": "video/mp4"
+          },
+          {
+            "path": "/llms.txt",
+            "bytes": 19618,
+            "sha256": "5d3d9dc937c88a6ce12437a9db9638b91993453821e728f62879bd8b8a954f6d",
+            "contentType": "text/plain"
+          }
+        ],
+        "videoRange": {
+          "status": 200,
+          "bytes": 1149479,
+          "contentRange": null
+        }
+      },
+      "smoke": {
+        "stage": "testnet",
+        "origin": "https://testnet.trynod.si",
+        "at": "2026-10-26T00:44:56.395Z",
+        "release": "aca87d320d125af5b6e825778431f3e68d10c1e7",
+        "checks": [
+          {
+            "name": "app shell",
+            "ok": true,
+            "status": 200,
+            "ms": 386,
+            "detail": "ok"
+          },
+          {
+            "name": "client route falls back to the app",
+            "ok": true,
+            "status": 200,
+            "ms": 384,
+            "detail": "ok"
+          },
+          {
+            "name": "health",
+            "ok": true,
+            "status": 200,
+            "ms": 1822,
+            "detail": "ok"
+          },
+          {
+            "name": "counter reads the contract",
+            "ok": true,
+            "status": 200,
+            "ms": 467,
+            "detail": "ok"
+          },
+          {
+            "name": "unknown API path is a 404",
+            "ok": true,
+            "status": 404,
+            "ms": 248,
+            "detail": "ok"
+          },
+          {
+            "name": "owner API needs a passkey session",
+            "ok": true,
+            "status": 401,
+            "ms": 384,
+            "detail": "ok"
+          },
+          {
+            "name": "MCP refuses an anonymous client and names its metadata",
+            "ok": true,
+            "status": 401,
+            "ms": 17,
+            "detail": "ok"
+          },
+          {
+            "name": "protected-resource metadata",
+            "ok": true,
+            "status": 200,
+            "ms": 15,
+            "detail": "ok"
+          },
+          {
+            "name": "authorization-server metadata (DCR, PKCE S256)",
+            "ok": true,
+            "status": 200,
+            "ms": 16,
+            "detail": "ok"
+          }
+        ]
+      },
+      "smoke_exit_code": 0,
+      "media": {
+        "chromium": {
+          "origin": "https://testnet.trynod.si",
+          "engine": "chromium",
+          "version": "156.0.8078.4",
+          "results": [
+            {
+              "scenario": "phone",
+              "video": {
+                "source": "/landing/night-flight-loop.mp4",
+                "visible": true,
+                "playing": true,
+                "muted": true,
+                "inline": true,
+                "loop": true
+              },
+              "videoRequests": 1,
+              "pixels": [
+                {
+                  "index": 0,
+                  "paper": 0.8950129731379731,
+                  "ink": 0.0877817205942206
+                },
+                {
+                  "index": 1,
+                  "paper": 0.7888384291445516,
+                  "ink": 0.14750753781366027
+                },
+                {
+                  "index": 2,
+                  "paper": 0.7432753813350829,
+                  "ink": 0.17850308895085015
+                },
+                {
+                  "index": 3,
+                  "paper": 0.6028138528138528,
+                  "ink": 0.25273164335664333
+                },
+                {
+                  "index": 4,
+                  "paper": 0.7836136086136086,
+                  "ink": 0.16144688644688646
+                },
+                {
+                  "index": 5,
+                  "paper": 0.8950129731379731,
+                  "ink": 0.0877817205942206
+                }
+              ]
+            }
+          ]
+        },
+        "webkit": {
+          "origin": "https://testnet.trynod.si",
+          "engine": "webkit",
+          "version": "27.2",
+          "results": [
+            {
+              "scenario": "phone",
+              "video": {
+                "source": "/landing/night-flight-loop.mp4",
+                "visible": true,
+                "playing": true,
+                "muted": true,
+                "inline": true,
+                "loop": true
+              },
+              "videoRequests": 3,
+              "pixels": [
+                {
+                  "index": 0,
+                  "paper": 0.8951051841676841,
+                  "ink": 0.08741923585673586
+                },
+                {
+                  "index": 1,
+                  "paper": 0.7891966310333657,
+                  "ink": 0.14648899852981487
+                },
+                {
+                  "index": 2,
+                  "paper": 0.743787928489421,
+                  "ink": 0.1770201191842983
+                },
+                {
+                  "index": 3,
+                  "paper": 0.6588976854946524,
+                  "ink": 0.25379136029411764
+                },
+                {
+                  "index": 4,
+                  "paper": 0.784088134088134,
+                  "ink": 0.16063936063936063
+                },
+                {
+                  "index": 5,
+                  "paper": 0.8951051841676841,
+                  "ink": 0.08741923585673586
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "mainnet": {
+      "assets": {
+        "at": "2026-10-26T00:46:12.639Z",
+        "origin": "https://trynod.si",
+        "stage": "mainnet",
+        "release": "aca87d320d125af5b6e825778431f3e68d10c1e7",
+        "network": "pubnet",
+        "assets": [
+          {
+            "path": "/assets/index-B5zIK69W.css",
+            "bytes": 46139,
+            "sha256": "caa673b6f24f76105b58a5260f56dc9655b8970585b2bef9c558ff9a702b57e4",
+            "contentType": "text/css"
+          },
+          {
+            "path": "/assets/index-C75fT8Av.js",
+            "bytes": 512147,
+            "sha256": "5fb9d12edce54221925fa4b848ce08b91acf05ac03ce389ca4fbf22357d7115f",
+            "contentType": "text/javascript"
+          },
+          {
+            "path": "/assets/etching-night-1200-bCWW6TGk.webp",
+            "bytes": 244782,
+            "sha256": "0243599f438eaedc31ae41c98fc2817104d3f142358fb621880874024940dc7d",
+            "contentType": "image/webp"
+          },
+          {
+            "path": "/assets/etching-night-2000-CuwbWlxk.webp",
+            "bytes": 609120,
+            "sha256": "22e4324dc7af26f422f2dd5929bb3f2b0f6d2177765d622dd1bcfc83ed4acff6",
+            "contentType": "image/webp"
+          },
+          {
+            "path": "/assets/etching-plate-hand-Ucxakp-x.webp",
+            "bytes": 166546,
+            "sha256": "ae3fb5e21ddfc3c75bed056a3855d4ab14ac4a17b26f3f305ff2e0041c3dae0a",
+            "contentType": "image/webp"
+          },
+          {
+            "path": "/assets/etching-plate-seal-BLwD8cVB.webp",
+            "bytes": 312416,
+            "sha256": "4ca3ea41c699af33f59a92e71d971ec6dbe8946e48f5838036d6969a4ce80173",
+            "contentType": "image/webp"
+          },
+          {
+            "path": "/assets/etching-plate-door-eBmUgpYT.webp",
+            "bytes": 260634,
+            "sha256": "16ee98260d7f9ec0f4646d2db32904d6203e66643b1168f8879d4326e5b97531",
+            "contentType": "image/webp"
+          },
+          {
+            "path": "/assets/etching-plate-ledger-ybXUrmn_.webp",
+            "bytes": 207680,
+            "sha256": "7e2973774ca6a26dbd1296f459a332ef0e5b0123698ca8b6fdb13e29c69760fd",
+            "contentType": "image/webp"
+          },
+          {
+            "path": "/assets/etching-plate-flight-BA05GoV2.webp",
+            "bytes": 79420,
+            "sha256": "0e2fa6c8745f1fa70cc935ac8ac90257521a3f1e54cb685a0b0bf6d01c68bcd4",
+            "contentType": "image/webp"
+          },
+          {
+            "path": "/assets/etching-dawn-1200-y2k8QRdL.webp",
+            "bytes": 349850,
+            "sha256": "3a5f9687abe83b1b374a6b9feeaf918e5c74d0b1c25cfaebaeaf6923ba08dd73",
+            "contentType": "image/webp"
+          },
+          {
+            "path": "/assets/etching-dawn-2000-Cfs8qjIc.webp",
+            "bytes": 884704,
+            "sha256": "17ef5f2fbcb0235d7715e5696ed9c9105637c07c86393e4ebfd74f1e49b6568d",
+            "contentType": "image/webp"
+          },
+          {
+            "path": "/landing/night-flight-loop.mp4",
+            "bytes": 1149479,
+            "sha256": "bcb12d69b3979fe3f2a7a2ddc2e84f18629349341e9c46c27a55287c390b87d2",
+            "contentType": "video/mp4"
+          },
+          {
+            "path": "/llms.txt",
+            "bytes": 19618,
+            "sha256": "5d3d9dc937c88a6ce12437a9db9638b91993453821e728f62879bd8b8a954f6d",
+            "contentType": "text/plain"
+          }
+        ],
+        "videoRange": {
+          "status": 200,
+          "bytes": 1149479,
+          "contentRange": null
+        }
+      },
+      "smoke": {
+        "stage": "mainnet",
+        "origin": "https://trynod.si",
+        "at": "2026-10-26T00:46:13.477Z",
+        "release": "aca87d320d125af5b6e825778431f3e68d10c1e7",
+        "checks": [
+          {
+            "name": "app shell",
+            "ok": true,
+            "status": 200,
+            "ms": 359,
+            "detail": "ok"
+          },
+          {
+            "name": "client route falls back to the app",
+            "ok": true,
+            "status": 200,
+            "ms": 333,
+            "detail": "ok"
+          },
+          {
+            "name": "health",
+            "ok": true,
+            "status": 200,
+            "ms": 1136,
+            "detail": "ok"
+          },
+          {
+            "name": "counter reads the contract",
+            "ok": false,
+            "status": 404,
+            "ms": 472,
+            "detail": "status 404: {\"_tag\":\"NotDeployed\",\"error\":\"No counter contract is configured on mainnet.\"}"
+          },
+          {
+            "name": "unknown API path is a 404",
+            "ok": true,
+            "status": 404,
+            "ms": 246,
+            "detail": "ok"
+          },
+          {
+            "name": "owner API needs a passkey session",
+            "ok": true,
+            "status": 401,
+            "ms": 20,
+            "detail": "ok"
+          },
+          {
+            "name": "MCP refuses an anonymous client and names its metadata",
+            "ok": true,
+            "status": 401,
+            "ms": 12,
+            "detail": "ok"
+          },
+          {
+            "name": "protected-resource metadata",
+            "ok": true,
+            "status": 200,
+            "ms": 11,
+            "detail": "ok"
+          },
+          {
+            "name": "authorization-server metadata (DCR, PKCE S256)",
+            "ok": true,
+            "status": 200,
+            "ms": 253,
+            "detail": "ok"
+          }
+        ]
+      },
+      "smoke_exit_code": 1,
+      "media": {
+        "chromium": {
+          "origin": "https://trynod.si",
+          "engine": "chromium",
+          "version": "156.0.8078.4",
+          "results": [
+            {
+              "scenario": "phone",
+              "video": {
+                "source": "/landing/night-flight-loop.mp4",
+                "visible": true,
+                "playing": true,
+                "muted": true,
+                "inline": true,
+                "loop": true
+              },
+              "videoRequests": 1,
+              "pixels": [
+                {
+                  "index": 0,
+                  "paper": 0.8950129731379731,
+                  "ink": 0.0877817205942206
+                },
+                {
+                  "index": 1,
+                  "paper": 0.7888384291445516,
+                  "ink": 0.14750753781366027
+                },
+                {
+                  "index": 2,
+                  "paper": 0.7432753813350829,
+                  "ink": 0.17850308895085015
+                },
+                {
+                  "index": 3,
+                  "paper": 0.6028138528138528,
+                  "ink": 0.25273164335664333
+                },
+                {
+                  "index": 4,
+                  "paper": 0.7836136086136086,
+                  "ink": 0.16144688644688646
+                },
+                {
+                  "index": 5,
+                  "paper": 0.8950129731379731,
+                  "ink": 0.0877817205942206
+                }
+              ]
+            }
+          ]
+        },
+        "webkit": {
+          "origin": "https://trynod.si",
+          "engine": "webkit",
+          "version": "27.2",
+          "results": [
+            {
+              "scenario": "phone",
+              "video": {
+                "source": "/landing/night-flight-loop.mp4",
+                "visible": true,
+                "playing": true,
+                "muted": true,
+                "inline": true,
+                "loop": true
+              },
+              "videoRequests": 3,
+              "pixels": [
+                {
+                  "index": 0,
+                  "paper": 0.8951051841676841,
+                  "ink": 0.08741923585673586
+                },
+                {
+                  "index": 1,
+                  "paper": 0.7891966310333657,
+                  "ink": 0.14648899852981487
+                },
+                {
+                  "index": 2,
+                  "paper": 0.743787928489421,
+                  "ink": 0.1770201191842983
+                },
+                {
+                  "index": 3,
+                  "paper": 0.6588976854946524,
+                  "ink": 0.25379136029411764
+                },
+                {
+                  "index": 4,
+                  "paper": 0.784088134088134,
+                  "ink": 0.16063936063936063
+                },
+                {
+                  "index": 5,
+                  "paper": 0.8951051841676841,
+                  "ink": 0.08741923585673586
+                }
+              ]
+            }
+          ]
+        }
+      }
+    }
+  },
+  "live_screenshots": {
+    "origin": "https://trynod.si",
+    "looks": [
+      "phone-light",
+      "phone-dark",
+      "phone-still",
+      "desktop-light",
+      "desktop-dark",
+      "desktop-still"
+    ],
+    "exit_code": 0
+  },
+  "limits": [
+    "Linux WebKit is not physical iPhone Safari acceptance.",
+    "Linux WebKit lacks navigator.credentials; supported-browser entry UI uses a rejecting credential stub. Chromium uses a real virtual authenticator and independently verifies challenge, origin, RP hash, key and signature.",
+    "Local entry APIs are intercepted. This iteration created no live wallet and made no payment.",
+    "The existing smoke script requires the testnet counter on every stage: mainnet exits 1 only for the deliberate 404 NotDeployed counter response.",
+    "Preexisting shared untracked files were preserved; the deployment checkout is clean."
+  ]
+}
