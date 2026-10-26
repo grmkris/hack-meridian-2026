@@ -4,11 +4,11 @@ import { sha256Hex } from './clock.ts'
 import { DbError } from './db.ts'
 
 /**
- * How many wallets Nod creates in an hour: at most WALLET_CREATE_PER_VISITOR_HOUR (3) for one visitor (a hash of
- * cf-connecting-ip) and WALLET_CREATE_PER_HOUR (30) in all. Each wallet costs the relayer a deploy and, on testnet, the
- * treasury its welcome USDC, so this bounds what open signup can spend. POST /api/wallets/options checks (no slot
- * taken, the passkey prompt never opens when the answer is no); POST /api/wallets takes the slot right before the
- * deploy. The log lives in the OAuthStore Durable Object (one instance, so concurrent creations queue there).
+ * Optional hourly signup throttling, disabled unless WALLET_CREATE_LIMITS_ENABLED=true. When enabled,
+ * WALLET_CREATE_PER_VISITOR_HOUR (3) limits one visitor (a hash of cf-connecting-ip), and WALLET_CREATE_PER_HOUR (30)
+ * limits all visitors. POST /api/wallets/options checks without taking a slot; POST /api/wallets takes it before
+ * deployment. The log lives in the OAuthStore Durable Object, so concurrent creations queue there.
+ * With throttling disabled, neither path reads or writes that log; existing exhausted counters cannot block signup.
  */
 
 export interface CreateLimits {
@@ -119,14 +119,24 @@ export class WalletCaps extends Context.Service<WalletCaps, WalletCapsShape>()('
   static readonly fromStore = (askStore: AskStore) =>
     Layer.effect(
       WalletCaps,
-      Effect.map(limitsConfig, (limits): WalletCapsShape => {
-        const ask = (visitor: string, take: boolean) =>
-          Effect.tryPromise({
-            try: () => askStore(visitor, limits, take),
-            catch: cause => new DbError({ operation: 'wallet caps', message: String(cause) }),
-          }).pipe(Effect.flatMap(refuse))
-        return { limits, check: visitor => ask(visitor, false), take: visitor => ask(visitor, true) }
-      }),
+      Effect.map(
+        Config.all({
+          limits: limitsConfig,
+          enabled: Config.Boolean('WALLET_CREATE_LIMITS_ENABLED').pipe(Config.withDefault(false)),
+        }),
+        ({ limits, enabled }): WalletCapsShape => {
+          const ask = (visitor: string, take: boolean) =>
+            Effect.tryPromise({
+              try: () => askStore(visitor, limits, take),
+              catch: cause => new DbError({ operation: 'wallet caps', message: String(cause) }),
+            }).pipe(Effect.flatMap(refuse))
+          return {
+            limits,
+            check: visitor => (enabled ? ask(visitor, false) : Effect.void),
+            take: visitor => (enabled ? ask(visitor, true) : Effect.void),
+          }
+        },
+      ),
     )
 
   static readonly memory = (limits: CreateLimits = DEFAULT_CREATE_LIMITS, now?: () => number) =>

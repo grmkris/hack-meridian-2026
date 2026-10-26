@@ -1,4 +1,4 @@
-import { Effect, Schema } from 'effect'
+import { ConfigProvider, Effect, Layer, Schema } from 'effect'
 import { Base64Url } from 'effect/encoding'
 import { afterEach, describe, expect, test } from 'vitest'
 
@@ -7,7 +7,14 @@ import { SoftPasskey } from '@hm/stellar/testing'
 import { makeApiHandler } from './app.ts'
 import { consentSignInPage } from './pages.ts'
 import { testServices } from './test/layers.ts'
-import { admitCreation, type CreateLimits, type CreationLog, memoryWalletCaps, visitorOf } from './wallet-caps.ts'
+import {
+  admitCreation,
+  type CreateLimits,
+  type CreationLog,
+  memoryWalletCaps,
+  visitorOf,
+  WalletCaps,
+} from './wallet-caps.ts'
 
 /**
  * Open signup on mainnet with creation caps (Kristjan, 2026-10-25 evening): at most 3 wallets per visitor (a hash of
@@ -97,6 +104,48 @@ const createFrom = async (api: ReturnType<typeof makeApiHandler>, ip: string) =>
 }
 
 describe('POST /api/wallets under the caps', () => {
+  test.each([undefined, 'false'])('disabled caps (%s) allow registration despite an exhausted store', async enabled => {
+    let calls = 0
+    const caps = await Effect.runPromise(
+      WalletCaps.pipe(
+        Effect.provide(
+          WalletCaps.fromStore(async () => {
+            calls += 1
+            return { ok: false, scope: 'global', retryAfterS: 3600 }
+          }).pipe(
+            Layer.provide(
+              ConfigProvider.layer(
+                ConfigProvider.fromEnvRecord({
+                  ...(enabled === undefined ? {} : { WALLET_CREATE_LIMITS_ENABLED: enabled }),
+                  WALLET_CREATE_PER_VISITOR_HOUR: '0',
+                  WALLET_CREATE_PER_HOUR: '0',
+                }),
+              ),
+            ),
+          ),
+        ),
+      ),
+    )
+    const api = makeApiHandler(testServices(undefined, undefined, undefined, caps))
+    handlers.push(api)
+    for (const _ of [1, 2, 3, 4]) expect((await createFrom(api, '198.51.100.7')).status).toBe(200)
+    expect(calls).toBe(0)
+  })
+
+  test('explicitly enabled caps still enforce the store decision', async () => {
+    const caps = await Effect.runPromise(
+      WalletCaps.pipe(
+        Effect.provide(
+          WalletCaps.fromStore(async () => ({ ok: false, scope: 'visitor', retryAfterS: 180 })).pipe(
+            Layer.provide(ConfigProvider.layer(ConfigProvider.fromEnvRecord({ WALLET_CREATE_LIMITS_ENABLED: 'true' }))),
+          ),
+        ),
+      ),
+    )
+    expect(await Effect.runPromise(Effect.flip(caps.check('visitor')))).toMatchObject({ retryAfterS: 180 })
+    expect(await Effect.runPromise(Effect.flip(caps.take('visitor')))).toMatchObject({ retryAfterS: 180 })
+  })
+
   test('per visitor: three wallets from one address, then 429 too_many_wallets before the passkey prompt', async () => {
     const api = makeApiHandler(testServices())
     handlers.push(api)

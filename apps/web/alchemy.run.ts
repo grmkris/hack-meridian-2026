@@ -80,8 +80,8 @@ const switchesFor = (stage: string): Record<string, string> => ({
   PAYMENTS_ENABLED: 'true',
   // Wallet creation needs an invite code: 'true' or 'false'; '' = the network decides (invite-only on pubnet).
   INVITE_REQUIRED: '',
-  // Wallets created per hour, per visitor (hashed cf-connecting-ip) and in all; '' = 3 and 30 (src/server/wallet-caps.ts).
-  // The local stage allows more so repeated e2e runs from one machine keep working.
+  // Hourly signup throttling is disabled on every stage. Limits apply only when explicitly enabled.
+  WALLET_CREATE_LIMITS_ENABLED: 'false',
   WALLET_CREATE_PER_VISITOR_HOUR: stage === 'local' ? '100' : '',
   WALLET_CREATE_PER_HOUR: stage === 'local' ? '1000' : '',
   // /sample: a server-side sample agent on Nod's demo wallet (testnet only; the page refuses on any other network).
