@@ -1,0 +1,49 @@
+{
+  "at": "2026-10-26T01:18:59.953610+00:00",
+  "testnet": {
+    "release": "5c92fef8eee3d0b92405a3dd7606c7c0125634c6",
+    "ok": true,
+    "note": "A concurrent session deployed a descendant of the landing release. All seven landing source and check files are unchanged.",
+    "chromiumPhoneMedia": {
+      "origin": "https://testnet.trynod.si",
+      "engine": "chromium",
+      "version": "156.0.8078.4",
+      "results": [
+        {
+          "scenario": "phone",
+          "video": {
+            "source": "/landing/night-flight-loop.mp4",
+            "visible": true,
+            "playing": true,
+            "muted": true,
+            "inline": true,
+            "loop": true
+          },
+          "videoRequests": 1,
+          "pixels": [
+            {
+              "index": 0,
+              "paper": 0.7888384291445516,
+              "ink": 0.14750753781366027
+            },
+            {
+              "index": 1,
+              "paper": 0.7432514624678804,
+              "ink": 0.17846891914056093
+            },
+            {
+              "index": 2,
+              "paper": 0.6028346653346653,
+              "ink": 0.25273684648684647
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "mainnet": {
+    "release": "d17644a90216829aded411539f89b75d1c1da706",
+    "ok": true
+  },
+  "scope": "This follow-up records the newer testnet deployment observed after the original release receipt; its full product gates belong to that session."
+}
