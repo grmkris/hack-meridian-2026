@@ -1,13 +1,13 @@
 [
   {
     "uri": "skill://nod-guide/SKILL.md",
-    "digest": "sha256:f64c8bb8f546193114d92960e0dd61bb416f8a48d9c787355513e0763a2d6cba",
-    "size": 11189
+    "digest": "sha256:91f93ab9b9a703a705e7b180e9d9ee467b2a3b5177573f4e75c6c832c0ed2edd",
+    "size": 11519
   },
   {
     "uri": "skill://nod-guide/references/errors.md",
-    "digest": "sha256:a2b1887443c0f3270d9d090de14cc9840ccfc14393f8541697bae41e6bbb99c3",
-    "size": 5092
+    "digest": "sha256:59fdd9629a1af0e698003c42451289799c648b86b54120fa5cb945eb0eada0bc",
+    "size": 5685
   },
   {
     "uri": "skill://nod-guide/references/examples.md",

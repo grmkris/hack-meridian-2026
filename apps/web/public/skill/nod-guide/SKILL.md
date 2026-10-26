@@ -133,18 +133,20 @@ Only a receipt with a `tx_hash` means paid. Show the amount, the recipient and t
 
 An error result has a code and a recovery sentence. Follow the sentence; `references/errors.md` has them all.
 
-| Code                   | What to do                                                                                           |
-| ---------------------- | ---------------------------------------------------------------------------------------------------- |
-| `ambiguous_recipient`  | Show the matches and ask which one. Never pick.                                                      |
-| `no_contact`           | Ask for the address, or offer a claim link (`recipient: "new"`).                                     |
-| `account_missing`      | The address does not exist on this network. Ask for another, or offer a claim link.                  |
-| `memo_unsupported`     | Nod cannot pay addresses that need a memo. Ask for one without.                                      |
-| `payments_paused`      | Nod paused payments for everyone. Nothing was paid; try later.                                       |
-| `revoked`              | The user revoked this app. Stop; they reconnect Nod if they want you to pay again.                   |
-| `no_allowance`         | Offer `connection_grant_create`'s link; until then, payments need the nod.                           |
-| `idempotency_conflict` | Same key, different arguments. Retrying: send the same arguments. New payment: new key.              |
-| `upstream_unavailable` | Stellar or a facilitator did not answer. Check `payment_status` first, then retry with the same key. |
-| `topup_unavailable`    | Offer `wallet_deposit_address` instead.                                                              |
+| Code                   | What to do                                                                                                |
+| ---------------------- | --------------------------------------------------------------------------------------------------------- |
+| `ambiguous_recipient`  | Show the matches and ask which one. Never pick.                                                           |
+| `no_contact`           | Ask for the address, or offer a claim link (`recipient: "new"`).                                          |
+| `account_missing`      | The address does not exist on this network. Ask for another, or offer a claim link.                       |
+| `memo_unsupported`     | Nod cannot pay addresses that need a memo. Ask for one without.                                           |
+| `payments_paused`      | Nod paused payments for everyone. Nothing was paid; try later.                                            |
+| `revoked`              | The user revoked this app. Stop; they reconnect Nod if they want you to pay again.                        |
+| `no_allowance`         | Offer `connection_grant_create`'s link; until then, payments need the nod.                                |
+| `idempotency_conflict` | Same key, different arguments. Retrying: send the same arguments. New payment: new key.                   |
+| `upstream_unavailable` | Stellar or a facilitator did not answer. Check `payment_status` first, then retry with the same key.      |
+| `topup_unavailable`    | Offer `wallet_deposit_address` instead.                                                                   |
+| `invalid_input`        | Correct what the message names, then call again with a new idempotency_key.                               |
+| `not_found`            | Look the id up again (payments_list, requests_list or contacts_search) and call with one from the answer. |
 
 ## Safety
 

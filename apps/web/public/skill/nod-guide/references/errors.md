@@ -15,8 +15,10 @@ message as Nod gave it; never replace it with a reason of your own.
 | `idempotency_conflict` | The key was used before with different arguments.                                            | Retrying the same payment: send exactly the same arguments with the same key. A new payment: use a new key.                                                       |
 | `upstream_unavailable` | Stellar, a facilitator or a seller did not answer.                                           | Do not assume it failed. If there is a `payment_id`, read `payment_status` first; then retry with the same key in a minute.                                       |
 | `topup_unavailable`    | Top-ups from another chain are not available here (testnet, or NEAR Intents did not answer). | Offer the deposit address (`wallet_deposit_address`) instead, or try the top-up again later on mainnet.                                                           |
+| `invalid_input`        | An argument is missing or malformed.                                                         | Correct what the message names, then call again with a new idempotency_key.                                                                                       |
+| `not_found`            | The id (payment, request or contact) is unknown.                                             | Look the id up again (payments_list, requests_list or contacts_search) and call with one from the answer.                                                         |
 
-The same sentences as data, for code that shows or checks them:
+The sentences for the ten payment codes as data, for code that shows or checks them:
 
 ```json
 {
