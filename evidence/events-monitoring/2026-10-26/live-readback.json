@@ -1,0 +1,144 @@
+{
+  "at": "2026-10-26T04:21:24.033Z",
+  "release": "ddf2d2d7ae8643845d7920637313afa42d562104",
+  "stages": [
+    {
+      "stage": "testnet",
+      "origin": "https://testnet.trynod.si",
+      "health": {
+        "ok": true,
+        "stage": "testnet",
+        "release": "ddf2d2d7ae8643845d7920637313afa42d562104",
+        "network": "testnet",
+        "chain": {
+          "mode": "testnet",
+          "network": "stellar:testnet",
+          "explorer_base": "https://stellar.expert/explorer/testnet",
+          "payments_enabled": true,
+          "latest_ledger": 5392978,
+          "relayers": [
+            {
+              "address": "GBCALSA3XQAWW24AXGFWJIGNUCDBCMUPPWC5XHMZ22VY4HMX6XCFYWBR",
+              "xlm": "187702208742"
+            },
+            {
+              "address": "GAWYWVMHLTRN6N7DXKV3XYCLAFPCPPUXPDFC7J5KL3LNKO26YNJSYE4I",
+              "xlm": "89591741816"
+            },
+            {
+              "address": "GA5YBU72TGS3JHEAEZN3RBIGAMH4FJOYXXYHM5EOYQMACBO2GOC4TU7O",
+              "xlm": "99996552576"
+            },
+            {
+              "address": "GAGS2XHDLMBPOH2ZRAYEOTQNVDCULIIWCJHWVEVRRPLPPSMVJ7WLBDKT",
+              "xlm": "99996369140"
+            }
+          ],
+          "treasury": {
+            "address": "GB4F3NUAD2NIRNOHNB36QS7ONEPWMPVSI5IRT6NY5FMMONLGTDQ4CIU5",
+            "usdc": "1410400000",
+            "xlm": "93762347372"
+          },
+          "rent_factor": 0.1,
+          "fee_ceilings": {
+            "first_xlm": 35,
+            "later_xlm": 4
+          },
+          "contracts": []
+        },
+        "invite_required": false
+      },
+      "skill_files": [
+        {
+          "path": "/skill/nod-guide/SKILL.md",
+          "digest": "sha256:ca44e66a1410c2710b43a66dfcd5fc7b87fd3ad7a7b52e74c1de080218893200",
+          "size": 19827,
+          "matches_manifest": true
+        },
+        {
+          "path": "/skill/nod-guide/references/errors.md",
+          "digest": "sha256:61764b75552bca93702fbbd04e480b07b45aa378becb47736ace16695fe01e27",
+          "size": 5902,
+          "matches_manifest": true
+        },
+        {
+          "path": "/skill/nod-guide/references/examples.md",
+          "digest": "sha256:9de3ca21c5aa453bf505c07f234428c5d933a02cc4cad007d395db388a075acb",
+          "size": 5125,
+          "matches_manifest": true
+        },
+        {
+          "path": "/skill/nod-guide/references/tools.md",
+          "digest": "sha256:f9d81df3ebe00e1e088aa6c78f4bf2a581ec0ab3510ed2344bc11a668d3141b8",
+          "size": 6946,
+          "matches_manifest": true
+        }
+      ]
+    },
+    {
+      "stage": "mainnet",
+      "origin": "https://trynod.si",
+      "health": {
+        "ok": true,
+        "stage": "mainnet",
+        "release": "ddf2d2d7ae8643845d7920637313afa42d562104",
+        "network": "pubnet",
+        "chain": {
+          "mode": "pubnet",
+          "network": "stellar:pubnet",
+          "explorer_base": "https://stellar.expert/explorer/public",
+          "payments_enabled": true,
+          "latest_ledger": 65140539,
+          "relayers": [
+            {
+              "address": "GBVYA2V4SMVPXFRPVB5FEFCADW7RXFIACR2HBLN2WP3RHAZKL267YG5X",
+              "xlm": "989365349"
+            },
+            {
+              "address": "GDMYACRM646Z4QIUPIAQZ2W3HSKAO2LESWCME73RSCCETSQKSL6HCAGP",
+              "xlm": "490901662"
+            }
+          ],
+          "treasury": {
+            "address": "GBJOFDKUKPHIPG34NEMVINELO36TS3QVVLNTXRO3SRUPEK5CPMYBVSPI",
+            "usdc": "190000000",
+            "xlm": "29611086"
+          },
+          "rent_factor": 0.1,
+          "fee_ceilings": {
+            "first_xlm": 1,
+            "later_xlm": 1
+          },
+          "contracts": []
+        },
+        "invite_required": false
+      },
+      "skill_files": [
+        {
+          "path": "/skill/nod-guide/SKILL.md",
+          "digest": "sha256:ca44e66a1410c2710b43a66dfcd5fc7b87fd3ad7a7b52e74c1de080218893200",
+          "size": 19827,
+          "matches_manifest": true
+        },
+        {
+          "path": "/skill/nod-guide/references/errors.md",
+          "digest": "sha256:61764b75552bca93702fbbd04e480b07b45aa378becb47736ace16695fe01e27",
+          "size": 5902,
+          "matches_manifest": true
+        },
+        {
+          "path": "/skill/nod-guide/references/examples.md",
+          "digest": "sha256:9de3ca21c5aa453bf505c07f234428c5d933a02cc4cad007d395db388a075acb",
+          "size": 5125,
+          "matches_manifest": true
+        },
+        {
+          "path": "/skill/nod-guide/references/tools.md",
+          "digest": "sha256:f9d81df3ebe00e1e088aa6c78f4bf2a581ec0ab3510ed2344bc11a668d3141b8",
+          "size": 6946,
+          "matches_manifest": true
+        }
+      ]
+    }
+  ]
+}

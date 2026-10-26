@@ -1,0 +1,40 @@
+alchemy 2.0.0-beta.84 is available (you're on 2.0.0-beta.83). Run `bun add alchemy@2.0.0-beta.84` to upgrade.
+[05:20:28.460] INFO (#1): Plan · mainnet
+[05:20:28.468] INFO (#1): Importing stack module
+[05:20:29.487] INFO (#38): Resolving stack services
+[05:20:29.564] INFO (#1): Loading stack state
+[05:20:29.582] INFO (#1): Computing plan
+[05:20:29.601] INFO (#442): Cloudflare: using environment variables (CLOUDFLARE_ACCOUNT_ID, CLOUDFLARE_API_TOKEN) instead of the profile.
+[05:20:29.640] INFO (#1): Plan ready (1.2s)
+[05:20:29.642] INFO (#1): Plan: 1 to update, 1 binding changes
+[05:20:29.642] INFO (#1): [WalletDb] noop
+[05:20:29.642] INFO (#1): [Web] update
+[05:20:29.643] INFO (#1): [Web/CHAIN] noop
+[05:20:29.643] INFO (#1): [Web/DEMO_CLAIM_SIGNER] noop
+[05:20:29.643] INFO (#1): [Web/DEMO_CONTACTS] noop
+[05:20:29.643] INFO (#1): [Web/DEMO_RECIPIENT_SECRET] noop
+[05:20:29.643] INFO (#1): [Web/DEPOSIT_ROUTER_ID] noop
+[05:20:29.643] INFO (#1): [Web/FIRST_PULL_MAX_FEE_STROOPS] noop
+[05:20:29.643] INFO (#1): [Web/INVITE_CODES] noop
+[05:20:29.643] INFO (#1): [Web/INVITE_REQUIRED] noop
+[05:20:29.643] INFO (#1): [Web/MAX_FEE_STROOPS] noop
+[05:20:29.643] INFO (#1): [Web/MAX_GRANT_USDC] noop
+[05:20:29.643] INFO (#1): [Web/MAX_OWNER_PAYMENT_USDC] noop
+[05:20:29.643] INFO (#1): [Web/MAX_X402_PRICE_USDC] noop
+[05:20:29.643] INFO (#1): [Web/OAUTH_STORE] noop
+[05:20:29.643] INFO (#1): [Web/ONBOARD_ROUTER_ID] noop
+[05:20:29.643] INFO (#1): [Web/ORIGIN] noop
+[05:20:29.643] INFO (#1): [Web/OZ_FACILITATOR_KEY] noop
+[05:20:29.643] INFO (#1): [Web/PAYMENTS_ENABLED] noop
+[05:20:29.643] INFO (#1): [Web/PULL_MAX_FEE_STROOPS] noop
+[05:20:29.644] INFO (#1): [Web/RELAYER_SECRET] noop
+[05:20:29.644] INFO (#1): [Web/RELEASE] update
+[05:20:29.644] INFO (#1): [Web/RP_ID] noop
+[05:20:29.644] INFO (#1): [Web/SAMPLE_ENABLED] noop
+[05:20:29.644] INFO (#1): [Web/SAMPLE_RUNNER] noop
+[05:20:29.644] INFO (#1): [Web/STAGE] noop
+[05:20:29.644] INFO (#1): [Web/STELLAR_NETWORK] noop
+[05:20:29.644] INFO (#1): [Web/TREASURY_SECRET] noop
+[05:20:29.644] INFO (#1): [Web/VAULT_KEY] noop
+[05:20:29.644] INFO (#1): [Web/WALLET_DB] noop
+[05:20:29.644] INFO (#1): [Web/WALLET_OBJECT] noop

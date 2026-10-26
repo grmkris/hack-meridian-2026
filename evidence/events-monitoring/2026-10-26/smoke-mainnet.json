@@ -1,0 +1,71 @@
+{
+  "stage": "mainnet",
+  "origin": "https://trynod.si",
+  "at": "2026-10-26T04:21:22.952Z",
+  "release": "ddf2d2d7ae8643845d7920637313afa42d562104",
+  "checks": [
+    {
+      "name": "app shell",
+      "ok": true,
+      "status": 200,
+      "ms": 451,
+      "detail": "ok"
+    },
+    {
+      "name": "client route falls back to the app",
+      "ok": true,
+      "status": 200,
+      "ms": 331,
+      "detail": "ok"
+    },
+    {
+      "name": "health",
+      "ok": true,
+      "status": 200,
+      "ms": 1325,
+      "detail": "ok"
+    },
+    {
+      "name": "counter reads the contract",
+      "ok": false,
+      "status": 404,
+      "ms": 450,
+      "detail": "status 404: {\"_tag\":\"NotDeployed\",\"error\":\"No counter contract is configured on mainnet.\"}"
+    },
+    {
+      "name": "unknown API path is a 404",
+      "ok": true,
+      "status": 404,
+      "ms": 428,
+      "detail": "ok"
+    },
+    {
+      "name": "owner API needs a passkey session",
+      "ok": true,
+      "status": 401,
+      "ms": 323,
+      "detail": "ok"
+    },
+    {
+      "name": "MCP refuses an anonymous client and names its metadata",
+      "ok": true,
+      "status": 401,
+      "ms": 17,
+      "detail": "ok"
+    },
+    {
+      "name": "protected-resource metadata",
+      "ok": true,
+      "status": 200,
+      "ms": 9,
+      "detail": "ok"
+    },
+    {
+      "name": "authorization-server metadata (DCR, PKCE S256)",
+      "ok": true,
+      "status": 200,
+      "ms": 16,
+      "detail": "ok"
+    }
+  ]
+}

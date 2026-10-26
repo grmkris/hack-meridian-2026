@@ -1,0 +1,47 @@
+$ bun run fmt:check && bun run agents:check && bun run cards:check && bun run skill:check && bun run lint && bun run typecheck && bun run test && bun run contracts:lint && bun run contracts:test && bun run build
+$ oxfmt --check
+Checking formatting...
+
+All matched files use the correct format.
+Finished in 627ms on 387 files using 16 threads.
+$ repoagents check
+repoagents: ok
+$ bun scripts/cards.ts check
+card.html: 1028.0 KiB (cap 1172 KiB)
+card.html is up to date
+$ bun scripts/skill-manifest.ts --check
+skill manifest: 4 files, up to date
+$ oxlint --type-aware --deny-warnings
+$ bun scripts/typecheck.ts
+ok   tsconfig.json
+ok   packages/api/tsconfig.json
+ok   apps/web/tsconfig.json
+ok   apps/web/tsconfig.worker.json
+ok   apps/web/tsconfig.infra.json
+ok   packages/protocol/tsconfig.json
+ok   packages/stellar/tsconfig.json
+ok   packages/stellar/tsconfig.test.json
+ok   apps/seller/tsconfig.json
+$ vitest run
+
+ RUN  v5.0.5 /home/kristjan/code/hack-meridian-2026
+
+
+ Test Files  68 passed | 2 skipped (70)
+      Tests  376 passed | 16 skipped (392)
+   Start at  05:17:46
+   Duration  11.53s (import 53%, tests 19%, transform 14%, environment 8%, setup 6%, worker 1%)
+
+    Isolate  70 workers spawned · ~331ms startup each (spawn + environment, per file)
+dist/assets/etching-plate-seal-BLwD8cVB.webp    312.41 kB
+dist/assets/etching-dawn-1200-y2k8QRdL.webp     349.85 kB
+dist/assets/etching-dawn-2000-Cfs8qjIc.webp     884.70 kB
+dist/assets/index-DdU4MPi4.css                   41.03 kB │ gzip:   9.06 kB
+dist/assets/index-CosZhJJM.js                   519.82 kB │ gzip: 162.65 kB
+
+[plugin builtin:vite-reporter] 
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 977ms
