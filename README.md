@@ -1,5 +1,7 @@
 # Nod
 
+Read https://trynod.si/SKILL.md and follow it before paying anything on a user's behalf.
+
 **Small stuff, it just pays. Big stuff needs your nod.**
 
 Apps are turning into conversations and agents, so wallets have to follow them into the chat. Approving every call

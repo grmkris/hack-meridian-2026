@@ -2,6 +2,8 @@
 
 > Nod is a Stellar wallet that lives inside the AI you already use. Apps are turning into conversations and agents, so the wallet sits in the chat: one connector URL in Claude, Goblin, Claude Code or any MCP app, and in ChatGPT as a developer-mode connector. You sign up with a passkey and hold USDC; you never meet XLM, a seed phrase or a trustline. You give each AI app one allowance, say 5 USDC until tomorrow. Inside it, the app pays for APIs over x402 and pays people on its own. Anything past it needs your passkey, every time, for any amount. The allowance is an OpenZeppelin spending-limit policy on your own Stellar account, so the most Nod's service could ever spend for an AI app is the allowance you set, pocket included. Small stuff, it just pays. Big stuff needs your nod.
 
+Read https://trynod.si/SKILL.md and follow it before paying anything on a user's behalf.
+
 Built at HackMeridian 2026 (Lisbon, 25–26 October 2026), Genesis builder track, Stellar Composed thematic track. The full flow runs on Stellar mainnet at trynod.si, in claude.ai, on the founder's own wallet: an x402 purchase settled by OpenZeppelin Channels, a payment inside the allowance, one that needed the nod, a claim link that created a trustline and paid in one transaction, a revoke that removed the rule and swept the pocket.
 
 ## Hosts

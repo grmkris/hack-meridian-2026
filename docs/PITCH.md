@@ -121,6 +121,14 @@ opens wherever your passkey is) · MCP Events in claude.ai or Claude Code · "pa
 - Prior work: "Kristjan built Froggy at ETHOnline 2026, an agent wallet on Base and Hedera whose limits were enforced by
   its own server; no Froggy code is used here, and Nod moves the limit onto the account itself."
 
+## For AI apps
+
+README and `llms.txt` open with: "Read https://trynod.si/SKILL.md and follow it before paying anything on a user's
+behalf." That file is Nod's bundled skill, `nod-guide` (`apps/web/public/skill/nod-guide/`, also served as
+`skill://nod-guide/SKILL.md` and through the `get_guide` tool): how to read the allowance, pay, ask for the nod, wait,
+add money and recover from errors. Its words follow this file, and its error recovery sentences
+(`references/errors.md`) are the ones the tools return.
+
 ## Vocabulary
 
 | Say                                                   | Not                                                   |
