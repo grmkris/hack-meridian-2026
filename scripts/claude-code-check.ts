@@ -141,7 +141,10 @@ try {
   check(!/TOOL_ERROR|_meta|resourceUri|ui:\/\//u.test(answer.out), 'no tool error and no card metadata leaked')
 
   // Recipient memory and the guide: a raw address named Chris, then "send 0.02 to Chris" alone, then get_guide.
-  const holds = Number(/holds ([\d.]+) USDC/u.exec(answer.out)?.[1] ?? '0')
+  // The wallet balance is the first amount on the OVERVIEW line, however Claude words it: hosts that show the model
+  // structuredContent (Claude Code) never see the "holds … USDC" sentence, so the answer paraphrases it.
+  const overviewLine = /OVERVIEW[^\n]*/u.exec(answer.out)?.[0] ?? ''
+  const holds = Number(/([\d.]+) USDC/u.exec(overviewLine)?.[1] ?? '0')
   if (raw === undefined) skip('recipient memory: no --raw address for this target')
   else if (holds < 0.04) skip(`recipient memory: the new wallet holds ${holds} USDC, under the 0.04 it pays`)
   const pays = raw !== undefined && holds >= 0.04
