@@ -303,8 +303,10 @@ const LIVE_REFRESH = Duration.seconds(8)
 const isWatchingHome = (model: Model): boolean =>
   Session.guards.SignedIn(model.session) && AppRoute.isAnyOf(['Home'])(model.route)
 
-/** Expiry labels and a pending top-up share the clock; viewing an allowance must not freeze its expiry. */
-const isCountingTopup = (model: Model): boolean =>
+/** A pending top-up needs a second-by-second countdown; allowance expiry is refreshed less often below. */
+const isCountingTopup = (model: Model): boolean => isWatchingHome(model) && Home.isTopupWaiting(model.home)
+
+const isWatchingExpiry = (model: Model): boolean =>
   Session.guards.SignedIn(model.session) && AppRoute.isAnyOf(['Home', 'Connections'])(model.route)
 
 export const subscriptions = Subscription.make<Model, Message>()(entry => ({
@@ -319,6 +321,21 @@ export const subscriptions = Subscription.make<Model, Message>()(entry => ({
             Stream.map(nowMs => Message.TickedTopupClock({ nowMs })),
           ),
           Effect.sync(() => isCounting),
+        ),
+    },
+  ),
+  allowanceExpiry: entry(
+    { isWatching: Schema.Boolean },
+    {
+      modelToDependencies: model => ({ isWatching: isWatchingExpiry(model) }),
+      dependenciesToStream: ({ isWatching }) =>
+        Stream.when(
+          Stream.tick(Duration.seconds(10)).pipe(
+            Stream.drop(1),
+            Stream.mapEffect(() => Clock.currentTimeMillis),
+            Stream.map(nowMs => Message.TickedTopupClock({ nowMs })),
+          ),
+          Effect.sync(() => isWatching),
         ),
     },
   ),
