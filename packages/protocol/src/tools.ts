@@ -154,8 +154,10 @@ export const PaymentPrepareInput = Schema.Struct({
     description: 'A saved contact name or id, or a Stellar address (C…, G…, M…)',
   }),
   amount: DecimalAmount.annotate({ description: 'Decimal amount, e.g. "2" or "0.10" (7 decimals at most)' }),
-  asset: Schema.optionalKey(Asset),
-  memo: Schema.optionalKey(Schema.String.check(Schema.isMaxLength(28))),
+  asset: Schema.optionalKey(Asset).annotate({ description: 'Always USDC (the default)' }),
+  memo: Schema.optionalKey(Schema.String.check(Schema.isMaxLength(28))).annotate({
+    description: 'Leave out: Nod refuses a memo (it cannot pay exchange deposit addresses that need one yet)',
+  }),
   reason: Schema.optionalKey(Reason),
   idempotency_key: IdempotencyKey,
   recipient_name: Schema.optionalKey(Schema.String.check(Schema.isMinLength(1), Schema.isMaxLength(40))).annotate({
@@ -167,12 +169,18 @@ export type PaymentPrepareInput = typeof PaymentPrepareInput.Type
 export const PaymentPrepareOutput = PaymentView
 
 // 4. payment_execute
-export const PaymentExecuteInput = Schema.Struct({ payment_id: Schema.String, idempotency_key: IdempotencyKey })
+export const PaymentExecuteInput = Schema.Struct({
+  payment_id: Schema.String.annotate({ description: 'The payment_id payment_prepare (or request_pay) returned' }),
+  idempotency_key: IdempotencyKey,
+})
 export type PaymentExecuteInput = typeof PaymentExecuteInput.Type
 export const PaymentExecuteOutput = PaymentView
 
 // 5. payment_approve_url
-export const PaymentApproveUrlInput = Schema.Struct({ payment_id: Schema.String, idempotency_key: OptionalKey })
+export const PaymentApproveUrlInput = Schema.Struct({
+  payment_id: Schema.String.annotate({ description: 'The payment_id payment_prepare (or request_pay) returned' }),
+  idempotency_key: OptionalKey,
+})
 export const PaymentApproveUrlOutput = Schema.Struct({
   payment_id: Schema.String,
   status: IntentStatus,
@@ -182,12 +190,15 @@ export const PaymentApproveUrlOutput = Schema.Struct({
 })
 
 // 6. payment_status
-export const PaymentStatusInput = Schema.Struct({ payment_id: Schema.String, idempotency_key: OptionalKey })
+export const PaymentStatusInput = Schema.Struct({
+  payment_id: Schema.String.annotate({ description: 'The payment_id payment_prepare (or request_pay) returned' }),
+  idempotency_key: OptionalKey,
+})
 export const PaymentStatusOutput = PaymentView
 
 // 7. paid_resource_fetch
 export const PaidResourceFetchInput = Schema.Struct({
-  url: Schema.String.check(Schema.isPattern(/^https?:\/\//u)),
+  url: Schema.String.check(Schema.isPattern(/^https?:\/\//u)).annotate({ description: 'The http(s) URL to fetch' }),
   max_amount: Schema.optionalKey(DecimalAmount).annotate({
     description: 'Refuse to pay more than this for the resource (default: the grant remaining)',
   }),
@@ -226,10 +237,16 @@ export type PaidResourceFetchOutput = typeof PaidResourceFetchOutput.Type
 
 // 8. paid_mcp_call
 export const PaidMcpCallInput = Schema.Struct({
-  server_url: Schema.String.check(Schema.isPattern(/^https?:\/\//u)),
-  tool: Schema.String.check(Schema.isMinLength(1)),
-  arguments: Schema.optionalKey(Schema.Record(Schema.String, Schema.Unknown)),
-  max_amount: Schema.optionalKey(DecimalAmount),
+  server_url: Schema.String.check(Schema.isPattern(/^https?:\/\//u)).annotate({
+    description: "The paid MCP server's URL",
+  }),
+  tool: Schema.String.check(Schema.isMinLength(1)).annotate({ description: 'The tool to call on that server' }),
+  arguments: Schema.optionalKey(Schema.Record(Schema.String, Schema.Unknown)).annotate({
+    description: "That tool's arguments",
+  }),
+  max_amount: Schema.optionalKey(DecimalAmount).annotate({
+    description: 'Refuse to pay more than this for the call (default: the grant remaining)',
+  }),
   reason: Schema.optionalKey(Reason),
   idempotency_key: IdempotencyKey,
 })
@@ -251,8 +268,10 @@ export type PaidMcpCallOutput = typeof PaidMcpCallOutput.Type
 
 // 9. connection_grant_create
 export const ConnectionGrantCreateInput = Schema.Struct({
-  amount: Schema.optionalKey(DecimalAmount),
-  valid_for_hours: Schema.optionalKey(Schema.Int.check(Schema.isGreaterThan(0))),
+  amount: Schema.optionalKey(DecimalAmount).annotate({ description: 'The allowance to suggest, decimal USDC' }),
+  valid_for_hours: Schema.optionalKey(Schema.Int.check(Schema.isGreaterThan(0))).annotate({
+    description: 'How long the allowance should last, in hours',
+  }),
   nod_above_usdc: Schema.optionalKey(DecimalAmount).annotate({
     description:
       "The nod line to suggest: payments at or above it need the user's nod (default 1.00, at most the allowance)",
@@ -285,13 +304,15 @@ export const NodHomeInput = Schema.Struct({})
 export const NodHomeOutput = WalletOverviewOutput
 
 // 16–18. contact_add / contact_update / contact_remove: the user's contacts, changed by an AI app (marked as its)
-const ContactName = Schema.String.check(Schema.isMinLength(1), Schema.isMaxLength(40))
+const ContactName = Schema.String.check(Schema.isMinLength(1), Schema.isMaxLength(40)).annotate({
+  description: "The contact's name, as the user calls them",
+})
 const ContactAddress = Schema.String.check(Schema.isPattern(/^(?:[CG][A-Z2-7]{55}|M[A-Z2-7]{68})$/u)).annotate({
   description: 'A Stellar address: C… (a smart account, e.g. a Nod wallet), G… or M…',
 })
-const Aliases = Schema.Array(Schema.String.check(Schema.isMinLength(1), Schema.isMaxLength(40))).check(
-  Schema.isMaxLength(5),
-)
+const Aliases = Schema.Array(Schema.String.check(Schema.isMinLength(1), Schema.isMaxLength(40)))
+  .check(Schema.isMaxLength(5))
+  .annotate({ description: 'Other names for the contact (at most 5)' })
 const ContactRef = Schema.String.check(Schema.isMinLength(1)).annotate({
   description: 'The contact: its name, an alias, or its contact_id',
 })
@@ -413,7 +434,10 @@ export const WalletTopupQuoteOutput = Schema.Struct({
   message: Schema.String,
   grant_remaining: Schema.String,
 })
-export const WalletTopupStatusInput = Schema.Struct({ id: Schema.String, idempotency_key: OptionalKey })
+export const WalletTopupStatusInput = Schema.Struct({
+  id: Schema.String.annotate({ description: 'The id wallet_topup_quote returned' }),
+  idempotency_key: OptionalKey,
+})
 
 export const TOOL_NAMES = [
   'wallet_overview',

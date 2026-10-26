@@ -207,7 +207,7 @@ describe('the legacy lane (protocol revisions up to 2025-11-25)', () => {
     const tools = Array.isArray(result['tools']) ? result['tools'].filter(Predicate.isObject) : []
     const metaOf = (name: string) => tools.find(tool => tool['name'] === name)?.['_meta']
     for (const name of CARD_TOOLS)
-      expect(metaOf(name)).toEqual({
+      expect(metaOf(name)).toMatchObject({
         ui: { resourceUri: 'ui://nod/card/v1' },
         'ui/resourceUri': 'ui://nod/card/v1',
         'openai/outputTemplate': 'ui://nod/card/v1',

@@ -70,8 +70,12 @@ export const RequestCreateOutput = RequestView
 
 // requests_list
 export const RequestsListInput = Schema.Struct({
-  direction: Schema.optionalKey(Schema.Literals(['incoming', 'outgoing', 'all'])),
-  status: Schema.optionalKey(Schema.Literals(['open', 'paid', 'declined', 'expired', 'all'])),
+  direction: Schema.optionalKey(Schema.Literals(['incoming', 'outgoing', 'all'])).annotate({
+    description: 'incoming (asked of this wallet), outgoing (asked by it), or all (default)',
+  }),
+  status: Schema.optionalKey(Schema.Literals(['open', 'paid', 'declined', 'expired', 'all'])).annotate({
+    description: 'Only requests in this state (default all)',
+  }),
   idempotency_key: Schema.optionalKey(IdempotencyKey),
 })
 export type RequestsListInput = typeof RequestsListInput.Type
@@ -82,13 +86,19 @@ export const RequestsListOutput = Schema.Struct({
 export type RequestsListOutput = typeof RequestsListOutput.Type
 
 // request_pay
-export const RequestPayInput = Schema.Struct({ request_id: Schema.String, idempotency_key: IdempotencyKey })
+export const RequestPayInput = Schema.Struct({
+  request_id: Schema.String.annotate({ description: 'The incoming request to pay (requests_list)' }),
+  idempotency_key: IdempotencyKey,
+})
 export type RequestPayInput = typeof RequestPayInput.Type
 /** The payment it prepared (the Payment card renders it), with the request it pays. */
 export const RequestPayOutput = Schema.Struct({ ...PaymentView.fields, request_id: Schema.String })
 export type RequestPayOutput = typeof RequestPayOutput.Type
 
 // request_decline
-export const RequestDeclineInput = Schema.Struct({ request_id: Schema.String, idempotency_key: IdempotencyKey })
+export const RequestDeclineInput = Schema.Struct({
+  request_id: Schema.String.annotate({ description: 'The incoming request to decline (requests_list)' }),
+  idempotency_key: IdempotencyKey,
+})
 export type RequestDeclineInput = typeof RequestDeclineInput.Type
 export const RequestDeclineOutput = RequestView

@@ -18,7 +18,7 @@ import { sql, write } from './rows.ts'
 import { createContact, grantOfConnection } from './store.ts'
 import { BOB } from './test/seed.ts'
 import { CONNECTION, ORIGIN, OWNER, senderWorld } from './test/sender.ts'
-import { paymentExecute, paymentPrepare } from './tools.ts'
+import { contactsSearch, paymentExecute, paymentPrepare } from './tools.ts'
 
 /**
  * The tools after the first fifteen. The lane rule they bring: the first payment to an address an AI app saved
@@ -94,6 +94,28 @@ describe('the lane rule for contacts an AI app saved', () => {
       contactUpdate(w.ctx, { contact: 'Erin', name: 'Erin K', aliases: ['ek'], idempotency_key: 'erin-renamed' }),
     )
     expect(renamed.value.contact).toMatchObject({ name: 'Erin K', aliases: ['ek'] })
+  })
+})
+
+describe('contacts_search', () => {
+  test('an empty query lists contacts by most recent payment first, never paid last by name', async () => {
+    const w = await senderWorld()
+    for (const [name, address] of [
+      ['Zed', DAVE],
+      ['Amy', ERIN],
+      ['Bob', BOB],
+    ] as const)
+      await w.runtime.runPromise(
+        createContact({ ownerId: OWNER, displayName: name, aliases: [], address, memo: null, readiness: 'usdc_ready' }),
+      )
+    await w.runtime.runPromise(
+      write(
+        sql("UPDATE contact_destinations SET last_paid_at = '2026-10-25T20:00:00.000Z' WHERE address = ?", DAVE),
+        sql("UPDATE contact_destinations SET last_paid_at = '2026-10-25T21:00:00.000Z' WHERE address = ?", BOB),
+      ),
+    )
+    const listed = await w.runtime.runPromise(contactsSearch(w.ctx, ''))
+    expect(listed.value.contacts.map(contact => contact.name)).toEqual(['Bob', 'Zed', 'Amy'])
   })
 })
 

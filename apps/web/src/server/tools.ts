@@ -162,10 +162,25 @@ const contactView = (contact: Contact): ContactView => ({
   added_by: contact.added_by ?? null,
 })
 
+/** The latest last_paid_at over a contact's destinations ('' when never paid): ISO strings sort by time. */
+const lastPaidOf = (contact: Contact) =>
+  contact.destinations.reduce(
+    (latest, destination) =>
+      destination.last_paid_at !== null && destination.last_paid_at > latest ? destination.last_paid_at : latest,
+    '',
+  )
+
 export const contactsSearch = (ctx: ToolContext, query: string) =>
   Effect.gen(function* () {
     const { grant, nowMs } = yield* scope(ctx, false)
-    const contacts = yield* searchContacts(ctx.props.owner_id, query)
+    const found = yield* searchContacts(ctx.props.owner_id, query)
+    // An empty query lists everyone, most recently paid first (never paid last, by name).
+    const contacts =
+      query.trim() === ''
+        ? found.toSorted(
+            (a, b) => lastPaidOf(b).localeCompare(lastPaidOf(a)) || a.display_name.localeCompare(b.display_name),
+          )
+        : found
     return {
       sentence:
         contacts.length === 0
