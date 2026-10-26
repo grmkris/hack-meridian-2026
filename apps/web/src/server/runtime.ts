@@ -3,6 +3,7 @@ import { ConfigProvider, Effect, Layer, ManagedRuntime, Option, Redacted, Refere
 import { Chain, makeFixtureChain } from '@hm/protocol'
 import { stellarLayer } from '@hm/stellar'
 
+import { AlertStore } from './alerts.ts'
 import { backfilledDb } from './backfill.ts'
 import { Counter } from './counter.ts'
 import { Db, d1Engine } from './db.ts'
@@ -107,5 +108,15 @@ export const loggingLayer = (env: Pick<WorkerEnv, 'STAGE' | 'LOG_LEVEL'>) =>
     Layer.succeed(References.MinimumLogLevel, logLevelOf(env.LOG_LEVEL).effect),
   )
 
+/** The alerts' memory and tool-error counter in the OAuthStore Durable Object (alerts.ts, kv-shim.ts). */
+export const alertStore = (env: Pick<WorkerEnv, 'OAUTH_STORE'>) => {
+  const store = () => env.OAUTH_STORE.getByName('oauth')
+  return AlertStore.fromStore({
+    alertsSwap: async kinds => [...(await store().alertsSwap(kinds))],
+    toolErrorBump: async () => store().toolErrorBump(),
+    toolErrorCount: async sinceMs => store().toolErrorCount(sinceMs),
+  })
+}
+
 export const makeRuntime = (env: WorkerEnv, helpers: GrantHelpers): AppRuntime =>
-  ManagedRuntime.make(Layer.merge(appLayer(env, helpers), loggingLayer(env)))
+  ManagedRuntime.make(Layer.mergeAll(appLayer(env, helpers), loggingLayer(env), alertStore(env)))

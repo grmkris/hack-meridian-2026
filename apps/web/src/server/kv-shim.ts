@@ -38,6 +38,35 @@ export class OAuthStore extends DurableObject<object> {
     return result.admission
   }
 
+  /**
+   * The alerts' memory (alerts.ts): the kinds open since the last run, replaced with `kinds`; the previous set comes
+   * back so the caller reports only the new ones. Not part of the KV shim.
+   */
+  alertsSwap(kinds: ReadonlyArray<string>): ReadonlyArray<string> {
+    const row = this.ctx.storage.sql.exec<{ v: string }>('SELECT v FROM caps WHERE k = ?', 'alerts-open').toArray()[0]
+    this.ctx.storage.sql.exec('INSERT OR REPLACE INTO caps (k, v) VALUES (?, ?)', 'alerts-open', JSON.stringify(kinds))
+    const previous: unknown = row === undefined ? [] : JSON.parse(row.v)
+    return Array.isArray(previous) ? previous.filter((kind): kind is string => typeof kind === 'string') : []
+  }
+
+  /** One unexpected tool error now (mcp-tools.ts); the log keeps the last hour. */
+  toolErrorBump(): void {
+    const now = Date.now()
+    const kept = [...this.toolErrorLog().filter(at => at > now - 3_600_000), now]
+    this.ctx.storage.sql.exec('INSERT OR REPLACE INTO caps (k, v) VALUES (?, ?)', 'tool-errors', JSON.stringify(kept))
+  }
+
+  /** Unexpected tool errors since `sinceMs` (the alerts' last-10-minutes count). */
+  toolErrorCount(sinceMs: number): number {
+    return this.toolErrorLog().filter(at => at >= sinceMs).length
+  }
+
+  private toolErrorLog(): Array<number> {
+    const row = this.ctx.storage.sql.exec<{ v: string }>('SELECT v FROM caps WHERE k = ?', 'tool-errors').toArray()[0]
+    const log: unknown = row === undefined ? [] : JSON.parse(row.v)
+    return Array.isArray(log) ? log.filter((at): at is number => typeof at === 'number') : []
+  }
+
   kvGet(key: string): string | null {
     const now = Math.floor(Date.now() / 1000)
     const rows = this.ctx.storage.sql

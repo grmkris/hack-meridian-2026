@@ -64,6 +64,8 @@ const SECRETS = [
   'OZ_FACILITATOR_KEY',
   'DEMO_RECIPIENT_SECRET',
   'INVITE_CODES',
+  // Where new alerts are POSTed as JSON { stage, kind, text, at } (src/server/alerts.ts); unset = logged only.
+  'ALERT_WEBHOOK_URL',
 ] as const
 /**
  * Switches with their defaults per stage ('' = unset: the chain package's network preset decides). CHAIN picks the
@@ -94,6 +96,9 @@ const switchesFor = (stage: string): Record<string, string> => ({
   DEPOSIT_ROUTER_ID: '',
   // The claim page's server-side demo signer off testnet ('' = testnet only); .env.mainnet sets it for our own Carol.
   DEMO_CLAIM_SIGNER: '',
+  // Alert floors over the network's (src/server/alerts.ts); '' = the network decides. A local stage forces an alert.
+  ALERT_TREASURY_FLOOR_USDC: '',
+  ALERT_RELAYER_FLOOR_XLM: '',
   // Structured logs (src/server/observe): the lowest level written, Debug | Info | Warn | Error; '' = Info.
   LOG_LEVEL: stage === 'local' ? 'Warn' : '',
   // New wallets start with the demo contacts: '' = testnet only; 'true' in .env.mainnet for a recording wallet.
@@ -224,6 +229,8 @@ export default Alchemy.Stack(
       // everything else to the static assets (src/worker.ts). Worker-first everywhere lets the canonical-origin redirect
       // (src/server/canonical.ts) cover the landing and the client routes too, so an alias host never serves the app.
       assets: { runWorkerFirst: ['/*'] },
+      // The liveness checks every 10 minutes on the deployed stages (worker.ts scheduled, src/server/alerts.ts).
+      crons: stage === 'local' ? [] : ['*/10 * * * *'],
       dev: { port: 18960, strictPort: true },
       memo: { include: BUILD_INPUTS, lockfile: true },
       env: {

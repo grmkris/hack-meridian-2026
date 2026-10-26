@@ -1,8 +1,9 @@
 import { env } from 'cloudflare:workers'
-import { Layer } from 'effect'
+import { Effect, Layer } from 'effect'
 
 import { getOAuthApi, type OAuthHelpers } from '@cloudflare/workers-oauth-provider'
 
+import { alertParams, logScheduledFailure, runAlerts } from './server/alerts.ts'
 import { makeApiHandler } from './server/app.ts'
 import { canonicalRedirect } from './server/canonical.ts'
 import { durableKv } from './server/kv-shim.ts'
@@ -10,10 +11,11 @@ import { authorize, OAuthProvider, prepareGrant, providerOptions, serveMcpReques
 import { elapsedMs, requestContext, routeLabel } from './server/observe/context.ts'
 import { logEvent, logLevelOf } from './server/observe/log.ts'
 import { ownerRoute } from './server/routes.ts'
-import { makeRuntime, type WorkerEnv } from './server/runtime.ts'
+import { alertStore, makeRuntime, type WorkerEnv } from './server/runtime.ts'
 import { sampleRoute } from './server/sample/route.ts'
 import type { SampleEnv } from './server/sample/runner-object.ts'
 import { STELLAR_TOML_PATH, stellarToml } from './server/stellar-toml.ts'
+import { stringBindings } from './server/wallet-settings.ts'
 
 export { OAuthStore } from './server/kv-shim.ts'
 export { SampleRunner } from './server/sample/runner-object.ts'
@@ -110,6 +112,10 @@ const ROUTES = [
   '/sitemap.xml',
 ]
 
+/** An alert POST (alerts.ts) to ALERT_WEBHOOK_URL. */
+const postAlert = (url: string, body: string) =>
+  fetch(url, { method: 'POST', headers: { 'content-type': 'application/json' }, body })
+
 /** The response with `x-nod-ref` (the request id every log line of this request carries), headers copied. */
 const withRef = (response: Response, requestId: string) => {
   const headers = new Headers(response.headers)
@@ -143,5 +149,15 @@ export default {
         },
       )
     }
+  },
+  /** Every 10 minutes (alchemy.run.ts crons): the liveness checks; new alerts are logged and POSTed (alerts.ts). */
+  scheduled(_controller, requestEnv, ctx) {
+    const params = alertParams(stringBindings(requestEnv))
+    ctx.waitUntil(
+      runtime.runPromise(runAlerts(params, postAlert).pipe(Effect.provide(alertStore(requestEnv)))).then(
+        () => undefined,
+        (error: unknown) => logScheduledFailure(params.stage, error),
+      ),
+    )
   },
 } satisfies ExportedHandler<WorkerEnv>
