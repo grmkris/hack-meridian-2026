@@ -8,7 +8,6 @@ import {
   ContactRemoveInput,
   ContactsSearchInput,
   ContactUpdateInput,
-  GetGuideInput,
   NodHomeInput,
   PaidMcpCallInput,
   PaidResourceFetchInput,
@@ -40,9 +39,9 @@ import {
 import type { DbError } from './db.ts'
 import type { LedgerError } from './ledger.ts'
 import { CARD_URI, homeMeta, renderMeta } from './mcp-apps.ts'
+import { observeToolCall, type ToolOutcome } from './observe/tool-call.ts'
 import { requestCreate, requestDecline, requestPay, requestsList } from './requests.ts'
 import type { AppRuntime, AppServices } from './runtime.ts'
-import { getGuide } from './skill.ts'
 import { errorBody, type ToolError, toolError } from './tool-errors.ts'
 import {
   asToolError,
@@ -306,14 +305,6 @@ const TOOLS = [
     { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
     (ctx, args) => walletTopupStatus(ctx, args.id),
   ),
-  spec(
-    'get_guide',
-    'Nod guide',
-    "Get Nod's guide (skill://nod-guide/SKILL.md): how to pay inside the allowance, ask for the user's nod past it, wait, and recover from each error code without paying twice. Read it once before paying anything for the user if the host has not attached it.",
-    GetGuideInput,
-    { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
-    ctx => getGuide(ctx),
-  ),
 ]
 
 /** JSON Schema of a tool input, as MCP lists it. */
@@ -342,30 +333,65 @@ export interface ToolRunResult {
   readonly value: unknown
 }
 
-export const runTool = (runtime: AppRuntime, ctx: ToolContext, name: string, args: unknown): Promise<ToolRunResult> => {
+/**
+ * One tool call, the single path for both MCP lanes: decode, run, and map the outcome to the wire (a value, an
+ * expected refusal with its code, or an unexpected failure). Each call writes one `mcp.tool` line (observe/tool-call.ts)
+ * and, when the Worker gave the request an id (`requestId`, set by oauth.ts), returns it in the result's `_meta`.
+ */
+export const runTool = (
+  runtime: AppRuntime,
+  ctx: ToolContext & { readonly requestId?: string | undefined },
+  name: string,
+  args: unknown,
+): Promise<ToolRunResult> => {
   const tool = TOOLS.find(candidate => candidate.name === name)
+  const scope = { tool: tool === undefined ? 'unknown' : tool.name, caller: ctx, args }
   if (tool === undefined)
-    return Promise.resolve({
-      result: errorResult(
-        toolError('not_found', `Unknown tool ${name}.`, { recovery: 'Call tools/list and use a tool name from it.' }),
+    return runtime.runPromise(
+      observeToolCall(
+        scope,
+        Effect.succeed({
+          run: {
+            result: errorResult(
+              toolError('not_found', `Unknown tool ${name}.`, {
+                recovery: 'Call tools/list and use a tool name from it.',
+              }),
+            ),
+            value: undefined,
+          },
+          ended: { outcome: 'expected', code: 'not_found' } satisfies ToolOutcome,
+        }),
       ),
-      value: undefined,
-    })
+    )
   const program = Schema.decodeUnknownEffect(tool.input)(args ?? {}).pipe(
     Effect.mapError(error => toolError('invalid_input', `Invalid arguments for ${name}: ${error.message}`)),
     Effect.flatMap(decoded => tool.run(ctx, decoded)),
   )
   return runtime.runPromise(
-    asToolError(program).pipe(
-      Effect.map((ran): ToolRunResult => ({ result: resultOf(ran), value: ran.value })),
-      Effect.catchTag('ToolError', error => Effect.succeed({ result: errorResult(error), value: undefined })),
-      Effect.catchCause(cause =>
-        Effect.as(Effect.logError('tool failed', name, cause), {
-          result: errorResult(
-            toolError('upstream_unavailable', `${name} failed unexpectedly; retry with the same idempotency key.`),
-          ),
-          value: undefined,
-        }),
+    observeToolCall(
+      scope,
+      asToolError(program).pipe(
+        Effect.map(ran => ({
+          run: { result: resultOf(ran), value: ran.value } satisfies ToolRunResult,
+          ended: { outcome: 'ok', value: ran.value } satisfies ToolOutcome,
+        })),
+        Effect.catchTag('ToolError', error =>
+          Effect.succeed({
+            run: { result: errorResult(error), value: undefined } satisfies ToolRunResult,
+            ended: { outcome: 'expected', code: error.code } satisfies ToolOutcome,
+          }),
+        ),
+        Effect.catchCause(cause =>
+          Effect.succeed({
+            run: {
+              result: errorResult(
+                toolError('upstream_unavailable', `${name} failed unexpectedly; retry with the same idempotency key.`),
+              ),
+              value: undefined,
+            } satisfies ToolRunResult,
+            ended: { outcome: 'unexpected', cause } satisfies ToolOutcome,
+          }),
+        ),
       ),
     ),
   )

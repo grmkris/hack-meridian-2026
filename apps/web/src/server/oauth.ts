@@ -15,6 +15,7 @@ import { isoIn, nowIso, nowMillis, randomId } from './clock.ts'
 import { activateWallet } from './deposit.ts'
 import { serveMcp } from './mcp.ts'
 import { inviteRequired, Network } from './network.ts'
+import { requestContext } from './observe/context.ts'
 import { logFailure } from './observe/log.ts'
 import { OwnerError, checkAssertion, requireWallet, walletOfSession, sessionToken } from './owner.ts'
 import { type Chrome, consentGrantPage, consentSignInPage, html, messagePage, type ConsentView } from './pages.ts'
@@ -338,17 +339,15 @@ export const serveMcpRequest = async (
     if (props._tag === 'None')
       return Response.json({ error: 'this token predates the current wallet; reconnect' }, { status: 401 })
     const site = await runtime.runPromise(siteOf(request))
-    return serveMcp(
-      runtime,
-      request,
-      { props: props.value, origin: site.origin },
-      {
-        token: ctx.auth.token,
-        clientId: ctx.auth.clientId ?? props.value.client_id,
-        scopes: ctx.auth.scope,
-        ...(ctx.auth.expiresAt === undefined ? {} : { expiresAt: ctx.auth.expiresAt }),
-      },
-    )
+    // The Worker's request id (worker.ts gave this Request object its context): every mcp.tool line and each tool
+    // result's _meta carry it (mcp-tools.ts runTool reads it from the context).
+    const toolContext = { props: props.value, origin: site.origin, requestId: requestContext(request).requestId }
+    return serveMcp(runtime, request, toolContext, {
+      token: ctx.auth.token,
+      clientId: ctx.auth.clientId ?? props.value.client_id,
+      scopes: ctx.auth.scope,
+      ...(ctx.auth.expiresAt === undefined ? {} : { expiresAt: ctx.auth.expiresAt }),
+    })
   }
 }
 
