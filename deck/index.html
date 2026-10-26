@@ -6,7 +6,7 @@
     <title>Nod Deck</title>
     <meta
       name="description"
-      content="Nod: a Stellar wallet your AI spends from inside an onchain allowance. HackMeridian 2026, Stellar Composed."
+      content="Nod: a Stellar wallet that lives inside your AI. HackMeridian 2026, Stellar Composed."
     />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -188,6 +188,7 @@
       .num {
         font-family: var(--mono);
         font-size: 22px;
+        display: none;
       }
       .body {
         min-height: 0;
@@ -937,7 +938,7 @@
             ><span class="right">HackMeridian 2026 · Genesis · Stellar Composed</span>
           </header>
           <div class="hero">
-            <h1>Give your AI an allowance.</h1>
+            <h1>The wallet that lives inside your AI.</h1>
             <p class="tag"><b>Small stuff, it just pays.</b> Big stuff needs your nod.</p>
             <div class="live">
               <span class="pill mainnet">Live on Stellar mainnet</span>
@@ -972,31 +973,30 @@
         <section class="slide problem">
           <header>
             <div class="eyebrow">Why Nod</div>
-            <h2>Apps are becoming conversations. Wallets have to follow.</h2>
+            <h2>Your AI can do the work. Paying is still awkward.</h2>
           </header>
           <div class="body">
             <div class="card option">
-              <span class="x">Approve every call</span>
-              <h3>The agent stops at every checkout.</h3>
-              <p>A paid API call or paying a friend back waits for you, so the AI is no longer doing the task.</p>
+              <span class="x">Constant interruptions</span>
+              <h3>Every payment sends the task back to you.</h3>
+              <p>
+                A paid API result or a payment to a friend means leaving the conversation to finish the job yourself.
+              </p>
             </div>
             <div class="card option">
-              <span class="x">Hand over the balance</span>
-              <h3>A card or a key gives it everything.</h3>
-              <p>No limit and no expiry, and nobody trusts an AI with the whole balance.</p>
+              <span class="x">Too much access</span>
+              <h3>A private key gives the AI access to your money.</h3>
+              <p>You need a way to let it spend without trusting it with your whole balance.</p>
             </div>
             <blockquote>
-              <q>One allowance per AI app, on your own Stellar account. Inside it, it pays. Past it, your passkey.</q>
-              <cite
-                >Nod's answer, in the chat where the AI already works: cards with MCP Apps, notices with MCP
-                Events</cite
-              >
+              <q>Set what your AI can spend. It asks for your passkey when it needs more.</q>
+              <cite>Nod puts the wallet in your chat. Stellar enforces the spending permission on your account.</cite>
             </blockquote>
           </div>
           <footer class="foot">
             <span class="left"
               ><span class="mark">nod</span><span class="pill mainnet">Stellar mainnet</span
-              ><span>"There is no policy layer for x402 on Stellar today." Stellar developer docs</span></span
+              ><span>USDC payments through the AI you already use</span></span
             >
             <span class="num">02</span>
           </footer>
@@ -1007,14 +1007,14 @@
         <section class="slide lanes">
           <header>
             <div class="eyebrow">The product</div>
-            <h2>One number. Inside it, it pays. Past it, it asks.</h2>
+            <h2>Ask Claude to make a payment.</h2>
           </header>
           <div class="body">
             <div class="card ask">
-              <span class="who">You set one number</span>
+              <span class="who">Connect your wallet</span>
               <p>
-                Add Nod to Claude, or any MCP app, with one URL. Each AI app gets one allowance on your Stellar account:
-                5 USDC until tomorrow.
+                Add Nod to Claude with its connector URL. Choose what it can spend and when that permission expires. For
+                this example: 5 USDC until tomorrow.
               </p>
             </div>
             <svg class="arrows" viewBox="0 0 120 600" preserveAspectRatio="none" aria-hidden="true">
@@ -1022,17 +1022,18 @@
               <path d="M0 300 C 60 300, 60 450, 120 450" fill="none" stroke="#995600" stroke-width="5" />
             </svg>
             <div class="card lane in">
-              <h3>Inside the allowance, it just pays.</h3>
+              <h3>Small payments go through.</h3>
               <p class="how">
-                Paid APIs over x402 and people by name. Claude's own key signs; the account checks the limit.
+                Claude pays for an API result or sends USDC to Alice. Its key signs the payment, and your account checks
+                the allowance.
               </p>
               <div class="ex"><span>0.10 · market brief</span><span>2.00 · Alice → 2.90 left</span></div>
             </div>
             <div class="card lane over">
-              <h3>Past it, your nod. Every time.</h3>
+              <h3>This payment needs you.</h3>
               <p class="how">
-                Claude hands you a link. You see who, how much and which app asked; your passkey signs that payment, any
-                amount.
+                Claude opens an approval link with the recipient and amount. Your passkey signs that payment on Nod. It
+                does not use the remaining allowance.
               </p>
               <div class="ex"><span>5.00 · Bob, dinner</span><span class="nod">passkey → paid</span></div>
             </div>
@@ -1040,7 +1041,7 @@
           <footer class="foot">
             <span class="left"
               ><span class="mark">nod</span><span class="pill mainnet">Stellar mainnet</span
-              ><span>The same beats ran on mainnet in claude.ai and on testnet in the rehearsal</span></span
+              ><span>This flow was tested in claude.ai on Stellar mainnet</span></span
             >
             <span class="num">03</span>
           </footer>
@@ -1050,8 +1051,8 @@
       <div class="frame">
         <section class="slide demo">
           <header>
-            <div class="eyebrow">Product design · in real hosts</div>
-            <h2>In the chat: claude.ai, ChatGPT and Goblin.</h2>
+            <div class="eyebrow">In the conversation</div>
+            <h2>Your wallet is right there in the chat.</h2>
           </header>
           <div class="body">
             <figure class="shot host" style="margin: 0">
@@ -1061,7 +1062,7 @@
                   alt="claude.ai showing Nod's wallet card: 5.00 USDC allowance left"
                 />
               </div>
-              <figcaption class="cap">claude.ai: Nod's wallet card, with the one number Claude may spend</figcaption>
+              <figcaption class="cap">Claude shows your wallet and what it can spend</figcaption>
             </figure>
             <figure class="shot host" style="margin: 0">
               <div class="img" style="background: #181818">
@@ -1070,7 +1071,7 @@
                   alt="claude.ai: Nod wants to open a URL, the approval link for 4.00 USDC to Bob"
                 />
               </div>
-              <figcaption class="cap">claude.ai: past the allowance, the nod is claude.ai's own URL request</figcaption>
+              <figcaption class="cap">Claude opens Nod when a payment needs approval</figcaption>
             </figure>
             <figure class="shot host" style="margin: 0">
               <div class="img" style="background: #0e0e0e">
@@ -1079,7 +1080,7 @@
                   alt="ChatGPT showing Nod's card waiting for the nod on 6 USDC to Bob"
                 />
               </div>
-              <figcaption class="cap">ChatGPT, developer-mode connector: the card waits for your passkey</figcaption>
+              <figcaption class="cap">ChatGPT developer-mode connector: waiting for passkey approval</figcaption>
             </figure>
             <figure class="shot host" style="margin: 0">
               <div class="img" style="background: #16151a">
@@ -1088,7 +1089,7 @@
                   alt="Goblin showing Nod's wallet card and a notice that 1 USDC arrived"
                 />
               </div>
-              <figcaption class="cap">Goblin: the card, and Nod's notice when money arrives (MCP Events)</figcaption>
+              <figcaption class="cap">Goblin receives a notification when money arrives (MCP Events)</figcaption>
             </figure>
           </div>
           <footer class="foot">
@@ -1107,7 +1108,7 @@
       <div class="frame">
         <section class="slide tech">
           <header>
-            <div class="eyebrow">Technical execution</div>
+            <div class="eyebrow">How it works</div>
             <h2>The limit lives on your Stellar account.</h2>
           </header>
           <div class="body">
@@ -1141,7 +1142,7 @@
             </div>
             <div class="proofs">
               <div class="proof">
-                <span class="claim">A 5.00 allowance spends exactly 5.00. One stroop more is rejected.</span>
+                <span class="claim">An allowance of 5 USDC permits exactly 5. One stroop more is rejected.</span>
                 <a
                   class="tx"
                   href="https://stellar.expert/explorer/testnet/tx/c0f6f923936b7dc4d716454ba3e3d3f43f21ddcf353e49e3e083d054bf5f9c57"
@@ -1159,9 +1160,7 @@
                 <span class="note">testnet, error #3221, spending limit exceeded</span>
               </div>
               <div class="proof">
-                <span class="claim"
-                  >Past the allowance, the passkey signs the payment. The allowance is untouched.</span
-                >
+                <span class="claim">A passkey approves a payment beyond the allowance without changing it.</span>
                 <a
                   class="tx"
                   href="https://stellar.expert/explorer/public/tx/0339b8dd088b46d500de425d0afe8707ff6922186ef70070396323f2d3312e4f"
@@ -1180,7 +1179,7 @@
               </div>
               <div class="proof">
                 <span class="claim">Nod pays every network fee. The owner holds 0 XLM.</span>
-                <span class="tx" style="color: var(--muted)">0.001–0.05 XLM</span>
+                <span class="tx" style="color: var(--muted)">0.001 to 0.05 XLM</span>
                 <span class="note">per payment on mainnet, relayer as source</span>
               </div>
             </div>
@@ -1198,24 +1197,30 @@
       <div class="frame">
         <section class="slide composed">
           <header>
-            <div class="eyebrow">Track alignment · Stellar Composed</div>
-            <h2>Nine building blocks, one wallet.</h2>
+            <div class="eyebrow">Built on Stellar</div>
+            <h2>Stellar handles the permissions and payments.</h2>
           </header>
           <div class="body">
             <div class="grid9">
-              <div><b>OpenZeppelin smart account</b><span>One contract account per wallet</span></div>
-              <div><b>OpenZeppelin spending-limit policy</b><span>The allowance, N USDC until T</span></div>
+              <div><b>OpenZeppelin smart account</b><span>Each wallet has its own contract account</span></div>
+              <div>
+                <b>OpenZeppelin spending-limit policy</b
+                ><span>The amount an app can spend before its permission expires</span>
+              </div>
               <div><b>Passkeys</b><span>WebAuthn verifier on the secp256r1 host function</span></div>
               <div><b>Circle USDC</b><span>Through the Stellar Asset Contract</span></div>
               <div>
                 <b>x402 facilitators</b
-                ><span>x402.org and OpenZeppelin Channels, never ours; paid Stellar's own demo seller on mainnet</span>
+                ><span
+                  >Public settlement through x402.org and OpenZeppelin Channels; tested with Stellar's mainnet demo
+                  seller</span
+                >
               </div>
               <div><b>MCP Apps and Events</b><span>Cards in the chat, notices by webhook, OAuth connector</span></div>
               <div><b>SAC trust (CAP-73)</b><span>Trustline and payment in one transaction</span></div>
               <div>
                 <b>Deposit router</b
-                ><span>SAC approve: a G… any exchange can pay, swept into the wallet; live on mainnet</span>
+                ><span>SAC approve: a Stellar deposit address that sweeps USDC into the wallet; live on mainnet</span>
               </div>
               <div><b>Sponsored reserves</b><span>Pockets hold no XLM; relayers pay every fee</span></div>
             </div>
@@ -1225,7 +1230,7 @@
                   >Agents that spend: Give an agent a wallet … set its limits with OpenZeppelin's policy library, and
                   let it pay for APIs in stablecoins … over x402 or MPP.</q
                 >
-                <cite>Stellar Composed, first idea</cite>
+                <cite>Stellar Composed: agents that spend</cite>
               </blockquote>
               <blockquote>
                 <q>No seed phrases, no gas, no jargon. Spending limits … live in the wallet.</q>
@@ -1243,16 +1248,16 @@
       <div class="frame">
         <section class="slide new">
           <header>
-            <div class="eyebrow">Innovation</div>
-            <h2>Four ideas behind Nod.</h2>
+            <div class="eyebrow">What we had to solve</div>
+            <h2>Getting from a chat request to a payment.</h2>
           </header>
           <div class="body">
             <div class="card idea">
               <span class="n">The pocket model</span>
-              <h3>A smart account pays any x402 seller today.</h3>
+              <h3>Paying through existing x402 facilitators.</h3>
               <p>
-                Hosted facilitators reject smart accounts. Claude's key fills its own small account under the policy, in
-                1 USDC steps, then pays.
+                Hosted facilitators do not yet accept smart-account payers. Claude's key funds a small pocket under the
+                account policy, in 1 USDC steps, then pays a compatible Stellar x402 seller.
               </p>
               <div class="flow">
                 <span>your account</span><i>→ policy →</i><span>pocket</span><i>→ stock x402 client →</i
@@ -1260,25 +1265,28 @@
               </div>
             </div>
             <div class="card idea">
-              <span class="n">One number at connect</span>
-              <h3>Connecting an AI app installs its allowance onchain.</h3>
+              <span class="n">Permission to spend</span>
+              <h3>Your passkey sets the allowance.</h3>
               <p>
-                The consent page asks one number and your passkey writes it to the account. One rule, expiry and revoke
-                per app.
+                You choose an amount and expiry when connecting the app. Your passkey installs its rule on the account,
+                and you can revoke that app later.
               </p>
             </div>
             <div class="card idea">
-              <span class="n nod">Ask, don't reject</span>
-              <h3>Past the allowance, a passkey approval.</h3>
+              <span class="n nod">Approval</span>
+              <h3>You can still approve a larger payment.</h3>
               <p>
-                Most agent wallets just block it. Nod hands Claude a link, and your passkey signs that recipient and
-                amount, on Nod's page, never in the chat.
+                Nod gives Claude an approval link. You see the recipient and amount on Nod's page, where your passkey
+                signs the transaction.
               </p>
             </div>
             <div class="card idea">
               <span class="n">Claim link</span>
-              <h3>Pays people who have never held USDC.</h3>
-              <p>Carol accepts once. The USDC contract's trust function and the transfer run in one transaction.</p>
+              <h3>The recipient can start with a link.</h3>
+              <p>
+                Carol has a Stellar account but no USDC trustline. She accepts the link, and the trustline and payment
+                settle together.
+              </p>
             </div>
           </div>
           <footer class="foot">
@@ -1289,72 +1297,45 @@
       </div>
 
       <div class="frame">
-        <section class="slide progress">
+        <section class="slide market">
           <header>
-            <div class="eyebrow">Hackathon progress · 25 October, UTC</div>
-            <h2>Built in one day, live on mainnet by evening.</h2>
+            <div class="eyebrow">Built at HackMeridian</div>
+            <h2>I tested the wallet with my own money.</h2>
           </header>
           <div class="body">
-            <div class="timeline five">
-              <div class="tick done">
-                <span class="dot"></span><span class="t">10:55</span
-                ><span class="d">Research, pinned versions, live probes</span>
-              </div>
-              <div class="tick done">
-                <span class="dot"></span><span class="t">11:25</span
-                ><span class="d">Spec and five spikes, each proven on testnet</span>
-              </div>
-              <div class="tick done">
-                <span class="dot"></span><span class="t">12:15</span
-                ><span class="d">Four build streams on one main branch</span>
-              </div>
-              <div class="tick done">
-                <span class="dot"></span><span class="t">13:38</span
-                ><span class="d">First end-to-end run on the real chain</span>
-              </div>
-              <div class="tick done">
-                <span class="dot"></span><span class="t">14:30</span
-                ><span class="d">Live on testnet with a public URL</span>
-              </div>
+            <div class="point">
+              <h3>Started with the difficult parts</h3>
+              <p>
+                Before building the app, I used testnet spikes to check passkeys, account policies and x402 settlement.
+                The tests and transaction records are in the repository.
+              </p>
             </div>
-            <div class="timeline five">
-              <div class="tick done">
-                <span class="dot"></span><span class="t">17:30</span
-                ><span class="d">The sandbox moves to testnet.trynod.si</span>
-              </div>
-              <div class="tick done">
-                <span class="dot"></span><span class="t">18:00</span
-                ><span class="d">Live in Goblin: cards, the nod, events</span>
-              </div>
-              <div class="tick done">
-                <span class="dot"></span><span class="t">18:05</span><span class="d">Mainnet live at trynod.si</span>
-              </div>
-              <div class="tick done">
-                <span class="dot"></span><span class="t">18:45</span
-                ><span class="d">claude.ai: the card and the nod</span>
-              </div>
-              <div class="tick done">
-                <span class="dot"></span><span class="t">18:55</span
-                ><span class="d">The full flow on mainnet, in claude.ai</span>
-              </div>
+            <div class="point ready">
+              <h3>Ran the flow on mainnet</h3>
+              <p>
+                In claude.ai, I bought an API result, paid Alice, approved Bob's payment and sent Carol a claim link.
+                Revoking the connection removed its rule and returned the pocket balance.
+              </p>
             </div>
-            <div class="stats">
-              <div class="stat">
-                <span class="big">270+</span><span class="lbl">commits, all on main, from 25 October</span>
-              </div>
-              <div class="stat">
-                <span class="big">8</span><span class="lbl">mainnet transactions in the claude.ai run</span>
-              </div>
-              <div class="stat">
-                <span class="big">3</span><span class="lbl">hosts drawing Nod's cards: claude.ai, ChatGPT, Goblin</span>
-              </div>
-              <div class="stat"><span class="big">0</span><span class="lbl">facilitators of our own</span></div>
+            <div class="point">
+              <h3>Checked it in the apps people use</h3>
+              <p>
+                The wallet cards and approval links ran in Claude, ChatGPT developer mode and Goblin. Goblin and ChatGPT
+                also received payment notifications.
+              </p>
+            </div>
+            <div class="point">
+              <h3>Kept settlement interoperable</h3>
+              <p>
+                Public facilitators settled the x402 payments. Claude also paid Stellar's own mainnet demo endpoint, a
+                seller I do not operate.
+              </p>
             </div>
           </div>
           <footer class="foot">
             <span class="left"
-              ><span class="mark">nod</span><span class="pill mainnet">Stellar mainnet</span
-              ><span>Commit history, spikes and evidence are in the repository</span></span
+              ><span class="mark">nod</span><span class="pill mainnet">Stellar mainnet</span>
+              <span>Built on 25 October 2026. Code, test runs and explorer receipts are in the repository.</span></span
             >
             <span class="num">08</span>
           </footer>
@@ -1365,14 +1346,14 @@
         <section class="slide market">
           <header>
             <div class="eyebrow">Market and ecosystem</div>
-            <h2>Every AI app is a door.</h2>
+            <h2>Reach people through the AI they already use.</h2>
           </header>
           <div class="body">
             <div class="point">
-              <h3>Distribution through MCP</h3>
+              <h3>Connect from your AI app</h3>
               <p>
-                Any MCP app connects with one URL: Claude and Goblin today, ChatGPT as a developer-mode connector. Its
-                app store bars crypto transfers for now.
+                Nod connects over MCP. We tested it in Claude and Goblin, and in ChatGPT through developer mode. It is
+                not listed in the ChatGPT app store.
               </p>
             </div>
             <div class="point">
@@ -1383,18 +1364,17 @@
               </p>
             </div>
             <div class="point">
-              <h3>Every payment can onboard someone</h3>
+              <h3>A payment brings the recipient in</h3>
               <p>
-                Someone who has never held USDC gets a link and creates a wallet with a passkey. Past the allowance, the
-                link is an allowance for that one person: exactly the amount, seven days, its key only in the link (live
-                on testnet).
+                On testnet, a recipient can open a link and create a passkey wallet. For a payment beyond the allowance,
+                you approve a rule for that amount, valid seven days. Its key lives only in the link.
               </p>
             </div>
             <div class="point ready">
               <h3>Live on mainnet</h3>
               <p>
-                The full flow ran in claude.ai on the founder's own wallet. Open to anyone, USDC only: fund it from any
-                exchange or wallet through a deposit address. A payment costs Nod 0.001–0.05 XLM.
+                The full flow ran in claude.ai with my own wallet. Anyone can sign up and deposit Stellar USDC. Network
+                fees in the mainnet run were 0.001 to 0.05 XLM per payment, paid by Nod.
               </p>
             </div>
           </div>
@@ -1413,7 +1393,7 @@
           <img class="swallow" src="img/swallow-starlight.png" alt="" />
           <header>
             <div class="eyebrow">Try it</div>
-            <h2>Three minutes, in your own Claude.</h2>
+            <h2>Try Nod in your own Claude.</h2>
           </header>
           <div class="body">
             <div class="urls">
@@ -1423,7 +1403,7 @@
                 ><span class="val">testnet.trynod.si/mcp</span>
               </div>
               <div class="url">
-                <span class="k">No Claude? Watch a sample agent</span><span class="val">testnet.trynod.si/sample</span>
+                <span class="k">Or watch the sample agent</span><span class="val">testnet.trynod.si/sample</span>
               </div>
               <div class="prompts">
                 <div>"Buy the market brief" <small>0.10 USDC, no prompt; 4.90 left</small></div>
@@ -1440,8 +1420,8 @@
                 <li>On mainnet: links that create wallets and AI-added contacts (live on testnet)</li>
                 <li>Recovery passkey and shared wallets</li>
                 <li>Cash-out through a Stellar anchor</li>
-                <li>No pocket step once facilitators accept smart accounts</li>
-                <li>Hardening from our own code audit</li>
+                <li>Direct x402 payments once facilitators accept smart accounts</li>
+                <li>Follow up uncertain payments and clean up expired permissions</li>
               </ul>
             </div>
           </div>
