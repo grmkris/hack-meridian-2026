@@ -1,0 +1,102 @@
+[
+  {
+    "stage": "testnet",
+    "origin": "https://testnet.trynod.si",
+    "health": {
+      "ok": true,
+      "release": "ef7fba660efeeab36d8e8ac662ad1dcc42e8783e",
+      "stage": "testnet",
+      "network": "testnet"
+    },
+    "assets": [
+      {
+        "name": "approval-loop.mp4",
+        "sha256": "ff87cfee601d552fa1c4a3379ca755f60cab52b0eeaebc594473c5acff60fe38",
+        "contentType": "video/mp4"
+      },
+      {
+        "name": "approval-still.webp",
+        "sha256": "861fea876d00d562cbd4cf8ab6b337ddfc6fd1f05dbb7bfc0706e7646b4e54c7",
+        "contentType": "image/webp"
+      }
+    ],
+    "looks": [
+      {
+        "name": "phone",
+        "video": {
+          "src": "/landing/approval-loop.mp4",
+          "duration": 8,
+          "width": 1600,
+          "height": 760,
+          "loop": true,
+          "muted": true,
+          "inline": true
+        },
+        "errors": []
+      },
+      {
+        "name": "desktop",
+        "video": {
+          "src": "/landing/approval-loop.mp4",
+          "duration": 8,
+          "width": 1600,
+          "height": 760,
+          "loop": true,
+          "muted": true,
+          "inline": true
+        },
+        "errors": []
+      }
+    ]
+  },
+  {
+    "stage": "mainnet",
+    "origin": "https://trynod.si",
+    "health": {
+      "ok": true,
+      "release": "ef7fba660efeeab36d8e8ac662ad1dcc42e8783e",
+      "stage": "mainnet",
+      "network": "pubnet"
+    },
+    "assets": [
+      {
+        "name": "approval-loop.mp4",
+        "sha256": "ff87cfee601d552fa1c4a3379ca755f60cab52b0eeaebc594473c5acff60fe38",
+        "contentType": "video/mp4"
+      },
+      {
+        "name": "approval-still.webp",
+        "sha256": "861fea876d00d562cbd4cf8ab6b337ddfc6fd1f05dbb7bfc0706e7646b4e54c7",
+        "contentType": "image/webp"
+      }
+    ],
+    "looks": [
+      {
+        "name": "phone",
+        "video": {
+          "src": "/landing/approval-loop.mp4",
+          "duration": 8,
+          "width": 1600,
+          "height": 760,
+          "loop": true,
+          "muted": true,
+          "inline": true
+        },
+        "errors": []
+      },
+      {
+        "name": "desktop",
+        "video": {
+          "src": "/landing/approval-loop.mp4",
+          "duration": 8,
+          "width": 1600,
+          "height": 760,
+          "loop": true,
+          "muted": true,
+          "inline": true
+        },
+        "errors": []
+      }
+    ]
+  }
+]

@@ -36,3 +36,25 @@ because it would separate the engraving from the existing page. A loop dissolve 
 old ghosted transition. A new browser animation dependency was rejected: the page only plays the rendered MP4.
 
 Machine-readable results are in `local-receipt.json`. Deployment verification is recorded separately.
+
+## Deployment evidence
+
+Both `https://testnet.trynod.si` and `https://trynod.si` serve release
+`ef7fba660efeeab36d8e8ac662ad1dcc42e8783e`. This removes the obsolete bird MP4s in addition to shipping the new
+film and wallet entry. The release passed `heavy bun run check` in the clean canonical deployment checkout
+(`/srv/cache/hm26/deploy-testnet`) before deployment. Its log is `/tmp/nod-approval-deploy-check.log`.
+
+The inspected Alchemy plans changed only Web and its RELEASE binding. Both deployments completed successfully;
+the database and other bindings were no-ops, with no deleted, renamed, transferred, or new Durable Object classes.
+
+`live-readback.json` records both health releases and matching SHA256 hashes for the served MP4 and still. The live
+Chromium checks found both wallet buttons, the eight-second muted inline looping video, and no browser errors at
+phone and desktop sizes. Live phone and desktop screenshots were visually inspected.
+
+- `smoke-testnet.json`: 9/9 checks passed.
+- `smoke-mainnet.json`: 8/9 passed; the counter check returned the expected `NotDeployed` response because the demo
+  counter is testnet-only. The generic smoke command therefore exits 1 on mainnet; this is not an all-green smoke.
+
+No live wallet creation or payment was performed. Physical iPhone Safari was not retested. The local WebKit media
+matrix and virtual WebAuthn evidence above cover browser behavior, not an actual iPhone or a live passkey session.
+This evidence-only update does not require redeploying; the deployed code remains pinned to `ef7fba6`.
