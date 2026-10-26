@@ -1,4 +1,4 @@
-import { DateTime, Option } from 'effect'
+import { Array, DateTime, Option, Order } from 'effect'
 
 import type { GrantView } from './backend'
 import { toStroops } from './format'
@@ -19,6 +19,24 @@ export const clientUrl = (domain: string | null): Option.Option<string> => {
 }
 
 export type AllowanceState = 'ready' | 'expired' | 'empty' | 'pending' | 'revoked' | 'checking'
+
+/** Wake at the next allowance boundary instead of repainting every second. */
+export const nextAllowanceExpiry = (grants: ReadonlyArray<GrantView>, nowMs: number): Option.Option<number> =>
+  Array.head(
+    Array.sort(
+      Array.getSomes(
+        Array.map(grants, grant =>
+          grant.connection_status === 'active' && grant.grant_status === 'active' && grant.valid_until !== null
+            ? Option.filter(
+                Option.map(DateTime.make(grant.valid_until), DateTime.toEpochMillis),
+                until => until > nowMs,
+              )
+            : Option.none(),
+        ),
+      ),
+      Order.Number,
+    ),
+  )
 
 /** This is display state only; the account and Worker remain authoritative for spending. */
 export const allowanceState = (grant: GrantView, nowMs: Option.Option<number>): AllowanceState => {

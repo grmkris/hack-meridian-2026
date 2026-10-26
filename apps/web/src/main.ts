@@ -1,5 +1,5 @@
 import { Array, Clock, Duration, Effect, Option, Schema, Stream } from 'effect'
-import { Command, type Runtime, Subscription, Update } from 'foldkit'
+import { AsyncData, Command, type Runtime, Subscription, Update } from 'foldkit'
 import type { Document, Html, HtmlBuilder } from 'foldkit/html'
 import { defineMessageUnion } from 'foldkit/message'
 import { UrlRequest, load, pushUrl } from 'foldkit/navigation'
@@ -9,7 +9,8 @@ import { Url, toString as urlToString } from 'foldkit/url'
 
 import { Disclosure } from '@foldkit/ui'
 
-import { Backend, type Resources, WalletSummary } from './backend'
+import { Backend, type GrantView, type Resources, WalletSummary } from './backend'
+import { nextAllowanceExpiry } from './connection'
 import { explorerAccountUrl, networkLabel, shortAddress } from './format'
 import { Connections, Contacts, Home, Receipts, Welcome } from './page'
 import { Problem, recoverProblem } from './problem'
@@ -303,11 +304,36 @@ const LIVE_REFRESH = Duration.seconds(8)
 const isWatchingHome = (model: Model): boolean =>
   Session.guards.SignedIn(model.session) && AppRoute.isAnyOf(['Home'])(model.route)
 
-/** A pending top-up needs a second-by-second countdown; allowance expiry is refreshed less often below. */
+/** Only the pending top-up countdown needs a repeating clock. */
 const isCountingTopup = (model: Model): boolean => isWatchingHome(model) && Home.isTopupWaiting(model.home)
 
-const isWatchingExpiry = (model: Model): boolean =>
-  Session.guards.SignedIn(model.session) && AppRoute.isAnyOf(['Home', 'Connections'])(model.route)
+const allowanceClock = (model: Model) => {
+  const grants = AppRoute.match<ReadonlyArray<GrantView>>(model.route, {
+    Home: () =>
+      AsyncData.matchData(model.home.overview, {
+        onEmpty: () => [],
+        onFailure: () => [],
+        onData: overview => overview.grants,
+      }),
+    Connections: () =>
+      AsyncData.matchData(model.connections.connections, {
+        onEmpty: () => [],
+        onFailure: () => [],
+        onData: connections => connections,
+      }),
+    Contacts: () => [],
+    Receipts: () => [],
+    NotFound: () => [],
+  })
+  return {
+    isWatching: Session.guards.SignedIn(model.session) && AppRoute.isAnyOf(['Home', 'Connections'])(model.route),
+    needsNow: Option.isNone(model.maybeNowMs),
+    until: nextAllowanceExpiry(
+      grants,
+      Option.getOrElse(model.maybeNowMs, () => 0),
+    ),
+  }
+}
 
 export const subscriptions = Subscription.make<Model, Message>()(entry => ({
   topupClock: entry(
@@ -325,18 +351,21 @@ export const subscriptions = Subscription.make<Model, Message>()(entry => ({
     },
   ),
   allowanceExpiry: entry(
-    { isWatching: Schema.Boolean },
+    { isWatching: Schema.Boolean, needsNow: Schema.Boolean, until: Schema.Option(Schema.Finite) },
     {
-      modelToDependencies: model => ({ isWatching: isWatchingExpiry(model) }),
-      dependenciesToStream: ({ isWatching }) =>
-        Stream.when(
-          Stream.tick(Duration.seconds(10)).pipe(
-            Stream.drop(1),
-            Stream.mapEffect(() => Clock.currentTimeMillis),
-            Stream.map(nowMs => Message.TickedTopupClock({ nowMs })),
-          ),
-          Effect.sync(() => isWatching),
-        ),
+      modelToDependencies: allowanceClock,
+      dependenciesToStream: ({ isWatching, needsNow, until }) =>
+        !isWatching || (!needsNow && Option.isNone(until))
+          ? Stream.empty
+          : Stream.fromEffect(
+              Effect.gen(function* () {
+                const now = yield* Clock.currentTimeMillis
+                if (!needsNow && Option.isSome(until))
+                  yield* Effect.sleep(Duration.millis(Math.max(0, until.value - now)))
+                const nowMs = yield* Clock.currentTimeMillis
+                return Message.TickedTopupClock({ nowMs })
+              }),
+            ),
     },
   ),
   liveHome: entry(
