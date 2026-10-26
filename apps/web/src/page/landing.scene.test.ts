@@ -28,6 +28,8 @@ describe('the landing on each host', () => {
         click(role('button', { name: 'Copy connector URL' })),
         Command.resolve(CopyConnectorUrl({ url: connectorUrl }), Message.CompletedCopyConnectorUrl()),
         expect(role('button', { name: 'Copied. Add it to your AI app' })).toExist(),
+        expect(role('button', { name: 'Sign in with passkey' })).toExist(),
+        expect(role('button', { name: 'Create wallet' })).toExist(),
       )
     })
   }

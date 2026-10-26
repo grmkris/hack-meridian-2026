@@ -24,10 +24,12 @@ describe('connecting a wallet', () => {
       { update, view },
       given(initial),
       settled,
-      expect(role('button', { name: 'Connect wallet' })).toExist(),
+      expect(role('button', { name: 'Sign in with passkey' })).toExist(),
+      expect(role('button', { name: 'Create wallet' })).toExist(),
       expect(role('textbox', { name: 'Wallet name' })).not.toExist(),
-      click(role('button', { name: 'Connect wallet' })),
-      expect(role('button', { name: 'Connecting…' })).toBeDisabled(),
+      click(role('button', { name: 'Sign in with passkey' })),
+      expect(role('button', { name: 'Signing in…' })).toBeDisabled(),
+      expect(role('button', { name: 'Create wallet' })).toBeDisabled(),
       Command.resolve(
         SignIn,
         Message.FailedSignIn({
@@ -35,11 +37,11 @@ describe('connecting a wallet', () => {
         }),
       ),
       Command.resolve(FocusConnectWallet, Message.CompletedFocusConnectWallet()),
-      expect(role('button', { name: 'Sign in again' })).toExist(),
-      expect(role('button', { name: 'Create your wallet' })).toExist(),
+      expect(role('button', { name: 'Sign in with passkey' })).toExist(),
+      expect(role('button', { name: 'Create wallet' })).toExist(),
       expect(role('textbox', { name: 'Wallet name' })).not.toExist(),
       Command.expectNone(),
-      click(role('button', { name: 'Create your wallet' })),
+      click(role('button', { name: 'Create wallet' })),
       Command.resolve(FocusWalletName, Message.CompletedFocusWalletName()),
       expect(role('textbox', { name: 'Wallet name' })).toExist(),
       Command.expectNone(),
@@ -55,17 +57,18 @@ describe('connecting a wallet', () => {
     )
   })
 
-  test('unsupported browsers do not offer a creation path that also requires passkeys', () => {
+  test('unsupported browsers explain why both passkey actions are unavailable', () => {
     scene(
       { update, view },
       given(initial),
       settled,
-      click(role('button', { name: 'Connect wallet' })),
+      click(role('button', { name: 'Sign in with passkey' })),
       Command.resolve(SignIn, Message.UnavailablePasskey()),
       expect(
         text('This browser cannot use passkeys. Open Nod in Safari, Chrome, or another browser that supports them.'),
       ).toExist(),
-      expect(role('button', { name: 'Create your wallet' })).not.toExist(),
+      expect(role('button', { name: 'Create wallet' })).toBeDisabled(),
+      expect(role('button', { name: 'Sign in with passkey' })).toBeDisabled(),
       Command.expectNone(),
     )
   })

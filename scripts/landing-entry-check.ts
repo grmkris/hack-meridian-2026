@@ -164,15 +164,15 @@ try {
       })
     }
     await page.goto(origin)
-    await page.getByRole('button', { name: 'Connect wallet' }).waitFor()
+    await page.getByRole('button', { name: 'Sign in with passkey' }).waitFor()
     assert.equal(await page.getByLabel('Wallet name').count(), 0)
     assert.equal(await page.locator('.nod-card').count(), 0)
     assert.equal(await page.locator('.landing-hero [data-testid="add-to-claude"]').count(), 0)
-    await page.getByRole('button', { name: 'Connect wallet' }).click()
+    await page.getByRole('button', { name: 'Sign in with passkey' }).click()
     if (scenario === 'unavailable') {
       await page.getByText('This browser cannot use passkeys.', { exact: false }).waitFor()
       assert.equal(requests.filter(request => request.startsWith('POST ')).length, 0)
-      assert.equal(await page.getByTestId('choose-create-wallet').count(), 0)
+      assert.equal(await page.getByTestId('choose-create-wallet').isDisabled(), true)
     } else {
       await page.getByTestId('choose-create-wallet').waitFor()
       await page.waitForFunction(() => document.activeElement?.id === 'connect-wallet')
@@ -193,7 +193,7 @@ try {
           assert(registered)
           await page.getByRole('button', { name: 'Wallet details', exact: true }).click()
           await page.getByRole('button', { name: 'Sign out' }).click()
-          await page.getByRole('button', { name: 'Connect wallet' }).click()
+          await page.getByRole('button', { name: 'Sign in with passkey' }).click()
           await page.getByRole('heading', { name: 'Home', exact: true }).waitFor()
           assert(asserted)
           assert.equal(requests.filter(request => request === 'POST /api/wallets').length, 1)

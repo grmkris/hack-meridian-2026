@@ -366,7 +366,7 @@ const signInButton = (label: string, model: Model, h: HtmlBuilder<Message>): Htm
     [
       h.Id('connect-wallet'),
       h.Type('button'),
-      h.Disabled(isBusy(model.ceremony)),
+      h.Disabled(isBusy(model.ceremony) || Ceremony.guards.Unavailable(model.ceremony)),
       h.OnClick(Message.ClickedSignIn()),
       h.DataAttribute('testid', 'sign-in'),
       h.Class('landing-button landing-button-primary'),
@@ -378,13 +378,27 @@ const signInView = (model: Model, h: HtmlBuilder<Message>): Html =>
   h.div(
     [h.Class('landing-start')],
     [
-      signInButton(
-        Ceremony.matchOrElse(model.ceremony, { SigningIn: () => 'Connecting…' }, () => 'Connect wallet'),
-        model,
-        h,
+      h.div(
+        [h.Class('landing-entry-actions')],
+        [
+          signInButton(
+            Ceremony.matchOrElse(model.ceremony, { SigningIn: () => 'Signing in…' }, () => 'Sign in with passkey'),
+            model,
+            h,
+          ),
+          h.button(
+            [
+              h.Type('button'),
+              h.Disabled(isBusy(model.ceremony) || Ceremony.guards.Unavailable(model.ceremony)),
+              h.OnClick(Message.ClickedCreateWallet()),
+              h.DataAttribute('testid', 'choose-create-wallet'),
+              h.Class('landing-button landing-button-quiet'),
+            ],
+            ['Create wallet'],
+          ),
+        ],
       ),
       ...ceremonyNotice(model.ceremony, h),
-      h.p([h.Class('landing-hint')], ['Sign in with a passkey, or create a wallet in the next step.']),
     ],
   )
 
@@ -396,15 +410,16 @@ const entryChoiceView = (model: Model, h: HtmlBuilder<Message>): Html =>
       h.div(
         [h.Class('landing-entry-actions')],
         [
-          signInButton('Sign in again', model, h),
+          signInButton('Sign in with passkey', model, h),
           h.button(
             [
               h.Type('button'),
+              h.Disabled(isBusy(model.ceremony) || Ceremony.guards.Unavailable(model.ceremony)),
               h.OnClick(Message.ClickedCreateWallet()),
               h.DataAttribute('testid', 'choose-create-wallet'),
               h.Class('landing-button landing-button-quiet'),
             ],
-            ['Create your wallet'],
+            ['Create wallet'],
           ),
         ],
       ),

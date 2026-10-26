@@ -102,7 +102,6 @@ try {
       }
     })
     await page.goto(origin)
-    await page.getByRole('button', { name: 'Connect wallet' }).click()
     await page.getByTestId('choose-create-wallet').click()
     await page.getByLabel('Wallet name').fill(walletName)
     await page.getByTestId('create-wallet').click()
