@@ -13,11 +13,12 @@ import { isModernRequest, type ModernDeps, protocolError, serveModern } from './
 const ORIGIN = 'https://wallet.test'
 const VERSION = '2026-07-28'
 const APPROVE = `${ORIGIN}/approve/pi_1`
+const OWNER_MESSAGE = 'Your AI app asks to pay 12 USDC to Jan on Stellar Testnet.'
 
 const sentence = (text: string): CallToolResult => ({ content: [{ type: 'text', text }] })
 
-/** A payment that waits for the nod until `approve()` flips it to confirmed. */
-const world = () => {
+/** A payment that waits for the nod until `approve()` flips it to confirmed; `ownerMessage: false` drops approval_message. */
+const world = (options: { readonly ownerMessage?: boolean } = {}) => {
   let approved = false
   const calls: Array<string> = []
   const deps: ModernDeps = {
@@ -26,7 +27,13 @@ const world = () => {
       calls.push(name)
       const value = approved
         ? { payment_id: 'pi_1', status: 'confirmed', approval_url: null, receipt: { tx_hash: 'tx1' } }
-        : { payment_id: 'pi_1', status: 'awaiting_approval', approval_url: APPROVE, receipt: null }
+        : {
+            payment_id: 'pi_1',
+            status: 'awaiting_approval',
+            approval_url: APPROVE,
+            ...(options.ownerMessage === false ? {} : { approval_message: OWNER_MESSAGE }),
+            receipt: null,
+          }
       return {
         result: { ...sentence(approved ? 'Paid.' : `Needs the nod: ${APPROVE}`), structuredContent: value },
         value,
@@ -176,7 +183,9 @@ describe('the nod as a URL elicitation (MRTR)', () => {
     expect(first).toMatchObject({
       resultType: 'input_required',
       requestState: 'pi_1',
-      inputRequests: { approval: { method: 'elicitation/create', params: { mode: 'url', url: APPROVE } } },
+      inputRequests: {
+        approval: { method: 'elicitation/create', params: { mode: 'url', url: APPROVE, message: OWNER_MESSAGE } },
+      },
     })
     const retry = { requestState: 'pi_1', inputResponses: { approval: { action: 'accept' } } }
     expect((await call(deps, retry, url))['resultType']).toBe('input_required')
@@ -185,6 +194,13 @@ describe('the nod as a URL elicitation (MRTR)', () => {
     expect(settled['resultType']).toBe('complete')
     expect(settled['structuredContent']).toMatchObject({ status: 'confirmed', receipt: { tx_hash: 'tx1' } })
     expect(calls).toEqual(['payment_prepare', 'payment_prepare', 'payment_prepare'])
+  })
+
+  test('the URL request shows the owner approval_message; a view without one falls back to the sentence', async () => {
+    const without = await call(world({ ownerMessage: false }).deps, {}, url)
+    expect(without).toMatchObject({
+      inputRequests: { approval: { params: { mode: 'url', url: APPROVE, message: `Needs the nod: ${APPROVE}` } } },
+    })
   })
 
   test('a declined or cancelled nod is the plain result (the card still waits), not an error; a foreign requestState is -32602', async () => {

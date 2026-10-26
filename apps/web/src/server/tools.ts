@@ -727,6 +727,7 @@ const existingPaid = (ctx: ToolContext, intentId: string, grant: SpendingGrant |
       receipt: view.receipt,
       approval_url: view.approval_url,
       approval_reason: view.approval_reason ?? null,
+      approval_message: view.approval_message ?? null,
       message:
         view.status === 'confirmed'
           ? 'Already paid with this idempotency key; nothing was paid again. The content was returned by the first call.'
@@ -862,6 +863,7 @@ const paid = <Body>(
         receipt: null,
         approval_url: view?.approval_url ?? null,
         approval_reason: reason,
+        approval_message: view?.approval_message ?? null,
         message: `The price is more than this AI app's allowance has left, so it needs the user's nod. Nothing was paid. Ask the user to open ${view?.approval_url ?? 'Nod'} and approve it with their passkey, then call this tool again with the same idempotency key.`,
         grant_remaining: grantRemaining(fresh, yield* nowMillis),
       }

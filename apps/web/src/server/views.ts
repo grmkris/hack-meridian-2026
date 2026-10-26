@@ -15,6 +15,26 @@ import { effectiveStatus, remainingOf } from './ledger.ts'
 /** Projections of stored entities onto what each surface shows. The two numbers stay separate everywhere. */
 
 export const approvalUrl = (origin: string, intentId: string) => `${origin}/approve/${intentId}`
+
+/** "12.50" → "12.5", "12.00" → "12": amounts as people say them. */
+const spoken = (amount: string) => (amount.includes('.') ? amount.replace(/\.?0+$/u, '') : amount)
+
+/**
+ * What the owner reads beside the approval link (a host's URL request shows it, e.g. Goblin's card): who asks, how much,
+ * to whom, on which network. Never the model's sentence, which speaks to the AI app.
+ */
+export const approvalMessage = (input: {
+  readonly amount: string
+  readonly name: string | null
+  readonly address: string
+  readonly network: string
+  readonly byLink?: boolean
+}) => {
+  const to =
+    input.name ?? (input.address === '' ? 'someone' : `${input.address.slice(0, 4)}…${input.address.slice(-4)}`)
+  const network = input.network === 'stellar:pubnet' ? 'Stellar Mainnet' : 'Stellar Testnet'
+  return `Your AI app asks to pay ${spoken(input.amount)} USDC to ${to}${input.byLink === true ? ' by a claim link' : ''} on ${network}.`
+}
 export const claimUrl = (origin: string, intentId: string) => `${origin}/claim/${intentId}`
 export const revokeUrl = (origin: string, connectionId: string) => `${origin}/approve/revoke/${connectionId}`
 
@@ -154,6 +174,15 @@ export const paymentView = (
     reason: intent.reason,
     expires_at: intent.expires_at,
     approval_url: url,
+    approval_message:
+      url === null
+        ? null
+        : approvalMessage({
+            amount: fromStroops(intent.amount),
+            name: intent.recipient_name,
+            address: intent.recipient_address,
+            network: intent.network,
+          }),
     claim_url:
       intent.recipient_readiness === 'trustline_required' && status !== 'confirmed'
         ? claimUrl(origin, intent.id)

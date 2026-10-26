@@ -70,14 +70,22 @@ export const isModernRequest = (request: Request, body: unknown): boolean => {
 const json = (payload: unknown, status = 200) =>
   Response.json(payload, { status, headers: { 'cache-control': 'no-store' } })
 
-/** Does this tool value need the owner's nod: a payment waiting for approval, with the link to give the owner? */
-const pendingApproval = (value: unknown): { readonly paymentId: string; readonly url: string } | undefined => {
+/**
+ * Does this tool value need the owner's nod: a payment waiting for approval, with the link to give the owner and the
+ * owner-facing sentence (approval_message) when the view has one?
+ */
+const pendingApproval = (
+  value: unknown,
+): { readonly paymentId: string; readonly url: string; readonly message: string | undefined } | undefined => {
   const record = objectOr(value)
   const url = record['approval_url']
   const paymentId = record['payment_id']
   const status = record['status']
+  const message = record['approval_message']
   if (typeof url !== 'string' || typeof paymentId !== 'string') return undefined
-  return status === 'awaiting_approval' || status === 'requires_approval' ? { paymentId, url } : undefined
+  return status === 'awaiting_approval' || status === 'requires_approval'
+    ? { paymentId, url, message: typeof message === 'string' ? message : undefined }
+    : undefined
 }
 
 const sentenceOf = (result: CallToolResult) => {
@@ -111,7 +119,7 @@ const callTool = async (deps: ModernDeps, params: Record<string, unknown>, meta:
       inputRequests: {
         approval: {
           method: 'elicitation/create',
-          params: { mode: 'url', message: sentenceOf(ran.result), url: pending.url },
+          params: { mode: 'url', message: pending.message ?? sentenceOf(ran.result), url: pending.url },
         },
       },
       requestState: pending.paymentId,

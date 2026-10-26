@@ -19,7 +19,7 @@ import { Network, transferFeeCeiling } from './network.ts'
 import { logFailure } from './observe/log.ts'
 import { first, insert, sql, toIntent, write } from './rows.ts'
 import { createContact, grantOfConnection, receiptOfIntent, searchContacts, walletById } from './store.ts'
-import { grantRemaining, paymentView } from './views.ts'
+import { approvalMessage, grantRemaining, paymentView } from './views.ts'
 
 /**
  * Claim link v2 (K2, 2026-10-25 18:05 UTC). "1 USDC for Jan" is an intent without a destination: payment_prepare with
@@ -263,6 +263,16 @@ const personLinkView = (link: ClaimLink, grant: SpendingGrant | undefined, origi
     reason: link.reason,
     expires_at: link.expires_at,
     approval_url: status === 'awaiting_approval' ? approvalUrl : null,
+    approval_message:
+      status === 'awaiting_approval'
+        ? approvalMessage({
+            amount: fromStroops(link.amount),
+            name,
+            address: '',
+            network: link.network,
+            byLink: true,
+          })
+        : null,
     claim_url: null,
     receipt: null,
     failure: status === 'failed' ? 'the user took the link back' : null,

@@ -80,6 +80,11 @@ export const PaymentView = Schema.Struct({
   reason: Schema.NullOr(Schema.String),
   expires_at: IsoTime,
   approval_url: Schema.NullOr(Schema.String),
+  /**
+   * For the owner, while it waits for the nod: one sentence a host shows beside the approval link ("Your AI app asks to
+   * pay 12 USDC to Jan on Stellar Testnet."). Null otherwise.
+   */
+  approval_message: Schema.optionalKey(Schema.NullOr(Schema.String)),
   /** For a recipient without a USDC trustline: the link they open to accept (CAP-73 claim). */
   claim_url: Schema.NullOr(Schema.String),
   receipt: Schema.NullOr(ReceiptView),
@@ -226,6 +231,8 @@ export const PaidResourceFetchOutput = Schema.Struct({
   approval_url: Schema.NullOr(Schema.String),
   /** With `requires_approval`: why it needs the user's nod. */
   approval_reason: Schema.optionalKey(Schema.NullOr(ApprovalReason)),
+  /** With `requires_approval`: the owner-facing sentence a host shows beside the approval link. */
+  approval_message: Schema.optionalKey(Schema.NullOr(Schema.String)),
   message: Schema.String,
   /** Set when a pull happened but the purchase failed; the USDC stays in the pocket for the next purchase. */
   pull: Schema.optionalKey(Schema.NullOr(PocketPull)),
@@ -259,6 +266,8 @@ export const PaidMcpCallOutput = Schema.Struct({
   receipt: Schema.NullOr(ReceiptView),
   approval_url: Schema.NullOr(Schema.String),
   approval_reason: Schema.optionalKey(Schema.NullOr(ApprovalReason)),
+  /** With `requires_approval`: the owner-facing sentence a host shows beside the approval link. */
+  approval_message: Schema.optionalKey(Schema.NullOr(Schema.String)),
   message: Schema.String,
   pull: Schema.optionalKey(Schema.NullOr(PocketPull)),
   facilitator_message: Schema.optionalKey(Schema.NullOr(Schema.String)),
