@@ -8,6 +8,7 @@ import {
   ContactRemoveInput,
   ContactsSearchInput,
   ContactUpdateInput,
+  GetGuideInput,
   NodHomeInput,
   PaidMcpCallInput,
   PaidResourceFetchInput,
@@ -42,6 +43,7 @@ import { CARD_URI, homeMeta, renderMeta } from './mcp-apps.ts'
 import { observeToolCall, type ToolOutcome } from './observe/tool-call.ts'
 import { requestCreate, requestDecline, requestPay, requestsList } from './requests.ts'
 import type { AppRuntime, AppServices } from './runtime.ts'
+import { getGuide } from './skill.ts'
 import { errorBody, type ToolError, toolError } from './tool-errors.ts'
 import {
   asToolError,
@@ -304,6 +306,14 @@ const TOOLS = [
     WalletTopupStatusInput,
     { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
     (ctx, args) => walletTopupStatus(ctx, args.id),
+  ),
+  spec(
+    'get_guide',
+    'Nod guide',
+    "Get Nod's guide (skill://nod-guide/SKILL.md): how to pay inside the allowance, ask for the user's nod past it, wait, and recover from each error code without paying twice. Read it once before paying anything for the user if the host has not attached it.",
+    GetGuideInput,
+    { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+    ctx => getGuide(ctx),
   ),
 ]
 
