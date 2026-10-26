@@ -187,6 +187,11 @@ describe('the legacy lane (protocol revisions up to 2025-11-25)', () => {
     })
     expect(result['capabilities']).toMatchObject({ tools: {} })
     expect(String(result['instructions'])).toContain('approval_url')
+    // Hosts keep the first paragraph: at most 512 characters, then "More:" bullets, under 2000 in all.
+    const text = String(result['instructions'])
+    expect(text.split('\n')[0]?.length).toBeLessThanOrEqual(512)
+    expect(text).toContain('\nMore:\n- ')
+    expect(text.length).toBeLessThan(2000)
   })
 
   test('tools/list keeps the ten tools in their order, then nod_home and the request tools, each with an object input schema', async () => {
