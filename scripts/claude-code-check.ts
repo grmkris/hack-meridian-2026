@@ -15,7 +15,12 @@ import { TARGETS } from './demo/targets.ts'
  * wallet_overview and payment_prepare (0.01 USDC to Alice: inside the allowance, so nothing is paid). Claude Code
  * renders no cards, so this proves the text results and the tool metadata don't trip it.
  *
- *   bun scripts/claude-code-check.ts --target testnet
+ * Then recipient memory and the guide, in a second fresh session: pay 0.02 USDC to a raw address the user calls Chris
+ * (payment_prepare with recipient_name, payment_execute: Nod saves Chris as a contact), then "send 0.02 to Chris" must
+ * pay inside the allowance with no nod, then get_guide returns the skill. The raw address is `--raw <G…>` (default on
+ * testnet: the treasury, so the 0.04 USDC goes back). Skipped, not failed, when the new wallet holds under 0.04 USDC.
+ *
+ *   bun scripts/claude-code-check.ts --target testnet [--raw G…]
  *
  * It runs in a throwaway project directory with a local-scope server, so the user's own Claude Code config is untouched.
  */
@@ -29,6 +34,9 @@ const target = TARGETS[flag('--target') ?? 'testnet']
 if (target === undefined) throw new Error(`--target must be one of ${Object.keys(TARGETS).join(', ')}`)
 const base = (process.env['HM_URL'] ?? target.base).replace(/\/$/u, '')
 const server = 'nod-check'
+/** The testnet treasury: it exists and holds USDC, and is never a demo contact. */
+const TESTNET_TREASURY = 'GB4F3NUAD2NIRNOHNB36QS7ONEPWMPVSI5IRT6NY5FMMONLGTDQ4CIU5'
+const raw = flag('--raw') ?? (target.name === 'testnet' ? TESTNET_TREASURY : undefined)
 const session = `nod-cc-check-${process.pid}`
 const project = mkdtempSync(join(tmpdir(), 'nod-cc-check-'))
 const evidence = join(ROOT, '.local/claude-code-check', new Date().toISOString().replace(/[:.]/gu, '-'))
@@ -60,6 +68,11 @@ const checks: Array<{ readonly ok: boolean; readonly detail: string }> = []
 const check = (ok: boolean, detail: string) => {
   checks.push({ ok, detail })
   console.log(`${ok ? 'ok  ' : 'FAIL'} ${detail}`)
+}
+const skipped: Array<string> = []
+const skip = (detail: string) => {
+  skipped.push(detail)
+  console.log(`skip ${detail}`)
 }
 
 try {
@@ -126,6 +139,54 @@ try {
   check(/OVERVIEW .*USDC/u.test(answer.out), 'wallet_overview answered with the balance sentence')
   check(/PREPARE .*(prepared|ready|autonomous)/iu.test(answer.out), 'payment_prepare answered inside the allowance')
   check(!/TOOL_ERROR|_meta|resourceUri|ui:\/\//u.test(answer.out), 'no tool error and no card metadata leaked')
+
+  // Recipient memory and the guide: a raw address named Chris, then "send 0.02 to Chris" alone, then get_guide.
+  const holds = Number(/holds ([\d.]+) USDC/u.exec(answer.out)?.[1] ?? '0')
+  if (raw === undefined) skip('recipient memory: no --raw address for this target')
+  else if (holds < 0.04) skip(`recipient memory: the new wallet holds ${holds} USDC, under the 0.04 it pays`)
+  const pays = raw !== undefined && holds >= 0.04
+  const stamp = Date.now()
+  const memory = [
+    `Use only the ${server} MCP server.`,
+    ...(pays
+      ? [
+          `First call payment_prepare with recipient "${raw}", recipient_name "Chris", amount "0.02",`,
+          `reason "Claude Code check: a raw address", idempotency_key "cc-raw-${stamp}"; if its status is prepared, call`,
+          'payment_execute with its payment_id. Then the user says "send 0.02 to Chris": call payment_prepare with',
+          `recipient "Chris", amount "0.02", reason "Claude Code check: by name", idempotency_key "cc-chris-${stamp}"; if`,
+          'its status is prepared, call payment_execute with its payment_id.',
+        ]
+      : []),
+    'Then call get_guide. Do not call any other tool. Answer in exactly these lines:',
+    ...(pays
+      ? [
+          'RAW <the status after payment_execute> <SAVED if the result says Chris was saved as a contact, else NOT_SAVED>,',
+          'CHRIS <the status and lane after payment_execute> <the approval_url, or NONE>,',
+        ]
+      : []),
+    'GUIDE <the first line of the guide text that starts with "# ">.',
+    'If a tool errors, print TOOL_ERROR and the message.',
+  ].join(' ')
+  const remembered = run('claude', [
+    '-p',
+    memory,
+    '--allowedTools',
+    [
+      `mcp__${server}__get_guide`,
+      ...(pays ? [`mcp__${server}__payment_prepare`, `mcp__${server}__payment_execute`] : []),
+    ].join(','),
+  ])
+  console.log(remembered.out.trim())
+  check(remembered.status === 0, 'claude -p (recipient memory, guide) exited 0')
+  if (pays) {
+    check(/RAW .*confirmed.*\bSAVED\b/iu.test(remembered.out), 'the raw address was paid and saved as Chris')
+    check(
+      /CHRIS .*confirmed.*autonomous.*NONE/iu.test(remembered.out),
+      '"send 0.02 to Chris" paid inside the allowance with no nod',
+    )
+  }
+  check(/GUIDE # Using Nod/u.test(remembered.out), 'get_guide returned the skill')
+  check(!/TOOL_ERROR/u.test(remembered.out), 'no tool error')
 } finally {
   tmux('kill-session', '-t', session)
   run('claude', ['mcp', 'remove', '-s', 'local', server])
@@ -133,5 +194,5 @@ try {
 }
 
 const failed = checks.filter(entry => !entry.ok).length
-console.log(JSON.stringify({ target: target.name, base, checks: checks.length, failed, evidence }))
+console.log(JSON.stringify({ target: target.name, base, checks: checks.length, failed, skipped, evidence }))
 process.exit(failed === 0 ? 0 : 1)
