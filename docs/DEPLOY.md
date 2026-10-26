@@ -5,9 +5,9 @@ Plans and queues live in the release plan (.local/brainstorm/FINAL-REVIEW.md §K
 **Deploys: session A ("ops and hardening") only, since 19:10 UTC 2026-10-25**, testnet and mainnet, from the worktree
 below; mainnet only on the orchestrator's explicit go, never during a recording.
 
-Live: **testnet at `0dcd7e7`** (2026-10-26 00:01 UTC) on https://testnet.trynod.si (MCP at `/mcp`; the workers.dev host
-redirects there); **mainnet at `0dcd7e7`** (00:05 UTC; deposit router bound) on https://trynod.si. Both stages serve the
-same SHA, including the mobile Safari media fix. Dated sections below are the history.
+Live: **testnet at `f63e808`** (2026-10-26 00:32 UTC: structured logs, B's tool errors, recipient memory, skill and
+get_guide, migration 0013) on https://testnet.trynod.si (MCP at `/mcp`; the workers.dev host redirects there); **mainnet
+at `0dcd7e7`** (00:05 UTC; deposit router bound) on https://trynod.si. Dated sections below are the history.
 
 ## The deploy worktree is the only place a testnet deploy runs
 
@@ -484,3 +484,32 @@ Receipts: [evidence/mobile-media/2026-10-26/receipt.json](../evidence/mobile-med
 logs remain in `/srv/cache/hm26/deploy-testnet/.local/deploy-0dcd7e7/`. This is live Chromium and Linux WebKit evidence;
 physical iPhone Safari acceptance remains unverified. No wallets were created and no payments were made by these
 checks. Rollback: re-pin `5d12328` on both stages. This receipt's documentation commit does not change the live SHA.
+
+## 2026-10-26 00:32 UTC: testnet at `f63e808` (session A)
+
+Carries `0dcd7e7` (already live on both stages), B's tools/list lint and verb-first descriptions (`0ec4c1a`), coded tool
+refusals (`2e89d2d`), approval_message (`968dbc6`), recipient memory and wait_seconds (`291cd4d`, migration
+`0013_recipient_labels.sql`), the skill over MCP and on the site with get_guide as the 24th tool (`50efd1c`), D's skill
+content (`67d90ac`, `5959666`), and session A's structured logs (`c8f2082`, `f593849`, `f63e808`; the alerts work
+`6fbb324` was parked again by `907a114`). Gate green; plan `[WalletDb] update` + `[Web] update` + RELEASE (the
+observability props in the Web update); deploy `"deletedClasses":[]`; 0013 applied 00:32:19 UTC; health release
+`f63e808f…`.
+
+- smoke 9/9 (`evidence/probe/smoke-testnet-2026-10-26T00-32-47Z.json`); every response carries `x-nod-ref` (the cf-ray).
+- tools/list: 24, `get_guide` last, the first 23 names as at `843bdfd`, all four annotation hints on every tool,
+  `payment_prepare` `_meta` with `openai/mentions` (`evidence/tools/tools-list-testnet-f63e808.json`); `payment_prepare`
+  to "Nobody" → `{ error: { code: "no_contact", … } }`.
+- `/SKILL.md` → 301 to `/skill/nod-guide/SKILL.md` (200, `text/markdown`, `access-control-allow-origin: *`);
+  `server/discover` lists `io.modelcontextprotocol/skills`; `skills/list` one skill with four resources whose sha256
+  digests equal the served bytes; `tools/call get_guide` returns the guide text.
+- Workers Logs: request `a5055f719fa55ba5` has exactly one `http.request` line (POST /mcp 200) and one `mcp.tool` line
+  (get_guide, ok, client, connection, 8-character owner prefix, input size and hash), both with that request id.
+- events-check 8/8; rehearsal s1–s11 green, acceptance 1, 2, 4–9 PASS, 3 REF (`evidence/demo/2026-10-26T00-34-48-893Z/`;
+  claim https://stellar.expert/explorer/testnet/tx/7393c0a793c1dff12f0149df86194ecb13370969e6c42e3bc5762fc2df625e20);
+  probe green, 1 warn (`evidence/probe/2026-10-26T00-38-51-317Z.json`).
+- B's extended Claude Code check (`f2c0b87`): 9/10; FAIL "get_guide returned the skill" (Claude Code saw the skill's
+  metadata, not its text); the recipient-memory step skipped (it read the new wallet as holding 0 USDC).
+- Read-only `plan:mainnet` at `f63e808`: `[WalletDb] update` (0013) + `[Web] update` + RELEASE only; the `0dcd7e7`
+  mainnet deploy came from this worktree (`.local/deploy-0dcd7e7/`), so the state is shared, not diverged.
+
+Rollback: re-pin `0dcd7e7` (0013 additive).
