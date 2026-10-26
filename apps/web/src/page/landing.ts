@@ -4,25 +4,20 @@ import type { Attribute, Html, HtmlBuilder } from 'foldkit/html'
 import {
   CLAIM,
   DAWN,
-  EXPLORER_TX_URL,
   FOOTER,
   HERO,
   HOW_IT_WORKS,
   NETWORK_COPY,
   type NetworkKind,
-  PROOF,
   type Point,
-  type Proof,
   REPOSITORY_URL,
-  SANDBOX_ORIGIN,
   TRUST,
-  TRY_IT,
   WHY,
 } from './landing-copy'
 
 // The signed-out home: a night over Lisbon, one wallet entry, chapters on paper, and rooftops at dawn.
 
-type Plate = 'hand' | 'seal' | 'door' | 'ledger' | 'flight'
+type Plate = 'hand' | 'seal' | 'door' | 'flight'
 
 /** A six-second loop with its transition baked into the asset by scripts/landing-loop.ts. */
 export const NIGHT_FLIGHT_SRC = '/landing/night-flight-loop.mp4'
@@ -84,7 +79,6 @@ type Slots<Message> = Readonly<{
   addToClaude: Html
   connectorUrl: string
   nightFlight: Attribute<Message>
-  motionControl: Html
 }>
 
 const heroView = <Message>(slots: Slots<Message>, network: NetworkKind, h: HtmlBuilder<Message>): Html =>
@@ -93,7 +87,6 @@ const heroView = <Message>(slots: Slots<Message>, network: NetworkKind, h: HtmlB
     [
       barView(network, h),
       sceneView(slots.nightFlight, h),
-      slots.motionControl,
       h.div(
         [h.Class('landing-hero-grid landing-width')],
         [
@@ -127,7 +120,12 @@ const chapterView = <Message>(
   h: HtmlBuilder<Message>,
 ): Html =>
   h.section(
-    [h.Class('landing-chapter landing-width'), h.DataAttribute('side', side), h.AriaLabelledBy(id)],
+    [
+      h.Class('landing-chapter landing-width'),
+      h.DataAttribute('side', side),
+      h.DataAttribute('chapter', id),
+      h.AriaLabelledBy(id),
+    ],
     [plateView(plate, h), h.div([h.Class('landing-chapter-body')], body)],
   )
 
@@ -165,7 +163,7 @@ const pointView = <Message>(point: Point, h: HtmlBuilder<Message>): Html =>
     [h.span([h.Class('landing-point-title')], [point.title]), h.span([h.Class('landing-point-body')], [point.body])],
   )
 
-/** Why a wallet belongs in the chat, before how this one works: the trust chapter's points, beside the swallow. */
+/** Lead with the benefits; the swallow stays beside them on larger screens. */
 const whyView = <Message>(h: HtmlBuilder<Message>): Html =>
   chapterView(
     'why',
@@ -202,73 +200,8 @@ const claimView = <Message>(h: HtmlBuilder<Message>): Html =>
     'door',
     'start',
     [
-      h.div(
-        [h.Class('landing-heading')],
-        [h.h2([h.Id('claim')], [CLAIM.title]), h.span([h.Class('landing-tag')], [CLAIM.badge])],
-      ),
+      h.div([h.Class('landing-heading')], [h.h2([h.Id('claim')], [CLAIM.title])]),
       h.p([h.Class('landing-claim-body')], [CLAIM.body]),
-    ],
-    h,
-  )
-
-const proofRowView = <Message>(proof: Proof, h: HtmlBuilder<Message>): Html =>
-  h.keyed('li')(
-    proof.hash,
-    [h.Class('landing-ledger-row')],
-    [
-      h.span([h.Class('landing-ledger-claim')], [proof.claim]),
-      h.a(
-        [
-          h.Href(`${proof.explorer ?? EXPLORER_TX_URL}${proof.hash}`),
-          h.Target('_blank'),
-          h.Rel('noreferrer'),
-          h.Class('landing-ledger-tx'),
-        ],
-        [proof.hash.slice(0, 8)],
-      ),
-    ],
-  )
-
-const proofView = <Message>(h: HtmlBuilder<Message>): Html =>
-  chapterView(
-    'proof',
-    'ledger',
-    'end',
-    [
-      headingView('proof', PROOF.title, PROOF.lead, h),
-      h.ul(
-        [h.Class('landing-ledger')],
-        Array.map(PROOF.items, proof => proofRowView(proof, h)),
-      ),
-    ],
-    h,
-  )
-
-/** Every step works on the sandbox, so on mainnet the block sends the visitor there (its connector, its sample). */
-const tryItView = <Message>(network: NetworkKind, connectorUrl: string, h: HtmlBuilder<Message>): Html =>
-  chapterView(
-    'try-it',
-    'flight',
-    'start',
-    [
-      headingView('try-it', TRY_IT.title, NETWORK_COPY[network].tryLead, h),
-      h.ol(
-        [h.Class('landing-try')],
-        [
-          h.li(
-            [],
-            [TRY_IT.connectorStep, h.code([], [network === 'mainnet' ? `${SANDBOX_ORIGIN}/mcp` : connectorUrl])],
-          ),
-          ...Array.map(TRY_IT.steps, step => h.li([], [step])),
-        ],
-      ),
-      h.div(
-        [h.Class('landing-sample')],
-        [
-          h.p([], [TRY_IT.sampleLead, h.a([h.Href(TRY_IT.sampleHref[network])], [TRY_IT.sample])]),
-          h.p([h.Class('landing-sample-note')], [TRY_IT.sampleNote]),
-        ],
-      ),
     ],
     h,
   )
@@ -290,10 +223,6 @@ const footerView = <Message>(network: NetworkKind, h: HtmlBuilder<Message>): Htm
   h.footer(
     [h.Class('landing-footer landing-width')],
     [
-      h.ul(
-        [h.Class('landing-built')],
-        Array.map(FOOTER.builtWith, name => h.keyed('li')(name, [], [name])),
-      ),
       h.p(
         [],
         [
@@ -317,8 +246,6 @@ export const view = <Message>(slots: Slots<Message>, h: HtmlBuilder<Message>): H
           howItWorksView(slots.addToClaude, h),
           trustView(h),
           claimView(h),
-          proofView(h),
-          tryItView(network, slots.connectorUrl, h),
           dawnView(h),
           footerView(network, h),
         ],

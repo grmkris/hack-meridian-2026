@@ -41,14 +41,6 @@ export const EntryMode = defineTaggedUnion({
 })
 export type EntryMode = typeof EntryMode.Type
 
-export const Playback = defineTaggedUnion({
-  Unavailable: {},
-  Playing: {},
-  Paused: {},
-  Changing: {},
-})
-export type Playback = typeof Playback.Type
-
 export const Model = Schema.Struct({
   walletName: Schema.String,
   inviteCode: Schema.String,
@@ -57,7 +49,6 @@ export const Model = Schema.Struct({
   ceremony: Ceremony,
   connectorUrl: Schema.String,
   copy: Copy,
-  playback: Playback,
 })
 export type Model = typeof Model.Type
 
@@ -82,9 +73,6 @@ export const Message = defineMessageUnion({
   UpdatedInviteCode: { value: Schema.String },
   RequiredInviteCode: {},
   SettledNightFlight: { playing: Schema.Boolean },
-  ClickedToggleNightFlight: {},
-  CompletedSetNightFlightPlayback: { playing: Schema.Boolean },
-  FailedSetNightFlightPlayback: {},
 })
 export type Message = typeof Message.Type
 
@@ -103,7 +91,6 @@ export const init = (
     walletName: DEFAULT_WALLET_NAME,
     connectorUrl,
     copy: Copy.Idle(),
-    playback: Playback.Unavailable(),
     inviteCode: '',
     inviteField: InviteField.Hidden(),
     entryMode: EntryMode.SignIn(),
@@ -181,24 +168,6 @@ export const FocusConnectWallet = Command.define('FocusConnectWallet', {
     Effect.as(Message.CompletedFocusConnectWallet()),
     Effect.orElseSucceed(() => Message.CompletedFocusConnectWallet()),
   ),
-})
-
-export const SetNightFlightPlayback = Command.define('SetNightFlightPlayback', {
-  args: { playing: Schema.Boolean },
-  messages: [Message.CompletedSetNightFlightPlayback, Message.FailedSetNightFlightPlayback],
-  execute: ({ playing }) =>
-    Effect.tryPromise(async () => {
-      const video = document.getElementById('landing-night-flight')
-      if (!(video instanceof HTMLVideoElement)) {
-        throw new Error('The landing video is no longer mounted.')
-      }
-      if (playing) {
-        await video.play()
-      } else {
-        video.pause()
-      }
-      return Message.CompletedSetNightFlightPlayback({ playing })
-    }).pipe(Effect.orElseSucceed(() => Message.FailedSetNightFlightPlayback())),
 })
 
 export const CopyConnectorUrl = Command.define('CopyConnectorUrl', {
@@ -347,26 +316,7 @@ export const update = (model: Model, message: Message) =>
     ClickedAddToClaude: () => ({ model, commands: [CopyConnectorUrl({ url: model.connectorUrl })] }),
     CompletedCopyConnectorUrl: () => ({ model: modifyFields(model, { copy: () => Copy.Copied() }) }),
     FailedCopyConnectorUrl: () => ({ model: modifyFields(model, { copy: () => Copy.Failed() }) }),
-    SettledNightFlight: ({ playing }) => ({
-      model: modifyFields(model, { playback: () => (playing ? Playback.Playing() : Playback.Unavailable()) }),
-    }),
-    ClickedToggleNightFlight: () =>
-      Playback.match(model.playback, {
-        Unavailable: () => ({ model }),
-        Changing: () => ({ model }),
-        Playing: () => ({
-          model: modifyFields(model, { playback: () => Playback.Changing() }),
-          commands: [SetNightFlightPlayback({ playing: false })],
-        }),
-        Paused: () => ({
-          model: modifyFields(model, { playback: () => Playback.Changing() }),
-          commands: [SetNightFlightPlayback({ playing: true })],
-        }),
-      }),
-    CompletedSetNightFlightPlayback: ({ playing }) => ({
-      model: modifyFields(model, { playback: () => (playing ? Playback.Playing() : Playback.Paused()) }),
-    }),
-    FailedSetNightFlightPlayback: () => ({ model: modifyFields(model, { playback: () => Playback.Unavailable() }) }),
+    SettledNightFlight: () => ({ model }),
   })
 
 // VIEW
@@ -458,10 +408,6 @@ const entryChoiceView = (model: Model, h: HtmlBuilder<Message>): Html =>
           ),
         ],
       ),
-      h.p(
-        [h.Class('landing-hint')],
-        ['If you already have a wallet, use its passkey. Creating a new wallet will not recover an existing one.'],
-      ),
     ],
   )
 
@@ -529,27 +475,6 @@ export const walletFormView = (model: Model, h: HtmlBuilder<Message>): Html =>
     Creating: () => createWalletView(model, h),
   })
 
-const motionControlView = (model: Model, h: HtmlBuilder<Message>): Html =>
-  Playback.matchOrElse(model.playback, { Unavailable: () => h.empty }, () =>
-    h.button(
-      [
-        h.Type('button'),
-        h.OnClick(Message.ClickedToggleNightFlight()),
-        h.AriaControls('landing-night-flight'),
-        h.Disabled(Playback.guards.Changing(model.playback)),
-        h.Class('landing-motion-control'),
-      ],
-      [
-        Playback.match(model.playback, {
-          Unavailable: () => '',
-          Playing: () => 'Pause animation',
-          Paused: () => 'Play animation',
-          Changing: () => 'Updating animation…',
-        }),
-      ],
-    ),
-  )
-
 export const addToClaudeView = (model: Model, h: HtmlBuilder<Message>): Html =>
   h.div(
     [h.Class('landing-connector')],
@@ -586,7 +511,6 @@ export const view = Submodel.defineView<Model, Message>((model, h): Html =>
       addToClaude: addToClaudeView(model, h),
       connectorUrl: model.connectorUrl,
       nightFlight: h.OnMount(PlayNightFlight({ src: Landing.NIGHT_FLIGHT_SRC })),
-      motionControl: motionControlView(model, h),
     },
     h,
   ),

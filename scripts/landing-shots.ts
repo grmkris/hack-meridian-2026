@@ -57,6 +57,7 @@ const look = (label: string, width: number, height: number, deviceScaleFactor: n
   } as const,
 })
 
+const narrow = look('narrow', 320, 740, 2, true)
 const phone = look('phone', 390, 844, 3, true)
 const tablet = look('tablet', 820, 1180, 2)
 const laptop = look('laptop', 1280, 800, 1)
@@ -64,6 +65,7 @@ const desktop = look('desktop', 1440, 900, 1)
 const wide = look('wide', 1920, 1080, 1)
 
 const LOOKS: ReadonlyArray<Look> = [
+  narrow.light,
   phone.light,
   phone.dark,
   phone.still,
@@ -130,7 +132,8 @@ try {
         const style = getComputedStyle(element)
         const box = element.getBoundingClientRect()
         return {
-          name: element.dataset['scene'] ?? element.dataset['chapter'] ?? element.className,
+          name: element.dataset['plate'] ?? element.className,
+          mobileWhy: element.matches('[data-chapter="why"] > .landing-plate') && window.innerWidth < 768,
           display: style.display,
           mode: style.maskMode,
           image: style.maskImage,
@@ -139,7 +142,12 @@ try {
         }
       }),
     )
+    if (etchings.length !== 6) problems.push(`expected 6 etchings, found ${etchings.length}`)
     for (const etching of etchings) {
+      if (etching.mobileWhy) {
+        if (etching.display !== 'none' || etching.height !== 0) problems.push('mobile Why drawing still takes space')
+        continue
+      }
       if (etching.display === 'none' || etching.mode !== 'alpha' || !etching.image.startsWith('url(')) {
         problems.push(`etching ${etching.name} is not an alpha mask (mode ${etching.mode}, image ${etching.image})`)
       } else if (etching.width === 0 || etching.height === 0) {

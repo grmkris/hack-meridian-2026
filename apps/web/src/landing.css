@@ -168,6 +168,7 @@
 
   .landing-bar {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     gap: 0.75rem;
     padding-block: 1.25rem;
@@ -392,30 +393,6 @@
   .landing-text-button:active {
     color: var(--starlight);
   }
-  .landing-motion-control {
-    display: none;
-    position: absolute;
-    inset-block-end: 0.75rem;
-    inset-inline-end: var(--gutter);
-    min-block-size: 2.75rem;
-    padding-inline: 0.875rem;
-    border: 1px solid oklch(from var(--starlight) l c h / 0.3);
-    border-radius: 999px;
-    background: color-mix(in oklch, var(--night) 85%, transparent);
-    color: var(--starlight-muted);
-    font: inherit;
-    font-size: 0.8125rem;
-    cursor: pointer;
-  }
-  .landing-motion-control:active {
-    color: var(--starlight);
-    background: var(--night-raised);
-  }
-  @media (prefers-reduced-motion: no-preference) {
-    .landing-motion-control {
-      display: block;
-    }
-  }
   .landing-page .landing-connector {
     align-items: flex-start;
     margin-block-start: 1.25rem;
@@ -429,8 +406,7 @@
     color: var(--muted);
   }
   @media (hover: hover) and (pointer: fine) {
-    .landing-text-button:hover,
-    .landing-motion-control:hover {
+    .landing-text-button:hover {
       color: var(--starlight);
     }
     .landing-page .landing-connector .landing-button:hover {
@@ -477,7 +453,7 @@
 
   /*
    * A chapter is a page of a picture book: its plate (the same swallow, at the work the chapter is about) on one side,
-   * its words on the other, the sides alternating down the page. On a phone the plate leads.
+   * its words on the other, the sides alternating down the page. On a phone, Why leads with its words.
    */
   .landing-chapter {
     display: grid;
@@ -526,10 +502,6 @@
   .landing-plate[data-plate='door'] {
     --plate-ratio: 857 / 1328;
     mask-image: url('./assets/landing/etching-plate-door.webp');
-  }
-  .landing-plate[data-plate='ledger'] {
-    --plate-ratio: 992 / 822;
-    mask-image: url('./assets/landing/etching-plate-ledger.webp');
   }
   .landing-plate[data-plate='flight'] {
     --plate-ratio: 992 / 942;
@@ -680,106 +652,12 @@
     text-wrap: balance;
   }
 
-  .landing-tag {
-    align-self: flex-start;
-    padding: 0.125rem 0.625rem;
-    border-radius: 999px;
-    background: var(--lamp-soft);
-    color: var(--lamp-ink);
-    font-size: 0.8125rem;
-    font-weight: 600;
-    box-shadow: inset 0 0 0 1px oklch(from var(--lamp-ink) l c h / 0.3);
-  }
   .landing-claim-body {
     margin: 0;
     max-width: 40rem;
     font-size: 1.0625rem;
     line-height: 1.6;
     text-wrap: pretty;
-  }
-
-  /* The proof as a ledger page: ruled lines, a double rule at the head and the foot. */
-  .landing-ledger {
-    margin: 0;
-    padding: 0;
-    list-style: none;
-    border-block: 3px double var(--ink);
-  }
-  .landing-ledger-row {
-    display: grid;
-    gap: 0.25rem 2rem;
-    padding-block: 0.75rem;
-    border-bottom: 1px solid var(--rule);
-  }
-  .landing-ledger-row:last-child {
-    border-bottom: 0;
-  }
-  @media (min-width: 40rem) {
-    .landing-ledger-row {
-      grid-template-columns: minmax(0, 1fr) auto;
-      align-items: baseline;
-    }
-  }
-  .landing-ledger-claim {
-    font-size: 0.9375rem;
-    line-height: 1.5;
-    text-wrap: pretty;
-  }
-  .landing-ledger-tx {
-    /* Inline padding widens the tap target to about 44px without moving the row. */
-    padding-block: 0.625rem;
-    font-family: var(--font-code);
-    font-size: 0.875rem;
-    color: var(--link);
-    text-decoration: underline;
-    text-decoration-color: oklch(from var(--link) l c h / 0.35);
-    text-underline-offset: 0.25em;
-  }
-  @media (hover: hover) and (pointer: fine) {
-    .landing-ledger-tx:hover {
-      text-decoration-color: currentColor;
-    }
-  }
-
-  .landing-try {
-    display: flex;
-    max-width: 44rem;
-    flex-direction: column;
-    gap: 1rem;
-    margin: 0;
-    padding: 0;
-    list-style: none;
-    counter-reset: try;
-  }
-  .landing-try li {
-    position: relative;
-    padding-inline-start: 2.5rem;
-    font-size: 1.0625rem;
-    line-height: 1.6;
-    text-wrap: pretty;
-    counter-increment: try;
-  }
-  .landing-try li::before {
-    content: counter(try);
-    position: absolute;
-    inset-inline-start: 0;
-    top: -0.1em;
-    font-family: var(--font-display);
-    font-size: 1.375rem;
-    font-weight: 700;
-    color: var(--intaglio);
-  }
-  .landing-try code {
-    display: block;
-    margin-block-start: 0.5rem;
-    padding: 0.625rem 0.875rem;
-    border-radius: 0.625rem;
-    background: var(--sheet);
-    box-shadow: inset 0 0 0 1px var(--rule);
-    font-family: var(--font-code);
-    font-size: 0.875rem;
-    overflow-wrap: anywhere;
-    user-select: all;
   }
 
   .landing-footer {
@@ -791,40 +669,11 @@
     font-size: 0.9375rem;
     color: var(--muted);
   }
-  .landing-built {
-    display: flex;
-    flex-wrap: wrap;
-    margin: 0;
-    padding: 0;
-    list-style: none;
-    color: var(--ink);
-  }
-  .landing-built li:not(:last-child)::after {
-    content: ',\00a0';
-  }
   .landing-footer p {
     margin: 0;
     max-width: 44rem;
     text-wrap: pretty;
   }
-  .landing-sample {
-    display: flex;
-    max-width: 44rem;
-    flex-direction: column;
-    gap: 0.375rem;
-    font-size: 1.0625rem;
-    color: var(--ink);
-  }
-  .landing-sample p {
-    margin: 0;
-    text-wrap: pretty;
-  }
-  .landing-sample-note {
-    font-size: 0.9375rem;
-    line-height: 1.55;
-    color: var(--muted);
-  }
-  .landing-sample a,
   .landing-footer a {
     color: var(--link);
     text-decoration: underline;
@@ -832,7 +681,6 @@
     text-underline-offset: 0.25em;
   }
   @media (hover: hover) and (pointer: fine) {
-    .landing-sample a:hover,
     .landing-footer a:hover {
       text-decoration-color: currentColor;
     }
@@ -869,6 +717,60 @@
       --scene-zoom: 1.45;
       --scene-left: -8cqw;
       --band: 0.62;
+    }
+  }
+
+  @media (width < 48rem) {
+    .landing-chapter[data-chapter='why'] > .landing-plate {
+      display: none;
+    }
+    .landing-page {
+      gap: 3rem;
+      padding-block: 2.5rem 1rem;
+    }
+    .landing-chapter {
+      gap: 1.5rem;
+    }
+    .landing-chapter-body {
+      gap: 1.25rem;
+    }
+    .landing-heading h2 {
+      font-size: 1.75rem;
+      line-height: 1.12;
+    }
+    .landing-heading p,
+    .landing-claim-body {
+      font-size: 0.975rem;
+      line-height: 1.5;
+    }
+    .landing-points,
+    .landing-steps {
+      gap: 1.25rem;
+    }
+    .landing-point-title,
+    .landing-step-title {
+      font-size: 1rem;
+    }
+    .landing-point-body,
+    .landing-step-body {
+      font-size: 0.875rem;
+      line-height: 1.55;
+    }
+    .landing-page .landing-connector {
+      margin-block-start: 0;
+    }
+    .landing-hero {
+      padding-block-end: 1.5rem;
+    }
+    .landing-hero-grid {
+      min-block-size: auto;
+      padding-block-end: 1rem;
+    }
+    .landing-hero-copy {
+      gap: 1.25rem;
+    }
+    .landing-lede {
+      font-size: 1rem;
     }
   }
 

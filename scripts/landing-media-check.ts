@@ -57,7 +57,15 @@ try {
       })
     }
     await page.goto(origin)
-    await page.locator('.landing-plate').first().waitFor({ state: 'visible' })
+    await page.locator('[data-chapter="how-it-works"] > .landing-plate').waitFor({ state: 'visible' })
+    assert.equal(
+      await page.locator('[data-chapter="why"] > .landing-plate').isVisible(),
+      scenario === 'desktop',
+      `${scenario}: only the mobile Why illustration is hidden`,
+    )
+    assert.equal(await page.locator('.landing-plate').count(), 4, 'four chapters')
+    assert.equal(await page.getByRole('button', { name: /Pause animation|Play animation/u }).count(), 0)
+    assert.equal(await page.getByRole('button', { name: 'Copy connector URL' }).count(), 1)
     const shouldPlay = scenario === 'phone' || scenario === 'desktop' || scenario === 'slow'
     if (shouldPlay) {
       await page.waitForFunction(() => {
@@ -106,17 +114,6 @@ try {
         })
       })
       assert(wrap.before > wrap.after, `${scenario}: observed a natural loop`)
-      await page.getByRole('button', { name: 'Pause animation' }).click()
-      await page.waitForFunction(() => document.querySelector('video')?.paused === true)
-      const pausedAt = await page.evaluate(() => document.querySelector('video')?.currentTime)
-      await page.waitForTimeout(250)
-      assert.equal(
-        await page.evaluate(() => document.querySelector('video')?.currentTime),
-        pausedAt,
-        'pause holds its frame',
-      )
-      await page.getByRole('button', { name: 'Play animation' }).click()
-      await page.waitForFunction(() => document.querySelector('video')?.paused === false)
     }
     await page.screenshot({ path: `${directory}/${engineName}-${scenario}-hero.png` })
 
@@ -125,7 +122,8 @@ try {
       content:
         '.landing-etching { mask-mode: alpha !important; } .landing-plate { animation: none !important; } .landing-plate::after { display: none !important; }',
     })
-    const plates = await page.locator('.landing-plate').all()
+    const plates = await page.locator('.landing-plate:visible').all()
+    assert.equal(plates.length, scenario === 'desktop' ? 4 : 3, `${scenario}: every remaining drawing is visible`)
     const pixels: Array<unknown> = []
     for (const [index, plate] of plates.entries()) {
       await plate.evaluate(async element => {
