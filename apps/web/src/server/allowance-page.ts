@@ -16,6 +16,7 @@ import type { DbError } from './db.ts'
 import { activateWallet } from './deposit.ts'
 import { Ledger, type LedgerError, remainingOf } from './ledger.ts'
 import { Network } from './network.ts'
+import { logFailure } from './observe/log.ts'
 import { checkAssertion, OwnerError, requireWallet, sessionToken, walletOfSession } from './owner.ts'
 import { type Chrome, escape, html, messagePage, page } from './pages.ts'
 import type { AppRuntime, AppServices } from './runtime.ts'
@@ -240,12 +241,12 @@ const install = (request: Request, connectionId: string) =>
         Effect.flatMap(held =>
           held.usdc > 0n ? Effect.asVoid(chain.sweepPocket(grant.signer_key_ref, wallet.contract_id)) : Effect.void,
         ),
-        Effect.catchTag('ChainError', error => Effect.logWarning('old pocket not swept', error.message)),
+        Effect.catchTag('ChainError', error => logFailure('warn', 'pocket.old_sweep_failed', error)),
       )
     const installed = yield* chain.installGrant(prepared, assertion)
     const pocket = yield* chain.createPocket(pending.signer_key_ref).pipe(
       Effect.map(created => created.address),
-      Effect.catchTag('ChainError', error => Effect.as(Effect.logWarning('pocket not created', error.message), null)),
+      Effect.catchTag('ChainError', error => Effect.as(logFailure('warn', 'pocket.create_failed', error), null)),
     )
     const replaced = yield* Ledger.use(ledger =>
       ledger.replaceGrant(wallet.id, {

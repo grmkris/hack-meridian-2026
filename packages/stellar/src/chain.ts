@@ -381,7 +381,9 @@ export const makeStellar = Effect.gen(function* () {
       if (contractId === undefined) return yield* badInput('deploy simulation returned no contract id')
       if (config.walletTtlLedgers > 0)
         yield* invoker.extendTtl([contractInstanceKey(contractId)], config.walletTtlLedgers).pipe(
-          Effect.tapError(e => Effect.logWarning(`wallet ${contractId}: TTL extension failed: ${e.message}`)),
+          Effect.tapError(e =>
+            Effect.logWarning('wallet.ttl_extension_failed', { error_tag: e._tag, error_code: e.kind }),
+          ),
           Effect.ignore,
         )
       return { contractId, tx: outcome.hash }
@@ -448,7 +450,9 @@ export const makeStellar = Effect.gen(function* () {
         })
       if (config.walletTtlLedgers > 0)
         yield* invoker.extendTtl([contractInstanceKey(plan.contractId)], config.walletTtlLedgers).pipe(
-          Effect.tapError(e => Effect.logWarning(`wallet ${plan.contractId}: TTL extension failed: ${e.message}`)),
+          Effect.tapError(e =>
+            Effect.logWarning('wallet.ttl_extension_failed', { error_tag: e._tag, error_code: e.kind }),
+          ),
           Effect.ignore,
         )
       return { contractId: plan.contractId, tx: outcome.hash }

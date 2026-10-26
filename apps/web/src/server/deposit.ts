@@ -7,6 +7,7 @@ import { randomId } from './clock.ts'
 import { DbError } from './db.ts'
 import { EventsHost } from './events/host.ts'
 import { Network } from './network.ts'
+import { logFailure } from './observe/log.ts'
 import { first, sql, write } from './rows.ts'
 import { walletById } from './store.ts'
 import { b64urlDecode } from './webauthn.ts'
@@ -213,7 +214,7 @@ export const depositWatchTick = (walletId: string) =>
     if (DateTime.isLessThanOrEqualTo(until, now)) return { nextAt: null, swept: 0n }
     const { swept } = yield* sweepDeposit(row)
     yield* activateIfFunded(walletId, swept).pipe(
-      Effect.catch(error => Effect.logWarning('deposit-first activation', walletId, error.message)),
+      Effect.catch(error => logFailure('warn', 'activation.deposit_first_failed', error, { wallet_id: walletId })),
     )
     return { nextAt: DateTime.toEpochMillis(DateTime.addDuration(now, WATCH_EVERY)), swept }
   })

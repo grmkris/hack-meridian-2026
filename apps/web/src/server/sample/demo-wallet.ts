@@ -14,6 +14,7 @@ import { SoftPasskey } from '@hm/stellar/testing'
 
 import { isoIn, nowIso, nowMillis, randomId } from '../clock.ts'
 import { Network } from '../network.ts'
+import { logFailure } from '../observe/log.ts'
 import { checkAssertion, createWallet, registrationOptions } from '../owner.ts'
 import type { ConnectionProps } from '../props.ts'
 import { revokeConnection } from '../revoke.ts'
@@ -191,7 +192,7 @@ const installAllowance = (owner: DemoOwner, wallet: Wallet, say: Say) =>
     const installed = yield* chain.installGrant(prepared, assertion)
     const pocket = yield* chain.createPocket(pending.signer_key_ref).pipe(
       Effect.map((created): { readonly address: string; readonly tx: string } | null => created),
-      Effect.catchTag('ChainError', error => Effect.as(Effect.logWarning('pocket not created', error.message), null)),
+      Effect.catchTag('ChainError', error => Effect.as(logFailure('warn', 'pocket.create_failed', error), null)),
     )
     const connectionId = yield* randomId('con')
     yield* createConnection({
@@ -242,9 +243,7 @@ export const sampleConnection = (owner: DemoOwner, wallet: Wallet, say: Say) =>
       if (connection.status === 'active') yield* revokeConnection(wallet.id, wallet.contract_id, connection.id)
       if (grant !== undefined && grant.rule_status !== 'removed')
         yield* removeRule(owner, connection.id).pipe(
-          Effect.catchTag('OwnerPageError', error =>
-            Effect.logWarning('sample: an old allowance rule was not removed', error.message),
-          ),
+          Effect.catchTag('OwnerPageError', error => logFailure('warn', 'sample.old_rule_not_removed', error)),
         )
     }
     if (reuse !== undefined) return reuse.connection.id

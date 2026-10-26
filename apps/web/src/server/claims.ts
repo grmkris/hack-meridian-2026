@@ -16,6 +16,7 @@ import { DbError } from './db.ts'
 import { activateWallet } from './deposit.ts'
 import { feeCeilingFor, laneDecision, Ledger, type Outcome } from './ledger.ts'
 import { Network, transferFeeCeiling } from './network.ts'
+import { logFailure } from './observe/log.ts'
 import { first, insert, sql, toIntent, write } from './rows.ts'
 import { createContact, grantOfConnection, receiptOfIntent, searchContacts, walletById } from './store.ts'
 import { grantRemaining, paymentView } from './views.ts'
@@ -432,7 +433,7 @@ export const afterPaid = (
         readiness,
       })
     if (destination.kind === 'wallet') yield* activateWallet(destination.wallet, 'claim')
-  }).pipe(Effect.catch(error => Effect.logWarning('after a paid claim', link.id, error.message)))
+  }).pipe(Effect.catch(error => logFailure('warn', 'claim.after_paid_failed', error, { intent_id: link.id })))
 
 /** The link and its payment intent, for the page and payment_status. */
 export const claimLinkState = (linkId: string) =>

@@ -2,6 +2,7 @@ import { Effect, Layer } from 'effect'
 
 import { Db } from './db.ts'
 import { Network } from './network.ts'
+import { logFailure } from './observe/log.ts'
 import { backfillNetwork } from './store.ts'
 
 /**
@@ -18,7 +19,7 @@ export const backfilledDb = Layer.effect(
     const once = yield* Effect.cached(
       backfillNetwork(network.caip).pipe(
         Effect.provideService(Db, db),
-        Effect.catch(error => Effect.logWarning('network backfill failed', error)),
+        Effect.catch(error => logFailure('warn', 'network.backfill_failed', error)),
       ),
     )
     return {

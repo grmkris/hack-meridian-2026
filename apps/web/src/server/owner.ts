@@ -6,6 +6,7 @@ import { randomToken } from './clock.ts'
 import type { DbError } from './db.ts'
 import { depositFirstSignup } from './deposit.ts'
 import { inviteRequired, Network } from './network.ts'
+import { logFailure } from './observe/log.ts'
 import {
   consumeChallenge,
   createChallenge,
@@ -115,7 +116,7 @@ export const createWallet = (site: Site, input: NewWalletInput) =>
         ? yield* chain.fundNewWallet(deployed.contractId, settings.welcomeUsdc).pipe(
             Effect.map(result => result.tx),
             Effect.catchTag('ChainError', error =>
-              Effect.as(Effect.logWarning('welcome USDC failed', error.kind, error.message), null),
+              Effect.as(logFailure('warn', 'wallet.welcome_usdc_failed', error), null),
             ),
           )
         : null
@@ -150,7 +151,7 @@ export const createWallet = (site: Site, input: NewWalletInput) =>
     )
     return { wallet, token: yield* createSession(wallet.owner_id) }
   }).pipe(
-    Effect.tapError(error => Effect.logError('createWallet failed', error)),
+    Effect.tapError(error => logFailure('error', 'wallet.create_failed', error)),
     Effect.catchTags({
       DbError: error => Effect.fail(unavailable(error)),
       ChainError: error => Effect.fail(unavailable(error)),

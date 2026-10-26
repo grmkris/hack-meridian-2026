@@ -4,6 +4,7 @@ import type { ChainError } from '@hm/protocol'
 import type { IncomingTransfer } from '@hm/stellar'
 
 import { Db, type SqlStatement } from '../db.ts'
+import { logFailure } from '../observe/log.ts'
 import { matchesArguments } from './catalog.ts'
 import { eventRetryDecision, postEventWebhook } from './delivery.ts'
 import { paymentReceived } from './emit.ts'
@@ -219,7 +220,9 @@ export const driveWallet = Effect.fnUntraced(function* (input: DriverInput) {
   const watch = input.watch
   if (watch !== undefined && (yield* hasActiveSubscription(input.walletId, 'payment.received', nowMs))) {
     watchCursor = yield* watchOnce(input.walletId, watch, watchCursor).pipe(
-      Effect.catch(error => Effect.as(Effect.logWarning('events watcher', String(error)), watchCursor)),
+      Effect.catch(error =>
+        Effect.as(logFailure('warn', 'events.watch_failed', error, { wallet_id: input.walletId }), watchCursor),
+      ),
     )
     soon(nowMs + WATCH_INTERVAL_MS)
   } else watchCursor = null
@@ -227,7 +230,9 @@ export const driveWallet = Effect.fnUntraced(function* (input: DriverInput) {
   for (const sub of yield* subscriptionsToDrive(input.walletId))
     soon(
       yield* driveSubscription(sub, head, input, nowMs).pipe(
-        Effect.catch(error => Effect.as(Effect.logWarning('events delivery', sub.id, String(error)), nowMs + 60_000)),
+        Effect.catch(error =>
+          Effect.as(logFailure('warn', 'events.delivery_failed', error, { wallet_id: input.walletId }), nowMs + 60_000),
+        ),
       ),
     )
   if (input.pruneDue) yield* pruneJournal(isoOf(nowMs - EVENT_LIMITS.sourceRetentionMs))

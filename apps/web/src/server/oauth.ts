@@ -15,6 +15,7 @@ import { isoIn, nowIso, nowMillis, randomId } from './clock.ts'
 import { activateWallet } from './deposit.ts'
 import { serveMcp } from './mcp.ts'
 import { inviteRequired, Network } from './network.ts'
+import { logFailure } from './observe/log.ts'
 import { OwnerError, checkAssertion, requireWallet, walletOfSession, sessionToken } from './owner.ts'
 import { type Chrome, consentGrantPage, consentSignInPage, html, messagePage, type ConsentView } from './pages.ts'
 import { ConnectionProps, type ConnectionMetadata } from './props.ts'
@@ -225,7 +226,7 @@ export const authorize = (runtime: AppRuntime, request: Request, env: ProviderEn
       const installed = yield* chain.installGrant(prepared, assertion)
       const pocket = yield* chain.createPocket(pending.signer_key_ref).pipe(
         Effect.map(created => created.address),
-        Effect.catchTag('ChainError', error => Effect.as(Effect.logWarning('pocket not created', error.message), null)),
+        Effect.catchTag('ChainError', error => Effect.as(logFailure('warn', 'pocket.create_failed', error), null)),
       )
       const approved = yield* call('approve', () => oauth.approveConsent(request, handle))
       const details = yield* call('describe', () => oauth.describeConsent(approved.request))
@@ -315,7 +316,7 @@ export const authorize = (runtime: AppRuntime, request: Request, env: ProviderEn
               ),
               { status: 400 },
             )
-          yield* Effect.logError('authorize failed', cause)
+          yield* logFailure('error', 'authorize.failed', cause)
           return html(n, messagePage(n, 'Something went wrong', 'Start connecting again from your app.'), {
             status: 500,
           })

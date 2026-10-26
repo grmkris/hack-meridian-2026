@@ -56,9 +56,7 @@ export const stellarToml = async (request: Request, env: object): Promise<Respon
   const read = await Effect.runPromise(
     inputs.pipe(
       Effect.asSome,
-      Effect.catch(() =>
-        Effect.as(Effect.logWarning('stellar.toml: the chain settings are unreadable'), Option.none()),
-      ),
+      Effect.catch(() => Effect.as(Effect.logWarning('stellar_toml.settings_unreadable'), Option.none())),
       Effect.provide(ConfigProvider.layer(ConfigProvider.fromEnvRecord(bindings))),
     ),
   )

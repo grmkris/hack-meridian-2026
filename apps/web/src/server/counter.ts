@@ -3,6 +3,7 @@ import { Context, Effect, Layer, Option } from 'effect'
 import { ChainUnavailable, type CounterReading, NotDeployed } from '@hm/api'
 import { Client } from '@hm/counter-client'
 
+import { logFailure } from './observe/log.ts'
 import { Settings } from './settings.ts'
 
 /** Reads the counter contract on the stage's network. */
@@ -33,7 +34,7 @@ export class Counter extends Context.Service<
               orElse: () => Effect.fail(new ChainUnavailable({ error: 'Soroban RPC took longer than 8 seconds.' })),
             }),
             Effect.map(transaction => ({ contractId, network: settings.network, count: transaction.result })),
-            Effect.tapError(error => Effect.logWarning('counter read failed', error.error)),
+            Effect.tapError(error => logFailure('warn', 'counter.read_failed', error.error)),
             Effect.withSpan('Counter.read'),
           )
         },

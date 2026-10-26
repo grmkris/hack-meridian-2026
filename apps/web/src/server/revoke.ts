@@ -4,6 +4,7 @@ import { Chain } from '@hm/protocol'
 
 import { Ledger } from './ledger.ts'
 import { OAuthGrants } from './oauth-grants.ts'
+import { logFailure } from './observe/log.ts'
 import { connectionById, grantOfConnection } from './store.ts'
 
 /**
@@ -18,14 +19,14 @@ export const revokeConnection = (walletId: string, contractId: string, connectio
     const ledger = yield* Ledger
     yield* ledger.revokeConnection(walletId, { connectionId })
     yield* OAuthGrants.use(grants => grants.revokeConnection(connection.owner_id, connectionId)).pipe(
-      Effect.catchTag('OAuthGrantError', error => Effect.logWarning('OAuth revokeGrant failed', error.message)),
+      Effect.catchTag('OAuthGrantError', error => logFailure('warn', 'revoke.oauth_grant_failed', error)),
     )
     const grant = yield* grantOfConnection(connectionId)
     if (grant !== undefined && grant.pocket_address !== null && grant.pocket_balance > 0n) {
       const chain = yield* Chain
       yield* chain.sweepPocket(grant.signer_key_ref, contractId).pipe(
         Effect.flatMap(receipt => ledger.recordSweep(walletId, { grantId: grant.id, receipt })),
-        Effect.catchTag('ChainError', error => Effect.logWarning('pocket sweep failed', error.kind, error.message)),
+        Effect.catchTag('ChainError', error => logFailure('warn', 'revoke.pocket_sweep_failed', error)),
       )
     }
     return { connection: yield* connectionById(connectionId), grant: yield* grantOfConnection(connectionId) }

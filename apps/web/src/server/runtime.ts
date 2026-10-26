@@ -1,4 +1,4 @@
-import { ConfigProvider, Effect, Layer, ManagedRuntime, Option, Redacted } from 'effect'
+import { ConfigProvider, Effect, Layer, ManagedRuntime, Option, Redacted, References } from 'effect'
 
 import { Chain, makeFixtureChain } from '@hm/protocol'
 import { stellarLayer } from '@hm/stellar'
@@ -10,6 +10,7 @@ import { EventsHost } from './events/host.ts'
 import type { Ledger } from './ledger.ts'
 import { Network } from './network.ts'
 import { type GrantHelpers, OAuthGrants } from './oauth-grants.ts'
+import { logFailure, logLevelOf, structuredLoggerLayer } from './observe/log.ts'
 import { Settings } from './settings.ts'
 import { WalletCaps } from './wallet-caps.ts'
 import { ledgerViaObject, type WalletObject } from './wallet-object.ts'
@@ -25,6 +26,10 @@ export interface WorkerEnv {
   /** The public origin of a deployed stage; OAuth issuer, resource metadata and links use it when set. */
   readonly ORIGIN?: string
   readonly DEMO_CONTACTS?: string
+  /** `local`, `testnet`, `mainnet` (alchemy.run.ts): the `stage` of every log line. */
+  readonly STAGE?: string
+  /** `Debug`, `Info`, `Warn`, `Error`; unset = `Info` (alchemy.run.ts sets `Warn` on the local stage). */
+  readonly LOG_LEVEL?: string
 }
 
 export type AppServices = Settings | Counter | WalletSettings | Db | Chain | Ledger | OAuthGrants | Network | WalletCaps
@@ -63,7 +68,7 @@ const eventsHost = (env: WorkerEnv) => {
   return Layer.succeed(EventsHost, {
     poke: walletId =>
       Effect.tryPromise(() => env.WALLET_OBJECT.getByName(walletId).poke(walletId)).pipe(
-        Effect.catch(error => Effect.logWarning('events poke failed', walletId, String(error))),
+        Effect.catch(error => logFailure('warn', 'events.poke_failed', error, { wallet_id: walletId })),
       ),
     vaultKey: vaultKey === undefined || vaultKey === '' ? Option.none() : Option.some(Redacted.make(vaultKey)),
   })
@@ -92,5 +97,15 @@ export const appLayer = (env: WorkerEnv, helpers: GrantHelpers) =>
     Layer.provideMerge(Settings.fromBindings(env)),
   )
 
+/**
+ * Every `Effect.log*` of this isolate as one JSON line (observe/log.ts), at LOG_LEVEL and above. Replaces Effect's
+ * default pretty logger, which would print causes and messages verbatim.
+ */
+export const loggingLayer = (env: Pick<WorkerEnv, 'STAGE' | 'LOG_LEVEL'>) =>
+  Layer.merge(
+    structuredLoggerLayer({ app: 'nod', stage: env.STAGE ?? 'unknown' }),
+    Layer.succeed(References.MinimumLogLevel, logLevelOf(env.LOG_LEVEL).effect),
+  )
+
 export const makeRuntime = (env: WorkerEnv, helpers: GrantHelpers): AppRuntime =>
-  ManagedRuntime.make(appLayer(env, helpers))
+  ManagedRuntime.make(Layer.merge(appLayer(env, helpers), loggingLayer(env)))

@@ -7,6 +7,8 @@ import { makeApiHandler } from './server/app.ts'
 import { canonicalRedirect } from './server/canonical.ts'
 import { durableKv } from './server/kv-shim.ts'
 import { authorize, OAuthProvider, prepareGrant, providerOptions, serveMcpRequest } from './server/oauth.ts'
+import { elapsedMs, requestContext, routeLabel } from './server/observe/context.ts'
+import { logEvent, logLevelOf } from './server/observe/log.ts'
 import { ownerRoute } from './server/routes.ts'
 import { makeRuntime, type WorkerEnv } from './server/runtime.ts'
 import { sampleRoute } from './server/sample/route.ts'
@@ -78,15 +80,68 @@ const runtime = makeRuntime(bindings, helpers)
 /** /api shares the runtime's services (one fixture ledger, one relayer pool per isolate). */
 const api = makeApiHandler(Layer.effectContext(runtime.contextEffect))
 
+const route = (request: Request, requestEnv: WorkerEnv, ctx: ExecutionContext): Promise<Response> | Response => {
+  // A stage with ORIGIN has one identity: any other host (workers.dev, www) is redirected there first.
+  const moved = canonicalRedirect(request, requestEnv.ORIGIN)
+  if (moved !== undefined) return moved
+  // A deployed stage names its public origin (ORIGIN): the OAuth issuer and the protected-resource metadata are
+  // that URL whatever host the request came through; locally the request's own origin.
+  const origin =
+    requestEnv.ORIGIN === undefined || requestEnv.ORIGIN === '' ? new URL(request.url).origin : requestEnv.ORIGIN
+  return providerFor(origin).fetch(request, withKv(requestEnv), ctx)
+}
+
+/** The http.request line's route label: one of these prefixes or `unmatched`, never the path (claim links, ids). */
+const ROUTES = [
+  '/mcp',
+  '/api',
+  '/approve',
+  '/claim',
+  '/authorize',
+  '/token',
+  '/register',
+  '/oauth',
+  '/.well-known',
+  '/sample',
+  '/assets',
+  '/fonts',
+  '/llms.txt',
+  '/robots.txt',
+  '/sitemap.xml',
+]
+
+/** The response with `x-nod-ref` (the request id every log line of this request carries), headers copied. */
+const withRef = (response: Response, requestId: string) => {
+  const headers = new Headers(response.headers)
+  headers.set('x-nod-ref', requestId)
+  return new Response(response.body, { status: response.status, statusText: response.statusText, headers })
+}
+
 export default {
-  fetch(request, requestEnv, ctx) {
-    // A stage with ORIGIN has one identity: any other host (workers.dev, www) is redirected there first.
-    const moved = canonicalRedirect(request, requestEnv.ORIGIN)
-    if (moved !== undefined) return moved
-    // A deployed stage names its public origin (ORIGIN): the OAuth issuer and the protected-resource metadata are
-    // that URL whatever host the request came through; locally the request's own origin.
-    const origin =
-      requestEnv.ORIGIN === undefined || requestEnv.ORIGIN === '' ? new URL(request.url).origin : requestEnv.ORIGIN
-    return providerFor(origin).fetch(request, withKv(requestEnv), ctx)
+  async fetch(request, requestEnv, ctx) {
+    const observed = requestContext(request)
+    let status = 500
+    try {
+      const response = await route(request, requestEnv, ctx)
+      status = response.status
+      return withRef(response, observed.requestId)
+    } finally {
+      logEvent(
+        {
+          app: 'nod',
+          stage: requestEnv.STAGE ?? 'unknown',
+          requestId: observed.requestId,
+          minLevel: logLevelOf(requestEnv.LOG_LEVEL).line,
+        },
+        status >= 500 ? 'error' : 'info',
+        'http.request',
+        {
+          http_method: request.method,
+          http_route: routeLabel(new URL(request.url).pathname, ROUTES),
+          status_code: status,
+          duration_ms: elapsedMs(observed),
+        },
+      )
+    }
   },
 } satisfies ExportedHandler<WorkerEnv>

@@ -94,6 +94,8 @@ const switchesFor = (stage: string): Record<string, string> => ({
   DEPOSIT_ROUTER_ID: '',
   // The claim page's server-side demo signer off testnet ('' = testnet only); .env.mainnet sets it for our own Carol.
   DEMO_CLAIM_SIGNER: '',
+  // Structured logs (src/server/observe): the lowest level written, Debug | Info | Warn | Error; '' = Info.
+  LOG_LEVEL: stage === 'local' ? 'Warn' : '',
   // New wallets start with the demo contacts: '' = testnet only; 'true' in .env.mainnet for a recording wallet.
   SEED_DEMO_CONTACTS: '',
   // Mainnet's contacts come from .env.mainnet (scripts/mainnet/seed.ts prints them); the other stages use seeds.json.
@@ -211,7 +213,13 @@ export default Alchemy.Stack(
       ...(domain === undefined ? {} : { domain }),
       // global_fetch_strictly_public: workers-oauth-provider fetches CIMD client documents (docs/spikes/s4.md).
       compatibility: { date: '2026-10-09', flags: ['global_fetch_strictly_public'] },
-      observability: { enabled: true },
+      // Written out in full: a partial object replaces Alchemy's default and silently turns Workers Logs off. Traces
+      // stay off: Effect's HTTP span would store OAuth codes and claim links in its attributes (no redacting tracer).
+      observability: {
+        enabled: true,
+        headSamplingRate: 1,
+        logs: { enabled: true, invocationLogs: true, headSamplingRate: 1, persist: true },
+      },
       // Every path reaches the Worker first: it answers /api, /mcp, OAuth, the owner pages and /sample itself and hands
       // everything else to the static assets (src/worker.ts). Worker-first everywhere lets the canonical-origin redirect
       // (src/server/canonical.ts) cover the landing and the client routes too, so an alias host never serves the app.

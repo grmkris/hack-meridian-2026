@@ -33,6 +33,7 @@ import type { LedgerError } from './ledger.ts'
 import type { Ledger } from './ledger.ts'
 import { inviteRequired, Network, type NetworkShape, transferFeeCeiling } from './network.ts'
 import type { OAuthGrants } from './oauth-grants.ts'
+import { logFailure } from './observe/log.ts'
 import { assertionOptions, createWallet, OwnerError, registrationOptions, signIn, walletOfSession } from './owner.ts'
 import { linksOfWallet } from './person-link.ts'
 import { revokeConnection } from './revoke.ts'
@@ -183,7 +184,7 @@ const SystemHandlers = HttpApiBuilder.group(
         const health = yield* chain.health.pipe(
           Effect.map(reading => ({ ...chainStatus(wallet.chain === 'fixture', network, reading), fee_ceilings })),
           Effect.timeoutOrElse({ duration: '6 seconds', orElse: () => Effect.succeed(null) }),
-          Effect.catchTag('ChainError', error => Effect.as(Effect.logWarning('health', error.message), null)),
+          Effect.catchTag('ChainError', error => Effect.as(logFailure('warn', 'health.chain_failed', error), null)),
         )
         return {
           ok: true as const,
@@ -302,7 +303,9 @@ const WalletHandlers = HttpApiBuilder.group(
               const here = yield* site
               // A deposit-first wallet whose USDC arrived while nobody watched deploys now (one row read otherwise).
               yield* activateIfFunded(wallet.id).pipe(
-                Effect.catch(error => Effect.logWarning('activation on overview', error.message)),
+                Effect.catch(error =>
+                  logFailure('warn', 'activation.on_overview_failed', error, { wallet_id: wallet.id }),
+                ),
               )
               const balances = yield* chain.balances(wallet.contract_id).pipe(
                 Effect.map(b => ({ usdc: b.usdc.toString(), xlm: b.xlm.toString() })),
@@ -428,7 +431,9 @@ const WalletHandlers = HttpApiBuilder.group(
                 Effect.catchTag('DepositError', error => Effect.fail(fromDeposit(error))),
               )
               yield* activateIfFunded(wallet.id, result.swept).pipe(
-                Effect.catch(error => Effect.logWarning('activation after sweep', error.message)),
+                Effect.catch(error =>
+                  logFailure('warn', 'activation.after_sweep_failed', error, { wallet_id: wallet.id }),
+                ),
               )
               return {
                 swept: result.swept.toString(),
@@ -493,6 +498,7 @@ export type ApiServices = Settings | Counter | WalletSettings | Db | Chain | Led
  * The typed API as a fetch handler over the given services. Build it once per isolate. Services that fail to build
  * (a missing setting) answer every request with a 500 and log why.
  */
+/** The /api handler. Its own per-request logger is off: the Worker writes one `http.request` line (worker.ts). */
 export const makeApiHandler = <E>(services: Layer.Layer<ApiServices, E>) =>
   HttpRouter.toWebHandler(
     HttpApiBuilder.layer(Api).pipe(
@@ -500,6 +506,7 @@ export const makeApiHandler = <E>(services: Layer.Layer<ApiServices, E>) =>
       Layer.provide(services),
       Layer.provide(HttpServer.layerServices),
     ),
+    { disableLogger: true },
   )
 
 /** The deployed counter service: settings from the Worker's bindings and the counter on Soroban RPC. */
