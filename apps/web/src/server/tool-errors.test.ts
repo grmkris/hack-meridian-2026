@@ -37,7 +37,9 @@ const Refusal = Schema.Struct({
     recovery: Schema.String,
     retry: Schema.String,
     candidates: Schema.optional(
-      Schema.Array(Schema.Struct({ contact_id: Schema.String, name: Schema.String, address: Schema.String })),
+      Schema.Array(
+        Schema.Struct({ contact_id: Schema.NullOr(Schema.String), name: Schema.String, address: Schema.String }),
+      ),
     ),
   }),
 })

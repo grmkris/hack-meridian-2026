@@ -96,6 +96,13 @@ export const PaymentView = Schema.Struct({
 export type PaymentView = typeof PaymentView.Type
 
 // 1. wallet_overview
+/** Someone the wallet paid: the name it knows them by (null when none), the address's first characters, when last paid. */
+export const RecentRecipient = Schema.Struct({
+  name: Schema.NullOr(Schema.String),
+  address_prefix: Schema.String,
+  last_paid_at: IsoTime,
+})
+export type RecentRecipient = typeof RecentRecipient.Type
 export const WalletOverviewInput = Schema.Struct({ idempotency_key: OptionalKey })
 export const WalletOverviewOutput = Schema.Struct({
   wallet: Schema.Struct({
@@ -115,6 +122,8 @@ export const WalletOverviewOutput = Schema.Struct({
   grant_remaining: Schema.String,
   /** The wallet holds less than this AI app may still spend: offer a top-up (wallet_topup_quote). */
   low_balance: Schema.optionalKey(Schema.Boolean),
+  /** The last five people the wallet paid, newest first: pay them again by name. */
+  recent_recipients: Schema.optionalKey(Schema.Array(RecentRecipient)),
 })
 export type WalletOverviewOutput = typeof WalletOverviewOutput.Type
 
@@ -167,7 +176,7 @@ export const PaymentPrepareInput = Schema.Struct({
   idempotency_key: IdempotencyKey,
   recipient_name: Schema.optionalKey(Schema.String.check(Schema.isMinLength(1), Schema.isMaxLength(40))).annotate({
     description:
-      'With recipient "new": the name of someone without a saved contact or a Stellar address. Nod returns a claim_url to send them; when they open it they choose where the money goes (a new Nod wallet, their Nod wallet or a Stellar address), and it pays then from the allowance, or with the user\'s nod past it. Unclaimed, it pays nothing and expires.',
+      'The name the user gave the payee. With a Stellar address no contact holds: Nod remembers the name once paid and saves the address as a contact, so the next payment can name them. With recipient "new": who the claim link is for; Nod returns a claim_url to send them, they choose where the money goes when they open it, and it pays then from the allowance, or with the user\'s nod past it. Unclaimed, it pays nothing and expires.',
   }),
 })
 export type PaymentPrepareInput = typeof PaymentPrepareInput.Type
@@ -198,6 +207,12 @@ export const PaymentApproveUrlOutput = Schema.Struct({
 export const PaymentStatusInput = Schema.Struct({
   payment_id: Schema.String.annotate({ description: 'The payment_id payment_prepare (or request_pay) returned' }),
   idempotency_key: OptionalKey,
+  wait_seconds: Schema.optionalKey(
+    Schema.Int.check(Schema.isGreaterThanOrEqualTo(0), Schema.isLessThanOrEqualTo(60)).annotate({
+      description:
+        'Wait up to this many seconds (at most 60) for a payment that waits for the nod or the network to change status, then answer; 0 or left out answers at once',
+    }),
+  ),
 })
 export const PaymentStatusOutput = PaymentView
 

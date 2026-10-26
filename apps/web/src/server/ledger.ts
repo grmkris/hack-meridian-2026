@@ -20,6 +20,7 @@ import { Db, DbError, type SqlStatement } from './db.ts'
 import { allowanceChanged, approvalNeeded, paymentReceived, paymentSettled, requestAnswered } from './events/emit.ts'
 import { journalStatement } from './events/journal.ts'
 import { terminateConnectionStatement } from './events/store.ts'
+import { rememberOnConfirm } from './recipients.ts'
 import { first, insert, sql, toGrant, toIntent, toReservation, write } from './rows.ts'
 
 /**
@@ -816,6 +817,8 @@ const settle = Effect.fnUntraced(function* (
           },
       now,
     )
+    // A raw address the user named: save it as a contact and mark its label paid (recipients.ts).
+    const remembered = yield* rememberOnConfirm(walletId, intent, now)
     yield* write(
       ...counters,
       ...release,
@@ -862,6 +865,7 @@ const settle = Effect.fnUntraced(function* (
               intent.recipient_address,
             ),
           ]),
+      ...remembered,
       ...events,
     )
     return yield* loadIntent(intent.id)

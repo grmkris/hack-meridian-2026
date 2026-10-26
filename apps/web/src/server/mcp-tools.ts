@@ -111,7 +111,7 @@ const TOOLS = [
   spec(
     'wallet_overview',
     'Wallet overview',
-    "Show the Nod wallet's USDC balance and network, the allowance this AI app may spend on its own (left and expiry), payments waiting for the user's nod, and recent receipts. The wallet balance and the allowance are different numbers: only the allowance can be spent without asking the user.",
+    "Show the Nod wallet's USDC balance and network, the allowance this AI app may spend on its own (left and expiry), payments waiting for the user's nod, recent receipts and the people paid recently (pay them again by name). The wallet balance and the allowance are different numbers: only the allowance can be spent without asking the user.",
     WalletOverviewInput,
     { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
     ctx => walletOverview(ctx),
@@ -153,10 +153,10 @@ const TOOLS = [
   spec(
     'payment_status',
     'Payment status',
-    'Read the state of a payment intent (prepared, awaiting_approval, submitted, confirmed, failed, expired) and its receipt once confirmed on Stellar. Never triggers a payment; poll it after the user approves.',
+    "Read the state of a payment intent (prepared, awaiting_approval, submitted, confirmed, failed, expired) and its receipt once confirmed on Stellar. Never triggers a payment. While it waits for the user's nod, pass wait_seconds (up to 60) to get the answer when it changes instead of polling.",
     PaymentStatusInput,
     { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
-    (ctx, args) => paymentStatus(ctx, args.payment_id),
+    (ctx, args) => paymentStatus(ctx, args.payment_id, args.wait_seconds ?? 0),
   ),
   spec(
     'paid_resource_fetch',

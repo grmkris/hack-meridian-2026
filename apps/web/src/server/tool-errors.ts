@@ -32,7 +32,12 @@ export const Retry = Schema.Literals(['same-key', 'new-key', 'after-approval', '
 export type Retry = typeof Retry.Type
 
 /** A contact the name could mean (ambiguous_recipient): the AI app shows these and asks which one. */
-export const Candidate = Schema.Struct({ contact_id: Schema.String, name: Schema.String, address: Schema.String })
+export const Candidate = Schema.Struct({
+  /** Null for an address known only from a past payment. */
+  contact_id: Schema.NullOr(Schema.String),
+  name: Schema.String,
+  address: Schema.String,
+})
 export type Candidate = typeof Candidate.Type
 
 export class ToolError extends Schema.TaggedError<ToolError>()('ToolError', {

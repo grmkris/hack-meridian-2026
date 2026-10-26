@@ -1,4 +1,4 @@
-import { Effect, Ref } from 'effect'
+import { Duration, Effect, Ref } from 'effect'
 
 import {
   Chain,
@@ -33,6 +33,7 @@ import type { DbError } from './db.ts'
 import { laneDecision, Ledger, type LedgerError, type Outcome } from './ledger.ts'
 import { Network, transferFeeCeiling } from './network.ts'
 import type { ConnectionProps } from './props.ts'
+import { labelAtPrepare, namedRecipients, recentRecipients } from './recipients.ts'
 import { revokeConnection } from './revoke.ts'
 import {
   connectionById,
@@ -128,6 +129,7 @@ export const walletOverview = (ctx: ToolContext) =>
     )
     const pending = yield* pendingOfWallet(wallet.id, connection.id)
     const receipts = yield* receiptsOfWallet(wallet.id, 5, connection.id)
+    const recipients = yield* recentRecipients(wallet.id)
     const remaining = grantRemaining(grant, nowMs)
     // Less in the wallet than this AI app may still spend: a top-up from another chain is worth offering.
     const lowBalance = balances.usdc !== 'unavailable' && toStroops(balances.usdc) < toStroops(remaining)
@@ -151,6 +153,7 @@ export const walletOverview = (ctx: ToolContext) =>
         connection: { id: connection.id, client_name: connection.oauth_client_name, status: connection.status },
         grant_remaining: remaining,
         low_balance: lowBalance,
+        recent_recipients: recipients,
       },
     }
   })
@@ -249,7 +252,19 @@ export const resolveRecipient = (ownerId: string, walletId: string, recipient: s
         contact.aliases.some(alias => alias.toLowerCase() === needle),
     )
     const matches = exact.length > 0 ? exact : yield* searchContacts(ownerId, text)
-    if (matches.length === 0) return yield* noContact(walletId, text)
+    if (matches.length === 0) {
+      // After contacts: a name the user gave a paid address, or the name on a past payment (exact).
+      const named = yield* namedRecipients(walletId, text)
+      const only = named[0]
+      if (named.length === 1 && only !== undefined) return { address: only.address, name: only.name, contactId: null }
+      if (named.length > 1)
+        return yield* refuse(
+          'ambiguous_recipient',
+          `"${text}" was paid at ${named.length} addresses. Be more specific.`,
+          { candidates: named.map(row => ({ contact_id: null, name: row.name, address: row.address })) },
+        )
+      return yield* noContact(walletId, text)
+    }
     if (matches.length > 1)
       return yield* refuse(
         'ambiguous_recipient',
@@ -386,7 +401,13 @@ export const paymentPrepare = (
       )
     if (input.recipient.trim().toLowerCase() === 'new' && !options.forceOwner)
       return yield* claimLinkPrepare(ctx, input, amount)
-    const recipient = yield* resolveRecipient(ctx.props.owner_id, wallet.id, input.recipient)
+    const resolved = yield* resolveRecipient(ctx.props.owner_id, wallet.id, input.recipient)
+    // A raw address no contact holds, with the name the user gave it: remembered, and saved as a contact once paid.
+    const given = input.recipient_name?.trim() ?? ''
+    const recipient =
+      resolved.contactId === null && ADDRESS.test(input.recipient.trim()) && given !== ''
+        ? { ...resolved, name: given }
+        : resolved
     if (recipient.address === wallet.contract_id) return yield* refuse('invalid_input', 'That is this wallet itself.')
     const chain = yield* Chain
     const readiness = yield* chain.readiness(recipient.address).pipe(
@@ -404,6 +425,8 @@ export const paymentPrepare = (
         `${recipient.address} does not exist on Stellar ${network.label} yet, so it cannot receive USDC.`,
       )
     const newContact = yield* firstPaymentToAiContact(wallet.id, ctx.props.owner_id, recipient)
+    if (recipient !== resolved && recipient.name !== null)
+      yield* labelAtPrepare(wallet.id, recipient.address, recipient.name)
     const ledger = yield* Ledger
     const prepared = yield* ledger.prepareIntent(wallet.id, {
       scope: connection.id,
@@ -446,6 +469,23 @@ export const paymentPrepare = (
   })
 
 // 4. payment_execute
+
+/** " Saved Chris as a contact." when this confirmed payment to an address the user named saved one (recipients.ts). */
+const savedNote = (ownerId: string, intent: PaymentIntent) =>
+  Effect.gen(function* () {
+    const name = intent.recipient_name
+    if (intent.status !== 'confirmed' || intent.kind !== 'payment' || intent.contact_id !== null || name === null)
+      return ''
+    const holders = yield* searchContacts(ownerId, intent.recipient_address)
+    const saved = holders.some(
+      contact =>
+        contact.display_name === name &&
+        contact.destinations.some(
+          destination => destination.address === intent.recipient_address && destination.source === 'paid',
+        ),
+    )
+    return saved ? ` Saved ${name} as a contact.` : ''
+  })
 
 const outcomeOf = (error: ChainError, pull: Receipt | null, pulled: bigint): Outcome =>
   error.kind === 'unknown'
@@ -497,9 +537,10 @@ export const paymentExecute = (ctx: ToolContext, paymentId: string) =>
     const nowMs = yield* nowMillis
     const grant = yield* grantOfConnection(connection.id)
     const view = paymentView(intent, yield* receiptOfIntent(intent.id), grant, ctx.origin, nowMs)
+    const saved = yield* savedNote(ctx.props.owner_id, intent)
     const sentence =
       view.status === 'confirmed' && view.receipt !== null
-        ? `Paid ${view.amount} USDC to ${view.recipient.name ?? view.recipient.address} from the allowance; Nod paid the network fee. Transaction ${view.receipt.tx_hash} (${view.receipt.explorer_url}). This AI app may still spend ${view.grant_remaining} USDC.`
+        ? `Paid ${view.amount} USDC to ${view.recipient.name ?? view.recipient.address} from the allowance; Nod paid the network fee. Transaction ${view.receipt.tx_hash} (${view.receipt.explorer_url}). This AI app may still spend ${view.grant_remaining} USDC.${saved}`
         : view.approval_url !== null
           ? `Not paid: this needs the user's nod. Ask the user to open ${view.approval_url} and approve it with their passkey, then call payment_status with payment_id ${view.payment_id}.`
           : view.next_step
@@ -516,7 +557,7 @@ const ownIntent = (ctx: ToolContext, paymentId: string) =>
     return intent
   })
 
-export const paymentStatus = (ctx: ToolContext, paymentId: string) =>
+const statusOnce = (ctx: ToolContext, paymentId: string) =>
   Effect.gen(function* () {
     if (isClaimLinkId(paymentId)) return yield* claimLinkStatus(ctx, paymentId)
     const { grant, nowMs } = yield* scope(ctx, false)
@@ -524,11 +565,36 @@ export const paymentStatus = (ctx: ToolContext, paymentId: string) =>
     const view = paymentView(intent, yield* receiptOfIntent(intent.id), grant, ctx.origin, nowMs)
     const sentence =
       view.status === 'confirmed' && view.receipt !== null
-        ? `Confirmed. Transaction ${view.receipt.tx_hash} in ledger ${view.receipt.ledger} (${view.receipt.explorer_url}). ${view.next_step}`
+        ? `Confirmed. Transaction ${view.receipt.tx_hash} in ledger ${view.receipt.ledger} (${view.receipt.explorer_url}). ${view.next_step}${yield* savedNote(ctx.props.owner_id, intent)}`
         : view.approval_url !== null
           ? `Still waiting for the user's nod at ${view.approval_url}.`
           : view.next_step
     return { sentence, value: view }
+  })
+
+/** Statuses a payment leaves on its own (the user's nod, the network); an open claim link also waits, for its person. */
+const MOVING: ReadonlySet<string> = new Set(['reserved', 'awaiting_approval', 'approved', 'submitted'])
+const POLL_MS = 2000
+
+/**
+ * payment_status; with wait_seconds (at most 60) it holds the answer until the status changes or the time is up, so an
+ * AI app waiting for the nod asks once a minute instead of polling.
+ */
+export const paymentStatus = (ctx: ToolContext, paymentId: string, waitSeconds = 0) =>
+  Effect.gen(function* () {
+    const first = yield* statusOnce(ctx, paymentId)
+    const status = first.value.status
+    const moving = MOVING.has(status) || (isClaimLinkId(paymentId) && status === 'prepared')
+    if (waitSeconds <= 0 || !moving) return first
+    const deadline = (yield* nowMillis) + Math.min(60, waitSeconds) * 1000
+    let latest = first
+    let now = yield* nowMillis
+    while (latest.value.status === status && now < deadline) {
+      yield* Effect.sleep(Duration.millis(Math.min(POLL_MS, deadline - now)))
+      latest = yield* statusOnce(ctx, paymentId)
+      now = yield* nowMillis
+    }
+    return latest
   })
 
 export const paymentApproveUrl = (ctx: ToolContext, paymentId: string) =>
