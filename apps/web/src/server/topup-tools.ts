@@ -2,7 +2,8 @@ import { DateTime, Effect } from 'effect'
 
 import type { WalletTopupQuoteInput } from '@hm/protocol'
 
-import { scope, ToolError, type ToolContext } from './tools.ts'
+import { toolError } from './tool-errors.ts'
+import { scope, type ToolContext } from './tools.ts'
 import {
   assetFor,
   createTopup,
@@ -29,12 +30,12 @@ const CHAIN_NAMES: Readonly<Record<string, string>> = {
 const chainName = (blockchain: string) => CHAIN_NAMES[blockchain] ?? blockchain
 
 const toToolError = (error: TopupError) =>
-  new ToolError({
-    message:
-      error.reason === 'topup_unavailable'
-        ? `${error.message.startsWith('topup_unavailable') ? error.message : `topup_unavailable: ${error.message}`}. Nothing was quoted; the user can still add money from an exchange or another wallet on Nod's Add money card.`
-        : error.message,
-  })
+  error.reason === 'topup_unavailable'
+    ? toolError(
+        'topup_unavailable',
+        `${error.message.startsWith('topup_unavailable') ? error.message : `topup_unavailable: ${error.message}`}. Nothing was quoted; the user can still add money from an exchange or another wallet on Nod's Add money card.`,
+      )
+    : toolError(error.reason === 'not_found' ? 'not_found' : 'invalid_input', error.message)
 
 const minutesLeft = (view: TopupView, nowMs: number) =>
   Math.max(0, Math.round((Date.parse(view.deadline) - nowMs) / 60_000))
@@ -45,9 +46,10 @@ export const walletTopupQuote = (ctx: ToolContext, input: WalletTopupQuoteInput)
     const tokens = yield* topupTokens
     const token = assetFor(tokens, input.origin_chain, input.asset)
     if (token === undefined)
-      return yield* new ToolError({
-        message: `${input.asset} on ${input.origin_chain} cannot top the wallet up; use USDC or that chain's own coin.`,
-      })
+      return yield* toolError(
+        'invalid_input',
+        `${input.asset} on ${input.origin_chain} cannot top the wallet up; use USDC or that chain's own coin.`,
+      )
     const row = yield* createTopup(wallet, {
       originAsset: token.assetId,
       amount: input.amount,

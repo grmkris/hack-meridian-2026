@@ -22,7 +22,8 @@ import { Network } from './network.ts'
 import type { RequestPageView } from './pages.ts'
 import { first, insert, query, write } from './rows.ts'
 import { intentById, receiptOfIntent, searchContacts } from './store.ts'
-import { paymentPrepare, resolveRecipient, scope, ToolError, type ToolContext, type ToolResult } from './tools.ts'
+import { refuse } from './tool-errors.ts'
+import { paymentPrepare, resolveRecipient, scope, type ToolContext, type ToolResult } from './tools.ts'
 import { grantRemaining, receiptView } from './views.ts'
 
 /**
@@ -36,8 +37,6 @@ import { grantRemaining, receiptView } from './views.ts'
  */
 
 const DEFAULT_TTL_HOURS = 168
-
-const fail = (message: string) => Effect.fail(new ToolError({ message }))
 
 const RequestRow = Schema.Struct({
   id: Schema.String,
@@ -143,9 +142,9 @@ export const requestCreate = (ctx: ToolContext, input: RequestCreateInput) =>
     const { connection, wallet } = yield* scope(ctx, true)
     const network = yield* Network
     const amount = toStroops(input.amount)
-    if (amount <= 0n) return yield* fail('The amount must be more than zero.')
-    const payer = yield* resolveRecipient(ctx.props.owner_id, input.payer)
-    if (payer.address === wallet.contract_id) return yield* fail('That is this wallet itself.')
+    if (amount <= 0n) return yield* refuse('invalid_input', 'The amount must be more than zero.')
+    const payer = yield* resolveRecipient(ctx.props.owner_id, wallet.id, input.payer)
+    if (payer.address === wallet.contract_id) return yield* refuse('invalid_input', 'That is this wallet itself.')
     const fingerprint = `request|${payer.address}|${amount}|${input.note ?? ''}`
     const existing = yield* requestByKey(wallet.id, connection.id, input.idempotency_key)
     const row =
@@ -201,11 +200,15 @@ export const requestCreate = (ctx: ToolContext, input: RequestCreateInput) =>
         if (payerWallet !== undefined) yield* EventsHost.use(host => host.poke(payerWallet.id))
         const created = yield* requestById(id)
         if (created === undefined)
-          return yield* fail('The request was not stored; retry with the same idempotency key.')
+          return yield* refuse(
+            'upstream_unavailable',
+            'The request was not stored; retry with the same idempotency key.',
+          )
         return created
       }))
     if (row.request_fingerprint !== fingerprint)
-      return yield* fail(
+      return yield* refuse(
+        'idempotency_conflict',
         `idempotency_key ${input.idempotency_key} was already used for a different request; use a fresh key.`,
       )
     const view = yield* viewOf(ctx, wallet.id, row)
@@ -254,13 +257,13 @@ export const requestPay = (ctx: ToolContext, requestId: string, idempotencyKey: 
     const { wallet } = yield* scope(ctx, true)
     const row = yield* requestById(requestId)
     if (row === undefined || (row.payer_wallet_id !== wallet.id && row.payer_address !== wallet.contract_id))
-      return yield* fail(`No payment request ${requestId} is addressed to this wallet.`)
+      return yield* refuse('not_found', `No payment request ${requestId} is addressed to this wallet.`)
     const intent = row.intent_id === null ? undefined : yield* intentById(row.intent_id)
     const status = statusOf(row, intent?.status, yield* nowMillis)
     if (status === 'declined' || status === 'expired')
-      return yield* fail(`Request ${requestId} is ${status}; nothing was paid.`)
+      return yield* refuse('invalid_input', `Request ${requestId} is ${status}; nothing was paid.`, { retry: 'none' })
     // A requester outside the payer's contacts never gets the autonomous lane: the payer's nod is always needed.
-    const requester = yield* resolveRecipient(ctx.props.owner_id, row.requester_address)
+    const requester = yield* resolveRecipient(ctx.props.owner_id, wallet.id, row.requester_address)
     const prepared = yield* paymentPrepare(
       ctx,
       {
@@ -281,8 +284,13 @@ export const requestPay = (ctx: ToolContext, requestId: string, idempotencyKey: 
         ),
       )
     else if (row.intent_id !== prepared.value.payment_id)
-      return yield* fail(
+      return yield* refuse(
+        'invalid_input',
         `Request ${requestId} is already being paid by payment ${row.intent_id}; call payment_status with that payment_id.`,
+        {
+          retry: 'read',
+          recovery: 'Read payment_status with the payment_id the message names; do not pay the request again.',
+        },
       )
     const value: RequestPayOutput = { ...prepared.value, request_id: row.id }
     return { sentence: prepared.sentence, value }
@@ -295,7 +303,7 @@ export const requestDecline = (ctx: ToolContext, requestId: string) =>
     const { wallet } = yield* scope(ctx, true)
     const row = yield* requestById(requestId)
     if (row === undefined || (row.payer_wallet_id !== wallet.id && row.payer_address !== wallet.contract_id))
-      return yield* fail(`No payment request ${requestId} is addressed to this wallet.`)
+      return yield* refuse('not_found', `No payment request ${requestId} is addressed to this wallet.`)
     const intent = row.intent_id === null ? undefined : yield* intentById(row.intent_id)
     const status = statusOf(row, intent?.status, yield* nowMillis)
     if (status === 'open' && (intent === undefined || intent.status === 'expired' || intent.status === 'failed')) {
@@ -331,9 +339,13 @@ export const requestDecline = (ctx: ToolContext, requestId: string) =>
       )
       if (requester !== undefined) yield* EventsHost.use(host => host.poke(requester.id))
     } else if (status === 'open')
-      return yield* fail(`Request ${requestId} already has payment ${row.intent_id} in progress; it can't be declined.`)
+      return yield* refuse(
+        'invalid_input',
+        `Request ${requestId} already has payment ${row.intent_id} in progress; it can't be declined.`,
+        { retry: 'read', recovery: 'Read payment_status with the payment_id the message names.' },
+      )
     const updated = yield* requestById(requestId)
-    if (updated === undefined) return yield* fail(`Request ${requestId} is gone.`)
+    if (updated === undefined) return yield* refuse('not_found', `Request ${requestId} is gone.`)
     const view = yield* viewOf(ctx, wallet.id, updated)
     return { sentence: `Request ${requestId} is ${view.status}.`, value: view }
   })

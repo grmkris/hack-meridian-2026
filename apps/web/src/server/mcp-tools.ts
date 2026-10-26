@@ -41,6 +41,7 @@ import type { LedgerError } from './ledger.ts'
 import { CARD_URI, homeMeta, renderMeta } from './mcp-apps.ts'
 import { requestCreate, requestDecline, requestPay, requestsList } from './requests.ts'
 import type { AppRuntime, AppServices } from './runtime.ts'
+import { errorBody, type ToolError, toolError } from './tool-errors.ts'
 import {
   asToolError,
   connectionGrantCreate,
@@ -53,7 +54,6 @@ import {
   paymentPrepare,
   paymentStatus,
   type ToolContext,
-  ToolError,
   type ToolResult,
   walletOverview,
 } from './tools.ts'
@@ -312,7 +312,11 @@ const inputJsonSchema = (input: Schema.Constraint) => {
   return { ...document.schema, type: 'object' as const }
 }
 
-const errorResult = (message: string): CallToolResult => ({ isError: true, content: [{ type: 'text', text: message }] })
+/** A refusal: one JSON text block { error: { code, message, recovery, retry } }, isError, no structuredContent. */
+const errorResult = (error: ToolError): CallToolResult => ({
+  isError: true,
+  content: [{ type: 'text', text: JSON.stringify({ error: errorBody(error) }) }],
+})
 
 const resultOf = (result: ToolResult<unknown>): CallToolResult => ({
   content: [
@@ -330,18 +334,26 @@ export interface ToolRunResult {
 
 export const runTool = (runtime: AppRuntime, ctx: ToolContext, name: string, args: unknown): Promise<ToolRunResult> => {
   const tool = TOOLS.find(candidate => candidate.name === name)
-  if (tool === undefined) return Promise.resolve({ result: errorResult(`Unknown tool ${name}.`), value: undefined })
+  if (tool === undefined)
+    return Promise.resolve({
+      result: errorResult(
+        toolError('not_found', `Unknown tool ${name}.`, { recovery: 'Call tools/list and use a tool name from it.' }),
+      ),
+      value: undefined,
+    })
   const program = Schema.decodeUnknownEffect(tool.input)(args ?? {}).pipe(
-    Effect.mapError(error => new ToolError({ message: `Invalid arguments for ${name}: ${error.message}` })),
+    Effect.mapError(error => toolError('invalid_input', `Invalid arguments for ${name}: ${error.message}`)),
     Effect.flatMap(decoded => tool.run(ctx, decoded)),
   )
   return runtime.runPromise(
     asToolError(program).pipe(
       Effect.map((ran): ToolRunResult => ({ result: resultOf(ran), value: ran.value })),
-      Effect.catchTag('ToolError', error => Effect.succeed({ result: errorResult(error.message), value: undefined })),
+      Effect.catchTag('ToolError', error => Effect.succeed({ result: errorResult(error), value: undefined })),
       Effect.catchCause(cause =>
         Effect.as(Effect.logError('tool failed', name, cause), {
-          result: errorResult(`${name} failed unexpectedly; retry with the same idempotency key.`),
+          result: errorResult(
+            toolError('upstream_unavailable', `${name} failed unexpectedly; retry with the same idempotency key.`),
+          ),
           value: undefined,
         }),
       ),

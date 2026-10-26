@@ -28,7 +28,8 @@ import {
   searchContacts,
   toolResult,
 } from './store.ts'
-import { scope, ToolError, type ToolContext } from './tools.ts'
+import { refuse, toolError } from './tool-errors.ts'
+import { candidateOf, scope, type ToolContext } from './tools.ts'
 import { grantRemaining, paymentView, toolGrantView } from './views.ts'
 
 /**
@@ -38,16 +39,17 @@ import { grantRemaining, paymentView, toolGrantView } from './views.ts'
  * payments_list and connection_grant_update (a link the passkey signs; allowance-page.ts installs it).
  */
 
-const fail = (message: string) => Effect.fail(new ToolError({ message }))
-
 /** The tool's earlier answer under this idempotency key, if any (same key, same answer; another tool's key refused). */
 const replayed = (connectionId: string, key: string, tool: string) =>
   Effect.gen(function* () {
     const saved = yield* toolResult(connectionId, key)
     if (saved === undefined) return undefined
-    if (saved.tool !== tool) return yield* fail(`Idempotency key ${key} was used for ${saved.tool}; use a new key.`)
+    if (saved.tool !== tool)
+      return yield* refuse('idempotency_conflict', `Idempotency key ${key} was used for ${saved.tool}; use a new key.`)
     return yield* Schema.decodeUnknownEffect(Schema.fromJsonString(ContactChangeOutput))(saved.result).pipe(
-      Effect.mapError(() => new ToolError({ message: `The earlier ${tool} answer is unreadable; use a new key.` })),
+      Effect.mapError(() =>
+        toolError('idempotency_conflict', `The earlier ${tool} answer is unreadable; use a new key.`),
+      ),
     )
   })
 
@@ -88,11 +90,16 @@ const findContact = (ownerId: string, ref: string) =>
         contact.aliases.some(alias => alias.toLowerCase() === needle),
     )
     if (matches.length > 1)
-      return yield* fail(
+      return yield* refuse(
+        'ambiguous_recipient',
         `"${ref}" matches ${matches.map(contact => contact.display_name).join(', ')}; use its contact_id.`,
+        { candidates: matches.map(candidateOf) },
       )
     const contact = matches[0]
-    if (contact === undefined) return yield* fail(`No saved contact is called "${ref}". Use contacts_search.`)
+    if (contact === undefined)
+      return yield* refuse('not_found', `No saved contact is called "${ref}". Use contacts_search.`, {
+        recovery: 'Call contacts_search and use a contact_id from the answer.',
+      })
     return { contact, all }
   })
 
@@ -110,7 +117,7 @@ export const contactAdd = (ctx: ToolContext, input: ContactAddInput) =>
     if (again !== undefined) return { sentence: again.message, value: again }
     const name = input.name.trim()
     const address = input.address.trim()
-    if (address === wallet.contract_id) return yield* fail('That is this wallet itself.')
+    if (address === wallet.contract_id) return yield* refuse('invalid_input', 'That is this wallet itself.')
     const all = yield* searchContacts(ctx.props.owner_id, '')
     const sameAddress = all.find(contact => contact.destinations.some(destination => destination.address === address))
     if (sameAddress !== undefined) {
@@ -125,7 +132,8 @@ export const contactAdd = (ctx: ToolContext, input: ContactAddInput) =>
     }
     const sameName = all.find(contact => contact.display_name.toLowerCase() === name.toLowerCase())
     if (sameName !== undefined)
-      return yield* fail(
+      return yield* refuse(
+        'invalid_input',
         `A contact named ${sameName.display_name} already exists (contact_id ${sameName.id}). Use contact_update to change its address, or pick another name.`,
       )
     const contact = yield* createContact({
@@ -161,9 +169,9 @@ export const contactUpdate = (ctx: ToolContext, input: ContactUpdateInput) =>
       name !== undefined &&
       all.some(other => other.id !== contact.id && other.display_name.toLowerCase() === name.toLowerCase())
     )
-      return yield* fail(`Another contact is already called ${name}.`)
+      return yield* refuse('invalid_input', `Another contact is already called ${name}.`)
     const address = input.address?.trim()
-    if (address === wallet.contract_id) return yield* fail('That is this wallet itself.')
+    if (address === wallet.contract_id) return yield* refuse('invalid_input', 'That is this wallet itself.')
     const addressChanges = address !== undefined && !contact.destinations.some(d => d.address === address)
     const notes: Array<string> = []
     if (addressChanges)
@@ -245,7 +253,8 @@ export const walletDepositAddress = (ctx: ToolContext) =>
     }
     const row = yield* ensureDepositAddress(wallet).pipe(
       Effect.catchTag('DepositError', error =>
-        fail(
+        refuse(
+          'upstream_unavailable',
           error.reason === 'busy'
             ? 'The deposit address is being created right now; call wallet_deposit_address again in a few seconds.'
             : `Could not create the deposit address (${error.message}); try again.`,
@@ -305,11 +314,15 @@ export const connectionGrantUpdate = (
     const { connection, grant } = yield* scope(ctx, true)
     const network = yield* Network
     const amount = input.amount ?? (grant === undefined ? undefined : fromStroops(grant.total))
-    if (amount === undefined) return yield* fail('Say the new allowance: there is no current one to keep.')
+    if (amount === undefined)
+      return yield* refuse('invalid_input', 'Say the new allowance: there is no current one to keep.')
     const stroops = toStroops(amount)
-    if (stroops <= 0n) return yield* fail('The allowance must be more than zero.')
+    if (stroops <= 0n) return yield* refuse('invalid_input', 'The allowance must be more than zero.')
     if (stroops > network.caps.maxGrantStroops)
-      return yield* fail(`Nod caps an allowance at ${fromStroops(network.caps.maxGrantStroops)} USDC.`)
+      return yield* refuse(
+        'invalid_input',
+        `Nod caps an allowance at ${fromStroops(network.caps.maxGrantStroops)} USDC.`,
+      )
     const hours = input.valid_for_hours ?? 24
     const url = allowanceUrl(ctx.origin, connection.id, fromStroops(stroops), hours)
     const nowMs = yield* nowMillis

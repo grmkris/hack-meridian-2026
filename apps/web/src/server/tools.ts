@@ -1,4 +1,4 @@
-import { Effect, Ref, Schema } from 'effect'
+import { Effect, Ref } from 'effect'
 
 import {
   Chain,
@@ -20,7 +20,14 @@ import {
   type X402QuoteHook,
 } from '@hm/protocol'
 
-import { claimLinkState, claimLinkUrl, claimLinkView, createClaimLink, isClaimLinkId } from './claims.ts'
+import {
+  type ClaimError,
+  claimLinkState,
+  claimLinkUrl,
+  claimLinkView,
+  createClaimLink,
+  isClaimLinkId,
+} from './claims.ts'
 import { nowMillis, randomId } from './clock.ts'
 import type { DbError } from './db.ts'
 import { laneDecision, Ledger, type LedgerError, type Outcome } from './ledger.ts'
@@ -43,6 +50,7 @@ import {
   toolResult,
   walletById,
 } from './store.ts'
+import { refuse, toolError, type ToolError, type ToolErrorCode } from './tool-errors.ts'
 import { grantRemaining, paymentView, receiptView, revokeUrl, toolGrantView } from './views.ts'
 
 /**
@@ -51,7 +59,7 @@ import { grantRemaining, paymentView, receiptView, revokeUrl, toolGrantView } fr
  * grant_remaining; the approval URL is both in the sentence and in the structured result.
  */
 
-export class ToolError extends Schema.TaggedError<ToolError>()('ToolError', { message: Schema.String }) {}
+export { ToolError } from './tool-errors.ts'
 
 export interface ToolContext {
   readonly props: ConnectionProps
@@ -65,20 +73,18 @@ export interface ToolResult<A> {
   readonly value: A
 }
 
-const fail = (message: string) => Effect.fail(new ToolError({ message }))
-
 /**
  * Payments go to the address alone: no transaction Nod builds carries a memo. An exchange deposit address that needs one
  * would lose the funds, so a memo is refused, never dropped (K5).
  */
 export const MEMO_UNSUPPORTED = 'Nod cannot pay exchange deposit addresses that need a memo yet.'
 const storage = (error: DbError | LedgerError) =>
-  new ToolError({
-    message:
-      error._tag === 'LedgerError' && error.reason === 'idempotency_conflict'
-        ? error.message
-        : `The wallet service could not complete this (${error._tag === 'DbError' ? error.operation : error.message}). Retry with the same idempotency key.`,
-  })
+  error._tag === 'LedgerError' && error.reason === 'idempotency_conflict'
+    ? toolError('idempotency_conflict', error.message)
+    : toolError(
+        'upstream_unavailable',
+        `The wallet service could not complete this (${error._tag === 'DbError' ? error.operation : error.message}). Retry with the same idempotency key.`,
+      )
 
 const ADDRESS = /^(?:[CG][A-Z2-7]{55}|M[A-Z2-7]{68})$/u
 
@@ -86,7 +92,7 @@ const ADDRESS = /^(?:[CG][A-Z2-7]{55}|M[A-Z2-7]{68})$/u
 const requirePayments = Effect.gen(function* () {
   const network = yield* Network
   if (!network.caps.paymentsEnabled)
-    return yield* fail('Payments are paused on Nod right now. Nothing was paid; try again later.')
+    return yield* refuse('payments_paused', 'Payments are paused on Nod right now. Nothing was paid; try again later.')
   return network
 })
 
@@ -95,11 +101,14 @@ export const scope = (ctx: ToolContext, write: boolean) =>
   Effect.gen(function* () {
     const connection = yield* connectionById(ctx.props.connection_id)
     if (connection === undefined || connection.wallet_id !== ctx.props.wallet_id)
-      return yield* fail('Nod does not know this AI app any more. Reconnect it.')
+      return yield* refuse('revoked', 'Nod does not know this AI app any more. Reconnect it.')
     if (write && connection.status === 'revoked')
-      return yield* fail('The user revoked this AI app in Nod. It can no longer pay; reconnect to ask again.')
+      return yield* refuse(
+        'revoked',
+        'The user revoked this AI app in Nod. It can no longer pay; reconnect to ask again.',
+      )
     const wallet = yield* walletById(connection.wallet_id)
-    if (wallet === undefined) return yield* fail('The wallet of this connection is gone.')
+    if (wallet === undefined) return yield* refuse('revoked', 'The wallet of this connection is gone.')
     const grant = yield* grantOfConnection(connection.id)
     return { connection, wallet, grant, nowMs: yield* nowMillis }
   })
@@ -162,6 +171,13 @@ const contactView = (contact: Contact): ContactView => ({
   added_by: contact.added_by ?? null,
 })
 
+/** One contact a name could mean, for ambiguous_recipient. */
+export const candidateOf = (contact: Contact) => ({
+  contact_id: contact.id,
+  name: contact.display_name,
+  address: contact.destinations[0]?.address ?? '',
+})
+
 /** The latest last_paid_at over a contact's destinations ('' when never paid): ISO strings sort by time. */
 const lastPaidOf = (contact: Contact) =>
   contact.destinations.reduce(
@@ -192,8 +208,31 @@ export const contactsSearch = (ctx: ToolContext, query: string) =>
 
 // 3. payment_prepare
 
+/**
+ * Refuses with no_contact: the most recent payment whose recipient name or address prefix matches what the user said,
+ * as the exact next call, or the generic recovery when nothing matches.
+ */
+const noContact = (walletId: string, text: string) =>
+  Effect.gen(function* () {
+    const needle = text.toLowerCase()
+    const prefix = text.toUpperCase()
+    const receipts = yield* receiptsOfWallet(walletId, 50)
+    const match = receipts.find(
+      receipt =>
+        (receipt.recipient_name !== null && receipt.recipient_name.toLowerCase().includes(needle)) ||
+        (prefix.length >= 4 && receipt.recipient_address.startsWith(prefix)),
+    )
+    const message = `No saved contact matches "${text}". Use contacts_search, or give a Stellar address.`
+    if (match === undefined) return yield* toolError('no_contact', message)
+    const who = match.recipient_name ?? 'this address'
+    const named = match.recipient_name === null ? '' : ` and recipient_name "${match.recipient_name}"`
+    return yield* toolError('no_contact', message, {
+      recovery: `This wallet paid ${who} (${match.recipient_address}) on ${match.confirmed_at.slice(0, 10)}. If that is who the user means, check with them, then call payment_prepare with recipient "${match.recipient_address}"${named}, the amount and a new idempotency_key.`,
+    })
+  })
+
 /** A contact name, alias, id or address → the destination to pay. */
-export const resolveRecipient = (ownerId: string, recipient: string) =>
+export const resolveRecipient = (ownerId: string, walletId: string, recipient: string) =>
   Effect.gen(function* () {
     const text = recipient.trim()
     if (ADDRESS.test(text)) {
@@ -210,16 +249,32 @@ export const resolveRecipient = (ownerId: string, recipient: string) =>
         contact.aliases.some(alias => alias.toLowerCase() === needle),
     )
     const matches = exact.length > 0 ? exact : yield* searchContacts(ownerId, text)
-    if (matches.length === 0)
-      return yield* fail(`No saved contact matches "${text}". Use contacts_search, or give a Stellar address.`)
+    if (matches.length === 0) return yield* noContact(walletId, text)
     if (matches.length > 1)
-      return yield* fail(`"${text}" matches ${matches.map(c => c.display_name).join(', ')}. Be more specific.`)
+      return yield* refuse(
+        'ambiguous_recipient',
+        `"${text}" matches ${matches.map(c => c.display_name).join(', ')}. Be more specific.`,
+        { candidates: matches.map(candidateOf) },
+      )
     const contact = matches[0]
     const destination = contact?.destinations[0]
     if (contact === undefined || destination === undefined)
-      return yield* fail(`Contact "${text}" has no address saved.`)
+      return yield* refuse('no_contact', `Contact "${text}" has no address saved.`, {
+        recovery: `Ask the user for ${text}'s Stellar address, save it with contact_update, then prepare the payment again with a new idempotency_key.`,
+      })
     return { address: destination.address, name: contact.display_name, contactId: contact.id }
   })
+
+const CLAIM_CODES = {
+  not_found: 'not_found',
+  expired: 'invalid_input',
+  taken: 'invalid_input',
+  conflict: 'idempotency_conflict',
+  bad_destination: 'account_missing',
+  unavailable: 'upstream_unavailable',
+} as const satisfies Record<ClaimError['reason'], ToolErrorCode>
+
+const claimRefusal = (error: ClaimError) => toolError(CLAIM_CODES[error.reason], error.message)
 
 /**
  * Claim link v2 (claims.ts): recipient "new" with a name stores a link and pays nothing; the person who opens it picks
@@ -231,7 +286,10 @@ const claimLinkPrepare = (ctx: ToolContext, input: PaymentPrepareInput, amount: 
     const network = yield* Network
     const name = input.recipient_name?.trim() ?? ''
     if (name === '')
-      return yield* fail('With recipient "new", give recipient_name: who the claim link is for (e.g. "Jan").')
+      return yield* refuse(
+        'invalid_input',
+        'With recipient "new", give recipient_name: who the claim link is for (e.g. "Jan").',
+      )
     // Inside what is left of the allowance the link pays from it when claimed (v2); past it the sender nods, and the
     // link becomes a rule on their account whose key only the link carries (person-link.ts).
     const alone =
@@ -248,7 +306,7 @@ const claimLinkPrepare = (ctx: ToolContext, input: PaymentPrepareInput, amount: 
       amount,
       network: network.caip,
       kind: alone ? undefined : 'person',
-    }).pipe(Effect.catchTag('ClaimError', error => fail(error.message)))
+    }).pipe(Effect.catchTag('ClaimError', error => Effect.fail(claimRefusal(error))))
     const view = yield* claimLinkView({
       link: created.link,
       intent: undefined,
@@ -275,7 +333,7 @@ const claimLinkStatus = (ctx: ToolContext, linkId: string) =>
     const { grant, nowMs } = yield* scope(ctx, false)
     const state = yield* claimLinkState(linkId)
     if (state === undefined || state.link.connection_id !== ctx.props.connection_id)
-      return yield* fail(`No payment ${linkId} for this connection.`)
+      return yield* refuse('not_found', `No payment ${linkId} for this connection.`)
     const view = yield* claimLinkView({ link: state.link, intent: state.intent, grant, origin: ctx.origin, nowMs })
     const name = state.link.recipient_name
     const sentence =
@@ -320,24 +378,29 @@ export const paymentPrepare = (
     const { connection, wallet, grant } = yield* scope(ctx, true)
     const network = yield* requirePayments
     const amount = toStroops(input.amount)
-    if (amount <= 0n) return yield* fail('The amount must be more than zero.')
+    if (amount <= 0n) return yield* refuse('invalid_input', 'The amount must be more than zero.')
     if (input.memo !== undefined && input.memo.trim() !== '')
-      return yield* fail(
+      return yield* refuse(
+        'memo_unsupported',
         `${MEMO_UNSUPPORTED} Nothing was prepared. If this address needs no memo, prepare the payment again without one.`,
       )
     if (input.recipient.trim().toLowerCase() === 'new' && !options.forceOwner)
       return yield* claimLinkPrepare(ctx, input, amount)
-    const recipient = yield* resolveRecipient(ctx.props.owner_id, input.recipient)
-    if (recipient.address === wallet.contract_id) return yield* fail('That is this wallet itself.')
+    const recipient = yield* resolveRecipient(ctx.props.owner_id, wallet.id, input.recipient)
+    if (recipient.address === wallet.contract_id) return yield* refuse('invalid_input', 'That is this wallet itself.')
     const chain = yield* Chain
     const readiness = yield* chain.readiness(recipient.address).pipe(
       Effect.map(toReadiness),
       Effect.catchTag('ChainError', error =>
-        fail(`Could not check the recipient on Stellar (${error.message}). Retry with the same idempotency key.`),
+        refuse(
+          'upstream_unavailable',
+          `Could not check the recipient on Stellar (${error.message}). Retry with the same idempotency key.`,
+        ),
       ),
     )
     if (readiness === 'account_missing')
-      return yield* fail(
+      return yield* refuse(
+        'account_missing',
         `${recipient.address} does not exist on Stellar ${network.label} yet, so it cannot receive USDC.`,
       )
     const newContact = yield* firstPaymentToAiContact(wallet.id, ctx.props.owner_id, recipient)
@@ -399,13 +462,15 @@ export const paymentExecute = (ctx: ToolContext, paymentId: string) =>
       .claimAutonomous(wallet.id, { intentId: paymentId, connectionId: connection.id })
       .pipe(
         Effect.catchTag('LedgerError', (error): Effect.Effect<never, ToolError | LedgerError> =>
-          error.reason === 'not_found' ? fail(`No payment ${paymentId} for this connection.`) : Effect.fail(error),
+          error.reason === 'not_found'
+            ? refuse('not_found', `No payment ${paymentId} for this connection.`)
+            : Effect.fail(error),
         ),
       )
     let intent = claim.intent
     if (claim._tag === 'Claimed') {
       const grant = claim.grant
-      if (grant === undefined) return yield* fail('This connection has no spending grant.')
+      if (grant === undefined) return yield* refuse('no_allowance', 'This connection has no spending grant.')
       const chain = yield* Chain
       // Never after a failed enforce simulation: the chain package simulates in enforce mode before it submits.
       const outcome: Outcome = yield* chain
@@ -447,7 +512,7 @@ const ownIntent = (ctx: ToolContext, paymentId: string) =>
   Effect.gen(function* () {
     const intent = yield* intentById(paymentId)
     if (intent === undefined || intent.connection_id !== ctx.props.connection_id)
-      return yield* fail(`No payment ${paymentId} for this connection.`)
+      return yield* refuse('not_found', `No payment ${paymentId} for this connection.`)
     return intent
   })
 
@@ -645,7 +710,7 @@ const fundedHook =
 const existingPaid = (ctx: ToolContext, intentId: string, grant: SpendingGrant | undefined, nowMs: number) =>
   Effect.gen(function* () {
     const intent = yield* intentById(intentId)
-    if (intent === undefined) return yield* fail('The earlier intent for this key vanished.')
+    if (intent === undefined) return yield* refuse('not_found', 'The earlier intent for this key vanished.')
     const receipt = yield* receiptOfIntent(intent.id)
     const view = paymentView(intent, receipt, grant, ctx.origin, nowMs)
     return {
@@ -693,13 +758,19 @@ const paid = <Body>(
     const existing = yield* intentByKey(wallet.id, connection.id, request.key)
     if (existing !== undefined) {
       if ((yield* fingerprintOf(existing.id)) !== request.fingerprint)
-        return yield* fail(`Idempotency key ${request.key} was used for a different request; use a new key.`)
+        return yield* refuse(
+          'idempotency_conflict',
+          `Idempotency key ${request.key} was used for a different request; use a new key.`,
+        )
       // Funded by the owner's nod: this retry completes the purchase. Anything else is reported as it stands.
       if (existing.status !== 'approved')
         return { body: null, ...(yield* existingPaid(ctx, existing.id, grant, nowMs)) }
     }
     if (grant === undefined || (existing === undefined && grant.status !== 'active'))
-      return yield* fail('This AI app has no live allowance; ask the user to set one (connection_grant_create).')
+      return yield* refuse(
+        'no_allowance',
+        'This AI app has no live allowance; ask the user to set one (connection_grant_create).',
+      )
     // The chain's per-payment belt: what the user approved, the agent's own max_amount, else Nod's x402 price cap.
     // Whether the price fits the allowance is the quote hook's call (it routes a bigger one to the user's nod).
     const network = yield* Network

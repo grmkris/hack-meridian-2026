@@ -1,4 +1,4 @@
-import { Context, Effect, Layer, Predicate, Schema } from 'effect'
+import { Context, Effect, Layer, Option, Predicate, Schema } from 'effect'
 
 import type { App } from '@modelcontextprotocol/ext-apps/app-with-deps'
 
@@ -35,13 +35,21 @@ const firstText = (content: unknown): string => {
   return Predicate.isObject(block) && Predicate.isString(block['text']) ? block['text'] : ''
 }
 
+/** Nod's refusals are JSON text, `{ error: { code, message, recovery, retry } }`; the card shows the message. */
+const Refusal = Schema.fromJsonString(Schema.Struct({ error: Schema.Struct({ message: Schema.String }) }))
+const refusalMessage = (text: string): string =>
+  Option.match(Schema.decodeUnknownOption(Refusal)(text), {
+    onNone: () => text,
+    onSome: refusal => refusal.error.message,
+  })
+
 /** A `tools/call` result (or a `ui/notifications/tool-result` params object) as a `ToolReply`. */
 export const toToolReply = (result: unknown): ToolReply =>
   Predicate.isObject(result)
     ? {
         isError: result['isError'] === true,
         structured: result['structuredContent'],
-        text: firstText(result['content']),
+        text: result['isError'] === true ? refusalMessage(firstText(result['content'])) : firstText(result['content']),
       }
     : { isError: true, structured: undefined, text: '' }
 
