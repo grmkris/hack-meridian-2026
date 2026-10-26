@@ -1,4 +1,4 @@
-import { Effect } from 'effect'
+import { Effect, Predicate } from 'effect'
 
 import { Server } from '@modelcontextprotocol/sdk/server/index.js'
 import { WebStandardStreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js'
@@ -10,6 +10,7 @@ import { isModernRequest, type ModernDeps, serveModern } from './mcp-modern.ts'
 import { callTool, listTools, runTool } from './mcp-tools.ts'
 import { Network, type NetworkShape } from './network.ts'
 import type { AppRuntime } from './runtime.ts'
+import { answerSkills, SKILLS_EXTENSION } from './skill.ts'
 import type { ToolContext } from './tools.ts'
 
 /**
@@ -60,6 +61,14 @@ export const serverInfo = (origin: string) => ({
   icons: [{ src: `${origin}/favicon.svg`, mimeType: 'image/svg+xml', sizes: ['any'] }],
 })
 
+/** What both lanes declare: tools, resources (MCP Apps and the skill's files), events, and the skills extension. */
+const capabilities = {
+  tools: {},
+  ...appsCapabilities,
+  ...eventsCapabilities,
+  extensions: { ...eventsCapabilities.extensions, [SKILLS_EXTENSION]: {} },
+}
+
 /** The largest JSON-RPC body /mcp reads; tool arguments are small. */
 export const MAX_BODY_BYTES = 1_048_576
 
@@ -90,7 +99,7 @@ const serveLegacy = async (
   label: NetworkLabel,
 ) => {
   const server = new Server(serverInfo(ctx.origin), {
-    capabilities: { tools: {}, ...appsCapabilities, ...eventsCapabilities },
+    capabilities,
     instructions: instructions(label, ctx.origin),
   })
   server.setRequestHandler(ListToolsRequestSchema, async () => ({ tools: listTools() }))
@@ -119,16 +128,27 @@ const modernDeps = (runtime: AppRuntime, ctx: ToolContext, label: NetworkLabel):
   listResources: () => listResources(label),
   readResource: uri => readResource(uri, label),
   events: (method, params) => handleEventsRequest(runtime, ctx, method, params),
-  capabilities: { tools: {}, ...appsCapabilities, ...eventsCapabilities },
+  capabilities,
   instructions: instructions(label, ctx.origin),
   serverInfo: serverInfo(ctx.origin),
 })
+
+/** skills/list and skills/get, the same on both lanes, answered before either sees the message. */
+const skillsAnswer = (body: unknown): Response | undefined => {
+  if (!Predicate.isObject(body) || Array.isArray(body) || typeof body['method'] !== 'string' || !('id' in body))
+    return undefined
+  const answered = answerSkills(body['method'], body['params'])
+  if (answered === undefined) return undefined
+  return Response.json({ jsonrpc: '2.0', id: body['id'], ...answered }, { headers: { 'cache-control': 'no-store' } })
+}
 
 /** Serve one MCP POST for a connection: 2026-07-28 messages on their own lane, everything else through the SDK. */
 export const serveMcp = async (runtime: AppRuntime, request: Request, ctx: ToolContext, auth: McpAuth) => {
   if (request.method !== 'POST') return new Response('Method Not Allowed', { status: 405, headers: { Allow: 'POST' } })
   const read = await readBody(request)
   if ('error' in read) return read.error
+  const skills = skillsAnswer(read.body)
+  if (skills !== undefined) return skills
   const label = await networkLabel(runtime)
   if (isModernRequest(request, read.body)) return serveModern(request, read.body, modernDeps(runtime, ctx, label))
   return serveLegacy(runtime, request, read.body, ctx, auth, label)

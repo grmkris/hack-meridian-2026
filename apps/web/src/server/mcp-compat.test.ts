@@ -41,6 +41,7 @@ const READS = [
   'requests_list',
   'payments_list',
   'wallet_topup_status',
+  'get_guide',
 ]
 
 const problems = () => {

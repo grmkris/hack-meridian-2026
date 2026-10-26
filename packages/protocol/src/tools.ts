@@ -463,6 +463,18 @@ export const WalletTopupStatusInput = Schema.Struct({
   idempotency_key: OptionalKey,
 })
 
+// 24. get_guide: Nod's bundled skill (skill://nod-guide/SKILL.md) for hosts that do not attach skills themselves
+export const GetGuideInput = Schema.Struct({ idempotency_key: OptionalKey })
+export type GetGuideInput = typeof GetGuideInput.Type
+export const GetGuideOutput = Schema.Struct({
+  uri: Schema.String,
+  name: Schema.String,
+  description: Schema.String,
+  /** The reference files beside SKILL.md (resources/read them). */
+  references: Schema.Array(Schema.String),
+  grant_remaining: Schema.String,
+})
+
 export const TOOL_NAMES = [
   'wallet_overview',
   'contacts_search',
@@ -487,5 +499,6 @@ export const TOOL_NAMES = [
   'connection_grant_update',
   'wallet_topup_quote',
   'wallet_topup_status',
+  'get_guide',
 ] as const
 export type ToolName = (typeof TOOL_NAMES)[number]

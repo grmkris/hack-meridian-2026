@@ -76,9 +76,11 @@ const world = async (network: NetworkShape) => {
 
 const INITIALIZE = { protocolVersion: '2025-11-25', capabilities: {}, clientInfo: { name: 'test', version: '1.0.0' } }
 
+/** The MCP Apps resources' descriptions (the skill's files beside them name no network). */
 const descriptions = (result: Record<string, unknown>) =>
   (Array.isArray(result['resources']) ? result['resources'] : [])
     .filter(Predicate.isObject)
+    .filter(resource => String(resource['uri']).startsWith('ui://'))
     .map(resource => String(resource['description']))
 
 describe('the network label follows the stage', () => {

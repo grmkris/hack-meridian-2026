@@ -7,6 +7,7 @@ import {
 
 import cardHtml from './cards/card.html?raw'
 import type { NetworkShape } from './network.ts'
+import { readSkillResource, skillResources } from './skill.ts'
 
 /**
  * MCP Apps: the `ui://` resources Nod's tools render with (cards in the chat). One sealed HTML file
@@ -87,19 +88,25 @@ const htmlFor = (view: AppView): string =>
   cardHtml.replace('<head>', `<head><meta name="nod-view" content="${view.view}">`)
 
 export const listResources = (label: NetworkShape['label']) => ({
-  resources: viewsOn(label).map(view => ({
-    uri: view.uri,
-    name: view.name,
-    title: view.title,
-    description: view.description,
-    mimeType: MCP_APP_MIME_TYPE,
-    _meta: resourceMeta(view),
-  })),
+  resources: [
+    ...viewsOn(label).map(view => ({
+      uri: view.uri,
+      name: view.name,
+      title: view.title,
+      description: view.description,
+      mimeType: MCP_APP_MIME_TYPE,
+      _meta: resourceMeta(view),
+    })),
+    // The bundled skill's files (skill.ts), for hosts without the skills extension.
+    ...skillResources,
+  ],
 })
 
 const INVALID_PARAMS = -32602
 
 export const readResource = async (uri: string, label: NetworkShape['label']) => {
+  const skill = readSkillResource(uri)
+  if (skill !== undefined) return skill
   const view = viewsOn(label).find(candidate => candidate.uri === uri)
   if (view === undefined) {
     throw Object.assign(new Error(`Unknown resource ${uri}`), { code: INVALID_PARAMS })

@@ -13,6 +13,7 @@ import { ownerRoute } from './server/routes.ts'
 import { makeRuntime, type WorkerEnv } from './server/runtime.ts'
 import { sampleRoute } from './server/sample/route.ts'
 import type { SampleEnv } from './server/sample/runner-object.ts'
+import { skillRoute } from './server/skill.ts'
 import { STELLAR_TOML_PATH, stellarToml } from './server/stellar-toml.ts'
 
 export { OAuthStore } from './server/kv-shim.ts'
@@ -45,6 +46,8 @@ const defaultHandler = {
     const sample = sampleRoute(runtime, request, path, requestEnv)
     if (sample !== undefined) return sample
     if (path.startsWith('/api/')) return api.handler(request)
+    const skill = skillRoute(request, path)
+    if (skill !== undefined) return Promise.resolve(skill)
     return requestEnv.ASSETS.fetch(request)
   },
 }
@@ -108,6 +111,8 @@ const ROUTES = [
   '/llms.txt',
   '/robots.txt',
   '/sitemap.xml',
+  '/skill',
+  '/SKILL.md',
 ]
 
 /** The response with `x-nod-ref` (the request id every log line of this request carries), headers copied. */

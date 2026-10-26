@@ -161,6 +161,7 @@ const APPENDED_TOOLS = [
   'connection_grant_update',
   'wallet_topup_quote',
   'wallet_topup_status',
+  'get_guide',
 ]
 
 const CARD_TOOLS = [
@@ -264,7 +265,10 @@ describe('MCP Apps resources (the cards)', () => {
 
   test('resources/list names the card and the home view, both with an empty CSP', async () => {
     const result = resultOf(await rpc('resources/list'))
-    const resources = Array.isArray(result['resources']) ? result['resources'].filter(Predicate.isObject) : []
+    // The skill's files follow them (skill.test.ts).
+    const resources = (Array.isArray(result['resources']) ? result['resources'].filter(Predicate.isObject) : []).filter(
+      resource => String(resource['uri']).startsWith('ui://'),
+    )
     expect(resources.map(resource => resource['uri'])).toEqual(['ui://nod/card/v1', 'ui://nod/home/v1'])
     for (const resource of resources) {
       expect(resource['mimeType']).toBe('text/html;profile=mcp-app')
