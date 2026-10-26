@@ -1,5 +1,5 @@
 import { Option } from 'effect'
-import { Mount, expect, given, role, scene, text } from 'foldkit/scene'
+import { Mount, expect, given, role, scene, testId, text } from 'foldkit/scene'
 import { modifyFields } from 'foldkit/struct'
 import { describe, test } from 'vitest'
 
@@ -49,7 +49,7 @@ describe('signed in', () => {
 })
 
 describe('signed out', () => {
-  test('offers sign in and creation before any passkey prompt', () => {
+  test('offers a passkey entry before showing wallet fields', () => {
     scene(
       { update, view },
       given(
@@ -57,11 +57,10 @@ describe('signed out', () => {
           session: () => Session.SignedOut({ welcome: Welcome.init(Option.none(), 'https://wallet.test/mcp').model }),
         }),
       ),
-      expect(role('button', { name: 'Sign in with passkey' })).toExist(),
-      expect(role('button', { name: 'Create wallet' })).toExist(),
+      expect(testId('sign-in')).toExist(),
       expect(role('textbox', { name: 'Wallet name' })).not.toExist(),
-      // The hero's night flight decides in the browser whether to play; here it settles without playing.
-      Mount.resolve(Welcome.PlayNightFlight, Welcome.Message.SettledNightFlight({ playing: false })),
+      // The hero's approval illustration decides in the browser whether to play; here it settles without playing.
+      Mount.resolve(Welcome.PlayHeroFilm, Welcome.Message.SettledHeroFilm({ playing: false })),
     )
   })
 })
