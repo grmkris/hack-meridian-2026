@@ -109,11 +109,12 @@ describe('the skills extension', () => {
     }
   })
 
-  test('get_guide returns SKILL.md as its text and the entry as its value', async () => {
+  test('get_guide returns SKILL.md as its text and, with the entry, in its value', async () => {
     const w = await senderWorld()
     const result = await callTool(w.runtime, w.ctx, 'get_guide', {})
     expect(result.content[0]).toEqual({ type: 'text', text: skillText })
     expect(result.structuredContent).toMatchObject({
+      guide: skillText,
       uri: SKILL_URI,
       name: 'nod-guide',
       references: [

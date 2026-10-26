@@ -117,6 +117,9 @@ export const getGuide = (ctx: ToolContext) =>
     return {
       sentence: skillMarkdown,
       value: {
+        // The guide itself in the structured value too: hosts that show the model structuredContent instead of the
+        // text block (Claude Code) would otherwise see only this metadata.
+        guide: skillMarkdown,
         uri: SKILL_URI,
         name: skillFrontmatter.name,
         description: skillFrontmatter.description,

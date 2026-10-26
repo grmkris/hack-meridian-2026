@@ -467,6 +467,8 @@ export const WalletTopupStatusInput = Schema.Struct({
 export const GetGuideInput = Schema.Struct({ idempotency_key: OptionalKey })
 export type GetGuideInput = typeof GetGuideInput.Type
 export const GetGuideOutput = Schema.Struct({
+  /** SKILL.md itself, also in the text block: some hosts show the model only the structured value. */
+  guide: Schema.String,
   uri: Schema.String,
   name: Schema.String,
   description: Schema.String,
