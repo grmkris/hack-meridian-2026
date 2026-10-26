@@ -1,6 +1,7 @@
 import { Option } from 'effect'
 import { UrlRequest } from 'foldkit/navigation'
 import { Command, given, message, model, story } from 'foldkit/story'
+import { modifyFields } from 'foldkit/struct'
 import type { Url } from 'foldkit/url'
 import { describe, expect, test } from 'vitest'
 
@@ -101,6 +102,51 @@ describe('session', () => {
 })
 
 describe('links', () => {
+  test('a direct funding URL survives sign-in and focuses the panel once the overview arrives', () => {
+    const url = { ...urlAt('/'), hash: Option.some('add-money') }
+    story(
+      update,
+      given(init(url).model),
+      message(Message.FailedCheckSession({ problem: Problem.SignedOut() })),
+      message(Message.SucceededCheckSession({ wallet: fixture.wallet })),
+      model(nextModel => {
+        expect(nextModel.home.fundingOpen).toBe(true)
+      }),
+      Command.resolve(Home.LoadOverview, Home.Message.SucceededLoadOverview({ overview, nowMs: 1792929600000 })),
+      Command.expectExact(Home.FocusFunding),
+      Command.resolve(Home.FocusFunding, Home.Message.CompletedFocusFunding()),
+      message(Message.ToggledWalletDetails({ isOpen: true })),
+      message(Message.GotHomeMessage({ message: Home.Message.ToggledSetup({ isOpen: true }) })),
+      message(Message.TickedLiveRefresh()),
+      Command.resolve(Home.LoadOverview, Home.Message.SucceededLoadOverview({ overview, nowMs: 1792929601000 })),
+      Command.expectNone(),
+      model(nextModel => {
+        expect(nextModel.home.fundingOpen).toBe(true)
+        expect(nextModel.home.setupOpen).toBe(true)
+        expect(nextModel.detailsOpen).toBe(true)
+      }),
+    )
+  })
+
+  test('Top up from another route opens Home and closes Wallet details', () => {
+    const signedIn = modifyFields(checking('/contacts'), {
+      session: () => Session.SignedIn({ wallet: fixture.wallet }),
+      detailsOpen: () => true,
+    })
+    story(
+      update,
+      given(signedIn),
+      message(Message.ChangedUrl({ url: { ...urlAt('/'), hash: Option.some('add-money') } })),
+      model(nextModel => {
+        expect(nextModel.route).toEqual(AppRoute.Home())
+        expect(nextModel.detailsOpen).toBe(false)
+        expect(nextModel.home.fundingOpen).toBe(true)
+      }),
+      Command.resolve(Home.LoadOverview, Home.Message.SucceededLoadOverview({ overview, nowMs: 1792929600000 })),
+      Command.resolve(Home.FocusFunding, Home.Message.CompletedFocusFunding()),
+    )
+  })
+
   test('an approval link leaves the app for the Worker page', () => {
     story(
       update,
@@ -128,12 +174,12 @@ describe('live refresh', () => {
       update,
       given(checking('/')),
       message(Message.SucceededCheckSession({ wallet: fixture.wallet })),
-      Command.resolve(Home.LoadOverview, Home.Message.SucceededLoadOverview({ overview })),
+      Command.resolve(Home.LoadOverview, Home.Message.SucceededLoadOverview({ overview, nowMs: 1792929600000 })),
       message(Message.TickedLiveRefresh()),
       model(nextModel => {
         expect(nextModel.home.overview).toEqual({ _tag: 'Refreshing', data: overview })
       }),
-      Command.resolve(Home.LoadOverview, Home.Message.SucceededLoadOverview({ overview })),
+      Command.resolve(Home.LoadOverview, Home.Message.SucceededLoadOverview({ overview, nowMs: 1792929600000 })),
     )
   })
 

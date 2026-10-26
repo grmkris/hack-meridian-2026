@@ -1,5 +1,5 @@
-import { Array, Effect, Match, Option, Schema } from 'effect'
-import { AsyncData, Command, Submodel, type Update } from 'foldkit'
+import { Array, Clock, Effect, Match, Option, Schema } from 'effect'
+import { AsyncData, Command, Dom, Submodel, type Update } from 'foldkit'
 import type { Html, HtmlBuilder } from 'foldkit/html'
 import { defineMessageUnion } from 'foldkit/message'
 import { defineTaggedUnion } from 'foldkit/schema'
@@ -15,9 +15,12 @@ import {
   TopupChain,
   TopupQuoteView,
 } from '../backend'
-import { dateTime, explorerAccountUrl, isMainnet, networkLabel, percentUsed, shortAddress, usdc } from '../format'
+import { allowanceHelp, allowanceState, clientUrl } from '../connection'
+import { dateTime, explorerAccountUrl, isMainnet, networkLabel, shortAddress, usdc } from '../format'
 import { Problem, recoverProblem } from '../problem'
 import { connectionsRouter, receiptsRouter } from '../route'
+import { disclosure } from '../view/disclosure'
+import { usdcNumber } from '../view/money'
 import { qrModules, qrPath } from '../view/qr'
 import { receiptRow } from '../view/receipt'
 import {
@@ -31,7 +34,6 @@ import {
   emptyRow,
   errorRow,
   loadingRow,
-  meter,
   panel,
 } from '../view/ui'
 
@@ -48,6 +50,19 @@ export const AddressCopy = defineTaggedUnion({
   Failed: {},
 })
 export type AddressCopy = typeof AddressCopy.Type
+
+export const SetupTarget = Schema.Literals(['Prompt', 'Url'])
+export type SetupTarget = typeof SetupTarget.Type
+export const SetupCopy = defineTaggedUnion({
+  Idle: {},
+  Copying: { target: SetupTarget },
+  Copied: { target: SetupTarget },
+  Failed: { target: SetupTarget },
+})
+export type SetupCopy = typeof SetupCopy.Type
+
+export const setupPrompt = (connectorUrl: string): string =>
+  `Add Nod as an MCP server: ${connectorUrl}. Help me finish authorization and verify that its tools are available.`
 
 /** Add money has two ways in: on Stellar (the wallet and deposit addresses), or from another chain (NEAR Intents). */
 export const AddMoneyTab = defineTaggedUnion({
@@ -84,8 +99,13 @@ export const Model = Schema.Struct({
   topupAssets: TopupAssetsData.schema,
   topupForm: TopupForm,
   topup: Topup,
-  /** Wall time from the top-up clock, for the countdown to the quote's deadline. */
-  maybeNowMs: Schema.Option(Schema.Number),
+  /** Wall time for allowance expiry and the top-up deadline. */
+  maybeNowMs: Schema.Option(Schema.Finite),
+  setupCopy: SetupCopy,
+  setupOpen: Schema.Boolean,
+  fundingOpen: Schema.Boolean,
+  activityOpen: Schema.Boolean,
+  needsFundingFocus: Schema.Boolean,
 })
 export type Model = typeof Model.Type
 
@@ -94,7 +114,7 @@ export type Model = typeof Model.Type
 export const Message = defineMessageUnion({
   EnteredPage: {},
   ClickedRefresh: {},
-  SucceededLoadOverview: { overview: Overview },
+  SucceededLoadOverview: { overview: Overview, nowMs: Schema.Finite },
   FailedLoadOverview: { problem: Problem },
   ClickedCopyAddress: { address: Schema.String },
   CompletedCopyAddress: {},
@@ -114,8 +134,17 @@ export const Message = defineMessageUnion({
   FailedQuoteTopup: { problem: Problem },
   SucceededCheckTopup: { quote: TopupQuoteView },
   FailedCheckTopup: { problem: Problem },
-  TickedTopupClock: { nowMs: Schema.Number },
+  TickedTopupClock: { nowMs: Schema.Finite },
   ClickedNewTopup: {},
+  RequestedFunding: {},
+  ClickedCloseFunding: {},
+  CompletedFocusFunding: {},
+  CompletedFocusTopupButton: {},
+  ToggledSetup: { isOpen: Schema.Boolean },
+  ToggledActivity: { isOpen: Schema.Boolean },
+  ClickedCopySetup: { target: SetupTarget, connectorUrl: Schema.String },
+  CompletedCopySetup: { target: SetupTarget },
+  FailedCopySetup: { target: SetupTarget },
 })
 export type Message = typeof Message.Type
 
@@ -134,6 +163,11 @@ export const init = (): Update.Return<Model, Message, Resources> => ({
     topupForm: { chain: '', assetId: '', amount: '', refundTo: '' },
     topup: Topup.Editing(),
     maybeNowMs: Option.none(),
+    setupCopy: SetupCopy.Idle(),
+    setupOpen: false,
+    fundingOpen: false,
+    activityOpen: false,
+    needsFundingFocus: false,
   },
 })
 
@@ -144,7 +178,8 @@ export const LoadOverview = Command.define('LoadOverview', {
   execute: Effect.gen(function* () {
     const backend = yield* Backend
     const overview = yield* backend.overview
-    return Message.SucceededLoadOverview({ overview })
+    const nowMs = yield* Clock.currentTimeMillis
+    return Message.SucceededLoadOverview({ overview, nowMs })
   }).pipe(recoverProblem(problem => Message.FailedLoadOverview({ problem }))),
 })
 
@@ -196,6 +231,32 @@ export const CopyAddress = Command.define('CopyAddress', {
       Effect.as(Message.CompletedCopyAddress()),
       Effect.orElseSucceed(() => Message.FailedCopyAddress()),
     ),
+})
+
+export const CopySetup = Command.define('CopySetup', {
+  args: { target: SetupTarget, connectorUrl: Schema.String },
+  messages: [Message.CompletedCopySetup, Message.FailedCopySetup],
+  execute: ({ target, connectorUrl }) =>
+    Effect.tryPromise(() =>
+      navigator.clipboard.writeText(target === 'Prompt' ? setupPrompt(connectorUrl) : connectorUrl),
+    ).pipe(
+      Effect.as(Message.CompletedCopySetup({ target })),
+      Effect.orElseSucceed(() => Message.FailedCopySetup({ target })),
+    ),
+})
+
+export const FocusFunding = Command.define('FocusFunding', {
+  messages: [Message.CompletedFocusFunding],
+  execute: Dom.scrollIntoViewAfterPaint('#add-money', { block: 'start' }).pipe(
+    Effect.andThen(Dom.focus('#add-money', { preventScroll: true })),
+    Effect.ignore,
+    Effect.as(Message.CompletedFocusFunding()),
+  ),
+})
+
+export const FocusTopupButton = Command.define('FocusTopupButton', {
+  messages: [Message.CompletedFocusTopupButton],
+  execute: Dom.focus('#top-up-button').pipe(Effect.ignore, Effect.as(Message.CompletedFocusTopupButton())),
 })
 
 // UPDATE
@@ -270,9 +331,17 @@ export const update = (model: Model, message: Message) =>
   Message.match<UpdateReturn>(message, {
     EnteredPage: () => enter(model),
     ClickedRefresh: () => startLoad(model),
-    SucceededLoadOverview: ({ overview }) => {
-      const loaded = modifyFields(model, { overview: () => OverviewData.Success({ data: overview }) })
-      return wantsDeposit(overview) ? startDeposit(loaded) : { model: loaded }
+    SucceededLoadOverview: ({ overview, nowMs }) => {
+      const loaded = modifyFields(model, {
+        overview: () => OverviewData.Success({ data: overview }),
+        maybeNowMs: () => Option.some(nowMs),
+        needsFundingFocus: () => false,
+      })
+      const deposit: UpdateReturn = wantsDeposit(overview) ? startDeposit(loaded) : { model: loaded }
+      return {
+        ...deposit,
+        commands: [...(deposit.commands ?? []), ...(model.needsFundingFocus ? [FocusFunding()] : [])],
+      }
     },
     FailedLoadOverview: ({ problem }) =>
       Problem.match<UpdateReturn>(problem, {
@@ -389,6 +458,38 @@ export const update = (model: Model, message: Message) =>
         addressCopy: () => AddressCopy.Idle(),
       }),
     }),
+    RequestedFunding: () => {
+      const hasOverview = AsyncData.matchData(model.overview, {
+        onEmpty: () => false,
+        onFailure: () => false,
+        onData: () => true,
+      })
+      return {
+        model: modifyFields(model, { fundingOpen: () => true, needsFundingFocus: () => !hasOverview }),
+        commands: hasOverview ? [FocusFunding()] : [],
+      }
+    },
+    ClickedCloseFunding: () => ({
+      model: modifyFields(model, { fundingOpen: () => false, needsFundingFocus: () => false }),
+      commands: [FocusTopupButton()],
+    }),
+    CompletedFocusFunding: () => ({ model }),
+    CompletedFocusTopupButton: () => ({ model }),
+    ToggledSetup: ({ isOpen }) => ({ model: modifyFields(model, { setupOpen: () => isOpen }) }),
+    ToggledActivity: ({ isOpen }) => ({ model: modifyFields(model, { activityOpen: () => isOpen }) }),
+    ClickedCopySetup: ({ target, connectorUrl }) =>
+      SetupCopy.guards.Copying(model.setupCopy)
+        ? { model }
+        : {
+            model: modifyFields(model, { setupCopy: () => SetupCopy.Copying({ target }) }),
+            commands: [CopySetup({ target, connectorUrl })],
+          },
+    CompletedCopySetup: ({ target }) => ({
+      model: modifyFields(model, { setupCopy: () => SetupCopy.Copied({ target }) }),
+    }),
+    FailedCopySetup: ({ target }) => ({
+      model: modifyFields(model, { setupCopy: () => SetupCopy.Failed({ target }) }),
+    }),
   })
 
 const requestQuote = (model: Model): UpdateReturn => ({
@@ -404,124 +505,247 @@ const requestQuote = (model: Model): UpdateReturn => ({
 
 export const informEntered = (model: Model) => update(model, Message.EnteredPage())
 
+export const informFundingRequested = (model: Model) => update(model, Message.RequestedFunding())
+
 /** The top-up countdown's clock, from the root's subscription: the wall time now. */
 export const informClock = (nowMs: number) => (model: Model) => update(model, Message.TickedTopupClock({ nowMs }))
 
 // VIEW
 
-const twoNumberColumn = (title: string, children: ReadonlyArray<Html>, h: HtmlBuilder<Message>): Html =>
-  h.div(
-    [h.Class('flex min-w-0 flex-col gap-2 p-5 sm:p-7')],
-    [h.h2([h.Class('text-sm font-semibold text-muted')], [title]), ...children],
-  )
-
-const walletColumn = (overview: Overview, h: HtmlBuilder<Message>): Html => {
+const walletColumn = (overview: Overview, model: Model, h: HtmlBuilder<Message>): Html => {
   const network = overview.network ?? overview.wallet.network
-  return twoNumberColumn(
-    'Wallet balance',
+  const amount = usdcNumber(overview.balances.usdc)
+  return h.section(
+    [h.AriaLabel('Wallet balance'), h.Class('min-w-0 [container-type:inline-size]')],
     [
-      h.p(
+      h.p([h.Class('text-sm text-muted')], ['Wallet balance']),
+      h.div(
+        [h.Class('mt-2 flex flex-wrap items-center justify-between gap-4')],
         [
-          h.DataAttribute('testid', 'wallet-balance'),
-          h.Class(`${FIGURE} text-[clamp(2.25rem,11vw,2.75rem)] leading-none text-ink sm:text-6xl`),
-        ],
-        [usdc(overview.balances.usdc)],
-      ),
-      h.p(
-        [h.Class('mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted')],
-        [
-          h.span([], [`${overview.wallet.name} on Stellar ${networkLabel(network)}`]),
-          h.a(
+          h.p(
             [
-              h.Href(explorerAccountUrl(network, overview.wallet.contract_id, overview.explorer_base)),
-              h.Target('_blank'),
-              h.Rel('noreferrer'),
-              h.Title(overview.wallet.contract_id),
-              h.Class(`${LINK} font-mono text-[0.8125rem]`),
+              h.DataAttribute('testid', 'wallet-balance'),
+              h.Class(
+                `flex max-w-full flex-wrap items-baseline gap-x-2 font-sans font-semibold leading-tight tracking-[-0.035em] tabular-nums ${amount.length > 10 ? 'text-[clamp(1rem,8cqi,2rem)]' : 'text-[2.75rem]'}`,
+              ),
             ],
-            [shortAddress(overview.wallet.contract_id)],
+            [
+              h.span([h.Class('[overflow-wrap:anywhere]')], [amount]),
+              h.span([h.Class('text-sm font-medium tracking-normal text-muted')], [' USDC']),
+            ],
+          ),
+          h.button(
+            [
+              h.Id('top-up-button'),
+              h.Type('button'),
+              h.OnClick(Message.RequestedFunding()),
+              h.AriaExpanded(model.fundingOpen),
+              ...(model.fundingOpen ? [h.AriaControls('add-money')] : []),
+              h.Class(BUTTON_SECONDARY),
+            ],
+            ['Top up'],
           ),
         ],
       ),
-      h.p([h.Class('text-sm text-muted')], ['Nod pays the network fee.']),
+      h.p(
+        [h.Class('mt-3 text-sm leading-relaxed text-muted')],
+        [
+          overview.wallet.account_status === 'awaiting_deposit'
+            ? 'Ready for your first deposit. You can connect an app now.'
+            : 'Your money, ready when you need it.',
+        ],
+      ),
+      h.a(
+        [
+          h.Href(explorerAccountUrl(network, overview.wallet.contract_id, overview.explorer_base)),
+          h.Target('_blank'),
+          h.Rel('noopener noreferrer'),
+          h.Title(overview.wallet.contract_id),
+          h.Class(`${LINK} mt-3 inline-flex min-h-11 items-center font-mono text-xs`),
+        ],
+        [shortAddress(overview.wallet.contract_id)],
+      ),
     ],
-    h,
   )
 }
 
-const allowanceRow = (grant: GrantView, h: HtmlBuilder<Message>): Html =>
-  h.keyed('li')(
+const APP_MARKS = [
+  { id: 'openai', label: 'ChatGPT' },
+  { id: 'claude', label: 'Claude' },
+  { id: 'cursor', label: 'Cursor' },
+  { id: 'grok', label: 'Grok' },
+  { id: 'grokbot', label: 'Grok Bot' },
+]
+
+const setupArtifact = (target: SetupTarget, connectorUrl: string, copy: SetupCopy, h: HtmlBuilder<Message>): Html => {
+  const isPrompt = target === 'Prompt'
+  const label = isPrompt ? 'Setup prompt' : 'MCP URL'
+  const value = isPrompt ? setupPrompt(connectorUrl) : connectorUrl
+  const copied = SetupCopy.guards.Copied(copy) && copy.target === target
+  const failed = SetupCopy.guards.Failed(copy) && copy.target === target
+  return h.div(
+    [h.Class('min-w-0 border-t border-line py-5')],
+    [
+      h.div(
+        [h.Class('flex flex-wrap items-center justify-between gap-3')],
+        [
+          h.h3([h.Class('text-base font-medium')], [label]),
+          h.button(
+            [
+              h.Type('button'),
+              h.OnClick(Message.ClickedCopySetup({ target, connectorUrl })),
+              h.Disabled(SetupCopy.guards.Copying(copy)),
+              h.AriaLabel(isPrompt ? 'Copy setup prompt' : 'Copy MCP URL'),
+              h.Class(BUTTON_SECONDARY),
+            ],
+            [copied ? 'Copied' : 'Copy'],
+          ),
+        ],
+      ),
+      h.p(
+        [h.Class('mt-2 text-sm text-muted')],
+        [
+          isPrompt
+            ? 'Paste into an agent that can add connectors for you.'
+            : 'Paste into your app’s connector settings.',
+        ],
+      ),
+      h.p([h.Class('mt-3 select-text text-sm leading-relaxed [overflow-wrap:anywhere]')], [value]),
+      failed
+        ? h.p(
+            [h.Role('status'), h.Class('mt-2 text-sm text-danger')],
+            ['Clipboard unavailable. Select the text above and copy it.'],
+          )
+        : h.empty,
+    ],
+  )
+}
+
+const setupView = (model: Model, connectorUrl: string, h: HtmlBuilder<Message>): Html =>
+  h.div(
+    [h.Class('min-w-0')],
+    [
+      h.h2(
+        [h.Class('font-display text-[clamp(1.5rem,4vw,2rem)] font-bold leading-tight tracking-[-0.025em]')],
+        ['Use Nod in your chat.'],
+      ),
+      h.p([h.Class('mt-3 mb-5 text-sm text-muted')], ['Connect now. Add money whenever you’re ready.']),
+      setupArtifact('Prompt', connectorUrl, model.setupCopy, h),
+      setupArtifact('Url', connectorUrl, model.setupCopy, h),
+      h.ul(
+        [h.AriaLabel('AI apps'), h.Class('flex flex-wrap items-center gap-4 pt-1')],
+        Array.map(APP_MARKS, app =>
+          h.keyed('li')(
+            app.id,
+            [h.Title(app.label)],
+            [h.img([h.Src(`/apps/${app.id}.svg`), h.Alt(app.label), h.Class('size-5 shrink-0 opacity-65')])],
+          ),
+        ),
+      ),
+      h.p(
+        [h.Role('status'), h.AriaLive('polite'), h.Class('sr-only')],
+        [
+          SetupCopy.guards.Copied(model.setupCopy)
+            ? `${model.setupCopy.target === 'Prompt' ? 'Setup prompt' : 'MCP URL'} copied.`
+            : '',
+        ],
+      ),
+    ],
+  )
+
+const allowanceRow = (grant: GrantView, model: Model, isSingle: boolean, h: HtmlBuilder<Message>): Html => {
+  const state = allowanceState(grant, model.maybeNowMs)
+  return h.keyed('li')(
     grant.connection_id,
-    [h.Class('flex flex-col gap-2 py-4 first:pt-0 last:pb-0')],
+    [h.Class('min-w-0 py-5 first:pt-0 last:pb-0')],
     [
-      h.p([h.Class('text-sm text-ink')], [h.span([h.Class('font-semibold')], [grant.client_name]), ' may still spend']),
-      h.p(
-        [h.Class('flex flex-wrap items-baseline gap-x-2')],
-        [
-          h.span(
-            [h.Class(`${FIGURE} text-[clamp(2.25rem,11vw,2.75rem)] leading-none text-accent sm:text-6xl`)],
-            [usdc(grant.remaining)],
+      h.p([h.Class('text-sm font-medium [overflow-wrap:anywhere]')], [grant.client_name]),
+      state === 'ready'
+        ? h.div(
+            [h.Class('mt-2')],
+            [
+              h.p(
+                [h.Class('flex flex-wrap items-baseline gap-x-2 gap-y-1')],
+                [
+                  h.span(
+                    [
+                      h.Class(
+                        `font-sans font-semibold tracking-[-0.025em] text-accent tabular-nums [overflow-wrap:anywhere] ${isSingle ? 'text-3xl' : 'text-xl'}`,
+                      ),
+                    ],
+                    [usdc(grant.remaining)],
+                  ),
+                  h.span([h.Class('text-sm text-muted')], ['left to spend']),
+                ],
+              ),
+              h.p(
+                [h.Class('mt-2 text-sm text-muted [overflow-wrap:anywhere]')],
+                [`of ${usdc(grant.total)}, until ${dateTime(grant.valid_until ?? '')}`],
+              ),
+            ],
+          )
+        : h.p([h.Class('mt-2 text-sm text-muted')], [allowanceHelp[state]]),
+      Option.match(clientUrl(grant.client_domain), {
+        onNone: () => h.p([h.Class('mt-3 text-sm text-muted')], [`Return to ${grant.client_name} to use Nod.`]),
+        onSome: url =>
+          h.a(
+            [
+              h.Href(url),
+              h.Target('_blank'),
+              h.Rel('noopener noreferrer'),
+              h.Class(
+                `${isSingle ? BUTTON_PRIMARY : LINK} mt-4 inline-flex min-h-11 items-center [overflow-wrap:anywhere]`,
+              ),
+            ],
+            [`Open ${grant.client_name}`],
           ),
-          h.span([h.Class('text-sm tabular-nums text-muted')], [`of ${usdc(grant.total)}`]),
-        ],
-      ),
-      meter(percentUsed(grant.total, grant.remaining), `${grant.client_name} allowance used`, h),
-      h.p(
-        [h.Class('text-sm text-muted')],
-        [
-          Option.match(Option.fromNullishOr(grant.valid_until), {
-            onNone: () => 'Waiting for your passkey to set the allowance',
-            onSome: until => `On its own until ${dateTime(until)}`,
-          }),
-        ],
-      ),
+      }),
     ],
   )
+}
 
-const allowanceColumn = (overview: Overview, h: HtmlBuilder<Message>): Html =>
-  twoNumberColumn(
-    Array.match(overview.grants, {
-      onEmpty: () => 'What your AI may spend',
-      onNonEmpty: grants => (grants.length === 1 ? 'What your AI may spend' : 'What each AI app may spend'),
-    }),
-    [
-      Array.match(overview.grants, {
-        onEmpty: () =>
-          h.p(
-            [h.Class('text-sm text-muted')],
-            ['No AI app yet. Add Nod to Claude as a connector and give it an allowance with your passkey.'],
-          ),
-        onNonEmpty: grants =>
+const connectionView = (overview: Overview, model: Model, connectorUrl: string, h: HtmlBuilder<Message>): Html => {
+  const connected = Array.filter(overview.grants, grant => grant.connection_status === 'active')
+  return Array.match(connected, {
+    onEmpty: () => setupView(model, connectorUrl, h),
+    onNonEmpty: grants =>
+      h.section(
+        [h.Class('min-w-0'), h.AriaLabel('Connected apps')],
+        [
+          h.h2([h.Class('mb-5 font-display text-2xl font-bold tracking-[-0.025em]')], ['Continue in your chat.']),
           h.ul(
-            [h.Class('flex flex-col divide-y divide-line')],
-            Array.map(grants, grant => allowanceRow(grant, h)),
+            [h.Class('divide-y divide-line')],
+            Array.map(grants, grant => allowanceRow(grant, model, grants.length === 1, h)),
           ),
-      }),
-      ...Array.match(overview.grants, {
-        onEmpty: () => [],
-        onNonEmpty: () => [
-          h.p([h.Class('mt-1 text-sm text-ink')], ['Anything bigger needs your passkey, every time.']),
+          h.p(
+            [h.Class('mt-4 text-sm leading-relaxed text-muted')],
+            [
+              grants.length === 1
+                ? 'Payments share this allowance. Spending above it needs your passkey.'
+                : 'Each app has its own cumulative allowance. Spending above it needs your passkey.',
+            ],
+          ),
+          h.a(
+            [h.Href(connectionsRouter()), h.Class(`${LINK} mt-2 inline-flex min-h-11 items-center text-sm`)],
+            ['Manage permissions'],
+          ),
+          h.div(
+            [h.Class('mt-5 border-t border-line pt-3')],
+            [
+              disclosure(
+                'connect-another',
+                'Connect another app',
+                model.setupOpen,
+                isOpen => Message.ToggledSetup({ isOpen }),
+                () => setupView(model, connectorUrl, h),
+                h,
+              ),
+            ],
+          ),
         ],
-      }),
-      h.a([h.Href(connectionsRouter()), h.Class(`${LINK} self-start text-sm`)], ['Manage connections']),
-    ],
-    h,
-  )
-
-/** The two numbers that never blur: what the wallet holds, and what each AI app may still spend on its own. */
-const twoNumbers = (overview: Overview, h: HtmlBuilder<Message>): Html =>
-  h.section(
-    [
-      h.AriaLabel('Your wallet and your allowances'),
-      h.Class(
-        'grid overflow-clip rounded-[1.75rem] bg-paper shadow-[0_0_0_1px_var(--color-line),0_1px_2px_rgb(18_22_31/0.05)] lg:grid-cols-2',
       ),
-    ],
-    [
-      walletColumn(overview, h),
-      h.div([h.Class('border-t border-line lg:border-t-0 lg:border-l')], [allowanceColumn(overview, h)]),
-    ],
-  )
+  })
+}
 
 const approvalRow = (approval: PendingApproval, h: HtmlBuilder<Message>): Html =>
   h.keyed('li')(
@@ -1193,10 +1417,17 @@ const addMoneyTabs = (selected: AddMoneyTab, h: HtmlBuilder<Message>): Html =>
 
 const addMoneyPanel = (overview: Overview, model: Model, h: HtmlBuilder<Message>): Html =>
   h.div(
-    [h.DataAttribute('testid', 'add-money')],
+    [
+      h.Id('add-money'),
+      h.Tabindex(-1),
+      h.DataAttribute('testid', 'add-money'),
+      h.Class(
+        'scroll-mt-6 rounded-lg focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent',
+      ),
+    ],
     [
       panel(
-        'Add money',
+        'Top up',
         [
           h.div(
             [h.Class('flex flex-col')],
@@ -1218,39 +1449,73 @@ const addMoneyPanel = (overview: Overview, model: Model, h: HtmlBuilder<Message>
               ),
             ],
           ),
+          h.button(
+            [h.Type('button'), h.OnClick(Message.ClickedCloseFunding()), h.Class(`${BUTTON_SECONDARY} mt-5`)],
+            ['Close top up'],
+          ),
         ],
         h,
       ),
     ],
   )
 
-const loadedView = (overview: Overview, model: Model, h: HtmlBuilder<Message>): Html =>
+type ViewInputs = Readonly<{ connectorUrl: string }>
+
+const loadedView = (overview: Overview, model: Model, connectorUrl: string, h: HtmlBuilder<Message>): Html =>
   h.div(
-    [h.Class('flex flex-col gap-5')],
+    [h.Class('flex flex-col gap-8')],
     [
-      twoNumbers(overview, h),
+      h.div(
+        [
+          h.Class(
+            'grid min-w-0 items-start gap-10 py-4 md:grid-cols-[minmax(0,.8fr)_minmax(0,1.2fr)] md:gap-16 md:py-8',
+          ),
+        ],
+        [walletColumn(overview, model, h), connectionView(overview, model, connectorUrl, h)],
+      ),
       ...Array.match(overview.pending, { onEmpty: () => [], onNonEmpty: () => [approvalsPanel(overview, h)] }),
-      addMoneyPanel(overview, model, h),
-      activityPanel(overview, h),
-      ...Array.match(overview.pending, { onEmpty: () => [approvalsPanel(overview, h)], onNonEmpty: () => [] }),
+      model.fundingOpen ? addMoneyPanel(overview, model, h) : h.empty,
+      !model.fundingOpen && isTopupWaiting(model)
+        ? h.p(
+            [h.Role('status'), h.Class('text-sm text-muted')],
+            ['Your top-up is in progress. Open Top up to see its status.'],
+          )
+        : h.empty,
+      h.div(
+        [h.Class('border-t border-line pt-3')],
+        [
+          disclosure(
+            'recent-activity',
+            'Recent activity',
+            model.activityOpen,
+            isOpen => Message.ToggledActivity({ isOpen }),
+            () => activityPanel(overview, h),
+            h,
+          ),
+        ],
+      ),
     ],
   )
 
-export const view = Submodel.defineView<Model, Message>((model, h): Html =>
+export const view = Submodel.defineView<Model, Message, ViewInputs>((model, { connectorUrl }, h): Html =>
   h.div(
     [h.Class('flex flex-col gap-5')],
     [
-      h.div(
-        [h.Class('flex items-center justify-between gap-4')],
-        [
-          h.h1([h.Class('font-display text-3xl font-bold tracking-[-0.015em] text-ink sm:text-4xl')], ['Home']),
-          h.button([h.Type('button'), h.OnClick(Message.ClickedRefresh()), h.Class(BUTTON_SECONDARY)], ['Refresh']),
-        ],
-      ),
+      h.h1([h.Class('sr-only')], ['Home']),
       AsyncData.matchData(model.overview, {
         onEmpty: () => loadingRow(h),
-        onFailure: error => errorRow(error, h),
-        onData: overview => loadedView(overview, model, h),
+        onFailure: error =>
+          h.div(
+            [h.Class('flex flex-col items-start gap-4')],
+            [
+              errorRow(error, h),
+              h.button(
+                [h.Type('button'), h.OnClick(Message.ClickedRefresh()), h.Class(BUTTON_SECONDARY)],
+                ['Try again'],
+              ),
+            ],
+          ),
+        onData: overview => loadedView(overview, model, connectorUrl, h),
       }),
     ],
   ),

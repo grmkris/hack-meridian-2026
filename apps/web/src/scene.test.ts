@@ -1,5 +1,5 @@
 import { Option } from 'effect'
-import { Mount, expect, given, role, scene, text } from 'foldkit/scene'
+import { Mount, click, expect, given, role, scene, text } from 'foldkit/scene'
 import { modifyFields } from 'foldkit/struct'
 import { describe, test } from 'vitest'
 
@@ -11,8 +11,14 @@ import { AppRoute } from './route'
 const signedIn: Model = {
   origin: 'https://wallet.test',
   route: AppRoute.Home(),
+  fundingRequested: false,
+  detailsOpen: false,
+  maybeNowMs: Option.some(1792929600000),
   session: Session.SignedIn({ wallet: fixture.wallet }),
-  home: modifyFields(Home.init().model, { overview: () => Home.OverviewData.Success({ data: overview }) }),
+  home: modifyFields(Home.init().model, {
+    overview: () => Home.OverviewData.Success({ data: overview }),
+    maybeNowMs: () => Option.some(1792929600000),
+  }),
   connections: {
     connections: { _tag: 'Idle' },
     links: { _tag: 'Idle' },
@@ -29,9 +35,10 @@ describe('signed in', () => {
       { update, view },
       given(signedIn),
       expect(text('27.90 USDC')).toExist(),
-      expect(text('Claude may still spend')).toExist(),
+      expect(text('Claude')).toExist(),
       expect(text('2.90 USDC')).toExist(),
-      expect(text('of 5.00 USDC')).toExist(),
+      expect(text(/of 5.00 USDC/u)).toExist(),
+      click(role('button', { name: 'Wallet details' })),
       expect(role('link', { name: 'Home' })).toHaveAttr('aria-current', 'page'),
       expect(role('link', { name: 'Review and approve' })).toHaveAttr('href', '/approve/int_dinner'),
     )

@@ -5,7 +5,7 @@ import type { Readiness } from '@hm/protocol'
 // SHARED STYLES
 
 const PRESSABLE =
-  'inline-flex min-h-11 touch-manipulation select-none items-center justify-center rounded-full px-5 text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 disabled:cursor-not-allowed disabled:opacity-50 motion-safe:transition-[color,background-color,border-color,scale] motion-safe:active:scale-[0.97]'
+  'inline-flex min-h-11 touch-manipulation select-none items-center justify-center rounded-full px-5 text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 disabled:cursor-not-allowed disabled:opacity-50 motion-safe:transition-[color,background-color,border-color,scale] motion-safe:active:scale-[0.97] [.wallet-app_&]:rounded-lg [.wallet-app_&]:px-4 [.wallet-app_&]:disabled:opacity-100 [.wallet-app_&]:disabled:bg-mist [.wallet-app_&]:disabled:text-muted [.wallet-app_&]:disabled:border-line [.wallet-app_&]:motion-safe:enabled:active:scale-[0.96]'
 
 export const BUTTON_PRIMARY = `${PRESSABLE} bg-night text-starlight hover:bg-night-raised active:bg-night-raised focus-visible:outline-accent`
 export const BUTTON_SECONDARY = `${PRESSABLE} border border-line bg-paper text-ink hover:bg-mist active:bg-mist focus-visible:outline-accent`
@@ -32,7 +32,7 @@ export const pageHeader = <Message>(title: string, lead: string, h: HtmlBuilder<
 
 export const panel = <Message>(title: string, children: ReadonlyArray<Html>, h: HtmlBuilder<Message>): Html =>
   h.section(
-    [h.Class('rounded-3xl bg-paper p-5 shadow-[0_0_0_1px_var(--color-line),0_1px_2px_rgb(18_22_31/0.05)] sm:p-6')],
+    [h.Class('border-t border-line py-5')],
     [h.h2([h.Class('mb-4 text-sm font-semibold text-muted')], [title]), ...children],
   )
 
@@ -95,10 +95,5 @@ export const meter = <Message>(percentUsed: number, label: string, h: HtmlBuilde
       h.AriaValuemax(100),
       h.Class('h-2 w-full overflow-clip rounded-full bg-mist'),
     ],
-    [
-      h.div([
-        h.Class('h-full rounded-full bg-accent motion-safe:transition-[width] motion-safe:duration-500'),
-        h.Style({ width: `${100 - percentUsed}%` }),
-      ]),
-    ],
+    [h.div([h.Class('h-full rounded-full bg-accent'), h.Style({ width: `${100 - percentUsed}%` })])],
   )

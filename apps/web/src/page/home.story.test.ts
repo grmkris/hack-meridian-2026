@@ -14,7 +14,7 @@ describe('Home', () => {
       given(init().model),
       message(Message.EnteredPage()),
       Command.expectExact(LoadOverview),
-      Command.resolve(LoadOverview, Message.SucceededLoadOverview({ overview })),
+      Command.resolve(LoadOverview, Message.SucceededLoadOverview({ overview, nowMs: 1792929600000 })),
       model(nextModel => {
         expect(nextModel.overview).toEqual({ _tag: 'Success', data: overview })
       }),
@@ -22,7 +22,7 @@ describe('Home', () => {
       model(nextModel => {
         expect(AsyncData.isRefreshing(nextModel.overview)).toBe(true)
       }),
-      Command.resolve(LoadOverview, Message.SucceededLoadOverview({ overview })),
+      Command.resolve(LoadOverview, Message.SucceededLoadOverview({ overview, nowMs: 1792929600000 })),
     )
   })
 

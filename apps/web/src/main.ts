@@ -7,8 +7,10 @@ import { defineTaggedUnion } from 'foldkit/schema'
 import { modifyFields } from 'foldkit/struct'
 import { Url, toString as urlToString } from 'foldkit/url'
 
+import { Disclosure } from '@foldkit/ui'
+
 import { Backend, type Resources, WalletSummary } from './backend'
-import { explorerAccountUrl, isMainnet, networkLabel, shortAddress } from './format'
+import { explorerAccountUrl, networkLabel, shortAddress } from './format'
 import { Connections, Contacts, Home, Receipts, Welcome } from './page'
 import { Problem, recoverProblem } from './problem'
 import {
@@ -20,7 +22,7 @@ import {
   receiptsRouter,
   urlToAppRoute,
 } from './route'
-import { LINK, emptyRow } from './view/ui'
+import { BUTTON_SECONDARY, LINK, emptyRow } from './view/ui'
 
 // MODEL
 
@@ -34,6 +36,9 @@ export type Session = typeof Session.Type
 export const Model = Schema.Struct({
   origin: Schema.String,
   route: AppRoute,
+  fundingRequested: Schema.Boolean,
+  detailsOpen: Schema.Boolean,
+  maybeNowMs: Schema.Option(Schema.Finite),
   session: Session,
   home: Home.Model,
   connections: Connections.Model,
@@ -52,9 +57,10 @@ export const Message = defineMessageUnion({
   SucceededCheckSession: { wallet: WalletSummary },
   FailedCheckSession: { problem: Problem },
   ClickedSignOut: {},
+  ToggledWalletDetails: { isOpen: Schema.Boolean },
   CompletedSignOut: {},
   TickedLiveRefresh: {},
-  TickedTopupClock: { nowMs: Schema.Number },
+  TickedTopupClock: { nowMs: Schema.Finite },
   GotHomeMessage: { message: Home.Message },
   GotConnectionsMessage: { message: Connections.Message },
   GotContactsMessage: { message: Contacts.Message },
@@ -109,7 +115,15 @@ const originOf = (url: Url): string =>
 export const connectorUrlOf = (origin: string): string => `${origin}/mcp`
 
 export const init: Runtime.RoutingApplicationInit<Model, Message, void, Resources> = url => ({
-  model: { origin: originOf(url), route: urlToAppRoute(url), session: Session.Checking(), ...freshPages() },
+  model: {
+    origin: originOf(url),
+    route: urlToAppRoute(url),
+    fundingRequested: Option.contains('add-money')(url.hash),
+    detailsOpen: false,
+    maybeNowMs: Option.none(),
+    session: Session.Checking(),
+    ...freshPages(),
+  },
   commands: [CheckSession()],
 })
 
@@ -121,8 +135,14 @@ type Step = Update.Step<Model, Message, Resources>
 const keepModel: Step = model => ({ model })
 
 const setRoute =
-  (nextRoute: AppRoute): Step =>
-  model => ({ model: modifyFields(model, { route: () => nextRoute }) })
+  (url: Url): Step =>
+  model => ({
+    model: modifyFields(model, {
+      route: () => urlToAppRoute(url),
+      fundingRequested: () => Option.contains('add-money')(url.hash),
+      detailsOpen: () => false,
+    }),
+  })
 
 const signOutLocally =
   (maybeError: Option.Option<string>): Step =>
@@ -132,6 +152,8 @@ const signOutLocally =
       model: modifyFields(model, {
         session: (): Session =>
           Session.SignedOut({ welcome: Welcome.init(maybeError, connectorUrlOf(model.origin)).model }),
+        detailsOpen: () => false,
+        maybeNowMs: () => Option.none(),
         home: () => pages.home,
         connections: () => pages.connections,
         contacts: () => pages.contacts,
@@ -178,6 +200,10 @@ const foldConnections = Update.foldChild({ update: Connections.update, ...connec
 const foldContacts = Update.foldChild({ update: Contacts.update, ...contactsSlot })
 const foldReceipts = Update.foldChild({ update: Receipts.update, ...receiptsSlot })
 
+const openFunding = Update.foldChildStep({ update: Home.informFundingRequested, ...homeSlot })
+const openRequestedFunding: Step = model =>
+  model.fundingRequested && AppRoute.guards.Home(model.route) ? openFunding(model) : { model }
+
 const enterHome = Update.foldChildStep({ update: Home.informEntered, ...homeSlot })
 const enterConnections = Update.foldChildStep({ update: Connections.informEntered, ...connectionsSlot })
 const enterContacts = Update.foldChildStep({ update: Contacts.informEntered, ...contactsSlot })
@@ -205,6 +231,7 @@ const startSession =
     Update.combine(model, [
       stepModel => ({ model: modifyFields(stepModel, { session: (): Session => Session.SignedIn({ wallet }) }) }),
       enterCurrentRoute,
+      openRequestedFunding,
     ])
 
 const foldWelcomeOutMessage = Welcome.OutMessage.match<Step>({
@@ -239,7 +266,11 @@ export const update = (model: Model, message: Message) =>
       }),
     ChangedUrl: ({ url }) => {
       const nextRoute = urlToAppRoute(url)
-      return Update.combine(model, [setRoute(nextRoute), whenSignedIn(enterRoute(nextRoute))])
+      return Update.combine(model, [
+        setRoute(url),
+        whenSignedIn(enterRoute(nextRoute)),
+        whenSignedIn(openRequestedFunding),
+      ])
     },
     CompletedNavigateInternal: () => ({ model }),
     CompletedLoadExternal: () => ({ model }),
@@ -249,10 +280,15 @@ export const update = (model: Model, message: Message) =>
         SignedOut: () => endSession(model),
         Failed: ({ error }) => signOutLocally(Option.some(error))(model),
       }),
-    ClickedSignOut: () => ({ model, commands: [SignOut()] }),
+    ToggledWalletDetails: ({ isOpen }) => ({ model: modifyFields(model, { detailsOpen: () => isOpen }) }),
+    ClickedSignOut: () => ({ model: modifyFields(model, { detailsOpen: () => false }), commands: [SignOut()] }),
     CompletedSignOut: () => endSession(model),
     TickedLiveRefresh: () => whenSignedIn(enterRoute(model.route))(model),
-    TickedTopupClock: ({ nowMs }) => Update.foldChildStep({ update: Home.informClock(nowMs), ...homeSlot })(model),
+    TickedTopupClock: ({ nowMs }) =>
+      Update.combine(model, [
+        stepModel => ({ model: modifyFields(stepModel, { maybeNowMs: () => Option.some(nowMs) }) }),
+        Update.foldChildStep({ update: Home.informClock(nowMs), ...homeSlot }),
+      ]),
     GotHomeMessage: ({ message: homeMessage }) => foldHome(model, homeMessage),
     GotConnectionsMessage: ({ message: connectionsMessage }) => foldConnections(model, connectionsMessage),
     GotContactsMessage: ({ message: contactsMessage }) => foldContacts(model, contactsMessage),
@@ -267,8 +303,9 @@ const LIVE_REFRESH = Duration.seconds(8)
 const isWatchingHome = (model: Model): boolean =>
   Session.guards.SignedIn(model.session) && AppRoute.isAnyOf(['Home'])(model.route)
 
-/** A top-up quote waits for its deposit on Home: the countdown to its deadline ticks every second. */
-const isCountingTopup = (model: Model): boolean => isWatchingHome(model) && Home.isTopupWaiting(model.home)
+/** Expiry labels and a pending top-up share the clock; viewing an allowance must not freeze its expiry. */
+const isCountingTopup = (model: Model): boolean =>
+  Session.guards.SignedIn(model.session) && AppRoute.isAnyOf(['Home', 'Connections'])(model.route)
 
 export const subscriptions = Subscription.make<Model, Message>()(entry => ({
   topupClock: entry(
@@ -314,10 +351,10 @@ const NAVIGATION: ReadonlyArray<
 
 const navigationView = (route: AppRoute, h: HtmlBuilder<Message>): Html =>
   h.nav(
-    [h.AriaLabel('Wallet'), h.Class('-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0')],
+    [h.AriaLabel('Wallet')],
     [
       h.ul(
-        [h.Class('flex gap-1')],
+        [h.Class('flex flex-wrap items-center gap-x-5 gap-y-1')],
         Array.map(NAVIGATION, item =>
           h.keyed('li')(
             item.label,
@@ -327,13 +364,7 @@ const navigationView = (route: AppRoute, h: HtmlBuilder<Message>): Html =>
                 [
                   h.Href(item.href()),
                   ...(item.isActive(route) ? [h.AriaCurrent('page')] : []),
-                  h.Class(
-                    `inline-flex min-h-11 touch-manipulation items-center whitespace-nowrap rounded-full px-3 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-starlight sm:px-4 ${
-                      item.isActive(route)
-                        ? 'bg-starlight text-night'
-                        : 'text-starlight-muted hover:bg-night-raised hover:text-starlight'
-                    }`,
-                  ),
+                  h.Class(`${LINK} inline-flex min-h-11 items-center text-sm`),
                 ],
                 [item.label],
               ),
@@ -344,74 +375,86 @@ const navigationView = (route: AppRoute, h: HtmlBuilder<Message>): Html =>
     ],
   )
 
-const networkBadge = (network: string, h: HtmlBuilder<Message>): Html =>
-  h.span(
-    [
-      h.Class(
-        `whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-semibold leading-none ring-1 ring-inset ${isMainnet(network) ? 'text-starlight ring-starlight-muted/60' : 'text-starlight-muted ring-night-line'}`,
-      ),
-    ],
-    [`Stellar ${networkLabel(network)}`],
-  )
-
-const headerView = (wallet: WalletSummary, route: AppRoute, h: HtmlBuilder<Message>): Html =>
-  h.header(
-    [h.Class('bg-night text-starlight')],
-    [
-      h.div(
-        [h.Class('mx-auto flex max-w-5xl flex-col gap-3 px-4 pt-3 pb-3')],
-        [
-          h.div(
-            [h.Class('flex items-center justify-between gap-3')],
-            [
-              h.div(
-                [h.Class('flex min-w-0 items-center gap-3')],
-                [
-                  h.a(
-                    [
-                      h.Href(homeRouter()),
-                      h.Class(
-                        'rounded-md font-display text-[1.75rem] font-bold leading-none tracking-[-0.015em] text-starlight focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-starlight',
-                      ),
-                    ],
-                    ['nod'],
-                  ),
-                  networkBadge(wallet.network, h),
-                ],
-              ),
-              h.div(
-                [h.Class('flex items-center gap-3')],
-                [
-                  h.a(
-                    [
-                      h.Href(explorerAccountUrl(wallet.network, wallet.contract_id)),
-                      h.Target('_blank'),
-                      h.Rel('noreferrer'),
-                      h.Title(wallet.contract_id),
-                      h.Class(
-                        'hidden text-sm text-starlight-muted underline decoration-starlight-muted/40 underline-offset-4 hover:text-starlight sm:inline',
-                      ),
-                    ],
-                    [`${wallet.name} · ${shortAddress(wallet.contract_id)}`],
-                  ),
-                  h.button(
-                    [
-                      h.Type('button'),
-                      h.OnClick(Message.ClickedSignOut()),
-                      h.Class(
-                        'inline-flex min-h-11 touch-manipulation select-none items-center whitespace-nowrap rounded-full px-4 text-sm font-semibold text-starlight ring-1 ring-inset ring-night-line transition-colors hover:bg-night-raised focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-starlight active:bg-night-raised',
-                      ),
-                    ],
-                    ['Sign out'],
-                  ),
-                ],
-              ),
-            ],
-          ),
-          navigationView(route, h),
-        ],
-      ),
-    ],
+const headerView = (wallet: WalletSummary, model: Model, h: HtmlBuilder<Message>): Html =>
+  Disclosure.view(
+    {
+      id: 'wallet-details',
+      isOpen: model.detailsOpen,
+      onToggle: isOpen => Message.ToggledWalletDetails({ isOpen }),
+      toView: attributes =>
+        h.header(
+          [h.Class('mx-auto max-w-[920px] px-6')],
+          [
+            h.div(
+              [h.Class('flex min-h-24 flex-wrap items-center justify-between gap-x-4 gap-y-1 py-4')],
+              [
+                h.div(
+                  [h.Class('flex items-center gap-4')],
+                  [
+                    h.a(
+                      [
+                        h.Href(homeRouter()),
+                        h.AriaLabel('Nod home'),
+                        h.Class(
+                          'inline-flex min-h-11 items-center rounded-lg font-display text-3xl font-bold tracking-[-0.025em] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent',
+                        ),
+                      ],
+                      ['nod'],
+                    ),
+                    h.span([h.Class('text-xs text-muted')], [`Stellar ${networkLabel(wallet.network)}`]),
+                  ],
+                ),
+                !AppRoute.guards.Home(model.route)
+                  ? h.a([h.Href(`${homeRouter()}#add-money`), h.Class(`${BUTTON_SECONDARY} ml-auto`)], ['Top up'])
+                  : h.empty,
+                h.button(
+                  [
+                    ...attributes.button,
+                    h.Class(
+                      'inline-flex min-h-11 items-center gap-2 rounded-lg text-sm font-medium text-muted hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent',
+                    ),
+                  ],
+                  [
+                    'Wallet details',
+                    h.svg(
+                      [
+                        h.ViewBox('0 0 16 16'),
+                        h.AriaHidden(true),
+                        h.Class(`size-4 shrink-0 ${model.detailsOpen ? 'rotate-180' : ''}`),
+                      ],
+                      [h.path([h.D('m4 6 4 4 4-4'), h.Fill('none'), h.Stroke('currentColor'), h.StrokeWidth('1.5')])],
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            model.detailsOpen
+              ? h.div(
+                  [...attributes.panel, h.Class('flex flex-col items-start gap-3 border-b border-line pb-5')],
+                  [
+                    navigationView(model.route, h),
+                    h.a(
+                      [
+                        h.Href(explorerAccountUrl(wallet.network, wallet.contract_id)),
+                        h.Target('_blank'),
+                        h.Rel('noopener noreferrer'),
+                        h.Title(wallet.contract_id),
+                        h.DataAttribute('testid', 'wallet-explorer'),
+                        h.Class(`${LINK} inline-flex min-h-11 items-center text-sm [overflow-wrap:anywhere]`),
+                      ],
+                      [`${wallet.name} (${shortAddress(wallet.contract_id)})`],
+                    ),
+                    h.button(
+                      [h.Type('button'), h.OnClick(Message.ClickedSignOut()), h.Class(BUTTON_SECONDARY)],
+                      ['Sign out'],
+                    ),
+                  ],
+                )
+              : h.empty,
+          ],
+        ),
+    },
+    h,
   )
 
 const notFoundView = (path: string, h: HtmlBuilder<Message>): Html =>
@@ -427,6 +470,7 @@ const routeView = (model: Model, wallet: WalletSummary, h: HtmlBuilder<Message>)
         slotId: 'home',
         model: model.home,
         view: Home.view,
+        viewInputs: { connectorUrl: connectorUrlOf(model.origin) },
         toParentMessage: message => Message.GotHomeMessage({ message }),
       }),
     Connections: () =>
@@ -434,7 +478,7 @@ const routeView = (model: Model, wallet: WalletSummary, h: HtmlBuilder<Message>)
         slotId: 'connections',
         model: model.connections,
         view: Connections.view,
-        viewInputs: { network: wallet.network },
+        viewInputs: { network: wallet.network, nowMs: model.maybeNowMs },
         toParentMessage: message => Message.GotConnectionsMessage({ message }),
       }),
     Contacts: () =>
@@ -456,10 +500,10 @@ const routeView = (model: Model, wallet: WalletSummary, h: HtmlBuilder<Message>)
 
 const signedInView = (model: Model, wallet: WalletSummary, h: HtmlBuilder<Message>): Html =>
   h.div(
-    [h.Class('min-h-dvh')],
+    [h.Class('wallet-app min-h-dvh')],
     [
-      headerView(wallet, model.route, h),
-      h.main([h.Class('mx-auto max-w-5xl px-4 py-6 sm:py-8')], [routeView(model, wallet, h)]),
+      headerView(wallet, model, h),
+      h.main([h.Class('mx-auto max-w-[920px] px-6 pt-3 pb-12')], [routeView(model, wallet, h)]),
     ],
   )
 

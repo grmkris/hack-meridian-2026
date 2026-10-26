@@ -110,14 +110,12 @@ try {
     await noAlert(page)
     await page.getByText('Wallet balance').waitFor()
     await page.getByText('Loading…').first().waitFor({ state: 'hidden' })
-    const walletLink = page.getByRole('banner').getByRole('link', { name: /·/u })
+    await page.getByRole('button', { name: 'Wallet details', exact: true }).click()
+    const walletLink = page.getByTestId('wallet-explorer')
     newWallet.wallet = (await walletLink.getAttribute('title')) ?? undefined
     newWallet.explorer = (await walletLink.getAttribute('href')) ?? undefined
-    newWallet.balance =
-      (await page
-        .getByText(/^[\d.]+ USDC$/u)
-        .first()
-        .textContent()) ?? undefined
+    newWallet.balance = (await page.getByTestId('wallet-balance').textContent()) ?? undefined
+    await page.getByRole('button', { name: 'Wallet details', exact: true }).click()
     await noAlert(page)
     await page.screenshot({ path: join(directory, 'home.png'), fullPage: true })
   })
@@ -125,6 +123,7 @@ try {
   if (created) {
     for (const { path, heading } of PAGES) {
       await step(`${heading} loads`, async () => {
+        await page.getByRole('button', { name: 'Wallet details', exact: true }).click()
         await page.getByRole('link', { name: heading, exact: true }).first().click()
         await page.waitForURL(new URL(path, origin).href)
         await page.getByRole('heading', { name: heading, level: 1 }).waitFor()
@@ -135,13 +134,18 @@ try {
     }
 
     await step('signing out returns to the welcome page', async () => {
+      await page.getByRole('button', { name: 'Wallet details', exact: true }).click()
       await page.getByRole('button', { name: 'Sign out' }).click()
       await page.getByTestId('sign-in').waitFor()
     })
 
     await step('the same passkey signs back in, on the page it left', async () => {
       await page.getByTestId('sign-in').click()
-      await page.getByRole('navigation', { name: 'Wallet' }).or(page.getByRole('alert')).first().waitFor()
+      await page
+        .getByRole('button', { name: 'Wallet details', exact: true })
+        .or(page.getByRole('alert'))
+        .first()
+        .waitFor()
       await page.screenshot({ path: join(directory, 'signed-in-again.png'), fullPage: true })
       await noAlert(page)
     })

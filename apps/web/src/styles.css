@@ -1,3 +1,7 @@
+/* Hallmark · shape: app screen · genre: modern-minimal · theme: Nod brand · redesign: full · scope: signed-in wallet
+ * display: Besley · body: IBM Plex Sans · nav: wordmark and Wallet details · signature: money beside its delegated use
+ * states: new, connected, multiple, expired, revoked, funding, unavailable · v2.0.0 */
+/* Hallmark · critique: preserve the quiet two-column wallet; keep exceptional approval and funding tasks inline. */
 @import 'tailwindcss';
 @import './landing.css';
 
@@ -54,4 +58,15 @@
   p {
     text-wrap: pretty;
   }
+}
+
+/* The wallet retains the site's palette and fonts; the signed-out landing owns its own composition. */
+html,
+body {
+  overflow-x: clip;
+}
+
+.wallet-app :is(h1, h2, h3) {
+  min-width: 0;
+  overflow-wrap: break-word;
 }

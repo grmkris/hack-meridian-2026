@@ -26,7 +26,7 @@ describe('Home: the deposit address', () => {
     story(
       update,
       given(init().model),
-      message(Message.SucceededLoadOverview({ overview: waiting })),
+      message(Message.SucceededLoadOverview({ overview: waiting, nowMs: 1792929600000 })),
       Command.expectExact(LoadDeposit),
       Command.resolve(LoadDeposit, Message.SucceededLoadDeposit({ deposit })),
       model(nextModel => {
@@ -39,7 +39,7 @@ describe('Home: the deposit address', () => {
     story(
       update,
       given(init().model),
-      message(Message.SucceededLoadOverview({ overview })),
+      message(Message.SucceededLoadOverview({ overview, nowMs: 1792929600000 })),
       Command.expectNone(),
       message(Message.ClickedGetDepositAddress()),
       Command.expectExact(LoadDeposit),

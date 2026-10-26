@@ -102,13 +102,13 @@ describe('Add money from another chain', () => {
       given(waiting),
       message(Message.EnteredPage()),
       Command.expectExact(LoadOverview, CheckTopup),
-      Command.resolve(LoadOverview, Message.SucceededLoadOverview({ overview })),
+      Command.resolve(LoadOverview, Message.SucceededLoadOverview({ overview, nowMs: 1792929600000 })),
       Command.resolve(
         CheckTopup,
         Message.SucceededCheckTopup({ quote: { ...quote, status: 'arrived', sweep_tx: 'edc8f3b2' } }),
       ),
       Command.expectExact(LoadOverview),
-      Command.resolve(LoadOverview, Message.SucceededLoadOverview({ overview })),
+      Command.resolve(LoadOverview, Message.SucceededLoadOverview({ overview, nowMs: 1792929600000 })),
       model(next => {
         expect(isTopupWaiting(next)).toBe(false)
       }),

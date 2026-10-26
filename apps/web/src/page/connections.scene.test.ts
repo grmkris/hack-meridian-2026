@@ -1,3 +1,4 @@
+import { Option } from 'effect'
 import { Command, click, expect, given, scene, selector, testId, withViewInputs } from 'foldkit/scene'
 import { modifyFields } from 'foldkit/struct'
 import { describe, test } from 'vitest'
@@ -12,7 +13,7 @@ import {
   view as connectionsView,
 } from './connections'
 
-const view = withViewInputs(connectionsView, { network: 'stellar:testnet' })()
+const view = withViewInputs(connectionsView, { network: 'stellar:testnet', nowMs: Option.some(1792929600000) })()
 import { claude, fixture, revokedClaude } from './fixtures'
 
 const loaded = modifyFields(init().model, { connections: () => ConnectionsData.Success({ data: fixture.grants }) })

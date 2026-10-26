@@ -6,8 +6,10 @@ import { defineTaggedUnion } from 'foldkit/schema'
 import { modifyFields } from 'foldkit/struct'
 
 import { Backend, GrantView, LinkView, type Resources, RevokeReply } from '../backend'
+import { allowanceHelp, allowanceState } from '../connection'
 import { dateTime, isMainnet, percentUsed, shortAddress, usdc } from '../format'
 import { Problem, recoverProblem } from '../problem'
+import { homeRouter } from '../route'
 import {
   BUTTON_DANGER,
   BUTTON_PRIMARY,
@@ -342,7 +344,7 @@ const activeAllowance = (connection: GrantView, h: HtmlBuilder<Message>): Html =
       ),
       meter(percentUsed(connection.total, connection.remaining), `${connection.client_name} allowance used`, h),
       h.p([h.Class('text-sm text-muted')], [`${validity(connection, true)}. ${ruleLabel(connection)}.`]),
-      h.p([h.Class('text-sm text-ink')], ['Anything bigger needs your passkey, every time.']),
+      h.p([h.Class('text-sm text-ink')], ['Spending above the remaining allowance needs your passkey.']),
     ],
   )
 
@@ -374,15 +376,15 @@ const connectionCard = (
   connection: GrantView,
   revoke: Revoke,
   showRuleLink: boolean,
+  nowMs: Option.Option<number>,
   h: HtmlBuilder<Message>,
 ): Html => {
   const isActive = connection.connection_status === 'active'
+  const state = allowanceState(connection, nowMs)
   return h.keyed('li')(
     connection.connection_id,
     [
-      h.Class(
-        'flex flex-col gap-4 rounded-3xl bg-paper p-5 shadow-[0_0_0_1px_var(--color-line),0_1px_2px_rgb(18_22_31/0.05)] sm:p-6',
-      ),
+      h.Class('flex min-w-0 flex-col gap-4 border-t border-line py-6'),
       h.DataAttribute('connection', connection.connection_id),
       ...(isActive ? [] : [h.DataAttribute('testid', 'revoked')]),
     ],
@@ -411,7 +413,12 @@ const connectionCard = (
           isActive ? badge('Active', 'good', h) : badge('Revoked', 'quiet', h),
         ],
       ),
-      isActive ? activeAllowance(connection, h) : pastAllowance(connection, h),
+      state === 'ready'
+        ? activeAllowance(connection, h)
+        : h.div(
+            [h.Class('flex flex-col gap-2')],
+            [h.p([h.Class('text-sm text-muted')], [allowanceHelp[state]]), pastAllowance(connection, h)],
+          ),
       ...(isActive ? revokeControls(connection, revoke, h) : ruleStillOnAccount(connection, showRuleLink, h)),
     ],
   )
@@ -546,7 +553,7 @@ const linksPanel = (links: LinksData, network: string, h: HtmlBuilder<Message>):
   )
 
 /** The wallet's network, for explorer links the Worker sends as bare hashes. */
-export type ViewInputs = Readonly<{ network: string }>
+export type ViewInputs = Readonly<{ network: string; nowMs: Option.Option<number> }>
 
 export const view = Submodel.defineView<Model, Message, ViewInputs>((model, viewInputs, h): Html =>
   h.div(
@@ -566,12 +573,22 @@ export const view = Submodel.defineView<Model, Message, ViewInputs>((model, view
         onFailure: error => errorRow(error, h),
         onData: connections =>
           Array.match(connections, {
-            onEmpty: () => emptyRow('No AI apps yet. Add Nod to Claude as a connector to set the first allowance.', h),
+            onEmpty: () =>
+              h.p(
+                [h.Class('py-5 text-sm text-muted')],
+                ['No connected apps yet. ', h.a([h.Href(homeRouter()), h.Class(LINK)], ['Connect an app from Home.'])],
+              ),
             onNonEmpty: list =>
               h.ul(
                 [h.Class('flex flex-col gap-4')],
                 Array.map(list, connection =>
-                  connectionCard(connection, model.revoke, Option.isNone(model.maybeRuleRemovalUrl), h),
+                  connectionCard(
+                    connection,
+                    model.revoke,
+                    Option.isNone(model.maybeRuleRemovalUrl),
+                    viewInputs.nowMs,
+                    h,
+                  ),
                 ),
               ),
           }),
