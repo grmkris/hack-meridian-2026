@@ -5,9 +5,9 @@ Plans and queues live in the release plan (.local/brainstorm/FINAL-REVIEW.md §K
 **Deploys: session A ("ops and hardening") only, since 19:10 UTC 2026-10-25**, testnet and mainnet, from the worktree
 below; mainnet only on the orchestrator's explicit go, never during a recording.
 
-Live: **testnet at `5d12328`** (22:48 UTC) on https://testnet.trynod.si (MCP at `/mcp`; the workers.dev host redirects
-there); **mainnet at `5d12328`** (22:49 UTC; deposit router bound) on https://trynod.si. Both stages serve the same SHA. Dated sections
-below are the history.
+Live: **testnet at `0dcd7e7`** (2026-10-26 00:01 UTC) on https://testnet.trynod.si (MCP at `/mcp`; the workers.dev host
+redirects there); **mainnet at `0dcd7e7`** (00:05 UTC; deposit router bound) on https://trynod.si. Both stages serve the
+same SHA, including the mobile Safari media fix. Dated sections below are the history.
 
 ## The deploy worktree is the only place a testnet deploy runs
 
@@ -459,3 +459,28 @@ docs; no code. Testnet: gate green, plan `[Web] update` + RELEASE, deploy `"dele
 deploy `"deletedClasses":[]`, health release `5d12328b…`, pubnet, invite off, payments on, relayers 100.2 / 49.9 XLM,
 treasury 19 USDC; `/llms.txt` byte-identical; `smoke.ts` against trynod.si 7/9, the two failures being its testnet-only
 checks (stage name "testnet", the testnet counter contract). No wallet, no spend. Rollback: `f6510d0` on both.
+
+## 2026-10-26 00:01–00:05 UTC: mobile Safari media fix on both stages
+
+Kristjan explicitly requested push and deployment to both live URLs. Release
+`0dcd7e79310db36491369865eaff67583b0aab5e` is pushed to `origin/main`: transparent WebP alpha masks replace JPG
+luminance masks, and muted inline video can play on phones without the former 1200 ms loading cutoff. Still artwork
+remains when playback is blocked or fails, or motion/data preferences suppress it.
+
+The authoritative deploy worktree was clean and pinned to this SHA. Frozen install and `heavy bun run check` passed.
+Both inspected plans changed only `[Web]` and `[Web/RELEASE]`; WalletDb and all other bindings were noops. Both deploys
+exited 0 with `"deletedClasses":[]` and no renamed, transferred or new Durable Object classes. Live health on each
+custom domain reports the exact release and its expected network.
+
+- Testnet: smoke 9/9; Chromium media scenarios 7/7; WebKit phone passed, and desktop passed on an isolated rerun after
+  the first suite's desktop opacity assertion failed. Phone light/dark/reduced-motion landing checks passed.
+- Mainnet: smoke 8/9, exit 1 solely because `/api/counter` deliberately returns `404 NotDeployed` on mainnet. The eight
+  applicable HTTP checks passed. Chromium media scenarios 7/7; WebKit phone and desktop both passed, with screenshots
+  inspected for rendered artwork and video.
+- Each live stage's CSS, JavaScript, nine WebP artworks, MP4 and `llms.txt` match the deploy artifact by SHA-256
+  (13 assets). Cloudflare serves the full MP4 with HTTP 200 even for a Range request; playback passed in both engines.
+
+Receipts: [evidence/mobile-media/2026-10-26/receipt.json](../evidence/mobile-media/2026-10-26/receipt.json). Full release
+logs remain in `/srv/cache/hm26/deploy-testnet/.local/deploy-0dcd7e7/`. This is live Chromium and Linux WebKit evidence;
+physical iPhone Safari acceptance remains unverified. No wallets were created and no payments were made by these
+checks. Rollback: re-pin `5d12328` on both stages. This receipt's documentation commit does not change the live SHA.
