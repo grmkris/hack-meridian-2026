@@ -1,0 +1,71 @@
+alchemy 2.0.0-beta.84 is available (you're on 2.0.0-beta.83). Run `bun add alchemy@2.0.0-beta.84` to upgrade.
+[04:14:32.396] INFO (#1): Deploy · mainnet
+[04:14:32.403] INFO (#1): Importing stack module
+[04:14:33.414] INFO (#38): Resolving stack services
+[04:14:33.487] INFO (#1): Loading stack state
+[04:14:33.498] INFO (#1): Computing plan
+[04:14:33.514] INFO (#442): Cloudflare: using environment variables (CLOUDFLARE_ACCOUNT_ID, CLOUDFLARE_API_TOKEN) instead of the profile.
+[04:14:33.558] INFO (#1): Plan ready (1.2s)
+[04:14:33.560] INFO (#1): Plan: 1 to update, 1 binding changes
+[04:14:33.560] INFO (#1): [WalletDb] noop
+[04:14:33.560] INFO (#1): [Web] update
+[04:14:33.560] INFO (#1): [Web/CHAIN] noop
+[04:14:33.560] INFO (#1): [Web/DEMO_CLAIM_SIGNER] noop
+[04:14:33.560] INFO (#1): [Web/DEMO_CONTACTS] noop
+[04:14:33.560] INFO (#1): [Web/DEMO_RECIPIENT_SECRET] noop
+[04:14:33.560] INFO (#1): [Web/DEPOSIT_ROUTER_ID] noop
+[04:14:33.560] INFO (#1): [Web/FIRST_PULL_MAX_FEE_STROOPS] noop
+[04:14:33.560] INFO (#1): [Web/INVITE_CODES] noop
+[04:14:33.561] INFO (#1): [Web/INVITE_REQUIRED] noop
+[04:14:33.561] INFO (#1): [Web/MAX_FEE_STROOPS] noop
+[04:14:33.561] INFO (#1): [Web/MAX_GRANT_USDC] noop
+[04:14:33.561] INFO (#1): [Web/MAX_OWNER_PAYMENT_USDC] noop
+[04:14:33.561] INFO (#1): [Web/MAX_X402_PRICE_USDC] noop
+[04:14:33.561] INFO (#1): [Web/OAUTH_STORE] noop
+[04:14:33.561] INFO (#1): [Web/ONBOARD_ROUTER_ID] noop
+[04:14:33.561] INFO (#1): [Web/ORIGIN] noop
+[04:14:33.561] INFO (#1): [Web/OZ_FACILITATOR_KEY] noop
+[04:14:33.561] INFO (#1): [Web/PAYMENTS_ENABLED] noop
+[04:14:33.561] INFO (#1): [Web/PULL_MAX_FEE_STROOPS] noop
+[04:14:33.561] INFO (#1): [Web/RELAYER_SECRET] noop
+[04:14:33.561] INFO (#1): [Web/RELEASE] update
+[04:14:33.561] INFO (#1): [Web/RP_ID] noop
+[04:14:33.561] INFO (#1): [Web/SAMPLE_ENABLED] noop
+[04:14:33.562] INFO (#1): [Web/SAMPLE_RUNNER] noop
+[04:14:33.562] INFO (#1): [Web/STAGE] noop
+[04:14:33.562] INFO (#1): [Web/STELLAR_NETWORK] noop
+[04:14:33.562] INFO (#1): [Web/TREASURY_SECRET] noop
+[04:14:33.562] INFO (#1): [Web/VAULT_KEY] noop
+[04:14:33.562] INFO (#1): [Web/WALLET_DB] noop
+[04:14:33.562] INFO (#1): [Web/WALLET_OBJECT] noop
+[04:14:33.562] INFO (#1): 
+[04:14:33.582] INFO (#1172): [Web] updating
+[04:14:33.588] INFO (#1172): Cloudflare Worker reconcile: starting hack-meridian-mainnet
+[04:14:33.589] INFO (#1172): Cloudflare Worker reconcile: durable objects [{"logicalId":"OAUTH_STORE","className":"OAuthStore"},{"logicalId":"SAMPLE_RUNNER","className":"SampleRunner"},{"logicalId":"WALLET_OBJECT","className":"WalletObject"}]
+[04:14:34.405] INFO (#1172): Cloudflare Worker reconcile: existing durable object tags ["alchemy:dos:OAUTH_STORE=OAuthStore;SAMPLE_RUNNER=SampleRunner;WALLET_OBJECT=WalletObject"]
+[04:14:34.406] INFO (#1172): Cloudflare Worker reconcile: previous durable object tags ["alchemy:dos:OAUTH_STORE=OAuthStore;SAMPLE_RUNNER=SampleRunner;WALLET_OBJECT=WalletObject"]
+[04:14:34.415] INFO (#1172): Cloudflare Worker update: preparing bundle for hack-meridian-mainnet
+[04:14:36.074] INFO (#1182): [Web] vite v8.3.5 building ssr environment for production...
+[04:14:37.433] INFO (#1182): [Web] ✓ built in 1.35s
+[04:14:37.434] INFO (#1182): [Web] vite v8.3.5 building client environment for production...
+[04:14:38.341] INFO (#1182): [Web] ✓ built in 911ms
+[04:14:38.342] INFO (#1183): [Web] [plugin builtin:vite-reporter] 
+[04:14:38.342] INFO (#1183): [Web] (!) Some chunks are larger than 500 kB after minification. Consider:
+[04:14:38.342] INFO (#1183): [Web] - Using dynamic import() to code-split the application
+[04:14:38.342] INFO (#1183): [Web] - Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting
+[04:14:38.342] INFO (#1183): [Web] - Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+[04:14:38.788] INFO (#1172): Cloudflare Worker update: uploading assets for hack-meridian-mainnet
+[04:14:42.857] INFO (#1172): [Web] Uploaded 0 of 5 assets...
+[04:14:44.301] INFO (#2048): [Web] Uploaded 2 of 5 assets...
+[04:14:44.459] INFO (#2050): [Web] Uploaded 3 of 5 assets...
+[04:14:44.753] INFO (#2049): [Web] Uploaded 5 of 5 assets...
+[04:14:44.755] INFO (#1172): Cloudflare Worker update: uploading script for hack-meridian-mainnet
+[04:14:49.083] INFO (#1172): Cloudflare Worker put: durable object reconciliation {"oldDoClassNameByLogicalId":{"OAUTH_STORE":"OAuthStore","SAMPLE_RUNNER":"SampleRunner","WALLET_OBJECT":"WalletObject"},"currentDoClassNameByLogicalId":{"OAUTH_STORE":"OAuthStore","SAMPLE_RUNNER":"SampleRunner","WALLET_OBJECT":"WalletObject"},"deletedClasses":[],"renamedClasses":[],"transferredClasses":[],"newSqliteClasses":[]}
+[04:14:56.602] INFO (#1172): [Web] updated — Reconciling custom domains (2) ... (23.0s)
+[04:14:56.611] INFO (#2171): [Web] updated — Reconciling custom domains (2) ... (23.0s)
+[04:14:56.614] INFO (#1): 
+[04:14:56.614] INFO (#1): Done: 1 succeeded (23.1s)
+{
+  url: 'https://trynod.si',
+  walletDatabase: 'eb660ba0-175d-4b32-9dbb-c62c18428578'
+}

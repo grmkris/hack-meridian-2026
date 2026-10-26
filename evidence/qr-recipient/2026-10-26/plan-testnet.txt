@@ -1,0 +1,37 @@
+alchemy 2.0.0-beta.84 is available (you're on 2.0.0-beta.83). Run `bun add alchemy@2.0.0-beta.84` to upgrade.
+[04:13:17.889] INFO (#1): Plan · testnet
+[04:13:17.899] INFO (#1): Importing stack module
+[04:13:18.999] INFO (#38): Resolving stack services
+[04:13:19.075] INFO (#1): Loading stack state
+[04:13:19.088] INFO (#1): Computing plan
+[04:13:19.104] INFO (#437): Cloudflare: using environment variables (CLOUDFLARE_ACCOUNT_ID, CLOUDFLARE_API_TOKEN) instead of the profile.
+[04:13:19.133] INFO (#1): Plan ready (1.2s)
+[04:13:19.135] INFO (#1): Plan: 1 to update, 1 binding changes
+[04:13:19.135] INFO (#1): [WalletDb] noop
+[04:13:19.135] INFO (#1): [Web] update
+[04:13:19.135] INFO (#1): [Web/CHAIN] noop
+[04:13:19.135] INFO (#1): [Web/COUNTER_CONTRACT_ID] noop
+[04:13:19.135] INFO (#1): [Web/DEMO_CONTACTS] noop
+[04:13:19.135] INFO (#1): [Web/DEMO_RECIPIENT_SECRET] noop
+[04:13:19.135] INFO (#1): [Web/MAX_GRANT_USDC] noop
+[04:13:19.135] INFO (#1): [Web/MAX_OWNER_PAYMENT_USDC] noop
+[04:13:19.135] INFO (#1): [Web/MAX_X402_PRICE_USDC] noop
+[04:13:19.135] INFO (#1): [Web/OAUTH_STORE] noop
+[04:13:19.135] INFO (#1): [Web/ORIGIN] noop
+[04:13:19.135] INFO (#1): [Web/OZ_FACILITATOR_KEY] noop
+[04:13:19.136] INFO (#1): [Web/PAYMENTS_ENABLED] noop
+[04:13:19.136] INFO (#1): [Web/RELAYER_SECRET] noop
+[04:13:19.136] INFO (#1): [Web/RELEASE] update
+[04:13:19.136] INFO (#1): [Web/RP_ID] noop
+[04:13:19.136] INFO (#1): [Web/SAMPLE_ENABLED] noop
+[04:13:19.136] INFO (#1): [Web/SAMPLE_RUNNER] noop
+[04:13:19.136] INFO (#1): [Web/STAGE] noop
+[04:13:19.136] INFO (#1): [Web/STELLAR_NETWORK] noop
+[04:13:19.136] INFO (#1): [Web/STELLAR_NETWORK_PASSPHRASE] noop
+[04:13:19.136] INFO (#1): [Web/STELLAR_RPC_URL] noop
+[04:13:19.136] INFO (#1): [Web/TREASURY_SECRET] noop
+[04:13:19.136] INFO (#1): [Web/VAULT_KEY] noop
+[04:13:19.136] INFO (#1): [Web/WALLET_CREATE_PER_HOUR] noop
+[04:13:19.136] INFO (#1): [Web/WALLET_CREATE_PER_VISITOR_HOUR] noop
+[04:13:19.136] INFO (#1): [Web/WALLET_DB] noop
+[04:13:19.136] INFO (#1): [Web/WALLET_OBJECT] noop

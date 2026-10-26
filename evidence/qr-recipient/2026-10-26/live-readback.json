@@ -1,0 +1,28 @@
+[
+  {
+    "stage": "testnet",
+    "origin": "https://testnet.trynod.si",
+    "at": "2026-10-26T03:15:44.517Z",
+    "release": "f46b694630669bc3838fb1aa6da3979a1da2ac3b",
+    "network": "testnet",
+    "payments_enabled": true,
+    "invite_required": false,
+    "latest_ledger": 5392191,
+    "scanner_guide_matches": true,
+    "entry_asset": "/assets/index-CosZhJJM.js",
+    "entry_sha256": "94af8d613e3f793de455d34fdbc88b796eaf236431f7a3f1f4a826879c231039"
+  },
+  {
+    "stage": "mainnet",
+    "origin": "https://trynod.si",
+    "at": "2026-10-26T03:15:46.582Z",
+    "release": "f46b694630669bc3838fb1aa6da3979a1da2ac3b",
+    "network": "pubnet",
+    "payments_enabled": true,
+    "invite_required": false,
+    "latest_ledger": 65139752,
+    "scanner_guide_matches": true,
+    "entry_asset": "/assets/index-CosZhJJM.js",
+    "entry_sha256": "94af8d613e3f793de455d34fdbc88b796eaf236431f7a3f1f4a826879c231039"
+  }
+]
