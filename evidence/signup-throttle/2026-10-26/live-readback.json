@@ -1,0 +1,14 @@
+[
+  {
+    "origin": "https://trynod.si",
+    "release": "a663158f28a4855256c67b3a81ff4e5f0c18629b",
+    "ok": true,
+    "network": "pubnet"
+  },
+  {
+    "origin": "https://testnet.trynod.si",
+    "release": "a663158f28a4855256c67b3a81ff4e5f0c18629b",
+    "ok": true,
+    "network": "testnet"
+  }
+]

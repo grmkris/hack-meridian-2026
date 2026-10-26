@@ -1,0 +1,38 @@
+alchemy 2.0.0-beta.84 is available (you're on 2.0.0-beta.83). Run `bun add alchemy@2.0.0-beta.84` to upgrade.
+[05:30:30.639] INFO (#1): Plan · testnet
+[05:30:30.645] INFO (#1): Importing stack module
+[05:30:31.770] INFO (#38): Resolving stack services
+[05:30:31.849] INFO (#1): Loading stack state
+[05:30:31.862] INFO (#1): Computing plan
+[05:30:31.878] INFO (#438): Cloudflare: using environment variables (CLOUDFLARE_ACCOUNT_ID, CLOUDFLARE_API_TOKEN) instead of the profile.
+[05:30:31.908] INFO (#1): Plan ready (1.3s)
+[05:30:31.910] INFO (#1): Plan: 1 to update, 2 binding changes
+[05:30:31.910] INFO (#1): [WalletDb] noop
+[05:30:31.910] INFO (#1): [Web] update
+[05:30:31.910] INFO (#1): [Web/CHAIN] noop
+[05:30:31.910] INFO (#1): [Web/COUNTER_CONTRACT_ID] noop
+[05:30:31.910] INFO (#1): [Web/DEMO_CONTACTS] noop
+[05:30:31.910] INFO (#1): [Web/DEMO_RECIPIENT_SECRET] noop
+[05:30:31.910] INFO (#1): [Web/MAX_GRANT_USDC] noop
+[05:30:31.910] INFO (#1): [Web/MAX_OWNER_PAYMENT_USDC] noop
+[05:30:31.910] INFO (#1): [Web/MAX_X402_PRICE_USDC] noop
+[05:30:31.910] INFO (#1): [Web/OAUTH_STORE] noop
+[05:30:31.910] INFO (#1): [Web/ORIGIN] noop
+[05:30:31.911] INFO (#1): [Web/OZ_FACILITATOR_KEY] noop
+[05:30:31.911] INFO (#1): [Web/PAYMENTS_ENABLED] noop
+[05:30:31.911] INFO (#1): [Web/RELAYER_SECRET] noop
+[05:30:31.911] INFO (#1): [Web/RELEASE] update
+[05:30:31.911] INFO (#1): [Web/RP_ID] noop
+[05:30:31.911] INFO (#1): [Web/SAMPLE_ENABLED] noop
+[05:30:31.911] INFO (#1): [Web/SAMPLE_RUNNER] noop
+[05:30:31.911] INFO (#1): [Web/STAGE] noop
+[05:30:31.911] INFO (#1): [Web/STELLAR_NETWORK] noop
+[05:30:31.911] INFO (#1): [Web/STELLAR_NETWORK_PASSPHRASE] noop
+[05:30:31.911] INFO (#1): [Web/STELLAR_RPC_URL] noop
+[05:30:31.911] INFO (#1): [Web/TREASURY_SECRET] noop
+[05:30:31.911] INFO (#1): [Web/VAULT_KEY] noop
+[05:30:31.911] INFO (#1): [Web/WALLET_CREATE_LIMITS_ENABLED] create
+[05:30:31.911] INFO (#1): [Web/WALLET_CREATE_PER_HOUR] noop
+[05:30:31.911] INFO (#1): [Web/WALLET_CREATE_PER_VISITOR_HOUR] noop
+[05:30:31.911] INFO (#1): [Web/WALLET_DB] noop
+[05:30:31.911] INFO (#1): [Web/WALLET_OBJECT] noop
