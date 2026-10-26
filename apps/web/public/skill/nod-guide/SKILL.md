@@ -35,7 +35,13 @@ do, also as JSON), `references/examples.md` (three annotated conversations).
   `usdc_ready` (can receive now), `trustline_required` (the recipient accepts a claim link first, then the trustline and
   the payment land in one transaction), `account_missing` (the address does not exist on this network), `unverified`
   (not checked yet; `contacts_search` again in a moment).
-- Never guess or complete an address. Use one from a contact, or one the user typed in full.
+- Never guess or complete an address. Use one from a contact, one the user typed in full, or a QR validated by Nod.
+- QR image attached in chat: call `recipient_read` with `file` (the host-supplied attachment object). If the host
+  cannot forward files, call `recipient_scan` so the user can choose the image in the card. The card also offers a
+  camera when the host permits it. Only raw Stellar G, C and M addresses are supported; payment URIs and memos are
+  refused. Never transcribe an address by looking at the QR. Show the full returned address for confirmation, or
+  wait for the user to choose **Use this recipient** in the scanner, then continue through `payment_prepare`.
+  Scanning does not pay or save a contact. An address does not identify a network; check the wallet's network.
 - Two or more matches: show them (name and the last characters of each address) and ask which one.
 - No match and no address: ask the user for the person's Stellar address. If the person has no wallet, prepare with
   `recipient: "new"` and `recipient_name`; Nod returns a `claim_url` to send them. They open it and create a wallet with a passkey, pick their Nod wallet, or paste

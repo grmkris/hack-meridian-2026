@@ -162,6 +162,8 @@ const APPENDED_TOOLS = [
   'wallet_topup_quote',
   'wallet_topup_status',
   'get_guide',
+  'recipient_scan',
+  'recipient_read',
 ]
 
 const CARD_TOOLS = [
@@ -269,7 +271,11 @@ describe('MCP Apps resources (the cards)', () => {
     const resources = (Array.isArray(result['resources']) ? result['resources'].filter(Predicate.isObject) : []).filter(
       resource => String(resource['uri']).startsWith('ui://'),
     )
-    expect(resources.map(resource => resource['uri'])).toEqual(['ui://nod/card/v1', 'ui://nod/home/v1'])
+    expect(resources.map(resource => resource['uri'])).toEqual([
+      'ui://nod/card/v1',
+      'ui://nod/home/v1',
+      'ui://nod/recipient-scan/v1',
+    ])
     for (const resource of resources) {
       expect(resource['mimeType']).toBe('text/html;profile=mcp-app')
       expect(resource['_meta']).toMatchObject({ ui: { csp: EMPTY_CSP, prefersBorder: true } })
@@ -283,6 +289,7 @@ describe('MCP Apps resources (the cards)', () => {
     for (const [uri, view] of [
       ['ui://nod/card/v1', 'card'],
       ['ui://nod/home/v1', 'home'],
+      ['ui://nod/recipient-scan/v1', 'scan'],
     ] as const) {
       const result = resultOf(await rpc('resources/read', { uri }))
       const contents = Array.isArray(result['contents']) ? result['contents'].filter(Predicate.isObject) : []

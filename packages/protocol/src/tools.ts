@@ -502,5 +502,7 @@ export const TOOL_NAMES = [
   'wallet_topup_quote',
   'wallet_topup_status',
   'get_guide',
+  'recipient_scan',
+  'recipient_read',
 ] as const
 export type ToolName = (typeof TOOL_NAMES)[number]

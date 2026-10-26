@@ -11,7 +11,7 @@ import { readSkillResource, skillResources } from './skill.ts'
 
 /**
  * MCP Apps: the `ui://` resources Nod's tools render with (cards in the chat). One sealed HTML file
- * (`cards/card.html`, built by `bun run cards:build` from `src/card/`) serves two views; the server tells the card
+ * (`cards/card.html`, built by `bun run cards:build` from `src/card/`) serves three views; the server tells the card
  * which one with `<meta name="nod-view">`. The card has an empty CSP: it reaches nothing but the host, and gets all
  * its data through host-proxied `tools/call` to this server. Both lanes serve these: the legacy lane through
  * `registerApps`, the 2026-07-28 lane through `listResources` and `readResource`.
@@ -23,13 +23,14 @@ export const MCP_APP_MIME_TYPE = 'text/html;profile=mcp-app'
 export const CARD_URI = 'ui://nod/card/v1'
 /** The wallet, pinned or fullscreen (the `nod_home` tool). */
 export const HOME_URI = 'ui://nod/home/v1'
+export const SCAN_URI = 'ui://nod/recipient-scan/v1'
 
 interface AppView {
   readonly uri: string
   readonly name: string
   readonly title: string
   readonly description: string
-  readonly view: 'card' | 'home'
+  readonly view: 'card' | 'home' | 'scan'
   readonly displayModes: ReadonlyArray<'inline' | 'fullscreen'>
   readonly preferredDisplayMode: 'inline' | 'fullscreen'
 }
@@ -54,6 +55,15 @@ const viewsOn = (label: NetworkShape['label']): ReadonlyArray<AppView> => [
     displayModes: ['inline', 'fullscreen'],
     preferredDisplayMode: 'fullscreen',
   },
+  {
+    uri: SCAN_URI,
+    name: 'nod-recipient-scan',
+    title: 'Scan a recipient',
+    description: `Scan or choose a QR image and review a Stellar recipient. Nothing is paid. Stellar ${label}.`,
+    view: 'scan',
+    displayModes: ['inline'],
+    preferredDisplayMode: 'inline',
+  },
 ]
 
 /** The card reaches nothing: no fetches, no remote scripts, styles, fonts or frames. */
@@ -61,7 +71,7 @@ const EMPTY_CSP = { connectDomains: [], resourceDomains: [], frameDomains: [] }
 
 /** Resource metadata, on the `resources/list` entry and again on the `resources/read` content item (Goblin reads that). */
 const resourceMeta = (view: AppView) => ({
-  ui: { csp: EMPTY_CSP, prefersBorder: true },
+  ui: { csp: EMPTY_CSP, prefersBorder: true, ...(view.view === 'scan' ? { permissions: { camera: {} } } : {}) },
   'openai/ui': { availableDisplayModes: [...view.displayModes], preferredDisplayMode: view.preferredDisplayMode },
   'openai/widgetDescription': view.description,
   'openai/widgetPrefersBorder': true,

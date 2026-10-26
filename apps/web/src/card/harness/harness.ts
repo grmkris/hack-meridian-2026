@@ -37,7 +37,7 @@ const fixtureOf = (name: string): Fixture => {
 }
 
 const fixture = fixtureOf(state)
-const view = fixture.tool === 'nod_home' ? 'home' : 'card'
+const view = fixture.tool === 'recipient_scan' ? 'scan' : fixture.tool === 'nod_home' ? 'home' : 'card'
 
 const toolResult = (structured: unknown, text: string, isError = false): CallToolResult => ({
   content: [{ type: 'text', text }],
@@ -82,6 +82,12 @@ const makeAnswerer = () => {
 }
 const answer = makeAnswerer()
 bridge.oncalltool = async ({ name }) => answer(name)
+// AppBridge exposes a protocol handler, not a DOM event.
+// oxlint-disable-next-line unicorn/prefer-add-event-listener
+bridge.onmessage = async ({ content }) => {
+  say(`message ${JSON.stringify(content)}`)
+  return {}
+}
 bridge.onopenlink = async ({ url }) => {
   say(`open-link ${url}`)
   return {}

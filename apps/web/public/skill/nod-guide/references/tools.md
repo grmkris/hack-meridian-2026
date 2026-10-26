@@ -29,3 +29,8 @@ Every write takes an `idempotency_key`: a fresh one per new intent, the same one
 | `payments_list`           | This app's payments, newest first, at most 50 (`all_apps: true` for the whole wallet), with receipts.                                                                                      |
 | `wallet_topup_quote`      | A top-up from Base, Solana, Ethereum, Arbitrum or Polygon through NEAR Intents: where to send what, within 30 minutes. Mainnet only. Moves nothing itself.                                 |
 | `wallet_topup_status`     | Where a top-up stands: `pending`, `processing`, `arrived` (with the sweep transaction), `failed`, `expired`.                                                                               |
+
+Recipient QR tools:
+
+- `recipient_scan`: open a camera/image scanner card; the user reviews the exact address and returns it to chat.
+- `recipient_read`: decode an attached PNG/JPEG via its host-provided `file` object, or validate decoded `text`. Supply exactly one. Read-only; nothing is paid or saved.

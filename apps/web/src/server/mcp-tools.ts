@@ -17,6 +17,8 @@ import {
   PaymentPrepareInput,
   PaymentStatusInput,
   PaymentsListInput,
+  RecipientReadInput,
+  RecipientScanInput,
   RequestCreateInput,
   RequestDeclineInput,
   RequestPayInput,
@@ -39,8 +41,9 @@ import {
 } from './contacts-tools.ts'
 import type { DbError } from './db.ts'
 import type { LedgerError } from './ledger.ts'
-import { CARD_URI, homeMeta, renderMeta } from './mcp-apps.ts'
+import { CARD_URI, SCAN_URI, homeMeta, renderMeta } from './mcp-apps.ts'
 import { observeToolCall, type ToolOutcome } from './observe/tool-call.ts'
+import { recipientRead, recipientScan } from './recipient.ts'
 import { requestCreate, requestDecline, requestPay, requestsList } from './requests.ts'
 import type { AppRuntime, AppServices } from './runtime.ts'
 import { getGuide } from './skill.ts'
@@ -314,6 +317,24 @@ const TOOLS = [
     GetGuideInput,
     { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
     ctx => getGuide(ctx),
+  ),
+  spec(
+    'recipient_scan',
+    'Scan a recipient',
+    'Show a read-only QR scanner card when the user wants to pay someone whose address they do not know. The user can choose an image or use the camera if the host permits it, review the address and return it to the chat. Never pays or saves contacts.',
+    RecipientScanInput,
+    { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+    ctx => recipientScan(ctx),
+    renderMeta(SCAN_URI),
+  ),
+  spec(
+    'recipient_read',
+    'Read a recipient QR',
+    'Read a user-provided PNG/JPEG QR attachment (file) or validate exact decoded QR text (text). Accepts raw Stellar G, C or M addresses only, with checksum validation. Never infer an address from image appearance. Confirm the returned address with the user before payment_prepare. Never pays, saves contacts or follows QR links. If attachments are unavailable, use recipient_scan.',
+    RecipientReadInput,
+    { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
+    (ctx, args) => recipientRead(ctx, args),
+    { 'openai/fileParams': ['file'] },
   ),
 ]
 

@@ -84,13 +84,13 @@ const descriptions = (result: Record<string, unknown>) =>
     .map(resource => String(resource['description']))
 
 describe('the network label follows the stage', () => {
-  test('pubnet: instructions and both resource descriptions say Stellar Mainnet, never testnet', async () => {
+  test('pubnet: instructions and all resource descriptions say Stellar Mainnet, never testnet', async () => {
     const w = await world(PUBNET)
     const init = await w.rpc('initialize', INITIALIZE)
     expect(String(init['instructions'])).toContain('(Stellar Mainnet)')
     expect(String(init['instructions']).toLowerCase()).not.toContain('testnet')
     const listed = descriptions(await w.rpc('resources/list', {}))
-    expect(listed).toHaveLength(2)
+    expect(listed).toHaveLength(3)
     for (const description of listed) {
       expect(description).toContain('Stellar Mainnet.')
       expect(description.toLowerCase()).not.toContain('testnet')

@@ -658,3 +658,55 @@ body {
   letter-spacing: 0;
   color: var(--nod-muted);
 }
+
+/* RECIPIENT SCANNER */
+.nod-scan-camera,
+.nod-scan-review,
+.nod-scan-options {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+
+.nod-scan-video {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  max-height: 340px;
+  object-fit: contain;
+  border-radius: 12px;
+  background: var(--nod-wash);
+}
+
+.nod-scan-file {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-weight: 600;
+}
+
+.nod-scan-file input {
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  font: inherit;
+}
+
+.nod-scan-file input::file-selector-button {
+  min-height: 44px;
+  border: 1px solid var(--nod-line);
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin-inline-end: 8px;
+  background: var(--nod-wash);
+  color: var(--nod-ink);
+  font: inherit;
+  cursor: pointer;
+}
+
+.nod-scan-file input:focus-visible {
+  outline: 2px solid var(--nod-accent);
+  outline-offset: 3px;
+  border-radius: 8px;
+}

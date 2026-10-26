@@ -19,6 +19,7 @@ export class Host extends Context.Service<
   Host,
   {
     readonly callTool: (name: string, args: Readonly<Record<string, unknown>>) => Effect.Effect<ToolReply, HostFailed>
+    readonly sendMessage: (text: string) => Effect.Effect<void, HostFailed>
     readonly openLink: (url: string) => Effect.Effect<void, HostFailed>
     readonly updateModelContext: (text: string) => Effect.Effect<void, HostFailed>
   }
@@ -65,6 +66,17 @@ export const liveHost = (app: App): Layer.Layer<Host> =>
               try: () => app.callServerTool({ name, arguments: { ...args } }),
               catch: failed,
             }).pipe(Effect.map(toToolReply)),
+      sendMessage: text =>
+        Effect.tryPromise({
+          try: () => app.sendMessage({ role: 'user', content: [{ type: 'text', text }] }),
+          catch: failed,
+        }).pipe(
+          Effect.flatMap(result =>
+            result.isError === true
+              ? Effect.fail(new HostFailed({ reason: 'This chat could not receive the address.' }))
+              : Effect.void,
+          ),
+        ),
       openLink: url =>
         app.getHostCapabilities()?.openLinks === undefined
           ? Effect.fail(new HostFailed({ reason: 'This chat does not open links from cards.' }))

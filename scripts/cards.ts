@@ -27,11 +27,17 @@ const INPUT_GLOBS: ReadonlyArray<readonly [string, string]> = [
   ['apps/web/src/card', '**/*'],
   ['packages/protocol/src', '**/*.ts'],
 ]
-const INPUT_FILES = ['apps/web/src/format.ts', 'apps/web/vite.cards.config.ts', 'scripts/cards.ts']
+const INPUT_FILES = [
+  'apps/web/src/qr-decode.ts',
+  'apps/web/src/format.ts',
+  'apps/web/vite.cards.config.ts',
+  'scripts/cards.ts',
+]
 const isInput = (path: string) => !path.includes('/harness/') && !path.endsWith('.test.ts')
 
 /** The packages that end up in the card or shape its bytes, by their resolved version in bun.lock. */
 const BUNDLED_PACKAGES = [
+  'jsqr',
   'effect',
   'foldkit',
   '@foldkit/vite-plugin',
@@ -92,7 +98,7 @@ const seal = (html: string, inputs: string): string => {
   const scripts = Array.from(html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/gu), match => match[1] ?? '')
   if (scripts.length === 0) throw new Error('the built card has no inline script')
   const hashes = scripts.map(script => `'sha256-${createHash('sha256').update(script).digest('base64')}'`).join(' ')
-  const csp = `default-src 'none'; script-src ${hashes}; style-src 'unsafe-inline'; img-src data:; font-src data:; connect-src 'none'; frame-src 'none'; base-uri 'none'; form-action 'none'`
+  const csp = `default-src 'none'; script-src ${hashes}; style-src 'unsafe-inline'; img-src data: blob:; media-src blob:; font-src data:; connect-src 'none'; frame-src 'none'; base-uri 'none'; form-action 'none'`
   const head = `<meta http-equiv="Content-Security-Policy" content="${csp}"><meta name="nod-card-inputs" content="${inputs}">`
   if (!html.includes('<meta charset="UTF-8" />')) throw new Error('the built card has no charset meta to seal after')
   return html.replace('<meta charset="UTF-8" />', `<meta charset="UTF-8" />${head}`)

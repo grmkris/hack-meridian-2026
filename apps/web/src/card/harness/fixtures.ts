@@ -285,6 +285,23 @@ const TOPUP_ARGS = {
 }
 
 export const FIXTURES: Readonly<Record<string, Fixture>> = {
+  'recipient-scan': {
+    tool: 'recipient_scan',
+    arguments: {},
+    sentence: 'Scan a recipient.',
+    structured: { kind: 'recipient_scan', network: 'stellar:testnet', grant_remaining: '5.00' },
+    answers: {
+      recipient_read: [
+        {
+          kind: 'recipient',
+          address: BOB,
+          address_kind: 'account',
+          network: 'stellar:testnet',
+          grant_remaining: '5.00',
+        },
+      ],
+    },
+  },
   'topup-pending': {
     tool: 'wallet_topup_quote',
     arguments: TOPUP_ARGS,

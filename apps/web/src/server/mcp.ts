@@ -48,6 +48,7 @@ export const instructions = (label: NetworkLabel, origin: string) =>
     'More:',
     '- Where the host subscribes to Nod events (payment.received, payment.settled, approval.needed, topup.*), use them instead of polling.',
     '- recipient "new" with recipient_name makes a claim link for someone without a wallet or address.',
+    '- QR recipient: recipient_read with the attached image, or recipient_scan for camera/upload. Confirm the exact address before payment_prepare. Scanning never pays.',
     '- low_balance on wallet_overview → offer wallet_topup_quote (top up from another chain).',
     `- skill://nod-guide/SKILL.md and ${origin}/SKILL.md have the full workflows.`,
   ].join('\n')
