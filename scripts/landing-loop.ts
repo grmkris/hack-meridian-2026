@@ -1,50 +1,71 @@
 import assert from 'node:assert/strict'
 import { spawnSync } from 'node:child_process'
-import { createHash } from 'node:crypto'
-import { readFileSync } from 'node:fs'
+import { cpSync, mkdirSync } from 'node:fs'
 import { resolve } from 'node:path'
+import sharp from 'sharp'
 
-/**
- * heavy bun scripts/landing-loop.ts
- *
- * The original 7.5-second shot ends with the bird at the window. Overlap its final 1.5 seconds with its first
- * 1.5 seconds, then start the loop at source time 1.5. The six-second result wraps between adjacent source frames
- * instead of jumping from the window to mid-flight. H.264/yuv420p and faststart preserve iPhone playback.
- */
+/** heavy bun scripts/landing-loop.ts — render the editable approval scene and its still fallback. */
 const root = resolve(import.meta.dir, '..')
-const source = resolve(root, 'apps/web/public/landing/night-flight.mp4')
-const destination = resolve(root, 'apps/web/public/landing/night-flight-loop.mp4')
-assert.equal(
-  createHash('sha256').update(readFileSync(source)).digest('hex'),
-  '2d0b0ad18e6015d988a40427692c511597b5805622d7acb3b0cfe7533fed9009',
-  'The source changed; inspect its duration and motion before choosing a new overlap.',
+const project = resolve(root, '.local/landing-film')
+const assets = resolve(project, 'assets')
+const destination = resolve(root, 'apps/web/public/landing')
+mkdirSync(assets, { recursive: true })
+cpSync(resolve(root, 'scripts/landing-film'), project, { recursive: true })
+cpSync(resolve(root, 'apps/web/src/assets/landing/etching-plate-ledger.webp'), resolve(assets, 'ledger.webp'))
+for (const font of ['plex-sans.woff2', 'besley-700.woff2']) {
+  cpSync(resolve(root, 'apps/web/public/fonts', font), resolve(assets, font))
+}
+
+// Separate the fingertip from the existing seal engraving; all source pixels come from Nod's own artwork.
+const fingerMask = Buffer.from(
+  '<svg width="992" height="1008"><path fill="white" d="M655 0H940V100L778 235L704 402L625 514L573 550L499 534L462 503L470 449L504 344L546 256L598 134Z"/></svg>',
 )
-const rendered = spawnSync(
-  'ffmpeg',
-  [
-    '-y',
-    '-i',
-    source,
-    '-filter_complex_threads',
-    '2',
-    '-filter_complex',
-    '[0:v]split[main][head];[main]trim=start=1.5,setpts=PTS-STARTPTS[a];[head]trim=end=1.5,setpts=PTS-STARTPTS[b];[a][b]xfade=transition=fade:duration=1.5:offset=4.5,format=yuv420p[v]',
-    '-map',
-    '[v]',
-    '-an',
-    '-c:v',
-    'libx264',
-    '-threads',
-    '2',
-    '-preset',
-    'slow',
-    '-crf',
-    '22',
-    '-movflags',
-    '+faststart',
-    destination,
-  ],
-  { stdio: 'inherit' },
-)
-assert.equal(rendered.status, 0, 'ffmpeg must finish the loop')
-console.log(destination)
+const maskedFinger = await sharp(resolve(root, 'apps/web/src/assets/landing/etching-plate-seal.webp'))
+  .composite([{ input: fingerMask, blend: 'dest-in' }])
+  .png()
+  .toBuffer()
+await sharp(maskedFinger)
+  .extract({ left: 452, top: 0, width: 488, height: 560 })
+  .webp({ lossless: true })
+  .toFile(resolve(assets, 'finger.webp'))
+
+const run = (command: string, args: Array<string>): void => {
+  const result = spawnSync(command, args, { cwd: root, stdio: 'inherit' })
+  assert.equal(result.status, 0, `${command} must finish successfully`)
+}
+const hyperframes = (args: Array<string>): void => run('npx', ['--yes', 'hyperframes@0.8.200', ...args])
+hyperframes(['check', project, '--json'])
+hyperframes(['render', project, '--quality', 'delivery', '--workers', '2', '--output', resolve(project, 'master.mp4')])
+// The hand continues out of the upper edge of this crop. Its last frame has the same composition as its first.
+run('ffmpeg', [
+  '-y',
+  '-i',
+  resolve(project, 'master.mp4'),
+  '-vf',
+  'crop=1600:760:160:280,format=yuv420p',
+  '-an',
+  '-c:v',
+  'libx264',
+  '-threads',
+  '2',
+  '-preset',
+  'slow',
+  '-crf',
+  '21',
+  '-movflags',
+  '+faststart',
+  resolve(destination, 'approval-loop.mp4'),
+])
+run('ffmpeg', [
+  '-y',
+  '-i',
+  resolve(destination, 'approval-loop.mp4'),
+  '-frames:v',
+  '1',
+  '-c:v',
+  'libwebp',
+  '-quality',
+  '88',
+  resolve(destination, 'approval-still.webp'),
+])
+console.log(resolve(destination, 'approval-loop.mp4'))

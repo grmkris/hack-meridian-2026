@@ -59,8 +59,8 @@ describe('signed out', () => {
       ),
       expect(testId('sign-in')).toExist(),
       expect(role('textbox', { name: 'Wallet name' })).not.toExist(),
-      // The hero's night flight decides in the browser whether to play; here it settles without playing.
-      Mount.resolve(Welcome.PlayNightFlight, Welcome.Message.SettledNightFlight({ playing: false })),
+      // The hero's approval illustration decides in the browser whether to play; here it settles without playing.
+      Mount.resolve(Welcome.PlayHeroFilm, Welcome.Message.SettledHeroFilm({ playing: false })),
     )
   })
 })

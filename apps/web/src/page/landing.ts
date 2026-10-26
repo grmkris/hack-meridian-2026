@@ -15,12 +15,12 @@ import {
   WHY,
 } from './landing-copy'
 
-// The signed-out home: a night over Lisbon, one wallet entry, chapters on paper, and rooftops at dawn.
+// The signed-out home: payments and a human approval, chapters on paper, and rooftops at dawn.
 
 type Plate = 'hand' | 'seal' | 'door' | 'flight'
 
-/** A six-second loop with its transition baked into the asset by scripts/landing-loop.ts. */
-export const NIGHT_FLIGHT_SRC = '/landing/night-flight-loop.mp4'
+/** An eight-second living illustration, rendered by scripts/landing-loop.ts with identical loop endpoints. */
+export const HERO_FILM_SRC = '/landing/approval-loop.mp4'
 
 type Side = 'start' | 'end'
 
@@ -38,24 +38,23 @@ export const networkOf = (connectorUrl: string): NetworkKind => {
 
 // HERO
 
-const sceneView = <Message>(nightFlight: Attribute<Message>, h: HtmlBuilder<Message>): Html =>
+const sceneView = <Message>(heroFilm: Attribute<Message>, h: HtmlBuilder<Message>): Html =>
   h.div(
     [h.Class('landing-hero-art'), h.AriaHidden(true)],
     [
       h.div(
         [h.Class('landing-scene')],
         [
-          h.div([h.Class('landing-etching')]),
+          h.img([h.Class('landing-scene-still'), h.Src('/landing/approval-still.webp'), h.Alt('')]),
           h.video([
-            h.Id('landing-night-flight'),
+            h.Id('landing-hero-film'),
             h.Class('landing-scene-video'),
             h.Muted(true),
             h.Playsinline(true),
             h.Loop(true),
             h.Preload('none'),
-            nightFlight,
+            heroFilm,
           ]),
-          h.div([h.Class('landing-glow')]),
         ],
       ),
     ],
@@ -78,7 +77,7 @@ type Slots<Message> = Readonly<{
   walletForm: Html
   addToClaude: Html
   connectorUrl: string
-  nightFlight: Attribute<Message>
+  heroFilm: Attribute<Message>
 }>
 
 const heroView = <Message>(slots: Slots<Message>, network: NetworkKind, h: HtmlBuilder<Message>): Html =>
@@ -86,7 +85,6 @@ const heroView = <Message>(slots: Slots<Message>, network: NetworkKind, h: HtmlB
     [h.Class('landing-hero'), h.DataAttribute('scene', 'night'), h.AriaLabelledBy('landing-title')],
     [
       barView(network, h),
-      sceneView(slots.nightFlight, h),
       h.div(
         [h.Class('landing-hero-grid landing-width')],
         [
@@ -98,6 +96,7 @@ const heroView = <Message>(slots: Slots<Message>, network: NetworkKind, h: HtmlB
               h.div([h.Class('landing-actions')], [slots.walletForm]),
             ],
           ),
+          sceneView(slots.heroFilm, h),
         ],
       ),
     ],

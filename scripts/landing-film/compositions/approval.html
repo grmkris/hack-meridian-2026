@@ -1,0 +1,300 @@
+<template>
+  <style>
+    @font-face {
+      font-family: 'Plex';
+      src: url('assets/plex-sans.woff2') format('woff2');
+    }
+    @font-face {
+      font-family: 'Besley';
+      src: url('assets/besley-700.woff2') format('woff2');
+      font-weight: 700;
+    }
+    #root {
+      position: absolute;
+      inset: 0;
+      color: #becde0;
+      background: var(--night, #0b1429);
+    }
+    .plate {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      inset: 0;
+    }
+    .letter {
+      position: absolute;
+      left: 770px;
+      top: 584px;
+      width: 600px;
+      height: 330px;
+    }
+    .ledger {
+      position: absolute;
+      left: 225px;
+      top: 500px;
+      width: 470px;
+      height: 390px;
+      opacity: 0.7;
+    }
+    .finger {
+      position: absolute;
+      left: 1010px;
+      top: 170px;
+      width: 390px;
+      height: 448px;
+    }
+    .finger img {
+      width: 100%;
+      height: 100%;
+      opacity: 0.78;
+    }
+    .token {
+      transform-origin: 50% 50%;
+      position: absolute;
+      left: 485px;
+      top: 655px;
+      width: 106px;
+      height: 106px;
+      color: var(--lamp, #edc36d);
+    }
+    .token svg {
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+    }
+    .token circle {
+      fill: var(--night, #0b1429);
+      stroke: currentColor;
+      stroke-width: 2;
+    }
+    .token .edge {
+      stroke-dasharray: 1 5;
+      stroke-width: 5;
+    }
+    .token text {
+      fill: currentColor;
+      font: 700 34px 'Besley';
+      text-anchor: middle;
+    }
+    #small-one,
+    #small-two,
+    #large,
+    #approval-mark,
+    #waiting,
+    #approved {
+      opacity: 0;
+    }
+    .large {
+      width: 156px;
+      height: 156px;
+      left: 460px;
+      top: 628px;
+    }
+    .label {
+      position: absolute;
+      font: 400 34px/1.2 'Plex';
+      color: #becde0;
+      margin: 0;
+    }
+    #waiting,
+    #approved {
+      left: 957px;
+      top: 905px;
+      width: 300px;
+      text-align: center;
+    }
+    #approved {
+      color: var(--lamp, #edc36d);
+    }
+    #routine {
+      left: 245px;
+      top: 905px;
+      width: 450px;
+      text-align: center;
+    }
+    #finger-clip {
+      z-index: 6;
+    }
+    #letter-clip {
+      z-index: 2;
+    }
+    #token-small-one,
+    #token-small-two,
+    #token-large {
+      z-index: 4;
+    }
+  </style>
+  <div data-hf-id="hf-rr2w" id="root" data-composition-id="approval" data-width="1920" data-height="1080">
+    <svg data-hf-id="hf-8pmp" class="plate" viewBox="0 0 1920 1080" aria-hidden="true" data-layout-ignore>
+      <defs data-hf-id="hf-mh0t">
+        <pattern
+          data-hf-id="hf-ooqb"
+          id="hatch"
+          width="9"
+          height="9"
+          patternUnits="userSpaceOnUse"
+          patternTransform="rotate(-30)"
+        >
+          <path data-hf-id="hf-d5ox" d="M0 0V9" stroke="#becde0" stroke-width="1" opacity=".3" />
+        </pattern>
+      </defs>
+      <g data-hf-id="hf-6bw6" fill="none" stroke="#becde0" stroke-width="1" opacity=".18">
+        <ellipse data-hf-id="hf-16fo" cx="1056" cy="696" rx="600" ry="180" />
+        <ellipse data-hf-id="hf-2oqo" cx="1056" cy="696" rx="619" ry="195" />
+        <path data-hf-id="hf-u9dk" d="M240 973H1570M284 984H1500M348 995H1410" />
+      </g>
+      <g data-hf-id="hf-1m7u" fill="#becde0" opacity=".5">
+        <path
+          data-hf-id="hf-f8bk"
+          d="M400 285l3 12 12 3-12 3-3 12-3-12-12-3 12-3zM1560 360l3 12 12 3-12 3-3 12-3-12-12-3 12-3zM1480 207l2 8 8 2-8 2-2 8-2-8-8-2 8-2z"
+        />
+        <circle data-hf-id="hf-tmbg" cx="320" cy="438" r="2" />
+        <circle data-hf-id="hf-b5hs" cx="650" cy="290" r="2" />
+        <circle data-hf-id="hf-egts" cx="860" cy="170" r="2" />
+        <circle data-hf-id="hf-7vpc" cx="1600" cy="540" r="2" />
+        <circle data-hf-id="hf-vxtj" cx="1520" cy="870" r="2" />
+      </g>
+    </svg>
+    <div data-hf-id="hf-puvy" id="ledger-clip" class="clip" data-start="0" data-duration="8" data-track-index="0">
+      <img data-hf-id="hf-tif9" class="ledger" src="assets/ledger.webp" alt="" />
+    </div>
+    <div data-hf-id="hf-x46k" id="letter-clip" class="clip" data-start="0" data-duration="8" data-track-index="1">
+      <svg data-hf-id="hf-iktb" class="letter" viewBox="0 0 600 330" aria-hidden="true">
+        <path
+          data-hf-id="hf-5jwh"
+          d="M15 76L370 12L588 177L232 319Z"
+          fill="#0b1429"
+          stroke="#becde0"
+          stroke-width="2"
+        />
+        <path data-hf-id="hf-9q1m" d="M15 76L370 12L588 177L232 319Z" fill="url(#hatch)" />
+        <path
+          data-hf-id="hf-lv1k"
+          d="M24 80L328 185L575 177M24 80L239 306L575 177M328 185L370 22M328 185L239 306"
+          fill="none"
+          stroke="#becde0"
+          stroke-width="2"
+        />
+        <path
+          data-hf-id="hf-v8c4"
+          d="M31 90L239 298L566 178M30 80L328 177L566 174"
+          fill="none"
+          stroke="#becde0"
+          stroke-width="1"
+          opacity=".5"
+        />
+        <ellipse
+          data-hf-id="hf-syvg"
+          cx="320"
+          cy="178"
+          rx="56"
+          ry="37"
+          fill="#0b1429"
+          stroke="#becde0"
+          stroke-width="2"
+        />
+        <ellipse data-hf-id="hf-m6ka" cx="320" cy="178" rx="48" ry="30" fill="none" stroke="#becde0" stroke-width="1" />
+        <path
+          data-hf-id="hf-afp4"
+          d="M320 152l7 17 22 1-16 12 5 17-18-9-18 9 5-17-16-12 22-1z"
+          fill="none"
+          stroke="#becde0"
+          stroke-width="1.5"
+        />
+      </svg>
+    </div>
+    <div data-hf-id="hf-0dcc" id="token-small-one" class="clip" data-start="0" data-duration="8" data-track-index="2">
+      <div data-hf-id="hf-q2bh" id="small-one" class="token">
+        <svg data-hf-id="hf-n6yd" viewBox="0 0 110 110">
+          <circle data-hf-id="hf-mhcf" cx="55" cy="55" r="49" />
+          <circle data-hf-id="hf-qhco" class="edge" cx="55" cy="55" r="44" />
+          <circle data-hf-id="hf-0bfz" cx="55" cy="55" r="38" />
+          <text data-hf-id="hf-c7hh" x="55" y="67">$</text>
+        </svg>
+      </div>
+    </div>
+    <div data-hf-id="hf-rtyl" id="token-small-two" class="clip" data-start="0" data-duration="8" data-track-index="3">
+      <div data-hf-id="hf-l6hf" id="small-two" class="token">
+        <svg data-hf-id="hf-25ux" viewBox="0 0 110 110">
+          <circle data-hf-id="hf-g2nj" cx="55" cy="55" r="49" />
+          <circle data-hf-id="hf-z1kg" class="edge" cx="55" cy="55" r="44" />
+          <circle data-hf-id="hf-2han" cx="55" cy="55" r="38" />
+          <text data-hf-id="hf-2ji1" x="55" y="67">$</text>
+        </svg>
+      </div>
+    </div>
+    <div data-hf-id="hf-864h" id="token-large" class="clip" data-start="0" data-duration="8" data-track-index="4">
+      <div data-hf-id="hf-u0vd" id="large" class="token large">
+        <svg data-hf-id="hf-3cs0" viewBox="0 0 110 110">
+          <circle data-hf-id="hf-foci" cx="55" cy="55" r="49" />
+          <circle data-hf-id="hf-xund" class="edge" cx="55" cy="55" r="44" />
+          <circle data-hf-id="hf-22zm" cx="55" cy="55" r="38" />
+          <text data-hf-id="hf-3qf4" x="55" y="67">$</text>
+        </svg>
+      </div>
+    </div>
+    <div data-hf-id="hf-4yfl" id="finger-clip" class="clip" data-start="0" data-duration="8" data-track-index="5">
+      <div data-hf-id="hf-zd22" id="finger" class="finger">
+        <img data-hf-id="hf-m211" src="assets/finger.webp" alt="" />
+      </div>
+    </div>
+    <div data-hf-id="hf-k0gy" id="approval-clip" class="clip" data-start="0" data-duration="8" data-track-index="6">
+      <svg data-hf-id="hf-nqf0" class="plate" viewBox="0 0 1920 1080" aria-hidden="true">
+        <g data-hf-id="hf-9cx3" id="approval-mark" fill="none" stroke="var(--lamp,#edc36d)">
+          <ellipse data-hf-id="hf-kjhl" cx="1090" cy="762" rx="70" ry="48" stroke-width="3" />
+          <path
+            data-hf-id="hf-nz91"
+            d="M1060 763l20 12 40-35"
+            stroke-width="5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </g>
+      </svg>
+    </div>
+    <div data-hf-id="hf-ul6s" id="routine-clip" class="clip" data-start="0" data-duration="8" data-track-index="7">
+      <p data-hf-id="hf-yjxw" id="routine" class="label">Small stuff, paid.</p>
+    </div>
+    <div data-hf-id="hf-m9mo" id="waiting-clip" class="clip" data-start="0" data-duration="8" data-track-index="8">
+      <p data-hf-id="hf-def7" id="waiting" class="label">Needs your nod.</p>
+    </div>
+    <div data-hf-id="hf-nx2z" id="approved-clip" class="clip" data-start="0" data-duration="8" data-track-index="9">
+      <p data-hf-id="hf-xemn" id="approved" class="label">Approved.</p>
+    </div>
+  </div>
+  <script>
+    const tl = gsap.timeline({ paused: true })
+    // Each payment travels in front of the ledger, over the letter, and into the recipient's orbit.
+    function smallPayment(selector, start) {
+      tl.fromTo(
+        selector,
+        { x: 0, y: 0, opacity: 0, rotation: -25 },
+        { x: 180, y: -160, opacity: 1, rotation: 0, duration: 0.7, ease: 'power1.out' },
+        start,
+      )
+      tl.to(selector, { x: 690, y: -170, rotation: 25, duration: 0.9, ease: 'none' }, start + 0.7)
+      tl.to(selector, { x: 1000, y: 30, opacity: 0, rotation: 55, duration: 0.7, ease: 'power1.in' }, start + 1.6)
+    }
+    smallPayment('#small-one', 0.25)
+    smallPayment('#small-two', 1.25)
+    tl.fromTo(
+      '#large',
+      { x: 0, y: 0, opacity: 0, rotation: -25 },
+      { x: 552, y: 52, opacity: 1, rotation: 0, duration: 1.2, ease: 'power2.out' },
+      2.7,
+    )
+    tl.fromTo('#waiting', { opacity: 0 }, { opacity: 1, duration: 0.25 }, 3.6)
+    // The finger waits visibly above the seal, then presses once. No cut or dissolve between scenes.
+    tl.fromTo('#finger', { x: 0, y: 0 }, { x: 10, y: 110, duration: 0.6, ease: 'power2.inOut' }, 4.5)
+    tl.to('#large', { scale: 0.94, duration: 0.15, ease: 'power2.out' }, 5.0)
+    tl.to('#large', { scale: 1, duration: 0.2, ease: 'power2.out' }, 5.15)
+    tl.fromTo('#approval-mark', { opacity: 0 }, { opacity: 1, duration: 0.18 }, 5.08)
+    tl.to('#waiting', { opacity: 0, duration: 0.2 }, 5.08)
+    tl.fromTo('#approved', { opacity: 0 }, { opacity: 1, duration: 0.2 }, 5.3)
+    tl.to('#finger', { x: 0, y: 0, duration: 0.7, ease: 'power2.inOut' }, 5.3)
+    tl.to('#large', { x: 1000, y: -40, opacity: 0, rotation: 35, duration: 1.15, ease: 'power2.in' }, 5.55)
+    tl.to(['#approval-mark', '#approved'], { opacity: 0, duration: 0.6 }, 6.9)
+    // The last half-second is exactly the initial composition, so looping needs no blend.
+    window.__timelines.approval = tl
+  </script>
+</template>

@@ -72,7 +72,7 @@ export const Message = defineMessageUnion({
   FailedCopyConnectorUrl: {},
   UpdatedInviteCode: { value: Schema.String },
   RequiredInviteCode: {},
-  SettledNightFlight: { playing: Schema.Boolean },
+  SettledHeroFilm: { playing: Schema.Boolean },
 })
 export type Message = typeof Message.Type
 
@@ -183,7 +183,7 @@ export const CopyConnectorUrl = Command.define('CopyConnectorUrl', {
 const NetworkInformation = Schema.Struct({ saveData: Schema.Boolean })
 
 /** The hero's moving etching plays when motion is welcome and the visitor is not saving data. */
-const wantsNightFlight = (): boolean =>
+const wantsHeroFilm = (): boolean =>
   window.matchMedia('(prefers-reduced-motion: no-preference)').matches &&
   !Option.exists(
     Schema.decodeUnknownOption(NetworkInformation)(Reflect.get(navigator, 'connection')),
@@ -191,17 +191,17 @@ const wantsNightFlight = (): boolean =>
   )
 
 /**
- * Loops the night flight with the transition baked into its asset. The video has no
+ * Loops the payment-and-approval illustration without a scene transition. The video has no
  * source until this decides to play it, so reduced motion or Save-Data never downloads it. Slow connections keep
  * the etching visible while loading; autoplay refusal keeps it still. Unmount cancels a pending load.
  */
-export const PlayNightFlight = Mount.define('PlayNightFlight', {
+export const PlayHeroFilm = Mount.define('PlayHeroFilm', {
   args: { src: Schema.String },
-  messages: [Message.SettledNightFlight],
+  messages: [Message.SettledHeroFilm],
   execute: ({ element, src }) =>
     Effect.gen(function* () {
-      if (!(element instanceof HTMLVideoElement) || !wantsNightFlight()) {
-        return Message.SettledNightFlight({ playing: false })
+      if (!(element instanceof HTMLVideoElement) || !wantsHeroFilm()) {
+        return Message.SettledHeroFilm({ playing: false })
       }
       const releaseVideo = Effect.sync(() => {
         element.pause()
@@ -222,7 +222,7 @@ export const PlayNightFlight = Mount.define('PlayNightFlight', {
       } else {
         yield* releaseVideo
       }
-      return Message.SettledNightFlight({ playing })
+      return Message.SettledHeroFilm({ playing })
     }),
 })
 
@@ -316,7 +316,7 @@ export const update = (model: Model, message: Message) =>
     ClickedAddToClaude: () => ({ model, commands: [CopyConnectorUrl({ url: model.connectorUrl })] }),
     CompletedCopyConnectorUrl: () => ({ model: modifyFields(model, { copy: () => Copy.Copied() }) }),
     FailedCopyConnectorUrl: () => ({ model: modifyFields(model, { copy: () => Copy.Failed() }) }),
-    SettledNightFlight: () => ({ model }),
+    SettledHeroFilm: () => ({ model }),
   })
 
 // VIEW
@@ -528,7 +528,7 @@ export const view = Submodel.defineView<Model, Message>((model, h): Html =>
       walletForm: walletFormView(model, h),
       addToClaude: addToClaudeView(model, h),
       connectorUrl: model.connectorUrl,
-      nightFlight: h.OnMount(PlayNightFlight({ src: Landing.NIGHT_FLIGHT_SRC })),
+      heroFilm: h.OnMount(PlayHeroFilm({ src: Landing.HERO_FILM_SRC })),
     },
     h,
   ),

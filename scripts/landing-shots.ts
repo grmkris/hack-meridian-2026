@@ -6,7 +6,7 @@ import { chromium } from 'playwright-core'
  * Looks at the signed-out landing the way its art has to hold up: phone, tablet, laptop, desktop and wide, light and
  * dark, and with reduced motion. Each look saves its first screen and the whole page to .local/landing-shots/ and
  * fails on page errors, console errors, sideways overflow, or an etching that does not draw as an alpha mask
- * (scripts/landing-alpha.ts). The hero has one connect action; a separate check exercises the passkey recovery flow. `scripts/shots.ts`
+ * (scripts/landing-alpha.ts). The hero has sign-in and creation actions; a separate check exercises the passkey recovery flow. `scripts/shots.ts`
  * stays the quick phone + desktop check for every page.
  *
  *   bun scripts/landing-shots.ts [local|testnet|<origin>] [path] [label prefix]
@@ -142,7 +142,7 @@ try {
         }
       }),
     )
-    if (etchings.length !== 6) problems.push(`expected 6 etchings, found ${etchings.length}`)
+    if (etchings.length !== 5) problems.push(`expected 5 etchings, found ${etchings.length}`)
     for (const etching of etchings) {
       if (etching.mobileWhy) {
         if (etching.display !== 'none' || etching.height !== 0) problems.push('mobile Why drawing still takes space')

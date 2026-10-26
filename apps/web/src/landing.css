@@ -1,4 +1,4 @@
-/* Critique: the old landing was the SaaS card kit on cream (Inter named but never loaded, tracked caps labels, middle-dot meta lines); this one tells the product as one night: a swallow carries the allowance, and one lit window is the person who gives the nod. */
+/* A living engraving makes the payment boundary visible: routine spending moves, a larger payment waits for a touch. */
 
 /*
  * Nod's signed-out landing (page/landing.ts, words in page/landing-copy.ts). The drawings are etchings
@@ -70,39 +70,33 @@
     overflow: clip;
     background: var(--night);
     color: var(--starlight);
-    /* Below the words the roofs stand clear: the scene's foot, as a share of its own height. */
-    padding-block-end: calc(100cqw / var(--scene-ratio) * var(--scene-foot) * var(--scene-zoom));
-    /* 2000 / 1129, as one number so it divides once inside calc(). */
-    --scene-ratio: 1.7715;
-    /* Under the words the scene's lower part stands clear: the swallow passes just below the wallet name. */
-    --scene-foot: 0.36;
-    --scene-zoom: 1;
+    padding-block-end: clamp(2rem, 4vw, 4rem);
+    --scene-ratio: 2.105263;
   }
   .landing-hero :focus-visible {
     outline-color: var(--lamp);
   }
 
   .landing-hero-art {
-    position: absolute;
-    inset: 0;
-    z-index: -1;
+    position: relative;
+    min-width: 0;
+    align-self: center;
     pointer-events: none;
   }
 
-  /* The scene spans the field's width from the bottom, its drawing's own proportions kept; zoomed on a phone. */
   .landing-scene {
-    position: absolute;
-    bottom: 0;
-    left: var(--scene-left, 0);
-    width: calc(100cqw * var(--scene-zoom));
+    position: relative;
+    width: 100%;
     aspect-ratio: var(--scene-ratio);
-    /* The stars thin out where the words sit; the roofs, the swallow and the window stay whole. */
-    mask-image: linear-gradient(to bottom, var(--mask-faint), var(--mask-solid) 46%);
+    /* Feather the encoded background into the page without hiding the engraving. */
+    mask-image: linear-gradient(to right, transparent, black 4%, black 96%, transparent);
   }
-  .landing-hero[data-scene='night'] {
-    --glow-x: 25.8%;
-    --glow-y: 83%;
-    --glow-size: 24%;
+
+  .landing-scene-still {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
   }
 
   .landing-etching {
@@ -112,18 +106,6 @@
     mask-repeat: no-repeat;
     mask-size: 100% 100%;
   }
-  .landing-scene > .landing-etching {
-    position: absolute;
-    inset: 0;
-    background: var(--etch-night);
-    mask-image: url('./assets/landing/etching-night-1200.webp');
-  }
-  @media (min-width: 48rem) {
-    .landing-scene > .landing-etching {
-      mask-image: url('./assets/landing/etching-night-2000.webp');
-    }
-  }
-
   /*
    * The moving etching (motion welcome, data not saved): it starts as the same picture as the etching under
    * it and fades in only once its first frame plays, so nothing ever shows an empty box.
@@ -145,25 +127,6 @@
     .landing-scene-video[data-playing] {
       opacity: 1;
     }
-  }
-
-  /* Lamplight in the one lit window: the person who gives the nod. */
-  .landing-glow {
-    position: absolute;
-    top: var(--glow-y);
-    left: var(--glow-x);
-    width: var(--glow-size);
-    aspect-ratio: 1;
-    translate: -50% -50%;
-    border-radius: 50%;
-    background: radial-gradient(
-      closest-side,
-      color-mix(in oklch, var(--lamp) 55%, transparent),
-      color-mix(in oklch, var(--lamp) 16%, transparent) 45%,
-      transparent
-    );
-    mix-blend-mode: screen;
-    opacity: 0.8;
   }
 
   .landing-bar {
@@ -220,7 +183,9 @@
   }
   @media (min-width: 64rem) {
     .landing-hero-grid {
-      grid-template-columns: minmax(0, 38rem);
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+      align-items: center;
+      gap: 1rem;
     }
   }
 
@@ -686,37 +651,15 @@
     }
   }
 
-  /*
-   * ─── Phone and tablet: the scene as a storybook band above the title ─────
-   * Zoomed on the window and the swallow (the drawing's 10% to 62%), its roofs fading into the night.
-   */
+  /* On a phone the illustration stays together above the headline; no crop of the approval. */
   @media (max-width: 63.99rem) {
-    .landing-hero {
-      --scene-zoom: 1.92;
-      --scene-left: -19cqw;
-      --band: 0.6;
-      padding-block-end: 2.5rem;
-    }
     .landing-hero-art {
-      position: relative;
-      inset: auto;
-      z-index: 0;
-      height: calc(100cqw * var(--scene-zoom) / var(--scene-ratio) * var(--band));
-      margin-block-end: -1rem;
-      overflow: clip;
-    }
-    .landing-scene {
-      mask-image: linear-gradient(to bottom, var(--mask-solid) 78%, var(--mask-clear));
+      order: -1;
+      margin-inline: calc(-1 * var(--gutter));
     }
     .landing-hero-grid {
       padding-block-start: 0;
-    }
-  }
-  @media (min-width: 40rem) and (max-width: 63.99rem) {
-    .landing-hero {
-      --scene-zoom: 1.45;
-      --scene-left: -8cqw;
-      --band: 0.62;
+      gap: 1.5rem;
     }
   }
 

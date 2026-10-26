@@ -8,7 +8,7 @@ import {
   FocusConnectWallet,
   FocusWalletName,
   Message,
-  PlayNightFlight,
+  PlayHeroFilm,
   SignIn,
   init,
   update,
@@ -16,7 +16,7 @@ import {
 } from './welcome'
 
 const initial = init(Option.none(), 'https://trynod.si/mcp').model
-const settled = Mount.resolve(PlayNightFlight, Message.SettledNightFlight({ playing: false }))
+const settled = Mount.resolve(PlayHeroFilm, Message.SettledHeroFilm({ playing: false }))
 
 describe('connecting a wallet', () => {
   test('a cancelled prompt offers a new wallet only after the visitor explicitly chooses it', () => {

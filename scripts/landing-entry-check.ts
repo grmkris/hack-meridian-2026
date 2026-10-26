@@ -189,12 +189,12 @@ try {
         await page.screenshot({ path: `${directory}/${engineName}-create.png` })
         if (engineName === 'chromium') {
           await page.getByRole('button', { name: 'Continue with a passkey' }).click()
-          await page.getByRole('heading', { name: 'Home', exact: true }).waitFor()
+          await page.getByRole('heading', { name: 'Wallet', exact: true }).waitFor()
           assert(registered)
           await page.getByRole('button', { name: 'Wallet details', exact: true }).click()
           await page.getByRole('button', { name: 'Sign out' }).click()
           await page.getByRole('button', { name: 'Sign in with passkey' }).click()
-          await page.getByRole('heading', { name: 'Home', exact: true }).waitFor()
+          await page.getByRole('heading', { name: 'Wallet', exact: true }).waitFor()
           assert(asserted)
           assert.equal(requests.filter(request => request === 'POST /api/wallets').length, 1)
         }

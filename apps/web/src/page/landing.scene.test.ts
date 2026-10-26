@@ -2,12 +2,12 @@ import { Option } from 'effect'
 import { Command, Mount, click, expect, given, role, scene, selector } from 'foldkit/scene'
 import { describe, test } from 'vitest'
 
-import { CopyConnectorUrl, Message, PlayNightFlight, init, update, view } from './welcome'
+import { CopyConnectorUrl, Message, PlayHeroFilm, init, update, view } from './welcome'
 
 const landingAt = (connectorUrl: string) => init(Option.none(), connectorUrl).model
 
-// The night flight decides in the browser whether to play; here it settles without playing.
-const settled = Mount.resolve(PlayNightFlight, Message.SettledNightFlight({ playing: false }))
+// The approval illustration decides in the browser whether to play; here it settles without playing.
+const settled = Mount.resolve(PlayHeroFilm, Message.SettledHeroFilm({ playing: false }))
 
 describe('the landing on each host', () => {
   for (const { badge, origin } of [

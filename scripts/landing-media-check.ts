@@ -36,7 +36,7 @@ try {
     const videoRequests: Array<string> = []
     page.on('pageerror', error => errors.push(error.message))
     page.on('request', request => {
-      if (request.url().includes('/landing/night-flight-loop.mp4')) videoRequests.push(request.url())
+      if (request.url().includes('/landing/approval-loop.mp4')) videoRequests.push(request.url())
     })
     if (scenario === 'blocked') {
       await page.addInitScript(() => {
@@ -47,7 +47,7 @@ try {
       await page.addInitScript(() => Object.defineProperty(navigator, 'connection', { value: { saveData: true } }))
     }
     if (scenario === 'slow' || scenario === 'missing') {
-      await page.route('**/landing/night-flight-loop.mp4', async route => {
+      await page.route('**/landing/approval-loop.mp4', async route => {
         if (scenario === 'missing') {
           await route.fulfill({ status: 404, body: '' })
         } else {
@@ -57,6 +57,15 @@ try {
       })
     }
     await page.goto(origin)
+    await page.waitForFunction(() => {
+      const still = document.querySelector('.landing-scene-still')
+      return (
+        still instanceof HTMLImageElement &&
+        still.complete &&
+        still.naturalWidth === 1600 &&
+        still.naturalHeight === 760
+      )
+    })
     await page.locator('[data-chapter="how-it-works"] > .landing-plate').waitFor({ state: 'visible' })
     assert.equal(
       await page.locator('[data-chapter="why"] > .landing-plate').isVisible(),
