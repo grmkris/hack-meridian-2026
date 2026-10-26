@@ -46,7 +46,7 @@ const defaultHandler = {
     const sample = sampleRoute(runtime, request, path, requestEnv)
     if (sample !== undefined) return sample
     if (path.startsWith('/api/')) return api.handler(request)
-    const skill = skillRoute(request, path)
+    const skill = skillRoute(request, path, requestEnv.ORIGIN)
     if (skill !== undefined) return Promise.resolve(skill)
     return requestEnv.ASSETS.fetch(request)
   },

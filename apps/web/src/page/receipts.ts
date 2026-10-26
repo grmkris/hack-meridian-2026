@@ -78,11 +78,7 @@ export const view = Submodel.defineView<Model, Message>((model, h): Html =>
   h.div(
     [h.Class('flex flex-col gap-5')],
     [
-      pageHeader(
-        'Receipts',
-        'Every confirmed payment, with who asked, which lane paid it and the transactions on the explorer. A receipt appears only after the network confirms the payment.',
-        h,
-      ),
+      pageHeader('Transactions', 'Confirmed payments and their receipts on Stellar.', h),
       panel(
         'Confirmed payments',
         [

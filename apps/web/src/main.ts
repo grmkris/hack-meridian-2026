@@ -2,17 +2,17 @@ import { Array, Clock, Duration, Effect, Option, Schema, Stream } from 'effect'
 import { AsyncData, Command, type Runtime, Subscription, Update } from 'foldkit'
 import type { Document, Html, HtmlBuilder } from 'foldkit/html'
 import { defineMessageUnion } from 'foldkit/message'
-import { UrlRequest, load, pushUrl } from 'foldkit/navigation'
+import { UrlRequest, load, pushUrl, replaceUrl } from 'foldkit/navigation'
 import { defineTaggedUnion } from 'foldkit/schema'
 import { modifyFields } from 'foldkit/struct'
 import { Url, toString as urlToString } from 'foldkit/url'
 
 import { Disclosure } from '@foldkit/ui'
 
-import { Backend, type GrantView, type Resources, WalletSummary } from './backend'
+import { Backend, type GrantView, type Overview, type Resources, WalletSummary } from './backend'
 import { nextAllowanceExpiry } from './connection'
-import { explorerAccountUrl, networkLabel, shortAddress } from './format'
-import { Connections, Contacts, Home, Receipts, Welcome } from './page'
+import { explorerAccountUrl, networkLabel, shortAddress, usdc } from './format'
+import { Connections, Contacts, Home, Receipts, Receive, Welcome } from './page'
 import { Problem, recoverProblem } from './problem'
 import {
   AppRoute,
@@ -21,9 +21,10 @@ import {
   homeRouter,
   isWorkerPage,
   receiptsRouter,
+  receiveRouter,
   urlToAppRoute,
 } from './route'
-import { BUTTON_SECONDARY, LINK, emptyRow } from './view/ui'
+import { BUTTON_PRIMARY, BUTTON_SECONDARY, LINK, emptyRow, errorRow, loadingRow } from './view/ui'
 
 // MODEL
 
@@ -38,10 +39,12 @@ export const Model = Schema.Struct({
   origin: Schema.String,
   route: AppRoute,
   fundingRequested: Schema.Boolean,
+  receiveBackHref: Schema.String,
   detailsOpen: Schema.Boolean,
   maybeNowMs: Schema.Option(Schema.Finite),
   session: Session,
   home: Home.Model,
+  receive: Receive.Model,
   connections: Connections.Model,
   contacts: Contacts.Model,
   receipts: Receipts.Model,
@@ -58,11 +61,13 @@ export const Message = defineMessageUnion({
   SucceededCheckSession: { wallet: WalletSummary },
   FailedCheckSession: { problem: Problem },
   ClickedSignOut: {},
+  ClickedRetryOverview: {},
   ToggledWalletDetails: { isOpen: Schema.Boolean },
   CompletedSignOut: {},
   TickedLiveRefresh: {},
   TickedTopupClock: { nowMs: Schema.Finite },
   GotHomeMessage: { message: Home.Message },
+  GotReceiveMessage: { message: Receive.Message },
   GotConnectionsMessage: { message: Connections.Message },
   GotContactsMessage: { message: Contacts.Message },
   GotReceiptsMessage: { message: Receipts.Message },
@@ -76,6 +81,12 @@ export const NavigateInternal = Command.define('NavigateInternal', {
   args: { url: Schema.String },
   messages: [Message.CompletedNavigateInternal],
   execute: ({ url }) => pushUrl(url).pipe(Effect.as(Message.CompletedNavigateInternal())),
+})
+
+export const ReplaceInternal = Command.define('ReplaceInternal', {
+  args: { url: Schema.String },
+  messages: [Message.CompletedNavigateInternal],
+  execute: ({ url }) => replaceUrl(url).pipe(Effect.as(Message.CompletedNavigateInternal())),
 })
 
 export const LoadExternal = Command.define('LoadExternal', {
@@ -103,8 +114,9 @@ export const SignOut = Command.define('SignOut', {
 
 // INIT
 
-const freshPages = (): Pick<Model, 'home' | 'connections' | 'contacts' | 'receipts'> => ({
+const freshPages = (): Pick<Model, 'home' | 'receive' | 'connections' | 'contacts' | 'receipts'> => ({
   home: Home.init().model,
+  receive: Receive.init().model,
   connections: Connections.init().model,
   contacts: Contacts.init().model,
   receipts: Receipts.init().model,
@@ -119,7 +131,8 @@ export const init: Runtime.RoutingApplicationInit<Model, Message, void, Resource
   model: {
     origin: originOf(url),
     route: urlToAppRoute(url),
-    fundingRequested: Option.contains('add-money')(url.hash),
+    fundingRequested: url.pathname === '/' && Option.contains('add-money')(url.hash),
+    receiveBackHref: homeRouter(),
     detailsOpen: false,
     maybeNowMs: Option.none(),
     session: Session.Checking(),
@@ -140,7 +153,11 @@ const setRoute =
   model => ({
     model: modifyFields(model, {
       route: () => urlToAppRoute(url),
-      fundingRequested: () => Option.contains('add-money')(url.hash),
+      fundingRequested: () => url.pathname === '/' && Option.contains('add-money')(url.hash),
+      receiveBackHref: current =>
+        AppRoute.guards.Receive(urlToAppRoute(url)) && !AppRoute.guards.Receive(model.route)
+          ? routeHref(model.route)
+          : current,
       detailsOpen: () => false,
     }),
   })
@@ -156,6 +173,8 @@ const signOutLocally =
         detailsOpen: () => false,
         maybeNowMs: () => Option.none(),
         home: () => pages.home,
+        receive: () => pages.receive,
+        receiveBackHref: () => homeRouter(),
         connections: () => pages.connections,
         contacts: () => pages.contacts,
         receipts: () => pages.receipts,
@@ -196,19 +215,45 @@ const receiptsSlot = {
   foldOutMessage: foldReceiptsOutMessage,
 }
 
+const enterHome = Update.foldChildStep({ update: Home.informEntered, ...homeSlot })
+const enterConnections = Update.foldChildStep({ update: Connections.informEntered, ...connectionsSlot })
+const enterContacts = Update.foldChildStep({ update: Contacts.informEntered, ...contactsSlot })
+const enterReceipts = Update.foldChildStep({ update: Receipts.informEntered, ...receiptsSlot })
+
+const receiveSlot = {
+  read: (model: Model) => Option.some(model.receive),
+  write: (model: Model, nextReceive: Receive.Model) => modifyFields(model, { receive: () => nextReceive }),
+  toParentMessage: (message: Receive.Message) => Message.GotReceiveMessage({ message }),
+  foldOutMessage: Receive.OutMessage.match<Step>({
+    EndedSession: () => endSession,
+    FundsArrived: () => enterHome,
+  }),
+}
+const foldReceive = Update.foldChild({ update: Receive.update, ...receiveSlot })
+const enterReceive: Step = model => {
+  const overview = AsyncData.matchData(model.home.overview, {
+    onEmpty: () => Option.none<Overview>(),
+    onFailure: () => Option.none<Overview>(),
+    onData: data => Option.some(data),
+  })
+  return Option.match(overview, {
+    onNone: () => ({ model }),
+    onSome: data => Update.foldChildStep({ update: Receive.informEntered(data), ...receiveSlot })(model),
+  })
+}
+
 const foldHome = Update.foldChild({ update: Home.update, ...homeSlot })
 const foldConnections = Update.foldChild({ update: Connections.update, ...connectionsSlot })
 const foldContacts = Update.foldChild({ update: Contacts.update, ...contactsSlot })
 const foldReceipts = Update.foldChild({ update: Receipts.update, ...receiptsSlot })
 
-const openFunding = Update.foldChildStep({ update: Home.informFundingRequested, ...homeSlot })
 const openRequestedFunding: Step = model =>
-  model.fundingRequested && AppRoute.guards.Home(model.route) ? openFunding(model) : { model }
-
-const enterHome = Update.foldChildStep({ update: Home.informEntered, ...homeSlot })
-const enterConnections = Update.foldChildStep({ update: Connections.informEntered, ...connectionsSlot })
-const enterContacts = Update.foldChildStep({ update: Contacts.informEntered, ...contactsSlot })
-const enterReceipts = Update.foldChildStep({ update: Receipts.informEntered, ...receiptsSlot })
+  model.fundingRequested
+    ? {
+        model: modifyFields(model, { fundingRequested: () => false }),
+        commands: [ReplaceInternal({ url: receiveRouter() })],
+      }
+    : { model }
 
 const enterRoute = (route: AppRoute): Step =>
   AppRoute.match<Step>(route, {
@@ -216,6 +261,7 @@ const enterRoute = (route: AppRoute): Step =>
     Connections: () => enterConnections,
     Contacts: () => enterContacts,
     Receipts: () => enterReceipts,
+    Receive: () => enterReceive,
     NotFound: () => keepModel,
   })
 
@@ -231,6 +277,7 @@ const startSession =
   model =>
     Update.combine(model, [
       stepModel => ({ model: modifyFields(stepModel, { session: (): Session => Session.SignedIn({ wallet }) }) }),
+      enterHome,
       enterCurrentRoute,
       openRequestedFunding,
     ])
@@ -269,6 +316,7 @@ export const update = (model: Model, message: Message) =>
       const nextRoute = urlToAppRoute(url)
       return Update.combine(model, [
         setRoute(url),
+        whenSignedIn(enterHome),
         whenSignedIn(enterRoute(nextRoute)),
         whenSignedIn(openRequestedFunding),
       ])
@@ -282,15 +330,34 @@ export const update = (model: Model, message: Message) =>
         Failed: ({ error }) => signOutLocally(Option.some(error))(model),
       }),
     ToggledWalletDetails: ({ isOpen }) => ({ model: modifyFields(model, { detailsOpen: () => isOpen }) }),
+    ClickedRetryOverview: () => whenSignedIn(enterHome)(model),
     ClickedSignOut: () => ({ model: modifyFields(model, { detailsOpen: () => false }), commands: [SignOut()] }),
     CompletedSignOut: () => endSession(model),
-    TickedLiveRefresh: () => whenSignedIn(enterRoute(model.route))(model),
+    TickedLiveRefresh: () =>
+      whenSignedIn(stepModel =>
+        Update.combine(stepModel, [
+          enterHome,
+          AppRoute.guards.Receive(stepModel.route) ? keepModel : enterRoute(stepModel.route),
+          Update.foldChildStep({
+            update: Receive.informRefresh(AppRoute.guards.Receive(stepModel.route)),
+            ...receiveSlot,
+          }),
+        ]),
+      )(model),
     TickedTopupClock: ({ nowMs }) =>
       Update.combine(model, [
         stepModel => ({ model: modifyFields(stepModel, { maybeNowMs: () => Option.some(nowMs) }) }),
         Update.foldChildStep({ update: Home.informClock(nowMs), ...homeSlot }),
       ]),
-    GotHomeMessage: ({ message: homeMessage }) => foldHome(model, homeMessage),
+    GotHomeMessage: ({ message: homeMessage }) =>
+      Update.combine(model, [
+        stepModel => foldHome(stepModel, homeMessage),
+        stepModel => ({ model: modifyFields(stepModel, { maybeNowMs: () => stepModel.home.maybeNowMs }) }),
+        whenSignedIn(stepModel =>
+          AppRoute.guards.Receive(stepModel.route) ? enterReceive(stepModel) : { model: stepModel },
+        ),
+      ]),
+    GotReceiveMessage: ({ message: receiveMessage }) => foldReceive(model, receiveMessage),
     GotConnectionsMessage: ({ message: connectionsMessage }) => foldConnections(model, connectionsMessage),
     GotContactsMessage: ({ message: contactsMessage }) => foldContacts(model, contactsMessage),
     GotReceiptsMessage: ({ message: receiptsMessage }) => foldReceipts(model, receiptsMessage),
@@ -301,11 +368,15 @@ export const update = (model: Model, message: Message) =>
 
 const LIVE_REFRESH = Duration.seconds(8)
 
-const isWatchingHome = (model: Model): boolean =>
-  Session.guards.SignedIn(model.session) && AppRoute.isAnyOf(['Home'])(model.route)
+const isWatchingWallet = (model: Model): boolean => Session.guards.SignedIn(model.session)
 
 /** Only the pending top-up countdown needs a repeating clock. */
-const isCountingTopup = (model: Model): boolean => isWatchingHome(model) && Home.isTopupWaiting(model.home)
+const isCountingTopup = (model: Model): boolean =>
+  Session.guards.SignedIn(model.session) &&
+  AppRoute.guards.Receive(model.route) &&
+  model.receive.network !== 'stellar' &&
+  Receive.Topup.guards.Quoted(model.receive.topup) &&
+  model.receive.topup.quote.status === 'pending'
 
 const allowanceClock = (model: Model) => {
   const grants = AppRoute.match<ReadonlyArray<GrantView>>(model.route, {
@@ -323,6 +394,7 @@ const allowanceClock = (model: Model) => {
       }),
     Contacts: () => [],
     Receipts: () => [],
+    Receive: () => [],
     NotFound: () => [],
   })
   return {
@@ -368,10 +440,10 @@ export const subscriptions = Subscription.make<Model, Message>()(entry => ({
             ),
     },
   ),
-  liveHome: entry(
+  liveWallet: entry(
     { isWatching: Schema.Boolean },
     {
-      modelToDependencies: model => ({ isWatching: isWatchingHome(model) }),
+      modelToDependencies: model => ({ isWatching: isWatchingWallet(model) }),
       dependenciesToStream: ({ isWatching }) =>
         Stream.when(
           Stream.tick(LIVE_REFRESH).pipe(
@@ -389,10 +461,10 @@ export const subscriptions = Subscription.make<Model, Message>()(entry => ({
 const NAVIGATION: ReadonlyArray<
   Readonly<{ label: string; href: () => string; isActive: (route: AppRoute) => boolean }>
 > = [
-  { label: 'Home', href: homeRouter, isActive: AppRoute.isAnyOf(['Home']) },
+  { label: 'Wallet', href: homeRouter, isActive: AppRoute.isAnyOf(['Home']) },
   { label: 'Connections', href: connectionsRouter, isActive: AppRoute.isAnyOf(['Connections']) },
   { label: 'Contacts', href: contactsRouter, isActive: AppRoute.isAnyOf(['Contacts']) },
-  { label: 'Receipts', href: receiptsRouter, isActive: AppRoute.isAnyOf(['Receipts']) },
+  { label: 'Transactions', href: receiptsRouter, isActive: AppRoute.isAnyOf(['Receipts']) },
 ]
 
 const navigationView = (route: AppRoute, h: HtmlBuilder<Message>): Html =>
@@ -400,7 +472,7 @@ const navigationView = (route: AppRoute, h: HtmlBuilder<Message>): Html =>
     [h.AriaLabel('Wallet')],
     [
       h.ul(
-        [h.Class('flex flex-wrap items-center gap-x-5 gap-y-1')],
+        [h.Class('flex flex-wrap items-center gap-x-5 gap-y-1 border-b border-line')],
         Array.map(NAVIGATION, item =>
           h.keyed('li')(
             item.label,
@@ -410,7 +482,9 @@ const navigationView = (route: AppRoute, h: HtmlBuilder<Message>): Html =>
                 [
                   h.Href(item.href()),
                   ...(item.isActive(route) ? [h.AriaCurrent('page')] : []),
-                  h.Class(`${LINK} inline-flex min-h-11 items-center text-sm`),
+                  h.Class(
+                    `${LINK} inline-flex min-h-11 items-center text-sm ${item.isActive(route) ? 'font-semibold text-ink underline decoration-accent underline-offset-8' : 'text-muted'}`,
+                  ),
                 ],
                 [item.label],
               ),
@@ -432,10 +506,10 @@ const headerView = (wallet: WalletSummary, model: Model, h: HtmlBuilder<Message>
           [h.Class('mx-auto max-w-[920px] px-6')],
           [
             h.div(
-              [h.Class('flex min-h-24 flex-wrap items-center justify-between gap-x-4 gap-y-1 py-4')],
+              [h.Class('flex min-h-20 flex-wrap items-center justify-between gap-x-4 gap-y-1 py-4')],
               [
                 h.div(
-                  [h.Class('flex items-center gap-4')],
+                  [h.Class('flex min-w-0 flex-wrap items-center gap-x-4 gap-y-1')],
                   [
                     h.a(
                       [
@@ -450,9 +524,6 @@ const headerView = (wallet: WalletSummary, model: Model, h: HtmlBuilder<Message>
                     h.span([h.Class('text-xs text-muted')], [`Stellar ${networkLabel(wallet.network)}`]),
                   ],
                 ),
-                !AppRoute.guards.Home(model.route)
-                  ? h.a([h.Href(`${homeRouter()}#add-money`), h.Class(`${BUTTON_SECONDARY} ml-auto`)], ['Top up'])
-                  : h.empty,
                 h.button(
                   [
                     ...attributes.button,
@@ -478,7 +549,6 @@ const headerView = (wallet: WalletSummary, model: Model, h: HtmlBuilder<Message>
               ? h.div(
                   [...attributes.panel, h.Class('flex flex-col items-start gap-3 border-b border-line pb-5')],
                   [
-                    navigationView(model.route, h),
                     h.a(
                       [
                         h.Href(explorerAccountUrl(wallet.network, wallet.contract_id)),
@@ -503,6 +573,44 @@ const headerView = (wallet: WalletSummary, model: Model, h: HtmlBuilder<Message>
     h,
   )
 
+const routeHref = (route: AppRoute): string =>
+  AppRoute.match<string>(route, {
+    Home: homeRouter,
+    Connections: connectionsRouter,
+    Contacts: contactsRouter,
+    Receipts: receiptsRouter,
+    Receive: receiveRouter,
+    NotFound: homeRouter,
+  })
+
+const balanceView = (model: Model, h: HtmlBuilder<Message>): Html =>
+  h.div(
+    [h.Class('flex flex-wrap items-end justify-between gap-4 py-6')],
+    [
+      h.div(
+        [h.Class('min-w-0')],
+        [
+          h.p([h.Class('text-sm text-muted')], ['Wallet balance']),
+          AsyncData.matchData(model.home.overview, {
+            onEmpty: () => h.p([h.Role('status'), h.Class('mt-1 text-sm text-muted')], ['Loading balance…']),
+            onFailure: () => h.p([h.Role('status'), h.Class('mt-1 text-sm text-muted')], ['Balance unavailable']),
+            onData: overview =>
+              h.p(
+                [
+                  h.DataAttribute('testid', 'wallet-balance'),
+                  h.Class('mt-1 text-3xl font-semibold tracking-tight tabular-nums [overflow-wrap:anywhere]'),
+                ],
+                [usdc(overview.balances.usdc)],
+              ),
+          }),
+        ],
+      ),
+      AppRoute.guards.Receive(model.route)
+        ? h.empty
+        : h.a([h.Href(receiveRouter()), h.Class(BUTTON_PRIMARY)], ['Receive']),
+    ],
+  )
+
 const notFoundView = (path: string, h: HtmlBuilder<Message>): Html =>
   h.div(
     [h.Class('flex flex-col gap-4')],
@@ -518,6 +626,29 @@ const routeView = (model: Model, wallet: WalletSummary, h: HtmlBuilder<Message>)
         view: Home.view,
         viewInputs: { connectorUrl: connectorUrlOf(model.origin) },
         toParentMessage: message => Message.GotHomeMessage({ message }),
+      }),
+    Receive: () =>
+      AsyncData.matchData(model.home.overview, {
+        onEmpty: () => loadingRow(h),
+        onFailure: error =>
+          h.div(
+            [h.Class('flex flex-col items-start gap-4')],
+            [
+              errorRow(error, h),
+              h.button(
+                [h.Type('button'), h.OnClick(Message.ClickedRetryOverview()), h.Class(BUTTON_SECONDARY)],
+                ['Try again'],
+              ),
+            ],
+          ),
+        onData: overview =>
+          h.submodel({
+            slotId: 'receive',
+            model: model.receive,
+            view: Receive.view,
+            viewInputs: { overview, nowMs: model.maybeNowMs, backHref: model.receiveBackHref },
+            toParentMessage: message => Message.GotReceiveMessage({ message }),
+          }),
       }),
     Connections: () =>
       h.submodel({
@@ -549,7 +680,10 @@ const signedInView = (model: Model, wallet: WalletSummary, h: HtmlBuilder<Messag
     [h.Class('wallet-app min-h-dvh')],
     [
       headerView(wallet, model, h),
-      h.main([h.Class('mx-auto max-w-[920px] px-6 pt-3 pb-12')], [routeView(model, wallet, h)]),
+      h.main(
+        [h.Class('mx-auto max-w-[920px] px-6 pt-3 pb-12')],
+        [navigationView(model.route, h), balanceView(model, h), routeView(model, wallet, h)],
+      ),
     ],
   )
 
@@ -561,10 +695,11 @@ const checkingView = (h: HtmlBuilder<Message>): Html =>
 
 const routeTitle = (route: AppRoute): string =>
   AppRoute.match<string>(route, {
-    Home: () => 'Home',
+    Home: () => 'Wallet',
     Connections: () => 'Connections',
     Contacts: () => 'Contacts',
-    Receipts: () => 'Receipts',
+    Receipts: () => 'Transactions',
+    Receive: () => 'Receive',
     NotFound: () => 'Not found',
   })
 

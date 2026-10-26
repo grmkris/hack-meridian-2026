@@ -576,7 +576,10 @@ export const view = Submodel.defineView<Model, Message, ViewInputs>((model, view
             onEmpty: () =>
               h.p(
                 [h.Class('py-5 text-sm text-muted')],
-                ['No connected apps yet. ', h.a([h.Href(homeRouter()), h.Class(LINK)], ['Connect an app from Home.'])],
+                [
+                  'No connected apps yet. ',
+                  h.a([h.Href(homeRouter()), h.Class(LINK)], ['Connect an app from Wallet.']),
+                ],
               ),
             onNonEmpty: list =>
               h.ul(

@@ -4,7 +4,7 @@ import { describe, expect, test } from 'vitest'
 
 import { Problem } from '../problem'
 import { overview } from './fixtures'
-import { DepositData, LoadDeposit, Message, init, update } from './home'
+import { DepositData, LoadDeposit, Message, init, update } from './receive'
 
 /** Add money's deposit address (B, deposit-first): loaded when the wallet waits for USDC or has one; else on request. */
 const deposit = {
@@ -20,13 +20,12 @@ const deposit = {
   last_sweep_tx: null,
 }
 
-describe('Home: the deposit address', () => {
-  test('a wallet waiting for its first USDC loads its deposit address with the overview', () => {
-    const waiting = { ...overview, wallet: { ...overview.wallet, account_status: 'awaiting_deposit' as const } }
+describe('Receive: the deposit address', () => {
+  test('a wallet waiting for its first USDC loads its deposit address when Receive opens', () => {
     story(
       update,
       given(init().model),
-      message(Message.SucceededLoadOverview({ overview: waiting, nowMs: 1792929600000 })),
+      message(Message.EnteredPage({ needsDeposit: true, canTopup: false })),
       Command.expectExact(LoadDeposit),
       Command.resolve(LoadDeposit, Message.SucceededLoadDeposit({ deposit })),
       model(nextModel => {
@@ -39,7 +38,7 @@ describe('Home: the deposit address', () => {
     story(
       update,
       given(init().model),
-      message(Message.SucceededLoadOverview({ overview, nowMs: 1792929600000 })),
+      message(Message.EnteredPage({ needsDeposit: false, canTopup: false })),
       Command.expectNone(),
       message(Message.ClickedGetDepositAddress()),
       Command.expectExact(LoadDeposit),

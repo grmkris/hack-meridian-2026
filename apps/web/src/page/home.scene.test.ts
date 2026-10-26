@@ -5,17 +5,7 @@ import { describe, test } from 'vitest'
 
 import type { Overview } from '../backend'
 import { claude, overview, revokedClaude } from './fixtures'
-import {
-  CopySetup,
-  FocusFunding,
-  FocusTopupButton,
-  LoadOverview,
-  Message,
-  OverviewData,
-  init,
-  update,
-  view as homeView,
-} from './home'
+import { CopySetup, LoadOverview, Message, OverviewData, init, update, view as homeView } from './home'
 
 const view = withViewInputs(homeView, { connectorUrl: 'https://wallet.test/mcp' })()
 const nowMs = 1792929600000
@@ -27,18 +17,14 @@ const loaded = (data: Overview) =>
 const empty: Overview = { ...overview, balances: { usdc: '0', xlm: '0' }, grants: [], pending: [], receipts: [] }
 
 describe('Home connection and funding tasks', () => {
-  test('a new wallet has both setup artifacts and Top up, with no app picker', () => {
+  test('a new wallet has both setup artifacts with no app picker', () => {
     scene(
       { update, view },
       given(loaded(empty)),
-      expect(text('0.00')).toExist(),
-      expect(role('button', { name: 'Top up' })).toExist(),
       expect(role('button', { name: 'Copy setup prompt' })).toExist(),
       expect(role('button', { name: 'Copy MCP URL' })).toExist(),
       expect(
-        text(
-          'Add Nod as an MCP server: https://wallet.test/mcp. Help me finish authorization and verify that its tools are available.',
-        ),
+        text('Read https://wallet.test/skill/nod-guide/setup.md and follow its instructions to connect Nod.'),
       ).toExist(),
       expect(role('button', { name: 'ChatGPT' })).not.toExist(),
       expect(role('button', { name: 'Connect another app' })).not.toExist(),
@@ -53,7 +39,7 @@ describe('Home connection and funding tasks', () => {
     )
   })
 
-  test('connected wallets keep setup under a disclosure and Top up opens and closes the funding panel', () => {
+  test('connected wallets keep setup under a disclosure beside pending approvals', () => {
     scene(
       { update, view },
       given(loaded(overview)),
@@ -61,12 +47,6 @@ describe('Home connection and funding tasks', () => {
       expect(role('link', { name: 'Open Claude' })).toHaveAttr('href', 'https://claude.ai/'),
       click(role('button', { name: 'Connect another app' })),
       expect(role('button', { name: 'Copy MCP URL' })).toExist(),
-      click(role('button', { name: 'Top up' })),
-      Command.resolve(FocusFunding, Message.CompletedFocusFunding()),
-      expect(testId('add-money')).toExist(),
-      click(role('button', { name: 'Close top up' })),
-      Command.resolve(FocusTopupButton, Message.CompletedFocusTopupButton()),
-      expect(testId('add-money')).not.toExist(),
       expect(role('link', { name: 'Review and approve' })).toHaveAttr('href', '/approve/int_dinner'),
     )
   })
@@ -125,7 +105,6 @@ describe('Home connection and funding tasks', () => {
       expect(testId('wallet-balance')).not.toExist(),
       click(role('button', { name: 'Try again' })),
       Command.resolve(LoadOverview, Message.SucceededLoadOverview({ overview: empty, nowMs })),
-      expect(text('0.00')).toExist(),
     )
   })
 })

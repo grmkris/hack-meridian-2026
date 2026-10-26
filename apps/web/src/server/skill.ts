@@ -89,7 +89,7 @@ export const readSkillResource = (uri: string) => {
   return file === undefined ? undefined : { contents: [{ uri, mimeType: 'text/markdown', text: file.text }] }
 }
 
-const markdown = (text: string) =>
+const markdown = (text: string | null) =>
   new Response(text, {
     headers: {
       'content-type': 'text/markdown; charset=utf-8',
@@ -102,12 +102,34 @@ const markdown = (text: string) =>
  * The site's copy: /skill/nod-guide/<file> as text/markdown with CORS *, and /SKILL.md, /skill and /skill/ as 301s to
  * /skill/nod-guide/SKILL.md (README and llms.txt point at <origin>/SKILL.md). `undefined` for any other path.
  */
-export const skillRoute = (request: Request, path: string): Response | undefined => {
+export const SETUP_PATH = `/skill/${SKILL_NAME}/setup.md`
+
+/** Connection instructions use this deployment's canonical origin; the MCP skill remains byte-identical. */
+export const setupSkillText = (origin: string): string =>
+  skillMarkdown.replace(
+    '# Using Nod',
+    `# Connect Nod
+
+MCP server URL: ${new URL('/mcp', origin).href}
+
+1. If your host supports configuring remote MCP servers, add Nod with the URL above using its native connector configuration. Use Streamable HTTP and OAuth. Do not invent a host setting or claim setup succeeded before verifying it.
+2. If you cannot configure connectors, give the user the MCP URL and ask them to add it in their app's connector settings. Continue after they have connected it.
+3. Let the user complete Nod's OAuth and passkey authorization in their browser. Never request their passkey, private key, or session cookie. Let them choose their spending allowance.
+4. Verify tool discovery and call wallet_overview. Report the wallet balance and granted allowance separately. Do not send a payment as a connection test.
+
+Then follow the guide below. Relative reference links are served beside this document.
+
+# Using Nod`,
+  )
+
+export const skillRoute = (request: Request, path: string, canonicalOrigin?: string): Response | undefined => {
   if (request.method !== 'GET' && request.method !== 'HEAD') return undefined
   if (path === '/SKILL.md' || path === '/skill' || path === '/skill/' || path === `/skill/${SKILL_NAME}`)
     return Response.redirect(new URL(SKILL_PATH, request.url).toString(), 301)
+  if (path === SETUP_PATH)
+    return markdown(request.method === 'HEAD' ? null : setupSkillText(canonicalOrigin || new URL(request.url).origin))
   const file = FILES.find(candidate => path === `/skill/${SKILL_NAME}/${candidate.path}`)
-  return file === undefined ? undefined : markdown(file.text)
+  return file === undefined ? undefined : markdown(request.method === 'HEAD' ? null : file.text)
 }
 
 /** get_guide: SKILL.md as the sentence (the text the AI app reads), the entry and the reference URIs as the value. */

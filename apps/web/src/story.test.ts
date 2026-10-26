@@ -12,15 +12,16 @@ import {
   Message,
   type Model,
   NavigateInternal,
+  ReplaceInternal,
   Session,
   SignOut,
   init,
   update,
 } from './main'
-import { Connections, Home, Welcome } from './page'
+import { Connections, Home, Receive, Welcome } from './page'
 import { overview } from './page/fixtures'
 import { Problem } from './problem'
-import { AppRoute } from './route'
+import { AppRoute, urlToAppRoute } from './route'
 
 const urlAt = (pathname: string): Url => ({
   protocol: 'https:',
@@ -43,12 +44,13 @@ describe('session', () => {
         expect(nextModel.session).toEqual(Session.SignedIn({ wallet: fixture.wallet }))
         expect(nextModel.route).toEqual(AppRoute.Connections())
       }),
-      Command.expectExact(Connections.LoadConnections, Connections.LoadLinks),
+      Command.expectExact(Home.LoadOverview, Connections.LoadConnections, Connections.LoadLinks),
       Command.resolve(
         Connections.LoadConnections,
         Connections.Message.SucceededLoadConnections({ connections: fixture.grants }),
       ),
       Command.resolve(Connections.LoadLinks, Connections.Message.SucceededLoadLinks({ links: [] })),
+      Command.resolve(Home.LoadOverview, Home.Message.SucceededLoadOverview({ overview, nowMs: 1792929600000 })),
     )
   })
 
@@ -102,7 +104,7 @@ describe('session', () => {
 })
 
 describe('links', () => {
-  test('a direct funding URL survives sign-in and focuses the panel once the overview arrives', () => {
+  test('a legacy funding URL survives sign-in and becomes the dedicated Receive URL', () => {
     const url = { ...urlAt('/'), hash: Option.some('add-money') }
     story(
       update,
@@ -110,25 +112,25 @@ describe('links', () => {
       message(Message.FailedCheckSession({ problem: Problem.SignedOut() })),
       message(Message.SucceededCheckSession({ wallet: fixture.wallet })),
       model(nextModel => {
-        expect(nextModel.home.fundingOpen).toBe(true)
+        expect(nextModel.route).toEqual(AppRoute.Receive())
       }),
       Command.resolve(Home.LoadOverview, Home.Message.SucceededLoadOverview({ overview, nowMs: 1792929600000 })),
-      Command.expectExact(Home.FocusFunding),
-      Command.resolve(Home.FocusFunding, Home.Message.CompletedFocusFunding()),
+      Command.expectExact(ReplaceInternal({ url: '/receive' })),
+      Command.resolve(ReplaceInternal, Message.CompletedNavigateInternal()),
       message(Message.ToggledWalletDetails({ isOpen: true })),
       message(Message.GotHomeMessage({ message: Home.Message.ToggledSetup({ isOpen: true }) })),
       message(Message.TickedLiveRefresh()),
       Command.resolve(Home.LoadOverview, Home.Message.SucceededLoadOverview({ overview, nowMs: 1792929601000 })),
       Command.expectNone(),
       model(nextModel => {
-        expect(nextModel.home.fundingOpen).toBe(true)
+        expect(nextModel.route).toEqual(AppRoute.Receive())
         expect(nextModel.home.setupOpen).toBe(true)
         expect(nextModel.detailsOpen).toBe(true)
       }),
     )
   })
 
-  test('Top up from another route opens Home and closes Wallet details', () => {
+  test('Receive remembers the previous page and closes Wallet details', () => {
     const signedIn = modifyFields(checking('/contacts'), {
       session: () => Session.SignedIn({ wallet: fixture.wallet }),
       detailsOpen: () => true,
@@ -138,12 +140,15 @@ describe('links', () => {
       given(signedIn),
       message(Message.ChangedUrl({ url: { ...urlAt('/'), hash: Option.some('add-money') } })),
       model(nextModel => {
-        expect(nextModel.route).toEqual(AppRoute.Home())
+        expect(nextModel.route).toEqual(AppRoute.Receive())
         expect(nextModel.detailsOpen).toBe(false)
-        expect(nextModel.home.fundingOpen).toBe(true)
+        expect(nextModel.route).toEqual(AppRoute.Receive())
       }),
       Command.resolve(Home.LoadOverview, Home.Message.SucceededLoadOverview({ overview, nowMs: 1792929600000 })),
-      Command.resolve(Home.FocusFunding, Home.Message.CompletedFocusFunding()),
+      Command.resolve(ReplaceInternal, Message.CompletedNavigateInternal()),
+      model(next => {
+        expect(next.receiveBackHref).toBe('/contacts')
+      }),
     )
   })
 
@@ -191,5 +196,33 @@ describe('live refresh', () => {
       message(Message.TickedLiveRefresh()),
       Command.expectNone(),
     )
+  })
+})
+
+describe('Receive state across navigation', () => {
+  test('leaving and returning preserves the draft and legacy receipts still opens Transactions', () => {
+    const receive = modifyFields(Receive.init().model, {
+      topupForm: () => ({ chain: 'base', assetId: 'usdc', amount: '7.25', refundTo: '0xrefund' }),
+      network: () => 'base',
+    })
+    story(
+      update,
+      given(
+        modifyFields(checking('/receive'), {
+          session: () => Session.SignedIn({ wallet: fixture.wallet }),
+          receive: () => receive,
+        }),
+      ),
+      message(Message.ChangedUrl({ url: urlAt('/') })),
+      Command.resolve(Home.LoadOverview, Home.Message.SucceededLoadOverview({ overview, nowMs: 1792929600000 })),
+      message(Message.ChangedUrl({ url: urlAt('/receive') })),
+      Command.resolve(Home.LoadOverview, Home.Message.SucceededLoadOverview({ overview, nowMs: 1792929600000 })),
+      model(next => {
+        expect(next.receive.topupForm.amount).toBe('7.25')
+        expect(next.receive.network).toBe('base')
+      }),
+    )
+    expect(urlToAppRoute(urlAt('/receipts'))).toEqual(AppRoute.Receipts())
+    expect(urlToAppRoute(urlAt('/transactions'))).toEqual(AppRoute.Receipts())
   })
 })

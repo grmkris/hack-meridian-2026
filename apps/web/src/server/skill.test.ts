@@ -4,7 +4,7 @@ import { describe, expect, test } from 'vitest'
 import { callTool } from './mcp-tools.ts'
 import { serveMcp } from './mcp.ts'
 import manifest from './skill-manifest.json'
-import { SKILL_URI, skillRoute, skillText } from './skill.ts'
+import { SETUP_PATH, SKILL_URI, skillRoute, skillText } from './skill.ts'
 import { senderWorld } from './test/sender.ts'
 
 /**
@@ -146,5 +146,27 @@ describe('the skill on the site', () => {
     expect(await sha256((await served?.text()) ?? '')).toEqual({ digest: errors?.digest, size: errors?.size })
     expect(get('/skill/nod-guide/nope.md')).toBeUndefined()
     expect(get('/SKILL.md', 'POST')).toBeUndefined()
+  })
+})
+
+describe('hosted setup instructions', () => {
+  test('uses the canonical deployment origin while leaving the MCP guide unchanged', async () => {
+    const setup = skillRoute(new Request(`https://alias.test${SETUP_PATH}`), SETUP_PATH, 'https://testnet.trynod.si')
+    const text = await setup?.text()
+    expect(text).toContain('MCP server URL: https://testnet.trynod.si/mcp')
+    expect(text).not.toContain('alias.test')
+    expect(text?.split('name: nod-guide')).toHaveLength(2)
+    expect(text).toContain('# Using Nod')
+    const canonical = manifest.find(entry => entry.uri === SKILL_URI)
+    expect(await sha256(skillText)).toEqual({ digest: canonical?.digest, size: canonical?.size })
+    expect(setup?.headers.get('access-control-allow-origin')).toBe('*')
+  })
+  test('local setup follows the request origin and HEAD returns only headers', async () => {
+    const request = new Request(`http://localhost:18960${SETUP_PATH}`)
+    expect(await skillRoute(request, SETUP_PATH)?.text()).toContain('http://localhost:18960/mcp')
+    const head = skillRoute(new Request(request.url, { method: 'HEAD' }), SETUP_PATH)
+    expect(head?.headers.get('content-type')).toBe('text/markdown; charset=utf-8')
+    expect(await head?.text()).toBe('')
+    expect(skillRoute(new Request(request.url, { method: 'POST' }), SETUP_PATH)).toBeUndefined()
   })
 })

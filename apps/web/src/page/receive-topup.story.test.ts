@@ -1,24 +1,21 @@
-import { Command, given, message, model, story } from 'foldkit/story'
+import { Command, expectOutMessage, given, message, model, story } from 'foldkit/story'
 import { modifyFields } from 'foldkit/struct'
 import { describe, expect, test } from 'vitest'
 
 import type { TopupChain, TopupQuoteView } from '../backend'
 import { Problem } from '../problem'
-import { overview } from './fixtures'
 import {
-  AddMoneyTab,
   CheckTopup,
-  LoadOverview,
   LoadTopupAssets,
   Message,
-  OverviewData,
+  OutMessage,
   QuoteTopup,
   Topup,
   TopupAssetsData,
   init,
   isTopupWaiting,
   update,
-} from './home'
+} from './receive'
 
 const BASE_USDC = 'nep141:base-0x833589fcd6edb6e08f4c7c32d4f71b54bda02913.omft.near'
 const chains: ReadonlyArray<TopupChain> = [
@@ -42,21 +39,21 @@ const quote: TopupQuoteView = {
   status: 'pending',
   sweep_tx: null,
 }
-const loaded = modifyFields(init().model, { overview: () => OverviewData.Success({ data: overview }) })
+const loaded = init().model
 
 describe('Add money from another chain', () => {
   test('opening the tab loads the chains once and picks the first chain and its first asset', () => {
     story(
       update,
       given(loaded),
-      message(Message.ClickedAddMoneyTab({ tab: AddMoneyTab.OtherChain() })),
+      message(Message.EnteredPage({ canTopup: true, needsDeposit: false })),
       Command.expectExact(LoadTopupAssets),
       Command.resolve(LoadTopupAssets, Message.SucceededLoadTopupAssets({ chains })),
       model(next => {
-        expect(next.addMoneyTab).toEqual(AddMoneyTab.OtherChain())
+        expect(next.network).toBe('stellar')
         expect(next.topupForm).toEqual({ chain: 'base', assetId: BASE_USDC, amount: '', refundTo: '' })
       }),
-      message(Message.SelectedTopupChain({ chain: 'sol' })),
+      message(Message.SelectedNetwork({ network: 'sol' })),
       model(next => {
         expect(next.topupForm.assetId).toBe('nep141:sol.omft.near')
       }),
@@ -74,6 +71,7 @@ describe('Add money from another chain', () => {
 
   test('Get address asks for a quote with the form as typed', () => {
     const ready = modifyFields(loaded, {
+      network: () => 'base',
       topupAssets: () => TopupAssetsData.Success({ data: chains }),
       topupForm: () => ({
         chain: 'base',
@@ -100,15 +98,13 @@ describe('Add money from another chain', () => {
     story(
       update,
       given(waiting),
-      message(Message.EnteredPage()),
-      Command.expectExact(LoadOverview, CheckTopup),
-      Command.resolve(LoadOverview, Message.SucceededLoadOverview({ overview, nowMs: 1792929600000 })),
+      message(Message.Refreshed({ receiveVisible: false })),
+      Command.expectExact(CheckTopup),
       Command.resolve(
         CheckTopup,
         Message.SucceededCheckTopup({ quote: { ...quote, status: 'arrived', sweep_tx: 'edc8f3b2' } }),
       ),
-      Command.expectExact(LoadOverview),
-      Command.resolve(LoadOverview, Message.SucceededLoadOverview({ overview, nowMs: 1792929600000 })),
+      expectOutMessage(OutMessage.FundsArrived()),
       model(next => {
         expect(isTopupWaiting(next)).toBe(false)
       }),
@@ -119,7 +115,7 @@ describe('Add money from another chain', () => {
     story(
       update,
       given(loaded),
-      message(Message.ClickedAddMoneyTab({ tab: AddMoneyTab.OtherChain() })),
+      message(Message.EnteredPage({ canTopup: true, needsDeposit: false })),
       Command.resolve(
         LoadTopupAssets,
         Message.FailedLoadTopupAssets({ problem: Problem.Failed({ error: 'topup_unavailable' }) }),
@@ -129,4 +125,31 @@ describe('Add money from another chain', () => {
       }),
     )
   })
+})
+
+test('an in-flight status check is not duplicated by a second refresh', () => {
+  const waiting = modifyFields(loaded, { topup: () => Topup.Quoted({ quote }), checkingTopup: () => true })
+  story(update, given(waiting), message(Message.Refreshed({ receiveVisible: false })), Command.expectNone())
+})
+
+test('switching networks clears a refund address from the old chain', () => {
+  const ready = modifyFields(loaded, {
+    topupAssets: () => TopupAssetsData.Success({ data: chains }),
+    network: () => 'base',
+    topupForm: () => ({
+      chain: 'base',
+      assetId: BASE_USDC,
+      amount: '5',
+      refundTo: '0x1234567890123456789012345678901234567890',
+    }),
+  })
+  story(
+    update,
+    given(ready),
+    message(Message.SelectedNetwork({ network: 'sol' })),
+    model(next => {
+      expect(next.topupForm.refundTo).toBe('')
+      expect(next.topupForm.assetId).toBe('nep141:sol.omft.near')
+    }),
+  )
 })

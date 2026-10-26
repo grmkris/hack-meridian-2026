@@ -1,5 +1,6 @@
 export * as Connections from './connections'
 export * as Contacts from './contacts'
 export * as Home from './home'
+export * as Receive from './receive'
 export * as Receipts from './receipts'
 export * as Welcome from './welcome'
