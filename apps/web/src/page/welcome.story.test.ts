@@ -3,7 +3,6 @@ import { Command, expectOutMessage, given, message, model, story } from 'foldkit
 import { modifyFields } from 'foldkit/struct'
 import { describe, expect, test } from 'vitest'
 
-import { Problem } from '../problem'
 import { fixture } from './fixtures'
 import {
   Ceremony,
@@ -64,16 +63,15 @@ describe('Welcome', () => {
     )
   })
 
-  test('an empty name falls back to Personal', () => {
+  test('an empty name stops before opening the passkey prompt', () => {
     story(
       update,
       given(modifyFields(init(Option.none(), CONNECTOR).model, { entryMode: () => EntryMode.Creating() })),
       message(Message.UpdatedWalletName({ value: '   ' })),
       message(Message.SubmittedCreateWallet()),
-      Command.expectExact(CreateWallet({ name: 'Personal', maybeInviteCode: Option.none() })),
-      Command.resolve(CreateWallet, Message.FailedCreateWallet({ problem: Problem.Failed({ error: 'Dismissed.' }) })),
+      Command.expectNone(),
       model(nextModel => {
-        expect(nextModel.ceremony).toEqual(Ceremony.Failed({ error: 'Dismissed.' }))
+        expect(nextModel.ceremony).toEqual(Ceremony.Failed({ error: 'Choose a wallet name of 1–40 characters.' }))
       }),
     )
   })

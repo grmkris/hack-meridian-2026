@@ -62,6 +62,7 @@ export class Backend extends Context.Service<
     readonly createWallet: (registration: Registration) => Effect.Effect<WalletSummary, BackendError>
     readonly assertionOptions: Effect.Effect<AssertionOptions, BackendError>
     readonly signIn: (assertion: Assertion) => Effect.Effect<WalletSummary, BackendError>
+    readonly renameWallet: (name: string) => Effect.Effect<WalletSummary, BackendError>
     readonly signOut: Effect.Effect<void, BackendError>
     readonly overview: Effect.Effect<Overview, BackendError>
     readonly connections: Effect.Effect<ReadonlyArray<GrantView>, BackendError>

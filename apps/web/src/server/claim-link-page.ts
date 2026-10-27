@@ -127,12 +127,12 @@ export const claimLinkPage = (c: Chrome, view: ClaimLinkPageView) => {
     view.state === 'open' || view.state === 'finish'
       ? `const ctx=JSON.parse(document.getElementById('ctx').textContent);
 ${view.person ? PERSON_JS : LINK_JS}
-async function newWallet(name){const o=await post('/api/wallets/options',{name});
+async function newWallet(name){if(!name.trim()||name.trim().length>40)throw new Error('Choose a wallet name of 1–40 characters.');const o=await post('/api/wallets/options',{name});
 const c=await navigator.credentials.create({publicKey:{challenge:b64u.dec(o.challenge),rp:{id:o.rp_id,name:o.rp_name},user:{id:b64u.dec(o.user_id),name:o.user_name,displayName:o.user_name},
 pubKeyCredParams:[{type:'public-key',alg:-7}],authenticatorSelection:{residentKey:'required',userVerification:'required'},attestation:'none',timeout:120000}});
 return post('/api/wallets',{name,credential_id:b64u.enc(c.rawId),public_key:b64u.enc(c.response.getPublicKey()),client_data_json:b64u.enc(c.response.clientDataJSON),attestation_object:b64u.enc(c.response.attestationObject),deposit_first:true})}
 const on=(id,f)=>{const el=document.getElementById(id);if(el)el.onclick=f};
-on('new-wallet',async e=>{const done=busy(e.target,'Waiting for your passkey…');try{await newWallet(document.getElementById('name').value.trim()||ctx.name);e.target.textContent='Receiving (about 10 s)…';await choose({kind:'wallet',new:true},e)}catch(x){done();show('status',x.message)}});
+on('new-wallet',async e=>{const done=busy(e.target,'Waiting for your passkey…');try{await newWallet(document.getElementById('name').value.trim());e.target.textContent='Receiving (about 10 s)…';await choose({kind:'wallet',new:true},e)}catch(x){done();show('status',x.message)}});
 on('signin',async e=>{const done=busy(e.target,'Waiting for your passkey…');try{await signIn();e.target.textContent='Receiving (about 10 s)…';await choose({kind:'wallet'},e)}catch(x){done();show('status',x.message)}});
 on('to-mine',async e=>{const done=busy(e.target,'Receiving (about 10 s)…');try{await choose({kind:'wallet'},e)}catch(x){done();show('status',x.message)}});
 on('to-address',async e=>{const done=busy(e.target,'Sending…');try{await choose({kind:'address',address:document.getElementById('address').value.trim()},e)}catch(x){done();show('status',x.message)}});

@@ -1,3 +1,4 @@
+import assert from 'node:assert/strict'
 import { mkdirSync, writeFileSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 import { chromium, type Page } from 'playwright-core'
@@ -16,10 +17,10 @@ const ORIGINS: Record<string, string> = {
   testnet: 'https://testnet.trynod.si',
 }
 const PAGES = [
-  { path: '/', heading: 'Home' },
+  { path: '/', heading: 'Wallet' },
   { path: '/connections', heading: 'Connections' },
   { path: '/contacts', heading: 'Contacts' },
-  { path: '/receipts', heading: 'Receipts' },
+  { path: '/transactions', heading: 'Transactions' },
 ] as const
 const STEP_TIMEOUT_MS = 60_000
 
@@ -90,22 +91,15 @@ try {
 
   const walletName = `E2E ${new Date().toISOString().slice(11, 19)}`
   const created = await step('a new visitor creates a wallet with a passkey', async () => {
-    await page.addInitScript(() => {
-      const get = navigator.credentials.get.bind(navigator.credentials)
-      let first = true
-      navigator.credentials.get = options => {
-        if (first) {
-          first = false
-          return Promise.reject(new DOMException('No credential selected', 'NotAllowedError'))
-        }
-        return get(options)
-      }
-    })
     await page.goto(origin)
     await page.getByTestId('choose-create-wallet').click()
     await page.getByLabel('Wallet name').fill(walletName)
     await page.getByTestId('create-wallet').click()
-    await page.getByRole('heading', { name: 'Home', level: 1 }).or(page.getByRole('alert')).first().waitFor()
+    await page
+      .getByRole('button', { name: 'Wallet details', exact: true })
+      .or(page.getByRole('alert'))
+      .first()
+      .waitFor()
     await noAlert(page)
     await page.getByText('Wallet balance').waitFor()
     await page.getByText('Loading…').first().waitFor({ state: 'hidden' })
@@ -120,9 +114,29 @@ try {
   })
 
   if (created) {
+    await step('renaming persists without changing the wallet or balance', async () => {
+      await page.getByRole('button', { name: 'Wallet details', exact: true }).click()
+      await page.getByRole('button', { name: 'Rename', exact: true }).click()
+      await page.getByLabel('Wallet name', { exact: true }).fill('Aleksandra Wiśniewska-Kowalczyk · Travel')
+      await page.getByRole('button', { name: 'Save name', exact: true }).click()
+      await page.getByRole('button', { name: 'Rename', exact: true }).waitFor()
+      assert.equal(await page.getByTestId('wallet-explorer').getAttribute('title'), newWallet.wallet)
+      await page.reload()
+      await page.getByRole('button', { name: 'Wallet details', exact: true }).click()
+      assert.match((await page.getByTestId('wallet-explorer').textContent()) ?? '', /Aleksandra Wiśniewska-Kowalczyk/)
+      assert.equal(await page.getByTestId('wallet-explorer').getAttribute('title'), newWallet.wallet)
+      await page.getByTestId('wallet-balance').waitFor()
+      assert.equal(await page.getByTestId('wallet-balance').textContent(), newWallet.balance)
+      for (const width of [320, 390, 1280]) {
+        await page.setViewportSize({ width, height: 900 })
+        assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false)
+        await page.screenshot({ path: join(directory, `wallet-menu-${width}.png`), fullPage: true })
+      }
+      await page.getByRole('button', { name: 'Wallet details', exact: true }).click()
+    })
+
     for (const { path, heading } of PAGES) {
       await step(`${heading} loads`, async () => {
-        await page.getByRole('button', { name: 'Wallet details', exact: true }).click()
         await page.getByRole('link', { name: heading, exact: true }).first().click()
         await page.waitForURL(new URL(path, origin).href)
         await page.getByRole('heading', { name: heading, level: 1 }).waitFor()
@@ -146,6 +160,15 @@ try {
         .first()
         .waitFor()
       await page.screenshot({ path: join(directory, 'signed-in-again.png'), fullPage: true })
+      await noAlert(page)
+    })
+
+    await step('switch wallet opens passkey sign-in and restores access', async () => {
+      await page.getByRole('button', { name: 'Wallet details', exact: true }).click()
+      await page.getByRole('button', { name: 'Switch wallet', exact: true }).click()
+      await page.getByRole('button', { name: 'Wallet details', exact: true }).waitFor()
+      await page.getByRole('button', { name: 'Wallet details', exact: true }).click()
+      assert.equal(await page.getByTestId('wallet-explorer').getAttribute('title'), newWallet.wallet)
       await noAlert(page)
     })
   }

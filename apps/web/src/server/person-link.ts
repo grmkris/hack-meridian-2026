@@ -11,7 +11,7 @@ import { activateWallet } from './deposit.ts'
 import { Ledger } from './ledger.ts'
 import { Network, transferFeeCeiling } from './network.ts'
 import { checkAssertion, OwnerError, requireWallet, sessionToken, walletOfSession } from './owner.ts'
-import { type Chrome, escape, html, messagePage, page, utcTime } from './pages.ts'
+import { type Chrome, escape, html, messagePage, page, utcTime, walletIdentity, walletSignIn } from './pages.ts'
 import { query, sql, write } from './rows.ts'
 import type { AppRuntime, AppServices } from './runtime.ts'
 import { createPendingGrant, pendingGrant, putScratch, toolResult, walletById } from './store.ts'
@@ -65,6 +65,7 @@ const approvePrepare = (request: Request, linkId: string) =>
   Effect.gen(function* () {
     const wallet = yield* requireWallet(request)
     const link = yield* ownLink(wallet, linkId)
+    if (millisOf(link.expires_at) <= (yield* nowMillis)) return yield* bad('This link has expired. Ask for a new one.')
     if (link.status !== 'awaiting_nod')
       return yield* bad(`this link is ${link.status === 'open' ? 'already set up' : link.status}`)
     const body = yield* Schema.decodeUnknownEffect(Schema.Struct({ public_key: Schema.String }))(
@@ -105,6 +106,7 @@ const approvePrepare = (request: Request, linkId: string) =>
         link.id,
       ),
     )
+    yield* Effect.logInfo('approval.link_prepared', { wallet_id: wallet.id, status: 'prepared' })
     return { challenge: prepared.challenge }
   })
 
@@ -114,6 +116,7 @@ const approveInstall = (request: Request, linkId: string) =>
     const wallet = yield* requireWallet(request)
     const site = yield* siteOf(request)
     const link = yield* ownLink(wallet, linkId)
+    if (millisOf(link.expires_at) <= (yield* nowMillis)) return yield* bad('This link has expired. Ask for a new one.')
     if (link.status !== 'awaiting_nod' || (link.pending_grant_id ?? null) === null)
       return yield* bad('press Approve again: nothing is prepared')
     const body = yield* Schema.decodeUnknownEffect(Schema.Struct({ assertion: Assertion }))(
@@ -137,6 +140,7 @@ const approveInstall = (request: Request, linkId: string) =>
         link.id,
       ),
     )
+    yield* Effect.logInfo('approval.link_installed', { wallet_id: wallet.id, status: 'installed' })
     const network = yield* Network
     return {
       claim_path: `/claim/${link.id}`,
@@ -148,7 +152,14 @@ const approveInstall = (request: Request, linkId: string) =>
 
 export const approveLinkPage = (
   c: Chrome,
-  view: { readonly link: ClaimLink; readonly signedIn: boolean; readonly rpId: string; readonly nowMs: number },
+  view: {
+    readonly link: ClaimLink
+    readonly signedIn: boolean
+    readonly targetWallet?: Wallet | undefined
+    readonly currentWallet?: Wallet | undefined
+    readonly rpId: string
+    readonly nowMs: number
+  },
 ) => {
   const { link } = view
   const amount = escape(fromStroops(link.amount))
@@ -156,10 +167,10 @@ export const approveLinkPage = (
   const lapsed = millisOf(link.expires_at) <= view.nowMs
   const back = '<p><a href="/">Back to Nod</a></p>'
   const state =
-    link.status === 'awaiting_nod'
+    link.status === 'awaiting_nod' && !lapsed
       ? view.signedIn
         ? `<div class="thumb"><button class="nod wide" id="approve" data-testid="link-approve">Approve with your passkey</button></div>`
-        : `<div class="thumb"><button class="primary wide" id="signin" data-testid="link-signin">Sign in with your passkey</button></div>`
+        : walletSignIn(view.currentWallet, 'link-signin')
       : link.status === 'open' && !lapsed
         ? `<section class="card" data-testid="link-ready"><p>The link is on your account until ${escape(utcTime(link.expires_at))}. It was shown once, on the device that approved it.</p><p id="stored" class="muted">If you lost it, take it back in <a href="/connections">Connections</a> and make a new one.</p></section>${back}`
         : link.status === 'claimed'
@@ -169,6 +180,7 @@ export const approveLinkPage = (
     `Send ${link.recipient_name} ${fromStroops(link.amount)} USDC`,
     c,
     `<h1 data-testid="link-title">Send ${name} ${amount} USDC with a link</h1>
+${walletIdentity(c, view.targetWallet, view.currentWallet)}
 <section class="card pay" aria-label="Link"><p class="amount">${amount}<span class="unit"> USDC</span></p>
 <p class="to">for <strong>${name}</strong></p>
 <figure class="ask"><figcaption>Asked by <strong>${escape(link.requester)}</strong></figcaption>${link.reason === null ? '' : `<blockquote>“${escape(link.reason)}”</blockquote><figcaption>The AI app’s own words; Nod has not checked them.</figcaption>`}</figure>
@@ -187,14 +199,21 @@ function reveal(url){document.getElementById('steps').hidden=true;document.getEl
 on('copy',async e=>{try{await navigator.clipboard.writeText(url);e.target.textContent='Copied'}catch{show('status','Copying is blocked here; select the link and copy it.')}});
 if(navigator.share){const s=document.getElementById('share');s.hidden=false;s.onclick=()=>navigator.share({title:'USDC for you',url}).catch(()=>{})}}
 try{const kept=sessionStorage.getItem('nod-link-'+ctx.id);if(kept&&ctx.status==='open')reveal(kept)}catch{}
-on('signin',async e=>{const done=busy(e.target,'Waiting for your passkey…');try{await signIn();location.reload()}catch(x){done();show('status',x.message)}});
+wireSignIn(ctx);
 on('approve',async e=>{const done=busy(e.target,'Making the link key…');try{
 const pair=await crypto.subtle.generateKey({name:'Ed25519'},true,['sign','verify']);const jwk=await crypto.subtle.exportKey('jwk',pair.privateKey);
 const p=await post(ctx.base+'/prepare',{public_key:jwk.x});e.target.textContent='Waiting for your passkey…';
-const a=await assertion(p.challenge,ctx.rpId,[]);e.target.textContent='Setting it aside on Stellar (about 15 s)…';
+const a=await assertion(p.challenge,ctx.rpId,[ctx.credential]);e.target.textContent='Setting it aside on Stellar (about 15 s)…';
 const r=await post(ctx.base,{assertion:a});const url=location.origin+r.claim_path+'#k='+jwk.d+'.'+jwk.x;
 try{sessionStorage.setItem('nod-link-'+ctx.id,url)}catch{}reveal(url);document.getElementById('install-link').href=r.explorer_url;document.getElementById('install').hidden=false}catch(x){done();show('status',x.message)}});`,
-    { id: link.id, base: `/approve/link/${link.id}`, rpId: view.rpId, status: link.status },
+    {
+      id: link.id,
+      base: `/approve/link/${link.id}`,
+      rpId: view.rpId,
+      status: link.status,
+      credential: view.targetWallet?.passkey_credential_id,
+      walletId: link.wallet_id,
+    },
   )
 }
 
@@ -211,6 +230,8 @@ const approveGet = (runtime: AppRuntime, request: Request, linkId: string) =>
         n,
         approveLinkPage(n, {
           link,
+          targetWallet: yield* walletById(link.wallet_id),
+          currentWallet: wallet,
           signedIn: wallet !== undefined && wallet.id === link.wallet_id,
           rpId: site.rpId,
           nowMs: yield* nowMillis,
@@ -400,11 +421,19 @@ const revokePost = (request: Request, linkId: string) =>
     return { tx: removed.tx, explorer_url: `${network.explorerBase}/tx/${removed.tx}` }
   })
 
-const revokePage = (c: Chrome, link: ClaimLink, signedIn: boolean, rpId: string) =>
+const revokePage = (
+  c: Chrome,
+  link: ClaimLink,
+  signedIn: boolean,
+  rpId: string,
+  targetWallet: Wallet | undefined,
+  currentWallet: Wallet | undefined,
+) =>
   page(
     'Take back a link',
     c,
     `<h1 data-testid="link-revoke-title">Take back the link for ${escape(link.recipient_name)}</h1>
+${walletIdentity(c, targetWallet, currentWallet)}
 <section class="card pay"><p class="amount">${escape(fromStroops(link.amount))}<span class="unit"> USDC</span></p>
 <p class="muted">Set aside until ${escape(utcTime(link.expires_at))}. Taking it back removes the rule from your account with one passkey tap; the link stops working.</p></section>
 ${
@@ -412,7 +441,7 @@ ${
     ? `<section class="card" data-testid="link-revoked"><p class="ok">Taken back.</p>${(link.remove_tx ?? null) === null ? '' : `<p class="muted">Transaction <a href="${escape(`${c.explorerBase}/tx/${link.remove_tx ?? ''}`)}" rel="noreferrer"><code>${escape(link.remove_tx ?? '')}</code></a></p>`}</section><p><a href="/">Back to Nod</a></p>`
     : signedIn
       ? '<div class="thumb"><button class="primary wide" id="revoke" data-testid="link-revoke-confirm">Take it back with your passkey</button></div>'
-      : '<div class="thumb"><button class="primary wide" id="signin" data-testid="link-signin">Sign in with your passkey</button></div>'
+      : walletSignIn(currentWallet, 'link-signin')
 }${
       link.status === 'revoked' || (link.remove_tx ?? null) !== null
         ? ''
@@ -422,12 +451,17 @@ ${
 <p id="status" class="muted" role="status"></p>`,
     `const ctx=JSON.parse(document.getElementById('ctx').textContent);
 const on=(id,f)=>{const el=document.getElementById(id);if(el)el.onclick=f};
-on('signin',async e=>{const done=busy(e.target,'Waiting for your passkey…');try{await signIn();location.reload()}catch(x){done();show('status',x.message)}});
+wireSignIn(ctx);
 on('revoke',async e=>{const done=busy(e.target,'Preparing…');try{const p=await post(ctx.base+'/prepare',{});e.target.textContent='Waiting for your passkey…';
-const a=await assertion(p.challenge,ctx.rpId,[]);e.target.textContent='Removing it on Stellar…';const r=await post(ctx.base,{assertion:a});
+const a=await assertion(p.challenge,ctx.rpId,[ctx.credential]);e.target.textContent='Removing it on Stellar…';const r=await post(ctx.base,{assertion:a});
 e.target.closest('.thumb').remove();document.getElementById('revoked-now').hidden=false;document.getElementById('back').hidden=false;
 const l=document.getElementById('remove-tx');l.href=r.explorer_url;document.getElementById('remove-tx-hash').textContent=r.tx}catch(x){done();show('status',x.message)}});`,
-    { base: `/approve/revoke-link/${link.id}`, rpId },
+    {
+      base: `/approve/revoke-link/${link.id}`,
+      rpId,
+      credential: targetWallet?.passkey_credential_id,
+      walletId: link.wallet_id,
+    },
   )
 
 const revokeGet = (runtime: AppRuntime, request: Request, linkId: string) =>
@@ -439,7 +473,17 @@ const revokeGet = (runtime: AppRuntime, request: Request, linkId: string) =>
         return html(n, messagePage(n, 'Not found', 'No such link.'), { status: 404 })
       const wallet = yield* walletOfSession(sessionToken(request))
       const site = yield* siteOf(request)
-      return html(n, revokePage(n, link, wallet !== undefined && wallet.id === link.wallet_id, site.rpId))
+      return html(
+        n,
+        revokePage(
+          n,
+          link,
+          wallet !== undefined && wallet.id === link.wallet_id,
+          site.rpId,
+          yield* walletById(link.wallet_id),
+          wallet,
+        ),
+      )
     }).pipe(
       Effect.catch(error =>
         Effect.map(chrome, n =>
@@ -448,6 +492,43 @@ const revokeGet = (runtime: AppRuntime, request: Request, linkId: string) =>
       ),
     ),
   )
+
+/** The same Home inbox includes interrupted person-link approvals. */
+export const pendingLinkApprovals = (walletId: string, origin: string) =>
+  Effect.gen(function* () {
+    const now = yield* nowIso
+    const rows = yield* query(
+      sql(
+        `SELECT id, recipient_name, requester, reason, amount, expires_at FROM claim_links
+       WHERE wallet_id = ? AND kind = 'person' AND status = 'awaiting_nod' AND expires_at > ?
+       ORDER BY created_at DESC LIMIT 50`,
+        walletId,
+        now,
+      ),
+      row =>
+        Schema.decodeUnknownEffect(
+          Schema.Struct({
+            id: Schema.String,
+            recipient_name: Schema.String,
+            requester: Schema.String,
+            reason: Schema.NullOr(Schema.String),
+            amount: Schema.String,
+            expires_at: Schema.String,
+          }),
+        )(row).pipe(Effect.mapError(error => new DbError({ operation: 'pending links', message: String(error) }))),
+    )
+    return rows.map(row => ({
+      intent_id: row.id,
+      recipient_name: row.recipient_name,
+      requester: row.requester,
+      reason: row.reason,
+      recipient_address: '',
+      amount: row.amount,
+      asset: 'USDC',
+      expires_at: row.expires_at,
+      approve_url: `${origin}/approve/link/${row.id}`,
+    }))
+  })
 
 // The sender's links, for Connections (GET /api/links, app.ts)
 

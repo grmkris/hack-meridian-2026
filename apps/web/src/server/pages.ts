@@ -81,17 +81,38 @@ dec:s=>Uint8Array.from(atob(s.replace(/-/g,'+').replace(/_/g,'/')+'==='.slice((s
 async function post(url,body){const r=await fetch(url,{method:'POST',headers:{'content-type':'application/json'},credentials:'same-origin',body:JSON.stringify(body??{})});
 const t=await r.text();let j=null;try{j=t?JSON.parse(t):null}catch{};if(!r.ok)throw new Error(j&&j.error==='too_many_wallets'?tooManyWallets(j.retry_after_s):(j&&j.error)||t||r.statusText);return j}
 function tooManyWallets(s){const m=Math.max(1,Math.ceil((Number(s)||3600)/60));return'Nod opens only a few new wallets each hour. Try again in '+m+' minute'+(m===1?'':'s')+'.'}
-async function createWallet(name,invite){const o=await post('/api/wallets/options',invite?{name,invite_code:invite}:{name});
+async function createWallet(name,invite){if(!name.trim()||name.trim().length>40)throw new Error('Choose a wallet name of 1–40 characters.');const o=await post('/api/wallets/options',invite?{name,invite_code:invite}:{name});
 const c=await navigator.credentials.create({publicKey:{challenge:b64u.dec(o.challenge),rp:{id:o.rp_id,name:o.rp_name},user:{id:b64u.dec(o.user_id),name:o.user_name,displayName:o.user_name},
 pubKeyCredParams:[{type:'public-key',alg:-7}],authenticatorSelection:{residentKey:'required',userVerification:'required'},attestation:'none',timeout:120000}});
 return post('/api/wallets',{name,...(invite?{invite_code:invite}:{}),credential_id:b64u.enc(c.rawId),public_key:b64u.enc(c.response.getPublicKey()),client_data_json:b64u.enc(c.response.clientDataJSON),attestation_object:b64u.enc(c.response.attestationObject)})}
-async function assertion(challenge,rpId,allow){const c=await navigator.credentials.get({publicKey:{challenge:b64u.dec(challenge),rpId,userVerification:'required',timeout:120000,
+function ceremony(event){if(location.pathname.startsWith('/approve/'))post('/api/session/ceremony',{event}).catch(()=>{})}
+async function assertion(challenge,rpId,allow){
+const controller=new AbortController();const cancel=document.createElement('button');cancel.type='button';cancel.textContent='Cancel passkey prompt';cancel.id='cancel-passkey';
+cancel.onclick=()=>controller.abort();document.getElementById('status')?.before(cancel);
+try{const c=await navigator.credentials.get({signal:controller.signal,publicKey:{challenge:b64u.dec(challenge),rpId,userVerification:'required',timeout:120000,
 allowCredentials:(allow||[]).map(id=>({type:'public-key',id:b64u.dec(id)}))}});
-return{credential_id:b64u.enc(c.rawId),client_data_json:b64u.enc(c.response.clientDataJSON),authenticator_data:b64u.enc(c.response.authenticatorData),signature:b64u.enc(c.response.signature)}}
-async function signIn(){const o=await post('/api/session/options');return post('/api/session',await assertion(o.challenge,o.rp_id,o.allow_credentials))}
-function busy(button,text){button.disabled=true;const old=button.textContent;button.textContent=text;return()=>{button.disabled=false;button.textContent=old}}
+if(!c)throw new DOMException('No passkey selected','NotAllowedError');
+ceremony('signed');return{credential_id:b64u.enc(c.rawId),client_data_json:b64u.enc(c.response.clientDataJSON),authenticator_data:b64u.enc(c.response.authenticatorData),signature:b64u.enc(c.response.signature)}
+}catch(x){if(x.name==='NotAllowedError'||x.name==='AbortError'){ceremony('cancelled_or_timeout');throw new Error('No passkey was used. The prompt was cancelled, timed out, or the requested passkey is unavailable. Try again with this wallet’s passkey.')}ceremony('failed');throw x}finally{cancel.remove()}}
+async function signIn(credential){const o=await post('/api/session/options'+(credential?'?credential_id='+encodeURIComponent(credential):''));return post('/api/session',await assertion(o.challenge,o.rp_id,o.allow_credentials))}
+function wireSignIn(ctx){for(const id of ['signin','signin-any']){const button=document.getElementById(id);if(!button)continue;button.onclick=async()=>{
+const buttons=['signin','signin-any'].map(id=>document.getElementById(id)).filter(Boolean);if(buttons.some(b=>b.disabled))return;
+const done=busy(button,'Waiting for your passkey…');buttons.forEach(b=>b.disabled=true);
+try{const result=await signIn(id==='signin-any'?undefined:ctx.credential);if(ctx.walletId&&result.wallet.id!==ctx.walletId)ceremony('wrong_wallet');location.reload()}
+catch(x){done();buttons.forEach(b=>b.disabled=false);const other=document.getElementById('signin-any');if(other)other.hidden=false;show('status',x.message)}}}}
+const attempts=new WeakSet();
+function busy(button,text){const status=document.getElementById('status');if(status)status.textContent='';ceremony(attempts.has(button)?'retry':'started');attempts.add(button);button.disabled=true;const old=button.textContent;button.textContent=text;return()=>{button.disabled=false;button.textContent=old;button.focus()}}
 function show(id,text,cls){const el=document.getElementById(id);el.textContent=text;el.className=cls||'err'}
 `
+
+export const walletIdentity = (c: Chrome, target: Wallet | undefined, current: Wallet | undefined) => {
+  if (target === undefined) return ''
+  const mismatch = current !== undefined && current.id !== target.id
+  return `<section class="card" aria-label="Approval wallet" style="overflow-wrap:anywhere"><p class="eyebrow">Wallet for this approval</p><p><strong>${escape(target.name)}</strong> <code>${escape(shortAddress(target.contract_id))}</code></p><p class="muted">Stellar ${escape(c.network)}</p>${mismatch ? `<p class="warn" role="alert">You selected <strong>${escape(current.name)}</strong> (${escape(shortAddress(current.contract_id))}), but this approval belongs to <strong>${escape(target.name)}</strong> (${escape(shortAddress(target.contract_id))}). Try another passkey. No approval was given by selecting this wallet.</p>` : ''}</section>`
+}
+
+export const walletSignIn = (current: Wallet | undefined, testId = 'wallet-signin') =>
+  `<div class="thumb"><button class="primary wide" id="signin" data-testid="${escape(testId)}">${current === undefined ? 'Sign in with this wallet’s passkey' : 'Try another passkey'}</button><button class="quiet wide" id="signin-any" hidden>Choose from all passkeys</button><p class="muted">Your device may still show the name used when the passkey was created.</p></div>`
 
 export interface Page {
   readonly body: string
@@ -170,12 +191,12 @@ export const consentSignInPage = (c: Chrome, view: ConsentView, inviteNeeded: bo
     c,
     `${consentHeader(view)}
 <section class="card"><h2>New to Nod?</h2><p class="muted">Create a wallet with a passkey: Face ID, fingerprint or your device PIN. No seed phrase and no XLM; Nod pays the network fee.${c.network === 'Testnet' ? ' On testnet it starts with 10 USDC.' : ''} Next, you choose what ${escape(view.clientName)} may spend.</p>
-<label>Wallet name <input id="name" value="Personal" maxlength="40" autocomplete="off"></label>${inviteNeeded ? '<label>Invite code <input id="invite" autocomplete="off" required></label>' : ''}<button class="primary wide" id="create" data-testid="passkey-create">Create wallet</button></section>
+<label>Wallet name <input id="name" value="Personal" maxlength="40" autocomplete="off" required></label>${inviteNeeded ? '<label>Invite code <input id="invite" autocomplete="off" required></label>' : ''}<button class="primary wide" id="create" data-testid="passkey-create">Create wallet</button></section>
 <section class="card"><h2>Already have a wallet?</h2><button class="wide" id="signin" data-testid="passkey-signin">Sign in with passkey</button></section>
 <p id="status" class="muted" role="status"></p>
 <form method="post" action="/authorize"><input type="hidden" name="handle" value="${escape(view.handle)}"><button class="quiet wide" name="decision" value="deny">Deny</button></form>`,
     `document.getElementById('signin').onclick=async e=>{const done=busy(e.target,'Waiting for passkey…');try{await signIn();location.reload()}catch(x){done();show('status',x.message)}};
-document.getElementById('create').onclick=async e=>{const done=busy(e.target,'Creating wallet (about 15 s)…');try{const inv=document.getElementById('invite');await createWallet(document.getElementById('name').value||'Personal',inv?inv.value:undefined);location.reload()}catch(x){done();show('status',x.message)}};`,
+document.getElementById('create').onclick=async e=>{const done=busy(e.target,'Creating wallet (about 15 s)…');try{const inv=document.getElementById('invite');await createWallet(document.getElementById('name').value.trim(),inv?inv.value:undefined);location.reload()}catch(x){done();show('status',x.message)}};`,
   )
 
 /** Expiry choices for a grant, worded to finish "… on its own until"; tomorrow 12:00 UTC is the demo default. */
@@ -234,6 +255,8 @@ export interface ApprovalView {
   readonly status: PaymentIntent['status']
   readonly receipt: ReceiptRecord | undefined
   readonly signedIn: Wallet | undefined
+  readonly targetWallet?: Wallet | undefined
+  readonly currentWallet?: Wallet | undefined
   readonly connectionName: string | null
   readonly rpId: string
   readonly notice?: string
@@ -292,24 +315,29 @@ export const approvalPage = (c: Chrome, view: ApprovalView) => {
   const action = !open
     ? ''
     : view.signedIn === undefined
-      ? `<div class="thumb"><p class="muted">Sign in with this wallet’s passkey to approve.</p><button class="primary wide" id="signin">Sign in with passkey</button></div>`
+      ? walletSignIn(view.currentWallet)
       : `<div class="thumb"><button class="nod wide" id="approve" data-testid="approve">Approve with passkey</button></div>`
   return page(
     title,
     c,
     `<h1${open ? '' : ` data-testid="${view.status === 'confirmed' || waitingForRecipient ? 'approval-done' : `approval-${escape(view.status)}`}"`}>${escape(title)}</h1>${waitingForRecipient ? `<p class="warn">Send this link to ${recipient}: <a href="${escape(view.claimUrl ?? '')}" data-testid="claim-link"><code>${escape(view.claimUrl ?? '')}</code></a>. When they accept, the trustline and your payment land in one Stellar transaction.</p>` : ''}
-${paymentFacts(view.intent)}${action}<p id="status" class="muted" role="status"></p>
+${walletIdentity(c, view.targetWallet ?? view.signedIn, view.currentWallet)}${paymentFacts(view.intent)}${action}<p id="status" class="muted" role="status"></p>
 ${open && view.notice !== undefined ? `<p class="warn">${escape(view.notice)}</p>` : ''}${view.intent.failure !== null && open ? `<p class="warn">Last attempt: ${escape(view.intent.failure)}</p>` : ''}
 ${view.receipt === undefined ? '' : receiptBlock(view.receipt)}${paymentDetails(view.intent, view.connectionName)}${open ? '' : '<p><a href="/">Back to Nod</a></p>'}`,
     open
       ? `const ctx=JSON.parse(document.getElementById('ctx').textContent);
-const si=document.getElementById('signin');if(si)si.onclick=async e=>{const done=busy(e.target,'Waiting for passkey…');try{await signIn();location.reload()}catch(x){done();show('status',x.message)}};
+wireSignIn(ctx);
 const ap=document.getElementById('approve');if(ap)ap.onclick=async e=>{const done=busy(e.target,'Preparing…');
 try{const p=await post('/approve/'+ctx.id+'/prepare');e.target.textContent='Waiting for passkey…';
 const a=await assertion(p.challenge,ctx.rpId,[ctx.credential]);e.target.textContent='Submitting (about 10 s)…';
 await post('/approve/'+ctx.id,{assertion:a});location.reload()}catch(x){done();show('status',x.message)}};`
       : '',
-    { id: view.intent.id, rpId: view.rpId, credential: view.signedIn?.passkey_credential_id ?? null },
+    {
+      id: view.intent.id,
+      rpId: view.rpId,
+      credential: (view.targetWallet ?? view.signedIn)?.passkey_credential_id ?? null,
+      walletId: view.intent.wallet_id,
+    },
   )
 }
 
@@ -322,6 +350,8 @@ export const revokePage = (
     readonly connectionId: string
     readonly grant: SpendingGrant | undefined
     readonly connectionStatus: string
+    readonly targetWallet?: Wallet | undefined
+    readonly currentWallet?: Wallet | undefined
     readonly signedIn: Wallet | undefined
     readonly rpId: string
   },
@@ -333,21 +363,27 @@ export const revokePage = (
     `Revoke ${input.clientName}`,
     c,
     `<h1${removed ? ' data-testid="revoked"' : ''}>${removed ? `${name} is revoked` : stopped ? `Remove ${name}’s allowance` : `Revoke ${name}?`}</h1>
+${walletIdentity(c, input.targetWallet ?? input.signedIn, input.currentWallet)}
 <ol class="steps"><li class="${stopped ? 'done' : ''}"><strong>Nod stops signing for ${name}</strong> at once and sweeps its pocket back to your wallet.</li>
 <li class="${removed ? 'done' : ''}"><strong>One passkey tap removes the allowance</strong> from your Stellar account.</li></ol>
 <section class="card"><dl><dt>AI app</dt><dd>${name} <span class="muted">${escape(input.connectionStatus)}</span></dd>
 ${input.grant === undefined ? '' : `<dt>Allowance</dt><dd>${escape(usdc(input.grant.total))}, spent ${escape(usdc(input.grant.spent))}</dd><dt>On Stellar</dt><dd>${input.grant.rule_status === 'removed' ? 'removed from your account' : input.grant.rule_status === 'removal_pending' ? 'still on your account until your passkey removes it' : 'on your account'}${input.grant.remove_tx === null || input.grant.remove_tx === undefined ? '' : `<br>${txLink(c, input.grant.remove_tx, 'rule-removal-tx')}`}</dd>${input.grant.sweep_tx === null || input.grant.sweep_tx === undefined ? '' : `<dt>Swept back</dt><dd>${txLink(c, input.grant.sweep_tx, 'pocket-sweep-tx')}</dd>`}<dt>Pocket</dt><dd>${stopped && (input.grant.pocket_balance === 0n || (input.grant.sweep_tx !== null && input.grant.sweep_tx !== undefined)) ? 'swept back to your wallet' : `${escape(usdc(input.grant.pocket_balance))} <span class="muted">${stopped ? 'goes back to your wallet' : 'goes back to your wallet when you revoke'}</span>`}</dd>`}</dl></section>
-${removed ? '' : input.signedIn === undefined ? `<div class="thumb"><p class="muted">Sign in with the wallet’s passkey.</p><button class="primary wide" id="signin">Sign in with passkey</button></div>` : `<div class="thumb"><button class="primary wide" id="revoke" data-testid="revoke" data-connection="${escape(input.connectionId)}">${stopped ? 'Remove the allowance with passkey' : 'Revoke with passkey'}</button></div>`}
+${removed ? '' : input.signedIn === undefined ? walletSignIn(input.currentWallet) : `<div class="thumb"><button class="primary wide" id="revoke" data-testid="revoke" data-connection="${escape(input.connectionId)}">${stopped ? 'Remove the allowance with passkey' : 'Revoke with passkey'}</button></div>`}
 <p id="status" class="muted" role="status"></p>${removed ? '<p><a href="/">Back to Nod</a></p>' : ''}`,
     removed
       ? ''
       : `const ctx=JSON.parse(document.getElementById('ctx').textContent);
-const si=document.getElementById('signin');if(si)si.onclick=async e=>{const done=busy(e.target,'Waiting for passkey…');try{await signIn();location.reload()}catch(x){done();show('status',x.message)}};
+wireSignIn(ctx);
 const rv=document.getElementById('revoke');if(rv)rv.onclick=async e=>{const done=busy(e.target,'Revoking…');
 try{const p=await post('/approve/revoke/'+ctx.id+'/prepare');e.target.textContent='Waiting for passkey…';
 const a=await assertion(p.challenge,ctx.rpId,[ctx.credential]);e.target.textContent='Removing the allowance on Stellar…';
 await post('/approve/revoke/'+ctx.id,{assertion:a});location.reload()}catch(x){done();show('status',x.message)}};`,
-    { id: input.connectionId, rpId: input.rpId, credential: input.signedIn?.passkey_credential_id ?? null },
+    {
+      id: input.connectionId,
+      rpId: input.rpId,
+      credential: (input.targetWallet ?? input.signedIn)?.passkey_credential_id ?? null,
+      walletId: input.targetWallet?.id,
+    },
   )
 }
 

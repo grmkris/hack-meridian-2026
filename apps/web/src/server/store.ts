@@ -104,6 +104,12 @@ export const walletOfOwner = (ownerId: string) =>
 export const walletByCredential = (credentialId: string) =>
   first(sql('SELECT * FROM wallets WHERE passkey_credential_id = ?', credentialId), toWallet)
 
+/** The authenticated owner changes only the label of their current wallet. */
+export const renameWallet = (wallet: Wallet, name: string) =>
+  write(sql('UPDATE wallets SET name = ? WHERE id = ? AND owner_id = ?', name, wallet.id, wallet.owner_id)).pipe(
+    Effect.as({ ...wallet, name }),
+  )
+
 // Sessions: a random token in an HttpOnly cookie; only its hash is stored.
 
 export const createSession = (ownerId: string) =>

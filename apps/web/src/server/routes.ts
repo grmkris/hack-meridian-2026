@@ -25,6 +25,7 @@ import {
   putScratch,
   receiptOfIntent,
   toolResult,
+  walletById,
 } from './store.ts'
 import { claimUrl } from './views.ts'
 import { siteOf, WalletSettings } from './wallet-settings.ts'
@@ -164,6 +165,8 @@ const approvalGet = (runtime: AppRuntime, request: Request, intentId: string) =>
           intent,
           status: effectiveStatus(intent, yield* nowMillis),
           receipt: yield* receiptOfIntent(intent.id),
+          currentWallet: wallet,
+          targetWallet: yield* walletById(intent.wallet_id),
           signedIn: wallet !== undefined && wallet.id === intent.wallet_id ? wallet : undefined,
           connectionName:
             connection === undefined ? null : `${connection.oauth_client_name} · ${connection.id.slice(4, 12)}`,
@@ -286,6 +289,8 @@ const revokeGet = (runtime: AppRuntime, request: Request, connectionId: string) 
           connectionId,
           grant: yield* grantOfConnection(connectionId),
           connectionStatus: connection.status,
+          currentWallet: wallet,
+          targetWallet: yield* walletById(connection.wallet_id),
           signedIn: wallet !== undefined && wallet.id === connection.wallet_id ? wallet : undefined,
           rpId: site.rpId,
         }),

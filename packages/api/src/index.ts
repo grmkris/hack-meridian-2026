@@ -217,8 +217,18 @@ export const RegistrationOptions = Schema.Struct({
   user_id: Schema.String,
   user_name: Schema.String,
 })
+export const WalletName = Schema.String.check(Schema.isMinLength(1), Schema.isMaxLength(40), Schema.isPattern(/\S/u))
+export const CeremonyEvent = Schema.Literals([
+  'started',
+  'retry',
+  'wrong_wallet',
+  'cancelled_or_timeout',
+  'failed',
+  'signed',
+])
+
 export const NewWallet = Schema.Struct({
-  name: Schema.String.check(Schema.isMinLength(1), Schema.isMaxLength(40)),
+  name: WalletName,
   credential_id: Schema.String,
   /** 65-byte uncompressed P-256 key, or the SPKI `getPublicKey()` returns; base64url. */
   public_key: Schema.String,
@@ -340,7 +350,7 @@ export class Api extends HttpApi.make('hack-meridian')
       .add(
         HttpApiEndpoint.post('registrationOptions', '/api/wallets/options', {
           /** `invite_code` is required on mainnet. */
-          payload: Schema.Struct({ name: Schema.String, invite_code: Schema.optionalKey(Schema.String) }),
+          payload: Schema.Struct({ name: WalletName, invite_code: Schema.optionalKey(Schema.String) }),
           success: RegistrationOptions,
           error: CreateErrors,
         }),
@@ -353,7 +363,26 @@ export class Api extends HttpApi.make('hack-meridian')
         }),
       )
       .add(
-        HttpApiEndpoint.post('assertionOptions', '/api/session/options', { success: AssertionOptions, error: Errors }),
+        HttpApiEndpoint.post('assertionOptions', '/api/session/options', {
+          query: Schema.Struct({
+            credential_id: Schema.optionalKey(
+              Schema.String.check(
+                Schema.isMinLength(1),
+                Schema.isMaxLength(2048),
+                Schema.isPattern(/^[A-Za-z0-9_-]+$/u),
+              ),
+            ),
+          }),
+          success: AssertionOptions,
+          error: Errors,
+        }),
+      )
+      .add(
+        HttpApiEndpoint.post('ceremony', '/api/session/ceremony', {
+          payload: Schema.Struct({ event: CeremonyEvent }),
+          success: HttpApiSchema.NoContent,
+          error: Errors,
+        }),
       )
       .add(HttpApiEndpoint.post('signIn', '/api/session', { payload: Assertion, success: WalletReply, error: Errors }))
       .add(
@@ -365,6 +394,13 @@ export class Api extends HttpApi.make('hack-meridian')
   )
   .add(
     HttpApiGroup.make('wallet')
+      .add(
+        HttpApiEndpoint.patch('rename', '/api/wallet/name', {
+          payload: Schema.Struct({ name: WalletName }),
+          success: WalletReply,
+          error: Errors,
+        }),
+      )
       .add(HttpApiEndpoint.get('overview', '/api/overview', { success: Overview, error: Errors }))
       .add(HttpApiEndpoint.get('connections', '/api/connections', { success: Schema.Array(GrantView), error: Errors }))
       .add(

@@ -35,7 +35,7 @@ import { inviteRequired, Network, type NetworkShape, transferFeeCeiling } from '
 import type { OAuthGrants } from './oauth-grants.ts'
 import { logFailure } from './observe/log.ts'
 import { assertionOptions, createWallet, OwnerError, registrationOptions, signIn, walletOfSession } from './owner.ts'
-import { linksOfWallet } from './person-link.ts'
+import { linksOfWallet, pendingLinkApprovals } from './person-link.ts'
 import { revokeConnection } from './revoke.ts'
 import { Settings } from './settings.ts'
 import {
@@ -46,6 +46,7 @@ import {
   deleteSession,
   pendingOfWallet,
   receiptsOfWallet,
+  renameWallet,
   replaceDestination,
 } from './store.ts'
 import { MEMO_UNSUPPORTED } from './tools.ts'
@@ -250,7 +251,15 @@ const SessionHandlers = HttpApiBuilder.group(
           Effect.map(created => ({ wallet: summary(created.wallet, network) })),
         ),
       )
-      .handle('assertionOptions', () => run(Effect.flatMap(site, assertionOptions)).pipe(Effect.mapError(fromOwner)))
+      .handle('assertionOptions', ({ query }) =>
+        run(Effect.flatMap(site, here => assertionOptions(here, query.credential_id))).pipe(Effect.mapError(fromOwner)),
+      )
+      .handle('ceremony', ({ payload }) =>
+        run(sessionWallet).pipe(
+          Effect.flatMap(wallet => Effect.logInfo('approval.browser', { wallet_id: wallet.id, kind: payload.event })),
+          Effect.catchTag('DbError', error => Effect.fail(fromStorage(error))),
+        ),
+      )
       .handle('signIn', ({ payload }) =>
         run(
           Effect.flatMap(site, here =>
@@ -296,6 +305,14 @@ const WalletHandlers = HttpApiBuilder.group(
     const chain = yield* Chain
     return (
       handlers
+        .handle('rename', ({ payload }) =>
+          run(
+            Effect.gen(function* () {
+              const wallet = yield* sessionWallet
+              return { wallet: summary(yield* renameWallet(wallet, payload.name.trim()), network) }
+            }),
+          ),
+        )
         .handle('overview', () =>
           run(
             Effect.gen(function* () {
@@ -326,7 +343,10 @@ const WalletHandlers = HttpApiBuilder.group(
                 balances,
                 deposits_available: chain.depositsAvailable,
                 grants: connections.map(entry => apiGrantView(entry.connection, entry.grant)),
-                pending: pending.map(intent => pendingApproval(intent, here.origin)),
+                pending: [
+                  ...pending.map(intent => pendingApproval(intent, here.origin)),
+                  ...(yield* pendingLinkApprovals(wallet.id, here.origin)),
+                ],
                 receipts: yield* receiptsOfWallet(wallet.id, 5),
               }
             }),
@@ -457,7 +477,10 @@ const WalletHandlers = HttpApiBuilder.group(
             Effect.gen(function* () {
               const wallet = yield* sessionWallet
               const here = yield* site
-              return (yield* pendingOfWallet(wallet.id)).map(intent => pendingApproval(intent, here.origin))
+              return [
+                ...(yield* pendingOfWallet(wallet.id)).map(intent => pendingApproval(intent, here.origin)),
+                ...(yield* pendingLinkApprovals(wallet.id, here.origin)),
+              ]
             }),
           ),
         )

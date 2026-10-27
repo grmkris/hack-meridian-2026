@@ -8,6 +8,7 @@ import {
   fromStroops,
   PreparedOwnerAuth,
   type SpendingGrant,
+  type Wallet,
   toStroops,
 } from '@hm/protocol'
 
@@ -18,9 +19,17 @@ import { Ledger, type LedgerError, remainingOf } from './ledger.ts'
 import { Network } from './network.ts'
 import { logFailure } from './observe/log.ts'
 import { checkAssertion, OwnerError, requireWallet, sessionToken, walletOfSession } from './owner.ts'
-import { type Chrome, escape, html, messagePage, page } from './pages.ts'
+import { type Chrome, escape, html, messagePage, page, walletIdentity, walletSignIn } from './pages.ts'
 import type { AppRuntime, AppServices } from './runtime.ts'
-import { connectionById, createPendingGrant, grantOfConnection, pendingGrant, putScratch, toolResult } from './store.ts'
+import {
+  connectionById,
+  createPendingGrant,
+  grantOfConnection,
+  pendingGrant,
+  putScratch,
+  toolResult,
+  walletById,
+} from './store.ts'
 import { siteOf } from './wallet-settings.ts'
 
 /**
@@ -94,6 +103,8 @@ export interface AllowancePageView {
   readonly grant: SpendingGrant | undefined
   readonly total: bigint
   readonly hours: number
+  readonly targetWallet?: Wallet | undefined
+  readonly currentWallet?: Wallet | undefined
   readonly signedIn: boolean
   readonly nowMs: number
   readonly rpId: string
@@ -109,31 +120,34 @@ export const allowancePage = (c: Chrome, view: AllowancePageView) => {
     `Change ${view.connection.oauth_client_name}'s allowance`,
     c,
     `<h1 data-testid="allowance-title">Change ${name}’s allowance</h1>
+${walletIdentity(c, view.targetWallet, view.currentWallet)}
 <section class="card"><p class="to">${name} may spend up to <strong data-testid="allowance-amount">${escape(fromStroops(view.total))} USDC</strong> on its own for <strong>${view.hours} hours</strong> from when you sign.</p>
 <p class="muted">Anything past it needs your passkey, every time. This replaces the current allowance and starts from zero spent.</p>${current}</section>
 <div id="steps">${
       view.signedIn
         ? `<p class="actions"><button class="nod" id="approve" data-testid="allowance-approve">Approve with your passkey</button></p>`
-        : `<p class="actions"><button class="primary" id="signin" data-testid="allowance-signin">Sign in with your passkey</button></p>`
+        : walletSignIn(view.currentWallet, 'allowance-signin')
     }</div>
 <section class="card" id="done" hidden data-testid="allowance-done"><h2 class="ok">The new allowance is on your account</h2><p id="done-tx" class="muted"></p>
 <p>The old one is still on your account with a key Nod no longer uses. <button id="remove-old" data-testid="allowance-remove-old">Remove the old one (one more passkey tap)</button></p></section>
 <p id="status" class="muted" role="status"></p>`,
     `const ctx=JSON.parse(document.getElementById('ctx').textContent);
 const on=(id,f)=>{const el=document.getElementById(id);if(el)el.onclick=f};
-on('signin',async e=>{const done=busy(e.target,'Waiting for your passkey…');try{await signIn();location.reload()}catch(x){done();show('status',x.message)}});
+wireSignIn(ctx);
 on('approve',async e=>{const done=busy(e.target,'Preparing…');try{const p=await post(ctx.base+'/prepare',{amount:ctx.amount,hours:ctx.hours});
-e.target.textContent='Waiting for your passkey…';const a=await assertion(p.challenge,ctx.rpId,[]);e.target.textContent='Installing on Stellar (about 15 s)…';
+e.target.textContent='Waiting for your passkey…';const a=await assertion(p.challenge,ctx.rpId,[ctx.credential]);e.target.textContent='Installing on Stellar (about 15 s)…';
 const r=await post(ctx.base,{pending_id:p.pending_id,assertion:a});document.getElementById('steps').hidden=true;document.getElementById('done').hidden=false;
 document.getElementById('done-tx').textContent='Transaction '+r.tx;show('status','Done.','ok')}catch(x){done();show('status',x.message)}});
 on('remove-old',async e=>{const done=busy(e.target,'Preparing…');try{const p=await post(ctx.base+'/remove-old/prepare',{});
-e.target.textContent='Waiting for your passkey…';const a=await assertion(p.challenge,ctx.rpId,[]);e.target.textContent='Removing on Stellar…';
+e.target.textContent='Waiting for your passkey…';const a=await assertion(p.challenge,ctx.rpId,[ctx.credential]);e.target.textContent='Removing on Stellar…';
 const r=await post(ctx.base+'/remove-old',{assertion:a});e.target.parentElement.textContent='The old allowance is removed from your account.';show('status','The old allowance is removed: '+r.tx,'ok')}catch(x){done();show('status',x.message)}});`,
     {
       base: `/approve/allowance/${view.connection.id}`,
       amount: fromStroops(view.total),
       hours: view.hours,
       rpId: view.rpId,
+      credential: view.targetWallet?.passkey_credential_id,
+      walletId: view.connection.wallet_id,
     },
   )
 }
@@ -154,6 +168,8 @@ const allowanceGet = (runtime: AppRuntime, request: Request, connectionId: strin
         grant: yield* grantOfConnection(connectionId),
         total: want.total,
         hours: want.hours,
+        targetWallet: yield* walletById(connection.wallet_id),
+        currentWallet: wallet,
         signedIn: wallet !== undefined && wallet.id === connection.wallet_id,
         nowMs: yield* nowMillis,
         rpId: site.rpId,

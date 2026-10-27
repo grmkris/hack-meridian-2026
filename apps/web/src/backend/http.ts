@@ -57,8 +57,9 @@ export const httpBackend = Layer.effect(
         ),
       createWallet: registration =>
         call(Effect.map(client.session.createWallet({ payload: registration }), reply => reply.wallet)),
-      assertionOptions: call(client.session.assertionOptions()),
+      assertionOptions: call(client.session.assertionOptions({ query: {} })),
       signIn: assertion => call(Effect.map(client.session.signIn({ payload: assertion }), reply => reply.wallet)),
+      renameWallet: name => call(Effect.map(client.wallet.rename({ payload: { name } }), reply => reply.wallet)),
       signOut: call(Effect.asVoid(client.session.signOut())),
       overview: call(client.wallet.overview()),
       connections: call(client.wallet.connections()),

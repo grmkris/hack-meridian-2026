@@ -250,7 +250,7 @@ const hasInviteIfShown = (model: Model): boolean =>
 
 const walletNameOf = (model: Model): string => {
   const trimmed = String.trim(model.walletName)
-  return String.isEmpty(trimmed) ? DEFAULT_WALLET_NAME : trimmed
+  return trimmed
 }
 
 export const update = (model: Model, message: Message) =>
@@ -259,6 +259,13 @@ export const update = (model: Model, message: Message) =>
     SubmittedCreateWallet: () => {
       if (isBusy(model.ceremony) || !hasInviteIfShown(model) || !EntryMode.guards.Creating(model.entryMode)) {
         return { model }
+      }
+      if (walletNameOf(model).length < 1 || walletNameOf(model).length > 40) {
+        return {
+          model: modifyFields(model, {
+            ceremony: () => Ceremony.Failed({ error: 'Choose a wallet name of 1–40 characters.' }),
+          }),
+        }
       }
       return {
         model: modifyFields(model, { ceremony: () => Ceremony.CreatingWallet() }),
@@ -318,6 +325,8 @@ export const update = (model: Model, message: Message) =>
     FailedCopyConnectorUrl: () => ({ model: modifyFields(model, { copy: () => Copy.Failed() }) }),
     SettledHeroFilm: () => ({ model }),
   })
+
+export const informSwitchWallet = (model: Model) => update(model, Message.ClickedSignIn())
 
 // VIEW
 
@@ -446,6 +455,7 @@ const createWalletView = (model: Model, h: HtmlBuilder<Message>): Html =>
                 h.Placeholder(DEFAULT_WALLET_NAME),
                 h.Autocomplete('off'),
                 h.Maxlength(40),
+                h.Required(true),
                 h.Class('landing-input'),
                 h.Disabled(isBusy(model.ceremony)),
                 h.OnInput(value => Message.UpdatedWalletName({ value })),

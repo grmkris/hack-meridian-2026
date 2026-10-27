@@ -1,5 +1,6 @@
 import { Effect, Option, Schema } from 'effect'
 
+import { WalletName } from '@hm/api'
 import { Chain, type ChainError, type Wallet, type WebAuthnAssertion } from '@hm/protocol'
 
 import { randomToken } from './clock.ts'
@@ -51,6 +52,11 @@ const checkInvite = (code: string | undefined) =>
     return undefined
   })
 
+const validName = (name: string) =>
+  Schema.decodeUnknownEffect(WalletName)(name.trim()).pipe(
+    Effect.mapError(() => new OwnerError({ kind: 'bad_request', message: 'Choose a wallet name of 1–40 characters.' })),
+  )
+
 /**
  * `visitor` (a hash of cf-connecting-ip, wallet-caps.ts) counts the creation against the hourly caps: the options only
  * check, so the passkey prompt never opens when no wallet would be created; createWallet takes the slot before the
@@ -58,6 +64,7 @@ const checkInvite = (code: string | undefined) =>
  */
 export const registrationOptions = (site: Site, name: string, inviteCode?: string, visitor?: string) =>
   Effect.gen(function* () {
+    const label = yield* validName(name)
     yield* checkInvite(inviteCode)
     if (visitor !== undefined) yield* WalletCaps.use(caps => caps.check(visitor))
     const challenge = yield* createChallenge('register')
@@ -66,7 +73,7 @@ export const registrationOptions = (site: Site, name: string, inviteCode?: strin
       rp_id: site.rpId,
       rp_name: 'Nod',
       user_id: yield* randomToken,
-      user_name: name.trim() === '' ? 'Personal' : name.trim().slice(0, 40),
+      user_name: label,
     }
   }).pipe(Effect.catchTag('DbError', error => Effect.fail(unavailable(error))))
 
@@ -85,6 +92,7 @@ export interface NewWalletInput {
 /** Registration → the relayer deploys the smart account with the passkey as admin → treasury sends welcome USDC. */
 export const createWallet = (site: Site, input: NewWalletInput) =>
   Effect.gen(function* () {
+    const label = yield* validName(input.name)
     yield* checkInvite(input.inviteCode)
     const clientData = yield* b64urlDecode(input.clientDataJSON).pipe(Effect.mapError(badRequest))
     const challenge = (yield* readClientData(clientData).pipe(Effect.mapError(badRequest))).challenge
@@ -122,7 +130,7 @@ export const createWallet = (site: Site, input: NewWalletInput) =>
         : null
     const wallet = yield* createOwnerWallet({
       network: network.caip,
-      name: input.name.trim().slice(0, 40) || 'Personal',
+      name: label,
       contractId: deployed.contractId,
       credentialId: input.credentialId,
       publicKey: b64url(publicKey),
@@ -158,11 +166,11 @@ export const createWallet = (site: Site, input: NewWalletInput) =>
     }),
   )
 
-export const assertionOptions = (site: Site) =>
+export const assertionOptions = (site: Site, credentialId?: string) =>
   Effect.map(createChallenge('login'), challenge => ({
     challenge,
     rp_id: site.rpId,
-    allow_credentials: [] as ReadonlyArray<string>,
+    allow_credentials: credentialId === undefined ? [] : [credentialId],
   })).pipe(Effect.mapError(unavailable))
 
 export interface AssertionInput {

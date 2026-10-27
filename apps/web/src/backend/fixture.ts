@@ -192,6 +192,7 @@ const contacts: ReadonlyArray<Contact> = [
 ]
 
 interface State {
+  readonly wallet: WalletSummary
   readonly signedIn: boolean
   readonly grants: ReadonlyArray<GrantView>
   readonly contacts: ReadonlyArray<Contact>
@@ -261,18 +262,24 @@ export const fixtureBackend = (options: {
   Layer.effect(
     Backend,
     Effect.gen(function* () {
-      const state = yield* Ref.make<State>({ signedIn: options.signedIn, grants, contacts, topup: Option.none() })
+      const state = yield* Ref.make<State>({
+        wallet,
+        signedIn: options.signedIn,
+        grants,
+        contacts,
+        topup: Option.none(),
+      })
       const topupUnavailable = Effect.fail(new BackendFailed({ error: 'topup_unavailable' }))
       const whenSignedIn = <A>(read: (current: State) => A) =>
         Effect.flatMap(Ref.get(state), current =>
           current.signedIn ? Effect.succeed(read(current)) : Effect.fail(new SignedOut()),
         )
-      const signIn = Effect.as(
+      const signIn = Effect.flatMap(
         Ref.update(state, current => ({ ...current, signedIn: true })),
-        wallet,
+        () => Ref.get(state).pipe(Effect.map(current => current.wallet)),
       )
       const overview = whenSignedIn((current): Overview => ({
-        wallet,
+        wallet: current.wallet,
         balances: { usdc: USDC(27, 90), xlm: '0' },
         deposits_available: true,
         network: 'stellar:testnet',
@@ -282,7 +289,7 @@ export const fixtureBackend = (options: {
         receipts,
       }))
       return {
-        session: whenSignedIn(() => wallet),
+        session: whenSignedIn(current => current.wallet),
         registrationOptions: (name, _maybeInviteCode) =>
           Effect.succeed({
             challenge: 'Zml4dHVyZS1yZWdpc3RyYXRpb24',
@@ -299,6 +306,13 @@ export const fixtureBackend = (options: {
           allow_credentials: ['Zml4dHVyZS1jcmVkZW50aWFs'],
         }),
         signIn: () => signIn,
+        renameWallet: name =>
+          Effect.gen(function* () {
+            const existing = yield* whenSignedIn(snapshot => snapshot.wallet)
+            const renamed = { ...existing, name }
+            yield* Ref.update(state, latest => ({ ...latest, wallet: renamed }))
+            return renamed
+          }),
         signOut: Ref.update(state, current => ({ ...current, signedIn: false })),
         overview,
         connections: whenSignedIn(current => current.grants),

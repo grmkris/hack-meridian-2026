@@ -34,4 +34,6 @@ jobs:
       - run: bun install --frozen-lockfile
       - name: Fetch and verify pinned type-aware lint backend
         run: bun scripts/tsrs-lint.ts
+      - name: Chromium for passkey regression tests
+        run: bunx --no-install playwright-core install --with-deps --only-shell chromium
       - run: bun run check

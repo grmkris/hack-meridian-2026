@@ -1,5 +1,5 @@
 import { Array, Clock, Duration, Effect, Option, Schema, Stream } from 'effect'
-import { AsyncData, Command, type Runtime, Subscription, Update } from 'foldkit'
+import { AsyncData, Command, Dom, type Runtime, Subscription, Update } from 'foldkit'
 import type { Document, Html, HtmlBuilder } from 'foldkit/html'
 import { defineMessageUnion } from 'foldkit/message'
 import { UrlRequest, load, pushUrl, replaceUrl } from 'foldkit/navigation'
@@ -24,7 +24,7 @@ import {
   receiveRouter,
   urlToAppRoute,
 } from './route'
-import { BUTTON_PRIMARY, BUTTON_SECONDARY, LINK, emptyRow, errorRow, loadingRow } from './view/ui'
+import { BUTTON_PRIMARY, BUTTON_SECONDARY, INPUT, LINK, emptyRow, errorRow, loadingRow } from './view/ui'
 
 // MODEL
 
@@ -35,12 +35,22 @@ export const Session = defineTaggedUnion({
 })
 export type Session = typeof Session.Type
 
+export const WalletAction = defineTaggedUnion({
+  Idle: {},
+  Editing: { name: Schema.String, maybeError: Schema.Option(Schema.String) },
+  Saving: { name: Schema.String },
+  Leaving: {},
+  Failed: { error: Schema.String },
+})
+export type WalletAction = typeof WalletAction.Type
+
 export const Model = Schema.Struct({
   origin: Schema.String,
   route: AppRoute,
   fundingRequested: Schema.Boolean,
   receiveBackHref: Schema.String,
   detailsOpen: Schema.Boolean,
+  walletAction: WalletAction,
   maybeNowMs: Schema.Option(Schema.Finite),
   session: Session,
   home: Home.Model,
@@ -64,6 +74,16 @@ export const Message = defineMessageUnion({
   ClickedRetryOverview: {},
   ToggledWalletDetails: { isOpen: Schema.Boolean },
   CompletedSignOut: {},
+  ClickedSwitchWallet: {},
+  CompletedSwitchWallet: {},
+  FailedSignOut: { problem: Problem },
+  ClickedRenameWallet: {},
+  UpdatedWalletName: { value: Schema.String },
+  SubmittedWalletName: {},
+  CancelledRenameWallet: {},
+  SucceededRenameWallet: { wallet: WalletSummary },
+  FailedRenameWallet: { problem: Problem },
+  CompletedFocusWalletName: {},
   TickedLiveRefresh: {},
   TickedTopupClock: { nowMs: Schema.Finite },
   GotHomeMessage: { message: Home.Message },
@@ -105,11 +125,40 @@ export const CheckSession = Command.define('CheckSession', {
 })
 
 export const SignOut = Command.define('SignOut', {
-  messages: [Message.CompletedSignOut],
+  messages: [Message.CompletedSignOut, Message.FailedSignOut],
   execute: Effect.gen(function* () {
     const backend = yield* Backend
     yield* backend.signOut
-  }).pipe(Effect.ignore, Effect.as(Message.CompletedSignOut())),
+  }).pipe(
+    Effect.as(Message.CompletedSignOut()),
+    recoverProblem(problem => Message.FailedSignOut({ problem })),
+  ),
+})
+
+export const SwitchWallet = Command.define('SwitchWallet', {
+  messages: [Message.CompletedSwitchWallet, Message.FailedSignOut],
+  execute: Backend.use(backend => backend.signOut).pipe(
+    Effect.as(Message.CompletedSwitchWallet()),
+    recoverProblem(problem => Message.FailedSignOut({ problem })),
+  ),
+})
+
+export const RenameWallet = Command.define('RenameWallet', {
+  args: { name: Schema.String },
+  messages: [Message.SucceededRenameWallet, Message.FailedRenameWallet],
+  execute: ({ name }) =>
+    Backend.use(backend => backend.renameWallet(name)).pipe(
+      Effect.map(wallet => Message.SucceededRenameWallet({ wallet })),
+      recoverProblem(problem => Message.FailedRenameWallet({ problem })),
+    ),
+})
+
+export const FocusWalletName = Command.define('FocusWalletName', {
+  messages: [Message.CompletedFocusWalletName],
+  execute: Dom.focus('#rename-wallet').pipe(
+    Effect.as(Message.CompletedFocusWalletName()),
+    Effect.orElseSucceed(() => Message.CompletedFocusWalletName()),
+  ),
 })
 
 // INIT
@@ -134,6 +183,7 @@ export const init: Runtime.RoutingApplicationInit<Model, Message, void, Resource
     fundingRequested: url.pathname === '/' && Option.contains('add-money')(url.hash),
     receiveBackHref: homeRouter(),
     detailsOpen: false,
+    walletAction: WalletAction.Idle(),
     maybeNowMs: Option.none(),
     session: Session.Checking(),
     ...freshPages(),
@@ -171,6 +221,7 @@ const signOutLocally =
         session: (): Session =>
           Session.SignedOut({ welcome: Welcome.init(maybeError, connectorUrlOf(model.origin)).model }),
         detailsOpen: () => false,
+        walletAction: () => WalletAction.Idle(),
         maybeNowMs: () => Option.none(),
         home: () => pages.home,
         receive: () => pages.receive,
@@ -286,8 +337,7 @@ const foldWelcomeOutMessage = Welcome.OutMessage.match<Step>({
   StartedSession: ({ wallet }) => startSession(wallet),
 })
 
-const foldWelcome = Update.foldChild({
-  update: Welcome.update,
+const welcomeSlot = {
   read: (model: Model) =>
     Session.matchOrElse(model.session, { SignedOut: ({ welcome }) => Option.some(welcome) }, () =>
       Option.none<Welcome.Model>(),
@@ -296,7 +346,9 @@ const foldWelcome = Update.foldChild({
     modifyFields(model, { session: (): Session => Session.SignedOut({ welcome: nextWelcome }) }),
   toParentMessage: (message: Welcome.Message) => Message.GotWelcomeMessage({ message }),
   foldOutMessage: foldWelcomeOutMessage,
-})
+}
+const foldWelcome = Update.foldChild({ update: Welcome.update, ...welcomeSlot })
+const startWalletSignIn = Update.foldChildStep({ update: Welcome.informSwitchWallet, ...welcomeSlot })
 
 export const update = (model: Model, message: Message) =>
   Message.match<UpdateReturn>(message, {
@@ -331,7 +383,88 @@ export const update = (model: Model, message: Message) =>
       }),
     ToggledWalletDetails: ({ isOpen }) => ({ model: modifyFields(model, { detailsOpen: () => isOpen }) }),
     ClickedRetryOverview: () => whenSignedIn(enterHome)(model),
-    ClickedSignOut: () => ({ model: modifyFields(model, { detailsOpen: () => false }), commands: [SignOut()] }),
+    ClickedSignOut: () =>
+      walletBusy(model)
+        ? { model }
+        : { model: modifyFields(model, { walletAction: () => WalletAction.Leaving() }), commands: [SignOut()] },
+    ClickedSwitchWallet: () =>
+      walletBusy(model)
+        ? { model }
+        : { model: modifyFields(model, { walletAction: () => WalletAction.Leaving() }), commands: [SwitchWallet()] },
+    CompletedSwitchWallet: () => {
+      const signedOut = endSession(model)
+      return startWalletSignIn(signedOut.model)
+    },
+    FailedSignOut: ({ problem }) =>
+      Problem.match<UpdateReturn>(problem, {
+        SignedOut: () => endSession(model),
+        Failed: ({ error }) => ({ model: modifyFields(model, { walletAction: () => WalletAction.Failed({ error }) }) }),
+      }),
+    ClickedRenameWallet: () =>
+      Session.match<UpdateReturn>(model.session, {
+        SignedIn: ({ wallet }) =>
+          walletBusy(model)
+            ? { model }
+            : {
+                model: modifyFields(model, {
+                  walletAction: () => WalletAction.Editing({ name: wallet.name, maybeError: Option.none() }),
+                }),
+                commands: [FocusWalletName()],
+              },
+        Checking: () => ({ model }),
+        SignedOut: () => ({ model }),
+      }),
+    UpdatedWalletName: ({ value }) =>
+      WalletAction.guards.Editing(model.walletAction)
+        ? {
+            model: modifyFields(model, {
+              walletAction: () => WalletAction.Editing({ name: value, maybeError: Option.none() }),
+            }),
+          }
+        : { model },
+    SubmittedWalletName: () => {
+      if (!WalletAction.guards.Editing(model.walletAction)) return { model }
+      const name = model.walletAction.name.trim()
+      if (name.length < 1 || name.length > 40)
+        return {
+          model: modifyFields(model, {
+            walletAction: () =>
+              WalletAction.Editing({ name, maybeError: Option.some('Choose a wallet name of 1–40 characters.') }),
+          }),
+        }
+      return {
+        model: modifyFields(model, { walletAction: () => WalletAction.Saving({ name }) }),
+        commands: [RenameWallet({ name })],
+      }
+    },
+    CancelledRenameWallet: () =>
+      walletBusy(model) ? { model } : { model: modifyFields(model, { walletAction: () => WalletAction.Idle() }) },
+    SucceededRenameWallet: ({ wallet }) =>
+      Session.guards.SignedIn(model.session) && model.session.wallet.id === wallet.id
+        ? {
+            model: modifyFields(model, {
+              session: () => Session.SignedIn({ wallet }),
+              walletAction: () => WalletAction.Idle(),
+            }),
+          }
+        : { model },
+    FailedRenameWallet: ({ problem }) =>
+      Problem.match<UpdateReturn>(problem, {
+        SignedOut: () => endSession(model),
+        Failed: ({ error }) =>
+          WalletAction.guards.Saving(model.walletAction)
+            ? {
+                model: modifyFields(model, {
+                  walletAction: () =>
+                    WalletAction.Editing({
+                      name: WalletAction.guards.Saving(model.walletAction) ? model.walletAction.name : '',
+                      maybeError: Option.some(error),
+                    }),
+                }),
+              }
+            : { model },
+      }),
+    CompletedFocusWalletName: () => ({ model }),
     CompletedSignOut: () => endSession(model),
     TickedLiveRefresh: () =>
       whenSignedIn(stepModel =>
@@ -495,6 +628,77 @@ const navigationView = (route: AppRoute, h: HtmlBuilder<Message>): Html =>
     ],
   )
 
+const walletBusy = (model: Model) =>
+  WalletAction.guards.Saving(model.walletAction) || WalletAction.guards.Leaving(model.walletAction)
+
+const walletNameForm = (
+  name: string,
+  saving: boolean,
+  maybeError: Option.Option<string>,
+  h: HtmlBuilder<Message>,
+): Html =>
+  h.form(
+    [h.OnSubmit(Message.SubmittedWalletName()), h.Class('flex w-full max-w-md flex-col gap-3')],
+    [
+      h.label([h.For('rename-wallet'), h.Class('text-sm font-medium')], ['Wallet name']),
+      h.input([
+        h.Id('rename-wallet'),
+        h.Value(name),
+        h.Type('text'),
+        h.Required(true),
+        h.Maxlength(40),
+        h.Disabled(saving),
+        h.Class(INPUT),
+        h.OnInput(value => Message.UpdatedWalletName({ value })),
+      ]),
+      h.p(
+        [h.Class('text-sm text-muted')],
+        ['This changes the name in Nod. Your device’s passkey label may keep its original name.'],
+      ),
+      Option.match(maybeError, { onNone: () => h.empty, onSome: error => errorRow(error, h) }),
+      h.div(
+        [h.Class('flex flex-wrap gap-2')],
+        [
+          h.button(
+            [h.Type('submit'), h.Disabled(saving || name.trim() === ''), h.Class(BUTTON_PRIMARY)],
+            [saving ? 'Saving…' : 'Save name'],
+          ),
+          h.button(
+            [
+              h.Type('button'),
+              h.Disabled(saving),
+              h.Class(BUTTON_SECONDARY),
+              h.OnClick(Message.CancelledRenameWallet()),
+            ],
+            ['Cancel'],
+          ),
+        ],
+      ),
+    ],
+  )
+
+const walletActionsView = (model: Model, h: HtmlBuilder<Message>): Html =>
+  WalletAction.match(model.walletAction, {
+    Editing: ({ name, maybeError }) => walletNameForm(name, false, maybeError, h),
+    Saving: ({ name }) => walletNameForm(name, true, Option.none(), h),
+    Leaving: () => h.p([h.Role('status'), h.Class('text-sm text-muted')], ['Signing out of this wallet…']),
+    Idle: () => walletButtonsView(h),
+    Failed: ({ error }) => h.div([h.Class('flex flex-col gap-3')], [errorRow(error, h), walletButtonsView(h)]),
+  })
+
+const walletButtonsView = (h: HtmlBuilder<Message>): Html =>
+  h.div(
+    [h.Class('flex flex-wrap gap-2')],
+    [
+      h.button([h.Type('button'), h.OnClick(Message.ClickedRenameWallet()), h.Class(BUTTON_SECONDARY)], ['Rename']),
+      h.button(
+        [h.Type('button'), h.OnClick(Message.ClickedSwitchWallet()), h.Class(BUTTON_SECONDARY)],
+        ['Switch wallet'],
+      ),
+      h.button([h.Type('button'), h.OnClick(Message.ClickedSignOut()), h.Class(BUTTON_SECONDARY)], ['Sign out']),
+    ],
+  )
+
 const headerView = (wallet: WalletSummary, model: Model, h: HtmlBuilder<Message>): Html =>
   Disclosure.view(
     {
@@ -527,12 +731,19 @@ const headerView = (wallet: WalletSummary, model: Model, h: HtmlBuilder<Message>
                 h.button(
                   [
                     ...attributes.button,
+                    h.AriaLabel('Wallet details'),
                     h.Class(
                       'inline-flex min-h-11 items-center gap-2 rounded-lg text-sm font-medium text-muted hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent',
                     ),
                   ],
                   [
-                    'Wallet details',
+                    h.span(
+                      [h.Class('min-w-0 text-right')],
+                      [
+                        h.span([h.Class('block max-w-[15rem] truncate text-ink')], [wallet.name]),
+                        h.span([h.Class('block font-mono text-xs text-muted')], [shortAddress(wallet.contract_id)]),
+                      ],
+                    ),
                     h.svg(
                       [
                         h.ViewBox('0 0 16 16'),
@@ -560,10 +771,7 @@ const headerView = (wallet: WalletSummary, model: Model, h: HtmlBuilder<Message>
                       ],
                       [`${wallet.name} (${shortAddress(wallet.contract_id)})`],
                     ),
-                    h.button(
-                      [h.Type('button'), h.OnClick(Message.ClickedSignOut()), h.Class(BUTTON_SECONDARY)],
-                      ['Sign out'],
-                    ),
+                    walletActionsView(model, h),
                   ],
                 )
               : h.empty,
