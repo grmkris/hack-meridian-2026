@@ -1,0 +1,208 @@
+{
+  "at": "2026-10-27T09:07:06.870Z",
+  "origin": "http://localhost:18960",
+  "evidence": "local workerd, fixture Stellar chain, Chromium virtual WebAuthn",
+  "client_id": "zG2Jy3wQ2DwIbUtS",
+  "checks": [
+    {
+      "name": "/.well-known/openid-configuration",
+      "ok": true,
+      "detail": {
+        "status": 404
+      }
+    },
+    {
+      "name": "/.well-known/no-document",
+      "ok": true,
+      "detail": {
+        "status": 404
+      }
+    },
+    {
+      "name": "/.well-known/stellar.toml",
+      "ok": true,
+      "detail": {
+        "status": 200
+      }
+    },
+    {
+      "name": "/.well-known/oauth-authorization-server",
+      "ok": true,
+      "detail": {
+        "status": 200
+      }
+    },
+    {
+      "name": "/.well-known/oauth-protected-resource/mcp",
+      "ok": true,
+      "detail": {
+        "status": 200
+      }
+    },
+    {
+      "name": "DCR narrows grants",
+      "ok": true,
+      "detail": {
+        "status": 201,
+        "grant_types": [
+          "authorization_code",
+          "refresh_token"
+        ]
+      }
+    },
+    {
+      "name": "DCR refuses mixed http:",
+      "ok": true,
+      "detail": {
+        "status": 400
+      }
+    },
+    {
+      "name": "DCR refuses mixed cursor:",
+      "ok": true,
+      "detail": {
+        "status": 400
+      }
+    },
+    {
+      "name": "consent shows redirect host and local-app warning",
+      "ok": true
+    },
+    {
+      "name": "authorization preserves state and issuer",
+      "ok": true
+    },
+    {
+      "name": "authorization returns a code",
+      "ok": true
+    },
+    {
+      "name": "token TTL 900 and refresh without offline_access",
+      "ok": true,
+      "detail": {
+        "status": 200,
+        "expires_in": 900,
+        "scope": "wallet",
+        "token_type": "bearer",
+        "refresh": true
+      }
+    },
+    {
+      "name": "no DPoP binding",
+      "ok": true
+    },
+    {
+      "name": "valid bearer lists tools",
+      "ok": true
+    },
+    {
+      "name": "valid bearer reads MCP Apps resources",
+      "ok": true
+    },
+    {
+      "name": "valid bearer reads wallet",
+      "ok": true
+    },
+    {
+      "name": "query-string token refused",
+      "ok": true
+    },
+    {
+      "name": "DPoP scheme refused",
+      "ok": true
+    },
+    {
+      "name": "other origin audience refused",
+      "ok": true
+    },
+    {
+      "name": "refresh foreign resource refused",
+      "ok": true
+    },
+    {
+      "name": "refresh rotates bearer and refresh credentials",
+      "ok": true
+    },
+    {
+      "name": "provider policy: previous refresh remains accepted (known limitation)",
+      "ok": true
+    },
+    {
+      "name": "rotated bearer works",
+      "ok": true
+    },
+    {
+      "name": "RFC 7009 refresh revoke succeeds",
+      "ok": true
+    },
+    {
+      "name": "original bearer is invalid immediately after revoke",
+      "ok": true
+    },
+    {
+      "name": "rotated bearer is invalid immediately after revoke",
+      "ok": true
+    },
+    {
+      "name": "replayed bearer is invalid immediately after revoke",
+      "ok": true
+    },
+    {
+      "name": "unknown token revoke is 200",
+      "ok": true
+    },
+    {
+      "name": "consent shows redirect host and local-app warning",
+      "ok": true
+    },
+    {
+      "name": "authorization preserves state and issuer",
+      "ok": true
+    },
+    {
+      "name": "authorization returns a code",
+      "ok": true
+    },
+    {
+      "name": "token TTL 900 and refresh without offline_access",
+      "ok": true,
+      "detail": {
+        "status": 200,
+        "expires_in": 900,
+        "scope": "wallet",
+        "token_type": "bearer",
+        "refresh": true
+      }
+    },
+    {
+      "name": "no DPoP binding",
+      "ok": true
+    },
+    {
+      "name": "owner connection revocation succeeds",
+      "ok": true
+    },
+    {
+      "name": "owner-revoked bearer gets invalid_token at once",
+      "ok": true
+    },
+    {
+      "name": "owner-revoked refresh fails",
+      "ok": true
+    }
+  ],
+  "tokenShapes": [
+    {
+      "expires_in": 900,
+      "scope": "wallet",
+      "token_type": "bearer",
+      "refresh": true
+    },
+    {
+      "expires_in": 900,
+      "scope": "wallet",
+      "token_type": "bearer",
+      "refresh": true
+    }
+  ]
+}

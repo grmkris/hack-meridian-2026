@@ -1,0 +1,131 @@
+{
+  "at": "2026-10-27T08:56:26.724Z",
+  "registrations": [
+    {
+      "name": "mixed-http",
+      "status": 201,
+      "body": {
+        "client_id": "yQ-wiAUj2ZhPOtD4",
+        "redirect_uris": [
+          "https://audit.example/cb",
+          "http://audit.example/cb"
+        ],
+        "client_name": "mcp-oauth-audit 2026-10-27 mixed-http",
+        "grant_types": [
+          "authorization_code",
+          "refresh_token"
+        ],
+        "response_types": [
+          "code"
+        ],
+        "token_endpoint_auth_method": "none",
+        "client_id_issued_at": 1793091386
+      }
+    },
+    {
+      "name": "mixed-custom",
+      "status": 201,
+      "body": {
+        "client_id": "nUDK7BtRlFyeE2AS",
+        "redirect_uris": [
+          "https://audit.example/cb",
+          "cursor://anysphere.cursor-mcp/oauth/callback"
+        ],
+        "client_name": "mcp-oauth-audit 2026-10-27 mixed-custom",
+        "grant_types": [
+          "authorization_code",
+          "refresh_token"
+        ],
+        "response_types": [
+          "code"
+        ],
+        "token_endpoint_auth_method": "none",
+        "client_id_issued_at": 1793091386
+      }
+    }
+  ],
+  "consent": {
+    "status": 200,
+    "redirectHostnameVisible": true,
+    "loopbackWarning": false,
+    "warningProbeNote": "loopbackWarning tested the literal substring 'local', which is absent from the actual warning. This was inconclusive; local-flow verifies 'app on your computer', with screenshot inspection."
+  },
+  "health": {
+    "ok": true,
+    "stage": "testnet",
+    "release": "a663158f28a4855256c67b3a81ff4e5f0c18629b",
+    "network": "testnet",
+    "chain": {
+      "mode": "testnet",
+      "network": "stellar:testnet",
+      "explorer_base": "https://stellar.expert/explorer/testnet",
+      "payments_enabled": true,
+      "latest_ledger": 5413559,
+      "relayers": [
+        {
+          "address": "GBCALSA3XQAWW24AXGFWJIGNUCDBCMUPPWC5XHMZ22VY4HMX6XCFYWBR",
+          "xlm": "187701974662"
+        },
+        {
+          "address": "GAWYWVMHLTRN6N7DXKV3XYCLAFPCPPUXPDFC7J5KL3LNKO26YNJSYE4I",
+          "xlm": "89591728504"
+        },
+        {
+          "address": "GA5YBU72TGS3JHEAEZN3RBIGAMH4FJOYXXYHM5EOYQMACBO2GOC4TU7O",
+          "xlm": "99996521787"
+        },
+        {
+          "address": "GAGS2XHDLMBPOH2ZRAYEOTQNVDCULIIWCJHWVEVRRPLPPSMVJ7WLBDKT",
+          "xlm": "99995951103"
+        }
+      ],
+      "treasury": {
+        "address": "GB4F3NUAD2NIRNOHNB36QS7ONEPWMPVSI5IRT6NY5FMMONLGTDQ4CIU5",
+        "usdc": "1389400000",
+        "xlm": "93762347372"
+      },
+      "rent_factor": 0.1,
+      "fee_ceilings": {
+        "first_xlm": 35,
+        "later_xlm": 4
+      },
+      "contracts": []
+    },
+    "invite_required": false
+  },
+  "mainnetHealth": {
+    "ok": true,
+    "stage": "mainnet",
+    "release": "a663158f28a4855256c67b3a81ff4e5f0c18629b",
+    "network": "pubnet",
+    "chain": {
+      "mode": "pubnet",
+      "network": "stellar:pubnet",
+      "explorer_base": "https://stellar.expert/explorer/public",
+      "payments_enabled": true,
+      "latest_ledger": 65161120,
+      "relayers": [
+        {
+          "address": "GBVYA2V4SMVPXFRPVB5FEFCADW7RXFIACR2HBLN2WP3RHAZKL267YG5X",
+          "xlm": "985610188"
+        },
+        {
+          "address": "GDMYACRM646Z4QIUPIAQZ2W3HSKAO2LESWCME73RSCCETSQKSL6HCAGP",
+          "xlm": "483332229"
+        }
+      ],
+      "treasury": {
+        "address": "GBJOFDKUKPHIPG34NEMVINELO36TS3QVVLNTXRO3SRUPEK5CPMYBVSPI",
+        "usdc": "190000000",
+        "xlm": "29611086"
+      },
+      "rent_factor": 0.1,
+      "fee_ceilings": {
+        "first_xlm": 1,
+        "later_xlm": 1
+      },
+      "contracts": []
+    },
+    "invite_required": false
+  }
+}

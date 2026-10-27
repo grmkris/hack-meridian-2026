@@ -1,0 +1,63 @@
+{
+  "at": "2026-10-27T09:13:40.441Z",
+  "results": [
+    {
+      "origin": "https://testnet.trynod.si",
+      "rows": [
+        {
+          "path": "/.well-known/oauth-protected-resource/mcp",
+          "status": 200,
+          "allowOrigin": "https://audit.example",
+          "allowMethods": "*",
+          "allowHeaders": "Authorization, *",
+          "exposeHeaders": "WWW-Authenticate, Retry-After"
+        },
+        {
+          "path": "/.well-known/oauth-authorization-server",
+          "status": 200,
+          "allowOrigin": "https://audit.example",
+          "allowMethods": "*",
+          "allowHeaders": "Authorization, *",
+          "exposeHeaders": "WWW-Authenticate, Retry-After"
+        },
+        {
+          "path": "/oauth/token",
+          "status": 204,
+          "allowOrigin": "https://audit.example",
+          "allowMethods": "*",
+          "allowHeaders": "Authorization, *",
+          "exposeHeaders": "WWW-Authenticate, Retry-After"
+        }
+      ]
+    },
+    {
+      "origin": "https://trynod.si",
+      "rows": [
+        {
+          "path": "/.well-known/oauth-protected-resource/mcp",
+          "status": 200,
+          "allowOrigin": "https://audit.example",
+          "allowMethods": "*",
+          "allowHeaders": "Authorization, *",
+          "exposeHeaders": "WWW-Authenticate, Retry-After"
+        },
+        {
+          "path": "/.well-known/oauth-authorization-server",
+          "status": 200,
+          "allowOrigin": "https://audit.example",
+          "allowMethods": "*",
+          "allowHeaders": "Authorization, *",
+          "exposeHeaders": "WWW-Authenticate, Retry-After"
+        },
+        {
+          "path": "/oauth/token",
+          "status": 204,
+          "allowOrigin": "https://audit.example",
+          "allowMethods": "*",
+          "allowHeaders": "Authorization, *",
+          "exposeHeaders": "WWW-Authenticate, Retry-After"
+        }
+      ]
+    }
+  ]
+}

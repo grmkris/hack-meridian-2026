@@ -1,0 +1,360 @@
+{
+  "label": "nod-local",
+  "mcpUrl": "http://localhost:18960/mcp",
+  "at": "2026-10-27T09:12:45.137Z",
+  "active": {
+    "registrations": {
+      "claudeCode": {
+        "status": 201,
+        "body": {
+          "client_id": "wecAAVTJ3If4-bpt",
+          "redirect_uris": [
+            "http://localhost:33418/callback"
+          ],
+          "client_name": "mcp-oauth-audit 2026-10-27 claude-code-like",
+          "grant_types": [
+            "authorization_code",
+            "refresh_token"
+          ],
+          "response_types": [
+            "code"
+          ],
+          "token_endpoint_auth_method": "none",
+          "client_id_issued_at": 1793092365
+        }
+      },
+      "native": {
+        "status": 201,
+        "body": {
+          "client_id": "hxlNJSkSSlXV9YJI",
+          "redirect_uris": [
+            "http://127.0.0.1:33419/callback"
+          ],
+          "client_name": "mcp-oauth-audit 2026-10-27 native-127",
+          "grant_types": [
+            "authorization_code",
+            "refresh_token"
+          ],
+          "response_types": [
+            "code"
+          ],
+          "token_endpoint_auth_method": "none",
+          "client_id_issued_at": 1793092365
+        }
+      },
+      "ipv6": {
+        "status": 201,
+        "body": {
+          "client_id": "7QLr7PeJL5aK42Hb",
+          "redirect_uris": [
+            "http://[::1]:33420/callback"
+          ],
+          "client_name": "mcp-oauth-audit 2026-10-27 native-ipv6",
+          "grant_types": [
+            "authorization_code",
+            "refresh_token"
+          ],
+          "response_types": [
+            "code"
+          ],
+          "token_endpoint_auth_method": "none",
+          "client_id_issued_at": 1793092365
+        }
+      },
+      "web": {
+        "status": 201,
+        "body": {
+          "client_id": "BQggppUkCxSL38tG",
+          "redirect_uris": [
+            "https://claude.ai/api/mcp/auth_callback"
+          ],
+          "client_name": "mcp-oauth-audit 2026-10-27 web-claude-ai-like",
+          "grant_types": [
+            "authorization_code",
+            "refresh_token"
+          ],
+          "response_types": [
+            "code"
+          ],
+          "token_endpoint_auth_method": "none",
+          "client_id_issued_at": 1793092365
+        }
+      },
+      "extraGrants": {
+        "status": 201,
+        "body": {
+          "client_id": "_T8USAXdudt-Eho1",
+          "redirect_uris": [
+            "http://127.0.0.1:33421/callback"
+          ],
+          "client_name": "mcp-oauth-audit 2026-10-27 extra-grants",
+          "grant_types": [
+            "authorization_code",
+            "refresh_token"
+          ],
+          "response_types": [
+            "code"
+          ],
+          "token_endpoint_auth_method": "none",
+          "client_id_issued_at": 1793092365
+        }
+      },
+      "httpNonLoopback": {
+        "status": 400,
+        "body": {
+          "error": "invalid_client_metadata",
+          "error_description": "Redirect URI must use https, or http on a loopback host"
+        }
+      },
+      "noAuthMethod": {
+        "status": 201,
+        "body": {
+          "client_id": "fJ3c4z4UwtC0K_1A",
+          "redirect_uris": [
+            "http://127.0.0.1:33422/callback"
+          ],
+          "client_name": "mcp-oauth-audit 2026-10-27 no-auth-method",
+          "grant_types": [
+            "authorization_code",
+            "refresh_token"
+          ],
+          "response_types": [
+            "code"
+          ],
+          "token_endpoint_auth_method": "client_secret_basic",
+          "client_id_issued_at": 1793092365,
+          "client_secret": "[redacted]",
+          "client_secret_expires_at": 1800868365,
+          "client_secret_issued_at": 1793092365
+        }
+      }
+    },
+    "authorize": [
+      {
+        "name": "baseline",
+        "status": 200,
+        "location": null,
+        "body": "<!doctype html><html lang=\"en\"><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1,viewport-fit=cover\"><meta name=\"referrer\" content=\"no-referrer\"><meta name=\"theme"
+      },
+      {
+        "name": "no-pkce",
+        "status": 302,
+        "location": "http://localhost:33418/callback?error=invalid_request&error_description=Public+clients+must+use+PKCE+with+the+authorization+code+flow.&state=[redacted]&iss=http%3A%2F%2Flocalhost%3A18960",
+        "body": ""
+      },
+      {
+        "name": "plain-pkce",
+        "status": 302,
+        "location": "http://localhost:33418/callback?error=invalid_request&error_description=The+plain+PKCE+method+is+not+allowed.+Use+S256+instead.&state=[redacted]&iss=http%3A%2F%2Flocalhost%3A18960",
+        "body": ""
+      },
+      {
+        "name": "foreign-resource",
+        "status": 302,
+        "location": "http://localhost:33418/callback?error=invalid_target&error_description=The+resource+parameter+must+name+exactly+one+configured+protected+resource&state=[redacted]&iss=http%3A%2F%2Flocalhost%3A18960",
+        "body": ""
+      },
+      {
+        "name": "no-resource",
+        "status": 200,
+        "location": null,
+        "body": "<!doctype html><html lang=\"en\"><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1,viewport-fit=cover\"><meta name=\"referrer\" content=\"no-referrer\"><meta name=\"theme"
+      },
+      {
+        "name": "unregistered-redirect",
+        "status": 400,
+        "location": null,
+        "body": "<!doctype html><html lang=\"en\"><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1,viewport-fit=cover\"><meta name=\"referrer\" content=\"no-referrer\"><meta name=\"theme"
+      },
+      {
+        "name": "loopback-other-port",
+        "status": 200,
+        "location": null,
+        "body": "<!doctype html><html lang=\"en\"><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1,viewport-fit=cover\"><meta name=\"referrer\" content=\"no-referrer\"><meta name=\"theme"
+      },
+      {
+        "name": "unknown-client",
+        "status": 400,
+        "location": null,
+        "body": "<!doctype html><html lang=\"en\"><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1,viewport-fit=cover\"><meta name=\"referrer\" content=\"no-referrer\"><meta name=\"theme"
+      }
+    ],
+    "token": [
+      {
+        "name": "bogus-code",
+        "status": 400,
+        "headers": {
+          "content-type": "application/json",
+          "cache-control": "no-store"
+        },
+        "body": {
+          "error": "invalid_grant",
+          "error_description": "Invalid authorization code format"
+        }
+      },
+      {
+        "name": "bogus-refresh",
+        "status": 400,
+        "headers": {
+          "content-type": "application/json",
+          "cache-control": "no-store"
+        },
+        "body": {
+          "error": "invalid_grant",
+          "error_description": "Invalid token format"
+        }
+      },
+      {
+        "name": "client-credentials-public",
+        "status": 400,
+        "headers": {
+          "content-type": "application/json",
+          "cache-control": "no-store"
+        },
+        "body": {
+          "error": "unsupported_grant_type",
+          "error_description": "Grant type not supported"
+        }
+      }
+    ],
+    "revoke": {
+      "status": 200,
+      "body": ""
+    }
+  },
+  "challenge": {
+    "post": {
+      "status": 401,
+      "wwwAuthenticate": "Bearer realm=\"OAuth\", resource_metadata=\"http://localhost:18960/.well-known/oauth-protected-resource/mcp\", scope=\"wallet\"",
+      "parsed": {
+        "realm": "OAuth",
+        "resource_metadata": "http://localhost:18960/.well-known/oauth-protected-resource/mcp",
+        "scope": "wallet"
+      },
+      "body": ""
+    },
+    "get": {
+      "status": 401,
+      "wwwAuthenticate": "Bearer realm=\"OAuth\", resource_metadata=\"http://localhost:18960/.well-known/oauth-protected-resource/mcp\", scope=\"wallet\""
+    },
+    "invalidToken": {
+      "status": 401,
+      "wwwAuthenticate": "Bearer realm=\"OAuth\", resource_metadata=\"http://localhost:18960/.well-known/oauth-protected-resource/mcp\", error=\"invalid_token\", scope=\"wallet\""
+    },
+    "forgedJwt": {
+      "status": 401,
+      "wwwAuthenticate": "Bearer realm=\"OAuth\", resource_metadata=\"http://localhost:18960/.well-known/oauth-protected-resource/mcp\", error=\"invalid_token\", scope=\"wallet\""
+    }
+  },
+  "prm": [
+    {
+      "url": "http://localhost:18960/.well-known/oauth-protected-resource/mcp",
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "resource": "http://localhost:18960/mcp",
+        "authorization_servers": [
+          "http://localhost:18960"
+        ],
+        "scopes_supported": [
+          "wallet"
+        ],
+        "bearer_methods_supported": [
+          "header"
+        ],
+        "resource_name": "Nod"
+      }
+    },
+    {
+      "url": "http://localhost:18960/.well-known/oauth-protected-resource",
+      "status": 404,
+      "headers": {},
+      "body": ""
+    }
+  ],
+  "prmWithOrigin": {
+    "status": 200,
+    "acao": "https://audit.example"
+  },
+  "as": [
+    {
+      "issuer": "http://localhost:18960",
+      "tries": [
+        {
+          "url": "http://localhost:18960/.well-known/oauth-authorization-server",
+          "status": 200,
+          "issuer": "http://localhost:18960",
+          "contentType": "application/json"
+        },
+        {
+          "url": "http://localhost:18960/.well-known/openid-configuration",
+          "status": 404
+        }
+      ],
+      "bareRoot": {
+        "status": 200,
+        "issuer": "http://localhost:18960"
+      },
+      "selected": "http://localhost:18960/.well-known/oauth-authorization-server",
+      "fields": {
+        "issuer": "http://localhost:18960",
+        "authorization_endpoint": "http://localhost:18960/authorize",
+        "token_endpoint": "http://localhost:18960/oauth/token",
+        "registration_endpoint": "http://localhost:18960/oauth/register",
+        "revocation_endpoint": "http://localhost:18960/oauth/token",
+        "introspection_endpoint": null,
+        "jwks_uri": null,
+        "response_types_supported": [
+          "code"
+        ],
+        "grant_types_supported": [
+          "authorization_code",
+          "refresh_token"
+        ],
+        "code_challenge_methods_supported": [
+          "S256"
+        ],
+        "token_endpoint_auth_methods_supported": [
+          "client_secret_basic",
+          "client_secret_post",
+          "none",
+          "private_key_jwt"
+        ],
+        "scopes_supported": [
+          "wallet",
+          "offline_access"
+        ],
+        "client_id_metadata_document_supported": true,
+        "authorization_response_iss_parameter_supported": true,
+        "dpop_signing_alg_values_supported": null,
+        "response_modes_supported": [
+          "query"
+        ],
+        "resource_indicators_supported": null,
+        "protected_resources": [
+          "http://localhost:18960/mcp"
+        ]
+      }
+    }
+  ],
+  "http": {
+    "prm": {
+      "status": 404,
+      "location": null
+    },
+    "token": {
+      "status": 401,
+      "location": null
+    },
+    "hsts": null
+  },
+  "findings": [
+    "MUST: authorization_endpoint not https: http://localhost:18960/authorize",
+    "MUST: token_endpoint not https: http://localhost:18960/oauth/token",
+    "MUST: registration_endpoint not https: http://localhost:18960/oauth/register",
+    "MUST: revocation_endpoint not https: http://localhost:18960/oauth/token"
+  ],
+  "localTransportNote": "Loopback HTTP is intentional for local workerd. The four HTTPS findings do not describe either deployed stage; see before-testnet and before-mainnet for edge HTTPS and HSTS."
+}

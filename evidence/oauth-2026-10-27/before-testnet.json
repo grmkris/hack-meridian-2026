@@ -1,0 +1,345 @@
+{
+  "label": "nod-testnet",
+  "mcpUrl": "https://testnet.trynod.si/mcp",
+  "at": "2026-10-27T08:49:01.276Z",
+  "active": {
+    "registrations": {
+      "claudeCode": {
+        "status": 201,
+        "body": {
+          "client_id": "4ruXaSuJw_XO6LJd",
+          "redirect_uris": [
+            "http://localhost:33418/callback"
+          ],
+          "client_name": "mcp-oauth-audit 2026-10-27 claude-code-like",
+          "grant_types": [
+            "authorization_code",
+            "refresh_token"
+          ],
+          "response_types": [
+            "code"
+          ],
+          "token_endpoint_auth_method": "none",
+          "client_id_issued_at": 1793090943
+        }
+      },
+      "native": {
+        "status": 201,
+        "body": {
+          "client_id": "CDFtXBI5i-G6J8qD",
+          "redirect_uris": [
+            "http://127.0.0.1:33419/callback"
+          ],
+          "client_name": "mcp-oauth-audit 2026-10-27 native-127",
+          "grant_types": [
+            "authorization_code",
+            "refresh_token"
+          ],
+          "response_types": [
+            "code"
+          ],
+          "token_endpoint_auth_method": "none",
+          "client_id_issued_at": 1793090943
+        }
+      },
+      "ipv6": {
+        "status": 201,
+        "body": {
+          "client_id": "86_1v-Bh8ysj79H-",
+          "redirect_uris": [
+            "http://[::1]:33420/callback"
+          ],
+          "client_name": "mcp-oauth-audit 2026-10-27 native-ipv6",
+          "grant_types": [
+            "authorization_code",
+            "refresh_token"
+          ],
+          "response_types": [
+            "code"
+          ],
+          "token_endpoint_auth_method": "none",
+          "client_id_issued_at": 1793090943
+        }
+      },
+      "web": {
+        "status": 201,
+        "body": {
+          "client_id": "VsSMD8d4ZIkTo7QA",
+          "redirect_uris": [
+            "https://claude.ai/api/mcp/auth_callback"
+          ],
+          "client_name": "mcp-oauth-audit 2026-10-27 web-claude-ai-like",
+          "grant_types": [
+            "authorization_code",
+            "refresh_token"
+          ],
+          "response_types": [
+            "code"
+          ],
+          "token_endpoint_auth_method": "none",
+          "client_id_issued_at": 1793090943
+        }
+      },
+      "extraGrants": {
+        "status": 400,
+        "body": {
+          "error": "invalid_client_metadata",
+          "error_description": "Unsupported grant_type: client_credentials"
+        }
+      },
+      "httpNonLoopback": {
+        "status": 400,
+        "body": {
+          "error": "invalid_client_metadata",
+          "error_description": "Redirect URI must use https, or http on a loopback host"
+        }
+      },
+      "noAuthMethod": {
+        "status": 201,
+        "body": {
+          "client_id": "E3xMmmflMNuIylz2",
+          "redirect_uris": [
+            "http://127.0.0.1:33422/callback"
+          ],
+          "client_name": "mcp-oauth-audit 2026-10-27 no-auth-method",
+          "grant_types": [
+            "authorization_code",
+            "refresh_token"
+          ],
+          "response_types": [
+            "code"
+          ],
+          "token_endpoint_auth_method": "client_secret_basic",
+          "client_id_issued_at": 1793090943,
+          "client_secret": "[redacted]",
+          "client_secret_expires_at": 1800866943,
+          "client_secret_issued_at": 1793090943
+        }
+      }
+    },
+    "authorize": [
+      {
+        "name": "baseline",
+        "status": 200,
+        "location": null,
+        "body": "<!doctype html><html lang=\"en\"><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1,viewport-fit=cover\"><meta name=\"referrer\" content=\"no-referrer\"><meta name=\"theme"
+      },
+      {
+        "name": "no-pkce",
+        "status": 302,
+        "location": "http://localhost:33418/callback?error=invalid_request&error_description=Public+clients+must+use+PKCE+with+the+authorization+code+flow.&state=[redacted]&iss=https%3A%2F%2Ftestnet.trynod.si",
+        "body": ""
+      },
+      {
+        "name": "plain-pkce",
+        "status": 302,
+        "location": "http://localhost:33418/callback?error=invalid_request&error_description=The+plain+PKCE+method+is+not+allowed.+Use+S256+instead.&state=[redacted]&iss=https%3A%2F%2Ftestnet.trynod.si",
+        "body": ""
+      },
+      {
+        "name": "foreign-resource",
+        "status": 302,
+        "location": "http://localhost:33418/callback?error=invalid_target&error_description=The+resource+parameter+must+name+exactly+one+configured+protected+resource&state=[redacted]&iss=https%3A%2F%2Ftestnet.trynod.si",
+        "body": ""
+      },
+      {
+        "name": "no-resource",
+        "status": 200,
+        "location": null,
+        "body": "<!doctype html><html lang=\"en\"><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1,viewport-fit=cover\"><meta name=\"referrer\" content=\"no-referrer\"><meta name=\"theme"
+      },
+      {
+        "name": "unregistered-redirect",
+        "status": 400,
+        "location": null,
+        "body": "<!doctype html><html lang=\"en\"><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1,viewport-fit=cover\"><meta name=\"referrer\" content=\"no-referrer\"><meta name=\"theme"
+      },
+      {
+        "name": "loopback-other-port",
+        "status": 200,
+        "location": null,
+        "body": "<!doctype html><html lang=\"en\"><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1,viewport-fit=cover\"><meta name=\"referrer\" content=\"no-referrer\"><meta name=\"theme"
+      },
+      {
+        "name": "unknown-client",
+        "status": 400,
+        "location": null,
+        "body": "<!doctype html><html lang=\"en\"><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1,viewport-fit=cover\"><meta name=\"referrer\" content=\"no-referrer\"><meta name=\"theme"
+      }
+    ],
+    "token": [
+      {
+        "name": "bogus-code",
+        "status": 400,
+        "headers": {
+          "content-type": "application/json",
+          "cache-control": "no-store"
+        },
+        "body": {
+          "error": "invalid_grant",
+          "error_description": "Invalid authorization code format"
+        }
+      },
+      {
+        "name": "bogus-refresh",
+        "status": 400,
+        "headers": {
+          "content-type": "application/json",
+          "cache-control": "no-store"
+        },
+        "body": {
+          "error": "invalid_grant",
+          "error_description": "Invalid token format"
+        }
+      },
+      {
+        "name": "client-credentials-public",
+        "status": 400,
+        "headers": {
+          "content-type": "application/json",
+          "cache-control": "no-store"
+        },
+        "body": {
+          "error": "unsupported_grant_type",
+          "error_description": "Grant type not supported"
+        }
+      }
+    ],
+    "revoke": {
+      "status": 200,
+      "body": ""
+    }
+  },
+  "challenge": {
+    "post": {
+      "status": 401,
+      "wwwAuthenticate": "Bearer realm=\"OAuth\", resource_metadata=\"https://testnet.trynod.si/.well-known/oauth-protected-resource/mcp\", scope=\"wallet\"",
+      "parsed": {
+        "realm": "OAuth",
+        "resource_metadata": "https://testnet.trynod.si/.well-known/oauth-protected-resource/mcp",
+        "scope": "wallet"
+      },
+      "body": ""
+    },
+    "get": {
+      "status": 401,
+      "wwwAuthenticate": "Bearer realm=\"OAuth\", resource_metadata=\"https://testnet.trynod.si/.well-known/oauth-protected-resource/mcp\", scope=\"wallet\""
+    },
+    "invalidToken": {
+      "status": 401,
+      "wwwAuthenticate": "Bearer realm=\"OAuth\", resource_metadata=\"https://testnet.trynod.si/.well-known/oauth-protected-resource/mcp\", error=\"invalid_token\", scope=\"wallet\""
+    },
+    "forgedJwt": {
+      "status": 401,
+      "wwwAuthenticate": "Bearer realm=\"OAuth\", resource_metadata=\"https://testnet.trynod.si/.well-known/oauth-protected-resource/mcp\", error=\"invalid_token\", scope=\"wallet\""
+    }
+  },
+  "prm": [
+    {
+      "url": "https://testnet.trynod.si/.well-known/oauth-protected-resource/mcp",
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "resource": "https://testnet.trynod.si/mcp",
+        "authorization_servers": [
+          "https://testnet.trynod.si"
+        ],
+        "scopes_supported": [
+          "wallet"
+        ],
+        "bearer_methods_supported": [
+          "header"
+        ],
+        "resource_name": "Nod"
+      }
+    },
+    {
+      "url": "https://testnet.trynod.si/.well-known/oauth-protected-resource",
+      "status": 404,
+      "headers": {},
+      "body": ""
+    }
+  ],
+  "prmWithOrigin": {
+    "status": 200,
+    "acao": "https://audit.example"
+  },
+  "as": [
+    {
+      "issuer": "https://testnet.trynod.si",
+      "tries": [
+        {
+          "url": "https://testnet.trynod.si/.well-known/oauth-authorization-server",
+          "status": 200,
+          "issuer": "https://testnet.trynod.si",
+          "contentType": "application/json"
+        },
+        {
+          "url": "https://testnet.trynod.si/.well-known/openid-configuration",
+          "status": 200,
+          "contentType": "text/html"
+        }
+      ],
+      "bareRoot": {
+        "status": 200,
+        "issuer": "https://testnet.trynod.si"
+      },
+      "selected": "https://testnet.trynod.si/.well-known/oauth-authorization-server",
+      "fields": {
+        "issuer": "https://testnet.trynod.si",
+        "authorization_endpoint": "https://testnet.trynod.si/authorize",
+        "token_endpoint": "https://testnet.trynod.si/oauth/token",
+        "registration_endpoint": "https://testnet.trynod.si/oauth/register",
+        "revocation_endpoint": "https://testnet.trynod.si/oauth/token",
+        "introspection_endpoint": null,
+        "jwks_uri": null,
+        "response_types_supported": [
+          "code"
+        ],
+        "grant_types_supported": [
+          "authorization_code",
+          "refresh_token"
+        ],
+        "code_challenge_methods_supported": [
+          "S256"
+        ],
+        "token_endpoint_auth_methods_supported": [
+          "client_secret_basic",
+          "client_secret_post",
+          "none",
+          "private_key_jwt"
+        ],
+        "scopes_supported": [
+          "wallet",
+          "offline_access"
+        ],
+        "client_id_metadata_document_supported": true,
+        "authorization_response_iss_parameter_supported": true,
+        "dpop_signing_alg_values_supported": null,
+        "response_modes_supported": [
+          "query"
+        ],
+        "resource_indicators_supported": null,
+        "protected_resources": [
+          "https://testnet.trynod.si/mcp"
+        ]
+      }
+    }
+  ],
+  "http": {
+    "prm": {
+      "status": 301,
+      "location": "https://testnet.trynod.si/.well-known/oauth-protected-resource"
+    },
+    "token": {
+      "status": 301,
+      "location": "https://testnet.trynod.si/oauth/token"
+    },
+    "hsts": "max-age=31536000; includeSubDomains"
+  },
+  "findings": [
+    "odd: https://testnet.trynod.si/.well-known/openid-configuration answers 200 text/html (not JSON)"
+  ]
+}

@@ -1,0 +1,138 @@
+{
+  "label": "nod-mainnet",
+  "mcpUrl": "https://trynod.si/mcp",
+  "at": "2026-10-27T08:49:01.277Z",
+  "active": false,
+  "challenge": {
+    "post": {
+      "status": 401,
+      "wwwAuthenticate": "Bearer realm=\"OAuth\", resource_metadata=\"https://trynod.si/.well-known/oauth-protected-resource/mcp\", scope=\"wallet\"",
+      "parsed": {
+        "realm": "OAuth",
+        "resource_metadata": "https://trynod.si/.well-known/oauth-protected-resource/mcp",
+        "scope": "wallet"
+      },
+      "body": ""
+    },
+    "get": {
+      "status": 401,
+      "wwwAuthenticate": "Bearer realm=\"OAuth\", resource_metadata=\"https://trynod.si/.well-known/oauth-protected-resource/mcp\", scope=\"wallet\""
+    },
+    "invalidToken": {
+      "status": 401,
+      "wwwAuthenticate": "Bearer realm=\"OAuth\", resource_metadata=\"https://trynod.si/.well-known/oauth-protected-resource/mcp\", error=\"invalid_token\", scope=\"wallet\""
+    },
+    "forgedJwt": {
+      "status": 401,
+      "wwwAuthenticate": "Bearer realm=\"OAuth\", resource_metadata=\"https://trynod.si/.well-known/oauth-protected-resource/mcp\", error=\"invalid_token\", scope=\"wallet\""
+    }
+  },
+  "prm": [
+    {
+      "url": "https://trynod.si/.well-known/oauth-protected-resource/mcp",
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "resource": "https://trynod.si/mcp",
+        "authorization_servers": [
+          "https://trynod.si"
+        ],
+        "scopes_supported": [
+          "wallet"
+        ],
+        "bearer_methods_supported": [
+          "header"
+        ],
+        "resource_name": "Nod"
+      }
+    },
+    {
+      "url": "https://trynod.si/.well-known/oauth-protected-resource",
+      "status": 404,
+      "headers": {},
+      "body": ""
+    }
+  ],
+  "prmWithOrigin": {
+    "status": 200,
+    "acao": "https://audit.example"
+  },
+  "as": [
+    {
+      "issuer": "https://trynod.si",
+      "tries": [
+        {
+          "url": "https://trynod.si/.well-known/oauth-authorization-server",
+          "status": 200,
+          "issuer": "https://trynod.si",
+          "contentType": "application/json"
+        },
+        {
+          "url": "https://trynod.si/.well-known/openid-configuration",
+          "status": 200,
+          "contentType": "text/html"
+        }
+      ],
+      "bareRoot": {
+        "status": 200,
+        "issuer": "https://trynod.si"
+      },
+      "selected": "https://trynod.si/.well-known/oauth-authorization-server",
+      "fields": {
+        "issuer": "https://trynod.si",
+        "authorization_endpoint": "https://trynod.si/authorize",
+        "token_endpoint": "https://trynod.si/oauth/token",
+        "registration_endpoint": "https://trynod.si/oauth/register",
+        "revocation_endpoint": "https://trynod.si/oauth/token",
+        "introspection_endpoint": null,
+        "jwks_uri": null,
+        "response_types_supported": [
+          "code"
+        ],
+        "grant_types_supported": [
+          "authorization_code",
+          "refresh_token"
+        ],
+        "code_challenge_methods_supported": [
+          "S256"
+        ],
+        "token_endpoint_auth_methods_supported": [
+          "client_secret_basic",
+          "client_secret_post",
+          "none",
+          "private_key_jwt"
+        ],
+        "scopes_supported": [
+          "wallet",
+          "offline_access"
+        ],
+        "client_id_metadata_document_supported": true,
+        "authorization_response_iss_parameter_supported": true,
+        "dpop_signing_alg_values_supported": null,
+        "response_modes_supported": [
+          "query"
+        ],
+        "resource_indicators_supported": null,
+        "protected_resources": [
+          "https://trynod.si/mcp"
+        ]
+      }
+    }
+  ],
+  "http": {
+    "prm": {
+      "status": 301,
+      "location": "https://trynod.si/.well-known/oauth-protected-resource"
+    },
+    "token": {
+      "status": 301,
+      "location": "https://trynod.si/oauth/token"
+    },
+    "hsts": "max-age=31536000; includeSubDomains"
+  },
+  "findings": [
+    "odd: https://trynod.si/.well-known/openid-configuration answers 200 text/html (not JSON)"
+  ]
+}

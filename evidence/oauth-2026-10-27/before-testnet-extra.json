@@ -1,0 +1,120 @@
+{
+  "label": "nod-testnet",
+  "at": "2026-10-27T08:53:51.191Z",
+  "resource": "https://testnet.trynod.si/mcp",
+  "scope": "wallet",
+  "dcr": {
+    "deviceCodeExtra": {
+      "status": 400,
+      "error": "invalid_client_metadata",
+      "error_description": "Unsupported grant_type: urn:ietf:params:oauth:grant-type:device_code"
+    },
+    "jwtBearerExtra": {
+      "status": 400,
+      "error": "invalid_client_metadata",
+      "error_description": "Unsupported grant_type: urn:ietf:params:oauth:grant-type:jwt-bearer"
+    },
+    "vscodeShape": {
+      "status": 400,
+      "error": "invalid_client_metadata",
+      "error_description": "Unsupported grant_type: urn:ietf:params:oauth:grant-type:device_code"
+    },
+    "customScheme": {
+      "status": 400,
+      "error": "invalid_client_metadata",
+      "error_description": "Redirect URI must use https, or http on a loopback host"
+    },
+    "ipLoopback": {
+      "status": 201,
+      "client_id": "hMzgMArz-6IySNtz",
+      "grant_types": [
+        "authorization_code",
+        "refresh_token"
+      ],
+      "redirect_uris": [
+        "http://127.0.0.1:33431/callback"
+      ]
+    }
+  },
+  "authorize": {
+    "ipSamePort": {
+      "status": 200,
+      "ms": 89,
+      "location": null,
+      "error": null,
+      "error_description": "<!doctype html><html lang=\"en\"><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1,viewport-fit=cover\"><meta name=\"referrer\""
+    },
+    "ipOtherPort": {
+      "status": 200,
+      "ms": 161,
+      "location": null,
+      "error": null,
+      "error_description": "<!doctype html><html lang=\"en\"><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1,viewport-fit=cover\"><meta name=\"referrer\""
+    },
+    "ipOtherPath": {
+      "status": 400,
+      "ms": 28,
+      "location": null,
+      "error": null,
+      "error_description": "<!doctype html><html lang=\"en\"><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1,viewport-fit=cover\"><meta name=\"referrer\""
+    },
+    "uppercaseResource": {
+      "status": 200,
+      "ms": 108,
+      "location": null,
+      "error": null,
+      "error_description": "<!doctype html><html lang=\"en\"><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1,viewport-fit=cover\"><meta name=\"referrer\""
+    },
+    "trailingSlashResource": {
+      "status": 302,
+      "ms": 25,
+      "location": "http://127.0.0.1:33431/callback",
+      "error": "invalid_target",
+      "error_description": "The resource parameter must name exactly one configured protected resource"
+    },
+    "originResource": {
+      "status": 302,
+      "ms": 74,
+      "location": "http://127.0.0.1:33431/callback",
+      "error": "invalid_target",
+      "error_description": "The resource parameter must name exactly one configured protected resource"
+    }
+  },
+  "cimd": {
+    "https://claude.ai/oauth/mcp-oauth-client-metadata": {
+      "status": 200,
+      "ms": 343,
+      "location": null,
+      "error": null,
+      "error_description": "<!doctype html><html lang=\"en\"><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1,viewport-fit=cover\"><meta name=\"referrer\""
+    },
+    "https://chatgpt.com/oauth/client.json": {
+      "status": 200,
+      "ms": 167,
+      "location": null,
+      "error": null,
+      "error_description": "<!doctype html><html lang=\"en\"><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1,viewport-fit=cover\"><meta name=\"referrer\""
+    },
+    "https://chatgpt.com/oauth/codex/client.json": {
+      "status": 200,
+      "ms": 147,
+      "location": null,
+      "error": null,
+      "error_description": "<!doctype html><html lang=\"en\"><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1,viewport-fit=cover\"><meta name=\"referrer\""
+    },
+    "https://vscode.dev/oauth/client-metadata.json": {
+      "status": 200,
+      "ms": 278,
+      "location": null,
+      "error": null,
+      "error_description": "<!doctype html><html lang=\"en\"><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1,viewport-fit=cover\"><meta name=\"referrer\""
+    },
+    "https://audit.example/client-metadata.json": {
+      "status": 400,
+      "ms": 50,
+      "location": null,
+      "error": null,
+      "error_description": "<!doctype html><html lang=\"en\"><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1,viewport-fit=cover\"><meta name=\"referrer\""
+    }
+  }
+}

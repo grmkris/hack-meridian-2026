@@ -1,0 +1,20 @@
+{
+  "at": "2026-10-27 09:13:38 UTC",
+  "stage": "testnet",
+  "method": "Durable Object SQL; exact client IDs and audit-name guard",
+  "deleted_clients": [
+    "4ruXaSuJw_XO6LJd",
+    "CDFtXBI5i-G6J8qD",
+    "86_1v-Bh8ysj79H-",
+    "VsSMD8d4ZIkTo7QA",
+    "E3xMmmflMNuIylz2",
+    "hMzgMArz-6IySNtz",
+    "yQ-wiAUj2ZhPOtD4",
+    "nUDK7BtRlFyeE2AS"
+  ],
+  "remaining_clients": 0,
+  "remaining_grants": 0,
+  "remaining_tokens": 0,
+  "consent_transactions": "Unsigned authorization pages created encrypted consent transactions with a 600-second TTL; no signed-in testnet flow or grant was created. Expired transaction rows were not scanned or deleted.",
+  "mainnet_writes": false
+}
