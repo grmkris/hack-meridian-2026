@@ -3,6 +3,7 @@ import { Effect, Schema } from 'effect'
 import {
   AuthorizationError,
   CimdFetchError,
+  insufficientScope,
   type OAuthHelpers,
   OAuthProvider,
   type OAuthProviderOptions,
@@ -21,7 +22,7 @@ import { OwnerError, checkAssertion, requireWallet, walletOfSession, sessionToke
 import { type Chrome, consentGrantPage, consentSignInPage, html, messagePage, type ConsentView } from './pages.ts'
 import { ConnectionProps, type ConnectionMetadata } from './props.ts'
 import type { AppRuntime } from './runtime.ts'
-import { createConnection, createPendingGrant, pendingGrant } from './store.ts'
+import { connectionById, createConnection, createPendingGrant, pendingGrant } from './store.ts'
 import { siteOf } from './wallet-settings.ts'
 
 /**
@@ -335,10 +336,31 @@ export const serveMcpRequest = async (
   {
     // SAFETY: OAuthProvider calls the API handler with an OAuthResourceContext (ExecutionContext + props + auth).
     const ctx = context as OAuthResourceContext<unknown>
-    const props = Schema.decodeUnknownOption(ConnectionProps)(ctx.props)
-    if (props._tag === 'None')
-      return Response.json({ error: 'this token predates the current wallet; reconnect' }, { status: 401 })
     const site = await runtime.runPromise(siteOf(request))
+    const invalidToken = () =>
+      Response.json(
+        { error: 'invalid_token' },
+        {
+          status: 401,
+          headers: {
+            'cache-control': 'no-store',
+            'www-authenticate': `Bearer error="invalid_token", resource_metadata="${site.origin}/.well-known/oauth-protected-resource/mcp", scope="wallet"`,
+          },
+        },
+      )
+    const props = Schema.decodeUnknownOption(ConnectionProps)(ctx.props)
+    if (props._tag === 'None') return invalidToken()
+    // D1 is authoritative for connection revocation. Provider token deletion may fail after this state commits.
+    const connection = await runtime.runPromise(connectionById(props.value.connection_id))
+    if (
+      connection === undefined ||
+      connection.status !== 'active' ||
+      connection.owner_id !== props.value.owner_id ||
+      connection.wallet_id !== props.value.wallet_id ||
+      connection.oauth_client_id !== props.value.client_id
+    )
+      return invalidToken()
+    if (!ctx.auth.scope.includes('wallet')) return insufficientScope(ctx.auth, ['wallet'])
     // The Worker's request id (worker.ts gave this Request object its context): every mcp.tool line and each tool
     // result's _meta carry it (mcp-tools.ts runTool reads it from the context).
     const toolContext = { props: props.value, origin: site.origin, requestId: requestContext(request).requestId }
@@ -371,7 +393,29 @@ export const providerOptions = <Env>(
     resource_name: 'Nod',
   },
   clientIdMetadataDocumentEnabled: true,
-  accessTokenTTL: 3600,
+  // Every listed DCR callback follows Nod's MCP policy, even when another callback in the list is usable.
+  // The provider has already checked URI syntax, userinfo and fragments before invoking this policy callback.
+  clientRegistrationCallback: ({ clientMetadata }) => {
+    const redirects = Schema.decodeUnknownOption(Schema.Array(Schema.String))(clientMetadata['redirect_uris'])
+    if (
+      redirects._tag === 'None' ||
+      redirects.value.some(uri => {
+        const url = new URL(uri)
+        const ipv4 = /^127\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/u.exec(url.hostname)
+        const loopback =
+          ['localhost', '[::1]'].includes(url.hostname) ||
+          (ipv4 !== null && ipv4.slice(1).every(octet => Number(octet) <= 255))
+        return url.protocol !== 'https:' && !(url.protocol === 'http:' && loopback)
+      })
+    )
+      return {
+        code: 'invalid_client_metadata',
+        description: 'Every redirect URI must use HTTPS or HTTP loopback.',
+      }
+    return undefined
+  },
+  // The provider issues refresh tokens without requiring offline_access; resource scopes stay wallet-only.
+  accessTokenTTL: 900,
 })
 
 export { OAuthProvider }

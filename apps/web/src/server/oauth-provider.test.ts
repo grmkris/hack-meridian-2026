@@ -92,4 +92,26 @@ describe('DCR capability negotiation through the installed OAuth provider', () =
     }
     expect(p.values.size).toBe(0)
   })
+
+  test.each([
+    'http://audit.example/callback',
+    'http://127.evil.example/callback',
+    'http://127.999.999.999/callback',
+    'cursor://anysphere.cursor-mcp/oauth/callback',
+  ])('refuses the entire registration when a mixed list includes %s', async redirect => {
+    const p = provider()
+    const response = await p.register({ redirect_uris: ['https://audit.example/callback', redirect] })
+    expect(response.status).toBe(400)
+    expect(await response.json()).toMatchObject({ error: 'invalid_client_metadata' })
+    expect(p.values.size).toBe(0)
+  })
+
+  test.each(['http://localhost:1234/callback', 'http://127.0.0.1:1234/callback', 'http://[::1]:1234/callback'])(
+    'allows %s alongside an HTTPS callback without application_type',
+    async redirect => {
+      const p = provider()
+      const response = await p.register({ redirect_uris: ['https://audit.example/callback', redirect] })
+      expect(response.status).toBe(201)
+    },
+  )
 })

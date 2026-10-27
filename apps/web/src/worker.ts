@@ -41,6 +41,8 @@ const defaultHandler = {
     if (path === '/authorize') return authorize(runtime, request, requestEnv)
     if (path === '/oauth/grant/prepare' && request.method === 'POST') return prepareGrant(runtime, request)
     if (path === STELLAR_TOML_PATH) return stellarToml(request, requestEnv)
+    // The provider has handled supported OAuth discovery; unknown documents must not become the SPA.
+    if (path.startsWith('/.well-known/')) return Promise.resolve(new Response(null, { status: 404 }))
     const owner = ownerRoute(runtime, request, path)
     if (owner !== undefined) return owner
     const sample = sampleRoute(runtime, request, path, requestEnv)
