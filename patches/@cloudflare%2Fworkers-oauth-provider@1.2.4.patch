@@ -1,0 +1,22 @@
+diff --git a/dist/oauth-provider.js b/dist/oauth-provider.js
+index aaf2a96399dde60629487889449d2364f2ac74ab..92863c18503d41e233e755b5ea27a47e34eb8f5b 100644
+--- a/dist/oauth-provider.js
++++ b/dist/oauth-provider.js
+@@ -135,7 +135,7 @@ function negotiateCimdTokenEndpointAuthMethods(server, preferredMethod, supporte
+ */
+ function negotiateDynamicClientRegistrationCapabilities(server, client) {
+ 	const effective = {
+-		grantTypes: [...client.grantTypes],
++		grantTypes: client.grantTypes.filter((grantType) => server.grantTypes.includes(grantType)),
+ 		responseTypes: [...client.responseTypes],
+ 		tokenEndpointAuthMethod: negotiateTokenEndpointAuthMethod({
+ 			acceptedMethods: server.tokenEndpointAuthMethods,
+@@ -145,6 +145,8 @@ function negotiateDynamicClientRegistrationCapabilities(server, client) {
+ 			context: "Client"
+ 		})
+ 	};
++	// RFC 7591 section 3.2.1; https://github.com/cloudflare/workers-oauth-provider/issues/422
++	if (effective.grantTypes.length === 0) throw new Error("No supported grant_types requested");
+ 	validateClientCapabilities(server, effective);
+ 	return effective;
+ }

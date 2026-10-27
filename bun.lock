@@ -128,6 +128,9 @@
       },
     },
   },
+  "patchedDependencies": {
+    "@cloudflare/workers-oauth-provider@1.2.4": "patches/@cloudflare%2Fworkers-oauth-provider@1.2.4.patch",
+  },
   "overrides": {
     "@effect/platform-browser": "4.0.5",
     "@effect/platform-bun": "4.0.5",

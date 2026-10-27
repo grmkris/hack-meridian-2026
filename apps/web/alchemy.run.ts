@@ -186,6 +186,7 @@ const BUILD_INPUTS = [
   '../../packages/stellar/src/**',
   '../../packages/counter-client/dist/**',
   '../../contracts/deployments/**',
+  '../../patches/**',
 ]
 
 export default Alchemy.Stack(

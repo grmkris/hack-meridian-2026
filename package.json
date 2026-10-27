@@ -64,5 +64,8 @@
     "@effect/platform-bun": "4.0.5",
     "@effect/vitest": "4.0.5",
     "vite": "8.3.5"
+  },
+  "patchedDependencies": {
+    "@cloudflare/workers-oauth-provider@1.2.4": "patches/@cloudflare%2Fworkers-oauth-provider@1.2.4.patch"
   }
 }
