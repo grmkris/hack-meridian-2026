@@ -51,6 +51,7 @@
     "playwright-core": "1.64.1",
     "repoagents": "1.1.0",
     "sharp": "0.35.5",
+    "tsrs": "0.18.0-ts7.1.0-dev.20260929",
     "typescript": "7.0.2",
     "vite": "8.3.5",
     "vitest": "5.0.5"

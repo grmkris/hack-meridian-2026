@@ -1,0 +1,3 @@
+#!/bin/sh
+# The TypeScript 7 extension starts this launcher with --lsp --stdio. tsrs 0.18 does not ship its own tsdk yet.
+exec "$(dirname "$0")/../../node_modules/.bin/tsrs" "$@"

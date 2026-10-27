@@ -19,6 +19,9 @@ For maintenance, use [architecture decisions](BUILD-PLAN.md), [deployment](DEPLO
 [mainnet record](MAINNET.md). The [bootstrap funding table](mainnet-funding.md) is a historical reference for scripts.
 Contributor rules live in [AGENTS.md](../AGENTS.md).
 
+Developer setup, including the pinned TypeScript and oxlint servers for VS Code, Cursor, Zed and Neovim, is in
+[development](development.md).
+
 Research and spike reports are dated observations. They retain superseded assumptions where those explain an
 experiment; the result reports and later receipts take precedence. Obsolete schedules and work queues are in Git
 history. Private scratch under `.local/` is ignored and is not required to read these public docs.

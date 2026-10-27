@@ -1,0 +1,18 @@
+{
+  "lsp": {
+    "typescript-ls": {
+      "binary": { "path": "node_modules/.bin/tsrs", "arguments": ["--lsp", "--stdio"] }
+    }
+  },
+  "languages": {
+    "TypeScript": {
+      "language_servers": ["typescript-ls", "oxlint", "!vtsls", "!typescript-language-server", "..."]
+    },
+    "TSX": {
+      "language_servers": ["typescript-ls", "oxlint", "!vtsls", "!typescript-language-server", "..."]
+    },
+    "JavaScript": {
+      "language_servers": ["typescript-ls", "oxlint", "!vtsls", "!typescript-language-server", "..."]
+    }
+  }
+}
