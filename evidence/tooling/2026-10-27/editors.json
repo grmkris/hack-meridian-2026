@@ -1,0 +1,58 @@
+{
+  "vscodeCursor": {
+    "server": {
+      "name": "typescript",
+      "version": "7.1.0-dev.20260930.4"
+    },
+    "error": null,
+    "diagnostics": [
+      "45:2322 Type 'string' is not assignable to type 'number'.",
+      "45:7027 Unreachable code detected."
+    ],
+    "seededFound": true,
+    "hover": "{\"kind\":\"markdown\",\"value\":\"```typescript\\nconst zzLspSeed: number\\n```\\n\"}",
+    "ms": 232
+  },
+  "zed": {
+    "server": {
+      "name": "typescript",
+      "version": "7.1.0-dev.20260930.4"
+    },
+    "error": null,
+    "diagnostics": [
+      "50:2322 Type 'string' is not assignable to type 'number'."
+    ],
+    "seededFound": true,
+    "hover": "{\"kind\":\"markdown\",\"value\":\"```typescript\\nconst zzLspSeed: number\\n```\\n\"}",
+    "ms": 162
+  },
+  "oxlint": {
+    "server": {
+      "name": "oxlint",
+      "version": "1.89.0"
+    },
+    "error": null,
+    "diagnostics": [
+      "50:foldkit(no-empty-commands-array) Return { model } instead of the literal { model, commands: [] }. Return a computed Commands collection directly, even when it may be empty.",
+      "51:typescript(no-floating-promises) Promises must be awaited, add void operator to ignore."
+    ],
+    "seededFound": true,
+    "ms": 452
+  },
+  "neovim": {
+    "diagnostics": [
+      "45 oxc typescript(no-floating-promises)",
+      "44 ts 2322",
+      "44 ts 7027"
+    ],
+    "attached": [
+      "oxlint",
+      "tsrs"
+    ],
+    "server": {
+      "name": "typescript",
+      "version": "7.1.0-dev.20260930.4"
+    },
+    "hover": "```typescript\nconst zzSeed: number\n```\n"
+  }
+}

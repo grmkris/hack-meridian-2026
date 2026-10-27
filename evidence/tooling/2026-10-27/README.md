@@ -53,3 +53,31 @@ The requested upgrade requires identical diagnostics across all nine projects, s
 remain unchanged. A temporary `export const seededTypeError: string = 123` in `scripts/` caused the existing
 `bun run typecheck` gate to exit 1 with TS2322. Any future 0.2.2 adoption must explicitly pass `--type-check`, preserve
 this failure behavior and resolve or accept the diagnostic differences first. No `node_modules` patching was used.
+
+## Editor and local acceptance
+
+The [headless editor results](editors.json) exercise the actual configured commands on source-file overlays:
+
+- `.vscode/tsrs/tsgo --lsp --stdio`: seeded TS2322 and hover, matching the VS Code/Cursor launcher.
+- `node_modules/.bin/tsrs --lsp --stdio`: seeded TS2322 and hover, matching Zed's command.
+- `node_modules/.bin/oxlint --lsp` with the verified backend environment: both the type-aware floating-promise rule
+  and the Foldkit JavaScript plugin rule reject their seeded violations.
+- Neovim 0.12.6 headless, with the documented snippet verbatim: `tsrs` and `oxlint` attached, TS2322,
+  `no-floating-promises`, and hover all observed. No VS Code, Cursor or Zed GUI acceptance is claimed.
+
+A seventh tooling test keeps the VS Code backend path synchronized with the release pin. Effect diagnostics still
+come from `bun run typecheck`; the editor compiler is the separate pinned `tsrs` devDependency.
+
+Local workerd acceptance used `bun run dev` and `HM_URL=http://localhost:18961 bun run smoke:local`:
+[all nine HTTP checks passed](smoke-local.json), including OAuth protected-resource/authorization metadata, PKCE S256,
+anonymous MCP rejection and the owner session gate. Port 18960 was occupied, so this run temporarily changed only
+the local development port to 18961 in the owned worktree. That change was removed and the owned server stopped.
+No port or infrastructure change is committed. This is local workerd evidence; no remote deployment was performed.
+
+The full `heavy bun run check` passed for the lint adoption and editor source. It covers format, agent configuration,
+generated cards and skill manifest, full lint, all nine typecheck projects, JavaScript tests (including OAuth/consent),
+Rust formatting/clippy and 24 contract tests, plus the production web build. The existing build warning for a chunk
+over 500 kB remains. Contract unit tests are not onchain execution evidence.
+
+Delivery note: tooling only. No Worker behavior, binding, route, migration or contract change needs deployment.
+Expected runtime metadata differences are none; a future authorized release naturally updates its commit metadata.

@@ -43,6 +43,19 @@ describe('tsrs-lint pin and cache', () => {
     expect(assetUrl('x86_64-unknown-linux-gnu')).toContain(TSRS_LINT.tag)
   })
 
+  test('the editor backend path follows the release pin', () => {
+    const text = readFileSync(new URL('../.vscode/settings.json', import.meta.url), 'utf8')
+    const settings: unknown = JSON.parse(
+      text
+        .split('\n')
+        .filter(line => !line.trim().startsWith('//'))
+        .join('\n'),
+    )
+    expect(settings).toMatchObject({
+      'oxc.path.tsgolint': `\${userHome}/.cache/tsrs-lint/${TSRS_LINT.tag}/tsrs-lint`,
+    })
+  })
+
   test('uses the XDG cache and verifies a download', async () => {
     const body = Buffer.from('#!/bin/sh\necho tsrs-lint\n')
     const base = await serve(body)
