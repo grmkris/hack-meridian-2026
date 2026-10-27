@@ -1,0 +1,637 @@
+{
+  "base": "a721d10bd915731a232d484e293ce9d5bea26c53",
+  "commands": {
+    "lint": "node_modules/.bin/oxlint --type-aware --deny-warnings -f json",
+    "effect020": "effect-tsrs diagnostics -p PROJECT --strict --format json",
+    "effect022": "effect-tsrs diagnostics -p PROJECT --strict --format json --type-check"
+  },
+  "measurement": "Linux wait4 child usage: monotonic wall seconds, total child user/system CPU seconds, maximum resident set in KiB (not summed process-tree memory); sequential runs in one heavy slot; single samples on a shared host.",
+  "lint": {
+    "stock": {
+      "files": 310,
+      "diagnostics": [],
+      "metrics": {
+        "wall_seconds": 10.197,
+        "user_seconds": 26.596,
+        "system_seconds": 3.812,
+        "max_rss_kib": 1161668,
+        "exit_code": 0
+      },
+      "canaryDiagnostics": [
+        {
+          "message": "Return { model } instead of the literal { model, commands: [] }. Return a computed Commands collection directly, even when it may be empty.",
+          "code": "foldkit(no-empty-commands-array)",
+          "severity": "error",
+          "filename": "apps/web/src/hm-tsrs-canary.ts",
+          "labels": [
+            {
+              "span": {
+                "offset": 39,
+                "length": 12,
+                "line": 1,
+                "column": 40
+              }
+            }
+          ]
+        },
+        {
+          "message": "Promises must be awaited, add void operator to ignore.",
+          "code": "typescript(no-floating-promises)",
+          "severity": "error",
+          "url": "https://oxc.rs/docs/guide/usage/linter/rules/typescript/no-floating-promises.html",
+          "help": "The promise must end with a call to .catch, or end with a call to .then with a rejection handler, or be explicitly marked as ignored with the `void` operator.",
+          "filename": "apps/web/src/hm-tsrs-canary.ts",
+          "labels": [
+            {
+              "label": "This unhandled promise-like value has type `Promise<string>`.",
+              "span": {
+                "offset": 55,
+                "length": 28,
+                "line": 2,
+                "column": 1
+              }
+            },
+            {
+              "span": {
+                "offset": 55,
+                "length": 28,
+                "line": 2,
+                "column": 1
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "pinned": {
+      "files": 310,
+      "diagnostics": [],
+      "metrics": {
+        "wall_seconds": 7.211,
+        "user_seconds": 15.01,
+        "system_seconds": 1.564,
+        "max_rss_kib": 822084,
+        "exit_code": 0
+      },
+      "canaryDiagnostics": [
+        {
+          "message": "Return { model } instead of the literal { model, commands: [] }. Return a computed Commands collection directly, even when it may be empty.",
+          "code": "foldkit(no-empty-commands-array)",
+          "severity": "error",
+          "filename": "apps/web/src/hm-tsrs-canary.ts",
+          "labels": [
+            {
+              "span": {
+                "offset": 39,
+                "length": 12,
+                "line": 1,
+                "column": 40
+              }
+            }
+          ]
+        },
+        {
+          "message": "Promises must be awaited, add void operator to ignore.",
+          "code": "typescript(no-floating-promises)",
+          "severity": "error",
+          "url": "https://oxc.rs/docs/guide/usage/linter/rules/typescript/no-floating-promises.html",
+          "help": "The promise must end with a call to .catch, or end with a call to .then with a rejection handler, or be explicitly marked as ignored with the `void` operator.",
+          "filename": "apps/web/src/hm-tsrs-canary.ts",
+          "labels": [
+            {
+              "label": "This unhandled promise-like value has type `Promise<string>`.",
+              "span": {
+                "offset": 55,
+                "length": 28,
+                "line": 2,
+                "column": 1
+              }
+            },
+            {
+              "span": {
+                "offset": 55,
+                "length": 28,
+                "line": 2,
+                "column": 1
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "effect": [
+    {
+      "project": "tsconfig.json",
+      "oldSummary": {
+        "filesChecked": 79,
+        "errors": 0,
+        "warnings": 0,
+        "messages": 16
+      },
+      "newSummary": {
+        "filesChecked": 50,
+        "filesWithoutPlugin": 0,
+        "totalFiles": 50,
+        "errors": 0,
+        "warnings": 0,
+        "messages": 3
+      },
+      "oldMetrics": {
+        "wall_seconds": 1.176,
+        "user_seconds": 1.022,
+        "system_seconds": 0.115,
+        "max_rss_kib": 139624,
+        "exit_code": 0
+      },
+      "newMetrics": {
+        "wall_seconds": 0.426,
+        "user_seconds": 1.038,
+        "system_seconds": 0.195,
+        "max_rss_kib": 176368,
+        "exit_code": 0
+      },
+      "identical": false,
+      "only020": [
+        {
+          "file": "packages/stellar/src/soroban.ts",
+          "start": 4195,
+          "length": 14,
+          "line": 100,
+          "column": 7,
+          "endLine": 100,
+          "endColumn": 21,
+          "severity": "message",
+          "code": 377120,
+          "name": "flatMapConditionalToFilterOrFail",
+          "message": "`Effect.filterOrFail` expresses this conditional validation more directly than `Effect.flatMap` with an identity `Effect.succeed` branch."
+        },
+        {
+          "file": "packages/stellar/src/soroban.ts",
+          "start": 5030,
+          "length": 14,
+          "line": 122,
+          "column": 7,
+          "endLine": 122,
+          "endColumn": 21,
+          "severity": "message",
+          "code": 377120,
+          "name": "flatMapConditionalToFilterOrFail",
+          "message": "`Effect.filterOrFail` expresses this conditional validation more directly than `Effect.flatMap` with an identity `Effect.succeed` branch."
+        },
+        {
+          "file": "packages/api/src/index.ts",
+          "start": 3732,
+          "length": 8,
+          "line": 76,
+          "column": 50,
+          "endLine": 76,
+          "endColumn": 58,
+          "severity": "message",
+          "code": 377141,
+          "name": "schemaClassMissingBrand",
+          "message": "Add `{ readonly brand: unique symbol }` as the second type argument. Without a brand, TypeScript may accept structurally compatible values where this class instance type is expected."
+        },
+        {
+          "file": "apps/web/src/backend/backend.ts",
+          "start": 406,
+          "length": 9,
+          "line": 18,
+          "column": 51,
+          "endLine": 18,
+          "endColumn": 60,
+          "severity": "message",
+          "code": 377141,
+          "name": "schemaClassMissingBrand",
+          "message": "Add `{ readonly brand: unique symbol }` as the second type argument. Without a brand, TypeScript may accept structurally compatible values where this class instance type is expected."
+        },
+        {
+          "file": "packages/api/src/index.ts",
+          "start": 3626,
+          "length": 10,
+          "line": 75,
+          "column": 52,
+          "endLine": 75,
+          "endColumn": 62,
+          "severity": "message",
+          "code": 377141,
+          "name": "schemaClassMissingBrand",
+          "message": "Add `{ readonly brand: unique symbol }` as the second type argument. Without a brand, TypeScript may accept structurally compatible values where this class instance type is expected."
+        },
+        {
+          "file": "packages/api/src/index.ts",
+          "start": 3030,
+          "length": 11,
+          "line": 66,
+          "column": 53,
+          "endLine": 66,
+          "endColumn": 64,
+          "severity": "message",
+          "code": 377141,
+          "name": "schemaClassMissingBrand",
+          "message": "Add `{ readonly brand: unique symbol }` as the second type argument. Without a brand, TypeScript may accept structurally compatible values where this class instance type is expected."
+        },
+        {
+          "file": "packages/api/src/index.ts",
+          "start": 3880,
+          "length": 11,
+          "line": 78,
+          "column": 53,
+          "endLine": 78,
+          "endColumn": 64,
+          "severity": "message",
+          "code": 377141,
+          "name": "schemaClassMissingBrand",
+          "message": "Add `{ readonly brand: unique symbol }` as the second type argument. Without a brand, TypeScript may accept structurally compatible values where this class instance type is expected."
+        },
+        {
+          "file": "packages/api/src/index.ts",
+          "start": 3405,
+          "length": 12,
+          "line": 73,
+          "column": 54,
+          "endLine": 73,
+          "endColumn": 66,
+          "severity": "message",
+          "code": 377141,
+          "name": "schemaClassMissingBrand",
+          "message": "Add `{ readonly brand: unique symbol }` as the second type argument. Without a brand, TypeScript may accept structurally compatible values where this class instance type is expected."
+        },
+        {
+          "file": "apps/web/src/backend/backend.ts",
+          "start": 584,
+          "length": 13,
+          "line": 20,
+          "column": 55,
+          "endLine": 20,
+          "endColumn": 68,
+          "severity": "message",
+          "code": 377141,
+          "name": "schemaClassMissingBrand",
+          "message": "Add `{ readonly brand: unique symbol }` as the second type argument. Without a brand, TypeScript may accept structurally compatible values where this class instance type is expected."
+        },
+        {
+          "file": "apps/web/src/backend/backend.ts",
+          "start": 803,
+          "length": 14,
+          "line": 22,
+          "column": 56,
+          "endLine": 22,
+          "endColumn": 70,
+          "severity": "message",
+          "code": 377141,
+          "name": "schemaClassMissingBrand",
+          "message": "Add `{ readonly brand: unique symbol }` as the second type argument. Without a brand, TypeScript may accept structurally compatible values where this class instance type is expected."
+        },
+        {
+          "file": "packages/api/src/index.ts",
+          "start": 4408,
+          "length": 14,
+          "line": 91,
+          "column": 56,
+          "endLine": 91,
+          "endColumn": 70,
+          "severity": "message",
+          "code": 377141,
+          "name": "schemaClassMissingBrand",
+          "message": "Add `{ readonly brand: unique symbol }` as the second type argument. Without a brand, TypeScript may accept structurally compatible values where this class instance type is expected."
+        },
+        {
+          "file": "packages/api/src/index.ts",
+          "start": 3228,
+          "length": 16,
+          "line": 68,
+          "column": 58,
+          "endLine": 68,
+          "endColumn": 74,
+          "severity": "message",
+          "code": 377141,
+          "name": "schemaClassMissingBrand",
+          "message": "Add `{ readonly brand: unique symbol }` as the second type argument. Without a brand, TypeScript may accept structurally compatible values where this class instance type is expected."
+        },
+        {
+          "file": "packages/stellar/src/auth.ts",
+          "start": 6983,
+          "length": 17,
+          "line": 153,
+          "column": 59,
+          "endLine": 153,
+          "endColumn": 76,
+          "severity": "message",
+          "code": 377141,
+          "name": "schemaClassMissingBrand",
+          "message": "Add `{ readonly brand: unique symbol }` as the second type argument. Without a brand, TypeScript may accept structurally compatible values where this class instance type is expected."
+        }
+      ],
+      "only022": [],
+      "typescript020": [],
+      "typescript022": []
+    },
+    {
+      "project": "packages/api/tsconfig.json",
+      "oldSummary": {
+        "filesChecked": 1,
+        "errors": 0,
+        "warnings": 0,
+        "messages": 7
+      },
+      "newSummary": {
+        "filesChecked": 1,
+        "filesWithoutPlugin": 0,
+        "totalFiles": 1,
+        "errors": 0,
+        "warnings": 0,
+        "messages": 7
+      },
+      "oldMetrics": {
+        "wall_seconds": 0.297,
+        "user_seconds": 0.241,
+        "system_seconds": 0.066,
+        "max_rss_kib": 62440,
+        "exit_code": 0
+      },
+      "newMetrics": {
+        "wall_seconds": 0.172,
+        "user_seconds": 0.271,
+        "system_seconds": 0.11,
+        "max_rss_kib": 88048,
+        "exit_code": 0
+      },
+      "identical": true,
+      "only020": [],
+      "only022": [],
+      "typescript020": [],
+      "typescript022": []
+    },
+    {
+      "project": "apps/web/tsconfig.json",
+      "oldSummary": {
+        "filesChecked": 73,
+        "errors": 0,
+        "warnings": 0,
+        "messages": 8
+      },
+      "newSummary": {
+        "filesChecked": 73,
+        "filesWithoutPlugin": 0,
+        "totalFiles": 73,
+        "errors": 0,
+        "warnings": 0,
+        "messages": 8
+      },
+      "oldMetrics": {
+        "wall_seconds": 1.7,
+        "user_seconds": 1.561,
+        "system_seconds": 0.133,
+        "max_rss_kib": 167908,
+        "exit_code": 0
+      },
+      "newMetrics": {
+        "wall_seconds": 0.641,
+        "user_seconds": 1.948,
+        "system_seconds": 0.254,
+        "max_rss_kib": 252908,
+        "exit_code": 0
+      },
+      "identical": true,
+      "only020": [],
+      "only022": [],
+      "typescript020": [],
+      "typescript022": []
+    },
+    {
+      "project": "apps/web/tsconfig.worker.json",
+      "oldSummary": {
+        "filesChecked": 120,
+        "errors": 0,
+        "warnings": 0,
+        "messages": 56
+      },
+      "newSummary": {
+        "filesChecked": 120,
+        "filesWithoutPlugin": 0,
+        "totalFiles": 120,
+        "errors": 0,
+        "warnings": 0,
+        "messages": 55
+      },
+      "oldMetrics": {
+        "wall_seconds": 1.589,
+        "user_seconds": 1.505,
+        "system_seconds": 0.086,
+        "max_rss_kib": 116200,
+        "exit_code": 0
+      },
+      "newMetrics": {
+        "wall_seconds": 0.873,
+        "user_seconds": 2.474,
+        "system_seconds": 0.19,
+        "max_rss_kib": 189448,
+        "exit_code": 0
+      },
+      "identical": false,
+      "only020": [
+        {
+          "file": "apps/web/src/qr-decode.ts",
+          "start": 106,
+          "length": 8,
+          "line": 4,
+          "column": 50,
+          "endLine": 4,
+          "endColumn": 58,
+          "severity": "message",
+          "code": 377141,
+          "name": "schemaClassMissingBrand",
+          "message": "Add `{ readonly brand: unique symbol }` as the second type argument. Without a brand, TypeScript may accept structurally compatible values where this class instance type is expected."
+        }
+      ],
+      "only022": [],
+      "typescript020": [],
+      "typescript022": []
+    },
+    {
+      "project": "apps/web/tsconfig.infra.json",
+      "oldSummary": {
+        "filesChecked": 1,
+        "errors": 0,
+        "warnings": 0,
+        "messages": 0
+      },
+      "newSummary": {
+        "filesChecked": 1,
+        "filesWithoutPlugin": 0,
+        "totalFiles": 1,
+        "errors": 0,
+        "warnings": 0,
+        "messages": 0
+      },
+      "oldMetrics": {
+        "wall_seconds": 1.037,
+        "user_seconds": 0.789,
+        "system_seconds": 0.244,
+        "max_rss_kib": 255160,
+        "exit_code": 0
+      },
+      "newMetrics": {
+        "wall_seconds": 0.441,
+        "user_seconds": 0.967,
+        "system_seconds": 0.327,
+        "max_rss_kib": 284772,
+        "exit_code": 0
+      },
+      "identical": true,
+      "only020": [],
+      "only022": [],
+      "typescript020": [],
+      "typescript022": []
+    },
+    {
+      "project": "packages/protocol/tsconfig.json",
+      "oldSummary": {
+        "filesChecked": 8,
+        "errors": 0,
+        "warnings": 0,
+        "messages": 1
+      },
+      "newSummary": {
+        "filesChecked": 8,
+        "filesWithoutPlugin": 0,
+        "totalFiles": 8,
+        "errors": 0,
+        "warnings": 0,
+        "messages": 1
+      },
+      "oldMetrics": {
+        "wall_seconds": 0.28,
+        "user_seconds": 0.231,
+        "system_seconds": 0.069,
+        "max_rss_kib": 59880,
+        "exit_code": 0
+      },
+      "newMetrics": {
+        "wall_seconds": 0.189,
+        "user_seconds": 0.306,
+        "system_seconds": 0.111,
+        "max_rss_kib": 84840,
+        "exit_code": 0
+      },
+      "identical": true,
+      "only020": [],
+      "only022": [],
+      "typescript020": [],
+      "typescript022": []
+    },
+    {
+      "project": "packages/stellar/tsconfig.json",
+      "oldSummary": {
+        "filesChecked": 22,
+        "errors": 0,
+        "warnings": 0,
+        "messages": 3
+      },
+      "newSummary": {
+        "filesChecked": 22,
+        "filesWithoutPlugin": 0,
+        "totalFiles": 22,
+        "errors": 0,
+        "warnings": 0,
+        "messages": 3
+      },
+      "oldMetrics": {
+        "wall_seconds": 0.466,
+        "user_seconds": 0.396,
+        "system_seconds": 0.07,
+        "max_rss_kib": 78044,
+        "exit_code": 0
+      },
+      "newMetrics": {
+        "wall_seconds": 0.24,
+        "user_seconds": 0.442,
+        "system_seconds": 0.103,
+        "max_rss_kib": 105852,
+        "exit_code": 0
+      },
+      "identical": true,
+      "only020": [],
+      "only022": [],
+      "typescript020": [],
+      "typescript022": []
+    },
+    {
+      "project": "packages/stellar/tsconfig.test.json",
+      "oldSummary": {
+        "filesChecked": 39,
+        "errors": 0,
+        "warnings": 0,
+        "messages": 7
+      },
+      "newSummary": {
+        "filesChecked": 38,
+        "filesWithoutPlugin": 0,
+        "totalFiles": 38,
+        "errors": 0,
+        "warnings": 0,
+        "messages": 7
+      },
+      "oldMetrics": {
+        "wall_seconds": 0.838,
+        "user_seconds": 0.716,
+        "system_seconds": 0.121,
+        "max_rss_kib": 118504,
+        "exit_code": 0
+      },
+      "newMetrics": {
+        "wall_seconds": 0.445,
+        "user_seconds": 0.922,
+        "system_seconds": 0.241,
+        "max_rss_kib": 156404,
+        "exit_code": 0
+      },
+      "identical": true,
+      "only020": [],
+      "only022": [],
+      "typescript020": [],
+      "typescript022": []
+    },
+    {
+      "project": "apps/seller/tsconfig.json",
+      "oldSummary": {
+        "filesChecked": 9,
+        "errors": 0,
+        "warnings": 0,
+        "messages": 0
+      },
+      "newSummary": {
+        "filesChecked": 9,
+        "filesWithoutPlugin": 0,
+        "totalFiles": 9,
+        "errors": 0,
+        "warnings": 0,
+        "messages": 0
+      },
+      "oldMetrics": {
+        "wall_seconds": 0.278,
+        "user_seconds": 0.205,
+        "system_seconds": 0.058,
+        "max_rss_kib": 52676,
+        "exit_code": 0
+      },
+      "newMetrics": {
+        "wall_seconds": 0.175,
+        "user_seconds": 0.231,
+        "system_seconds": 0.109,
+        "max_rss_kib": 56996,
+        "exit_code": 0
+      },
+      "identical": true,
+      "only020": [],
+      "only022": [],
+      "typescript020": [],
+      "typescript022": []
+    }
+  ],
+  "decision": {
+    "tsrsLint": "adopt: identical full-config and canary findings",
+    "effectTsrs": "retain 0.2.0: 0.2.2 --type-check is not identical for root and Worker projects"
+  }
+}

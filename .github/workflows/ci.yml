@@ -32,4 +32,6 @@ jobs:
       - name: Rust components
         run: rustup component add clippy rustfmt
       - run: bun install --frozen-lockfile
+      - name: Fetch and verify pinned type-aware lint backend
+        run: bun scripts/tsrs-lint.ts
       - run: bun run check

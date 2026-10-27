@@ -1,5 +1,6 @@
 {
   "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "options": { "typeAware": true },
   "plugins": ["typescript", "unicorn", "oxc", "import", "promise", "vitest"],
   "categories": { "correctness": "error", "suspicious": "error" },
   "env": { "es2024": true },
