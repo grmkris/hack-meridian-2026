@@ -3,10 +3,13 @@
 Master file; `CLAUDE.md` is a symlink to it. Nested instructions (load the ones you touch): [apps/web](apps/web/AGENTS.md),
 [contracts](contracts/AGENTS.md).
 
-A Stellar hackathon entry. Submissions close **Mon 26 Oct 2026 12:00 Lisbon = 12:00 UTC = 13:00 on this box (CET)**;
-judges see the demo video, pitch deck, this public repository and its README. The product is specified in
-[docs/SPEC.md](docs/SPEC.md); the risky parts are proven in `spikes/` per [docs/SPIKES.md](docs/SPIKES.md). Those
-two areas belong to the orchestrating session: read them, do not edit them unless that is your task.
+**Nod**: a Stellar wallet inside AI chats, live on mainnet at trynod.si (judges' sandbox: testnet.trynod.si). The
+HackMeridian submission closed 26 Oct 2026. **Nod moves into Sidequest v2** (`~/code/sidequestv2`); until that port is
+done this repo is maintenance only: keep trynod.si running and fix what breaks, no new features (2026-10-30).
+
+The product is specified in [docs/SPEC.md](docs/SPEC.md); the risky parts are proven in `spikes/` per
+[docs/SPIKES.md](docs/SPIKES.md). Those two areas belong to the orchestrating session: read them, do not edit them
+unless that is your task.
 
 ## Layout
 
